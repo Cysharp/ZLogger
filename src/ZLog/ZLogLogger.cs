@@ -1,4 +1,4 @@
-﻿ using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 using ZLog.Entries;
@@ -8,12 +8,12 @@ namespace ZLog
     internal class ZLogLogger : ILogger
     {
         readonly string categoryName;
-        readonly AsyncStreamLineMessageWriter broker;
+        readonly AsyncStreamLineMessageWriter streamWriter;
 
-        public ZLogLogger(string categoryName, AsyncStreamLineMessageWriter broker)
+        public ZLogLogger(string categoryName, AsyncStreamLineMessageWriter streamWriter)
         {
             this.categoryName = categoryName;
-            this.broker = broker;
+            this.streamWriter = streamWriter;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
@@ -23,11 +23,11 @@ namespace ZLog
             if (state is IZLogState zstate)
             {
                 var entry = zstate.CreateLogEntry(info);
-                broker.Post(entry);
+                streamWriter.Post(entry);
             }
             else
             {
-                broker.Post(StringFormatterEntry<TState>.Create(info, state, exception, formatter));
+                streamWriter.Post(StringFormatterEntry<TState>.Create(info, state, exception, formatter));
             }
         }
 

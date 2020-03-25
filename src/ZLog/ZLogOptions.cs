@@ -13,5 +13,17 @@ namespace ZLog
         public Action<IBufferWriter<byte>, LogInfo>? SuffixFormatter { get; set; }
         public Action<Exception>? ErrorLogger { get; set; }
         public CancellationToken CancellationToken { get; set; }
+
+        internal void LogException(Exception ex)
+        {
+            if (ErrorLogger == null)
+            {
+                Console.WriteLine(ex);
+            }
+            else
+            {
+                ErrorLogger(ex);
+            }
+        }
     }
 }

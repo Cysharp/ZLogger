@@ -55,5 +55,34 @@ namespace ZLog
 
             return builder;
         }
+
+        /// <param name="fileNameSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
+        /// <param name="timestampPattern">DateTimeOffset is write time of message(UTC). If pattern is different previously then roll new file.</param>
+        /// <param name="rollSizeKB">Limit size of single file.</param>
+        public static ILoggingBuilder AddZLogRollingFile(this ILoggingBuilder builder, Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB)
+        {
+            builder.AddConfiguration();
+
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, ZLogRollingFileLoggerProvider>(x => new ZLogRollingFileLoggerProvider(fileNameSelector, timestampPattern, rollSizeKB, x.GetService<IOptions<ZLogOptions>>())));
+            LoggerProviderOptions.RegisterProviderOptions<ZLogOptions, ZLogRollingFileLoggerProvider>(builder.Services);
+
+            return builder;
+        }
+
+        /// <param name="fileNameSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
+        /// <param name="timestampPattern">DateTimeOffset is write time of message(UTC). If pattern is different previously then roll new file.</param>
+        /// <param name="rollSizeKB">Limit size of single file.</param>
+        public static ILoggingBuilder AddZLogRollingFile(this ILoggingBuilder builder, Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, Action<ZLogOptions> configure)
+        {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            builder.AddZLogRollingFile(fileNameSelector, timestampPattern, rollSizeKB);
+            builder.Services.Configure(configure);
+
+            return builder;
+        }
     }
 }

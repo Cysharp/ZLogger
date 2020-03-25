@@ -2,19 +2,21 @@
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading;
 
 namespace ZLog.Providers
 {
-    [ProviderAlias("ZLogConsole")]
-    public class ZLogConsoleLoggerProvider : ILoggerProvider
+    [ProviderAlias("ZLogRollingFile")]
+    public class ZLogRollingFileLoggerProvider : ILoggerProvider
     {
         AsyncStreamLineMessageWriter streamWriter;
 
-        public ZLogConsoleLoggerProvider(IOptions<ZLogOptions> options)
+        public ZLogRollingFileLoggerProvider(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, IOptions<ZLogOptions> options)
         {
-            this.streamWriter = new AsyncStreamLineMessageWriter(Console.OpenStandardOutput(), options.Value);
+            var stream = new RollingFilestream(fileNameSelector, timestampPattern, rollSizeKB, options.Value);
+            this.streamWriter = new AsyncStreamLineMessageWriter(stream, options.Value);
         }
 
         public ILogger CreateLogger(string categoryName)
