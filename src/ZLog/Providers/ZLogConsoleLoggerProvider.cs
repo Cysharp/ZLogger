@@ -1,9 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 
 namespace ZLog.Providers
 {
@@ -24,7 +21,6 @@ namespace ZLog.Providers
 
         public void Dispose()
         {
-            // TODO:flush wait timeout?
             streamWriter.DisposeAsync().AsTask().Wait();
         }
     }

@@ -19,23 +19,15 @@ namespace ConsoleApp
                     logging.ClearProviders();
                     logging.SetMinimumLevel(LogLevel.Trace);
 
+                    /*
                     logging.AddZLogRollingFile((dt, x) => $"logs/{dt.ToLocalTime():yyyy-MM-dd_HH-mm-ss}_{x:000}.log",
                         x => { var time = x.ToLocalTime(); return new DateTimeOffset(time.Year, time.Month, time.Day, 0, 0, 0, time.Second, TimeSpan.Zero); },
                         1024);
+                        */
 
                     logging.AddZLogConsole(options =>
                     {
-                        options.PrefixFormatter = (writer, state) =>
-                        {
-                            using (var sb = ZString.CreateUtf8StringBuilder())
-                            {
-                                sb.AppendFormat("{0} {1} Message:", state.Timestamp.ToLocalTime(), state.CategoryName);
-
-                                var dest = writer.GetSpan(sb.Length);
-                                sb.TryCopyTo(dest, out var written);
-                                writer.Advance(written);
-                            }
-                        };
+                        options.UseDefaultStructuredLogFormatter();
 
                     });
                 })
@@ -53,10 +45,20 @@ namespace ConsoleApp
         public void Run()
         {
             logger.LogDebug("foooooo  {0} {1}", 10, 20);
-            Thread.Sleep(TimeSpan.FromSeconds(3));
-            logger.ZDebug("foo{0} {1}", 100, 200);
-            logger.ZDebug(new { Foo = "foo!", Bar = "bar!" });
-            logger.ZDebug(new Takoyaki { Foo = "e-!", Bar = "b-!" });
+
+            //logger.ZLog(LogLevel.Debug, "hogehoge", 100,);
+
+            // logger.ZDebug(obj, "foo{0} {1}", 100, 200);
+            // Message: foo 100 200, Payload:{hoge:100, fafa:200}
+
+            //var obj = new { Foo = "foo!", Bar = "bar!" };
+            //logger.ZDebug(obj, x => ("Id:{0}", x.Id));
+
+            // { PayloadObject:Serialize(obj), Message:Format() }
+            
+
+
+            //logger.ZDebug(new Takoyaki { Foo = "e-!", Bar = "b-!" });
         }
     }
 

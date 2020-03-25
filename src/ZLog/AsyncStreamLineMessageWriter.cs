@@ -94,12 +94,14 @@ namespace ZLog
                     {
                         while (reader.TryRead(out var value))
                         {
-                            options.PrefixFormatter?.Invoke(writer, value.LogInfo);
+                            var info = value.LogInfo;
 
-                            value.FormatUtf8(writer);
+                            options.PrefixFormatter?.Invoke(writer, info);
+
+                            value.FormatUtf8(writer, options.RequireJavaScriptEncode);
                             value.Return();
 
-                            options.SuffixFormatter?.Invoke(writer, value.LogInfo);
+                            options.SuffixFormatter?.Invoke(writer, info);
 
                             AppendLine(writer);
                         }

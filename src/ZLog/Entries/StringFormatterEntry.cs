@@ -34,8 +34,10 @@ namespace ZLog.Entries
             return entry;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer)
+        public void FormatUtf8(IBufferWriter<byte> writer, bool requireJavaScriptEncode)
         {
+            // TODO:handle requireJavaScriptEncode
+
             var str = formatter(state, exception);
             var memory = writer.GetMemory(Encoding.UTF8.GetMaxByteCount(str.Length));
             MemoryMarshal.TryGetArray<byte>(memory, out var segment);

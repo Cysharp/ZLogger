@@ -26,7 +26,6 @@ namespace ZLog.Providers
 
         public void Dispose()
         {
-            // TODO:flush wait timeout?
             streamWriter.DisposeAsync().AsTask().Wait();
         }
     }

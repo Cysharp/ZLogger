@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
-using System.Threading.Tasks;
 using ZLog.Entries;
 
 namespace ZLog
@@ -18,29 +17,28 @@ namespace ZLog
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
-
             if (state is IZLogState zstate)
             {
+                var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception, zstate.IsJson);
                 var entry = zstate.CreateLogEntry(info);
                 streamWriter.Post(entry);
             }
             else
             {
+                var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception, false);
                 streamWriter.Post(StringFormatterEntry<TState>.Create(info, state, exception, formatter));
             }
         }
 
         public IDisposable BeginScope<TState>(TState state)
         {
-            //TODO:scope
+            // currently scope is not supported...
             return NUllDisposable.Instance;
         }
 
         public bool IsEnabled(LogLevel logLevel)
         {
-            // TODO:isEnabled
-            return true;
+            return logLevel != LogLevel.None;
         }
 
         class NUllDisposable : IDisposable

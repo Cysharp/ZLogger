@@ -10,6 +10,8 @@ namespace ZLog.Entries
         public readonly T1 Arg1;
         public readonly T2 Arg2;
 
+        public bool IsJson => false;
+
         public FormatLogState(string format, T1 arg1, T2 arg2)
         {
             Format = format;
@@ -47,8 +49,11 @@ namespace ZLog.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer)
+        public void FormatUtf8(IBufferWriter<byte> writer, bool requireJavaScriptEncode)
         {
+            // TODO:handle , bool requireJavaScriptEncode
+            // System.Text.Encodings.Web.JavaScriptEncoder.Default.EncodeUtf8(
+
             // TODO: ZString.FormatUtf8(writer);
             using (var sb = ZString.CreateUtf8StringBuilder(true))
             {
