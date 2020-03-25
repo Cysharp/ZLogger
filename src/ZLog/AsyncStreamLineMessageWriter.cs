@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ZLog
 {
-    internal class LoggerBroker : IAsyncDisposable
+    internal class AsyncStreamLineMessageWriter : IAsyncDisposable
     {
         readonly byte[] newLine;
         readonly bool crlf;
@@ -16,11 +16,12 @@ namespace ZLog
         readonly byte newLine2;
 
         readonly Stream stream;
-        readonly Channel<IUtf8LogEntry> channel;
+        readonly Channel<IZLogEntry> channel;
         readonly Task writeLoop;
         readonly CancellationTokenSource cancellationTokenSource;
+        readonly ZLogOptions options;
 
-        public LoggerBroker(CancellationToken cancellationToken = default)
+        public AsyncStreamLineMessageWriter(Stream stream, ZLogOptions options)
         {
             this.newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
             if (newLine.Length == 1)
@@ -38,11 +39,12 @@ namespace ZLog
                 this.crlf = true;
             }
 
-            this.cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            this.stream = Console.OpenStandardOutput();
-            this.channel = Channel.CreateUnbounded<IUtf8LogEntry>(new UnboundedChannelOptions
+            this.options = options;
+            this.cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(options.CancellationToken);
+            this.stream = stream;
+            this.channel = Channel.CreateUnbounded<IZLogEntry>(new UnboundedChannelOptions
             {
-                AllowSynchronousContinuations = true,
+                AllowSynchronousContinuations = false, // always should be in async loop.
                 SingleWriter = false,
                 SingleReader = true,
             });
@@ -51,13 +53,13 @@ namespace ZLog
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Post(IUtf8LogEntry log)
+        public void Post(IZLogEntry log)
         {
             channel.Writer.TryWrite(log);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        void AppendLine(ConsoleStreamBufferWriter writer)
+        void AppendLine(StreamBufferWriter writer)
         {
             if (writer.TryGetForNewLine(out var buffer, out var index))
             {
@@ -82,20 +84,42 @@ namespace ZLog
 
         async Task WriteLoop()
         {
-            var writer = new ConsoleStreamBufferWriter(stream);
+            var writer = new StreamBufferWriter(stream);
             var reader = channel.Reader;
             try
             {
                 while (await reader.WaitToReadAsync(cancellationTokenSource.Token).ConfigureAwait(false))
                 {
-                    while (reader.TryRead(out var value))
+                    try
                     {
-                        value.FormatUtf8(writer);
-                        value.Return();
-                        AppendLine(writer);
-                    }
+                        while (reader.TryRead(out var value))
+                        {
+                            options.PrefixFormatter?.Invoke(writer, value.LogInfo);
 
-                    writer.Flush(); //flush before wait.
+                            value.FormatUtf8(writer);
+                            value.Return();
+
+                            options.SuffixFormatter?.Invoke(writer, value.LogInfo);
+
+                            AppendLine(writer);
+                        }
+                        writer.Flush(); //flush before wait.
+                    }
+                    catch (Exception ex)
+                    {
+                        try
+                        {
+                            if (options.ErrorLogger != null)
+                            {
+                                options.ErrorLogger(ex);
+                            }
+                            else
+                            {
+                                Console.WriteLine(ex);
+                            }
+                        }
+                        catch { }
+                    }
                 }
             }
             catch (OperationCanceledException)
@@ -113,10 +137,17 @@ namespace ZLog
 
         public async ValueTask DisposeAsync()
         {
-            channel.Writer.Complete();
-            await channel.Reader.Completion;
-            cancellationTokenSource.Cancel();
-            await writeLoop;
+            try
+            {
+                channel.Writer.Complete();
+                await channel.Reader.Completion;
+                cancellationTokenSource.Cancel();
+                await writeLoop;
+            }
+            finally
+            {
+                this.stream.Dispose();
+            }
         }
     }
 }

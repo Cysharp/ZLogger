@@ -5,24 +5,22 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
-namespace ZLog
+namespace ZLog.Providers
 {
-    [ProviderAlias("ZLog")]
-    public class ZLogLoggerProvider : ILoggerProvider
+    [ProviderAlias("ZLogConsole")]
+    public class ZLogConsoleLoggerProvider : ILoggerProvider
     {
         // ZLogOptions options;
-        LoggerBroker broker;
-        
-        public ZLogLoggerProvider(/* IOptionsMonitor<> */ IOptions<ZLogOptions> options)
+        AsyncStreamLineMessageWriter broker;
+
+        public ZLogConsoleLoggerProvider(IOptions<ZLogOptions> options)
         {
-            //options.CurrentValue
-            // this.options = options;
-            this.broker = new LoggerBroker();
+            this.broker = new AsyncStreamLineMessageWriter(Console.OpenStandardOutput(), options.Value);
         }
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new AsyncBufferedUtf8ConsoleLogger(categoryName, broker);
+            return new ZLogLogger(categoryName, broker);
         }
 
         public void Dispose()

@@ -17,16 +17,20 @@ namespace ConsoleApp
                 {
                     logging.ClearProviders();
                     logging.SetMinimumLevel(LogLevel.Trace);
-                    logging.AddZLog(options =>
+
+                    //logging.AddZLogFile("log.txt");
+
+                    logging.AddZLogConsole(options =>
                     {
-                        options.PrefixFormatter = (writer, level, log, categoryName) =>
+                        options.PrefixFormatter = (writer, state) =>
                         {
-
                             using (var sb = ZString.CreateUtf8StringBuilder())
-                            { 
-                                //sb.AppendFormat("{0} {1}", 
+                            {
+                                sb.AppendFormat("{0} {1} Message:", state.Timestamp, state.CategoryName);
 
-                                
+                                var dest = writer.GetSpan(sb.Length);
+                                sb.TryCopyTo(dest, out var written);
+                                writer.Advance(written);
                             }
                         };
 
@@ -45,6 +49,8 @@ namespace ConsoleApp
 
         public void Run()
         {
+            logger.LogDebug("fo{0}o {1}", 10, 20);
+
             logger.ZDebug("foo{0} {1}", 100, 200);
 
 

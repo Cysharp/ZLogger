@@ -2,6 +2,6 @@
 {
     public interface IZLogState
     {
-        IUtf8LogEntry CreateLogEntry();
+        IZLogEntry CreateLogEntry(LogInfo logInfo);
     }
 }

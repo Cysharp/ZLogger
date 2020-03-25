@@ -12,34 +12,38 @@ namespace ZLog.Entries
             this.payload = payload;
         }
 
-        public IUtf8LogEntry CreateLogEntry()
+        public IZLogEntry CreateLogEntry(LogInfo logInfo)
         {
             // TODO:cache
             // TODO:only JsonLog???
-            return new JsonLogEntry<T>(payload);
+            return new JsonLogEntry<T>(logInfo, payload);
         }
     }
 
-    internal class JsonLogEntry<T> : IUtf8LogEntry
+    internal class JsonLogEntry<T> : IZLogEntry
     {
-        public T State;
+        T state;
 
-        public JsonLogEntry(T state)
+        public LogInfo LogInfo { get; private set; }
+
+        public JsonLogEntry(LogInfo logInfo, T state)
         {
-            this.State = state;
+            this.LogInfo = logInfo;
+            this.state = state;
         }
 
         public void FormatUtf8(IBufferWriter<byte> writer)
         {
             using (var jsonWriter = new Utf8JsonWriter(writer))
             {
-                JsonSerializer.Serialize(jsonWriter, State);
+                JsonSerializer.Serialize(jsonWriter, state);
             }
         }
 
         public void Return()
         {
-            State = default!;
+            LogInfo = default!;
+            state = default!;
         }
     }
 }

@@ -18,7 +18,7 @@ namespace ZLog
 
         public static void ZDebug<T1, T2>(this ILogger logger, string format, T1 arg1, T2 arg2)
         {
-            logger.Log(LogLevel.Debug, default, new LogState<T1, T2>(format, arg1, arg2), null, (state, ex) =>
+            logger.Log(LogLevel.Debug, default, new FormatLogState<T1, T2>(format, arg1, arg2), null, (state, ex) =>
             {
                 // fallback for other logger.
                 return ZString.Format(state.Format, state.Arg1, state.Arg2);

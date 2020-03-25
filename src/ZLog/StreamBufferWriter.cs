@@ -4,20 +4,19 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
 
-
 namespace ZLog
 {
-    internal class ConsoleStreamBufferWriter : IBufferWriter<byte>
+    internal class StreamBufferWriter : IBufferWriter<byte>
     {
-        readonly Stream consoleStream;
+        readonly Stream stream;
 
         byte[] buffer;
         byte[] defaultBuffer;
         int written;
 
-        public ConsoleStreamBufferWriter(Stream consoleStream)
+        public StreamBufferWriter(Stream stream)
         {
-            this.consoleStream = consoleStream;
+            this.stream = stream;
             this.defaultBuffer = this.buffer = new byte[65536];
             this.written = 0;
         }
@@ -40,9 +39,10 @@ namespace ZLog
                 Flush();
             }
 
-            if (buffer.Length > sizeHint)
+            if (buffer.Length - written < sizeHint)
             {
-                ArrayPool<byte>.Shared.Rent(sizeHint);
+                Flush();
+                buffer = ArrayPool<byte>.Shared.Rent(sizeHint);
             }
 
             return new Memory<byte>(buffer, written, buffer.Length - written);
@@ -74,8 +74,9 @@ namespace ZLog
         {
             if (written != 0)
             {
-                // ConsolePal does not support async write, use Write(byte[]) API is most primitive.
-                consoleStream.Write(buffer, 0, written);
+                // sync writer, ConsolePal does not support async write, use Write(byte[]) API is most primitive.
+                stream.Write(buffer, 0, written);
+                stream.Flush();
                 written = 0;
 
                 if (buffer != defaultBuffer)

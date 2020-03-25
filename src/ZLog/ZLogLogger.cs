@@ -1,16 +1,16 @@
-﻿using Microsoft.Extensions.Logging;
+﻿ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 using ZLog.Entries;
 
 namespace ZLog
 {
-    internal class AsyncBufferedUtf8ConsoleLogger : ILogger
+    internal class ZLogLogger : ILogger
     {
         readonly string categoryName;
-        readonly LoggerBroker broker;
+        readonly AsyncStreamLineMessageWriter broker;
 
-        public AsyncBufferedUtf8ConsoleLogger(string categoryName, LoggerBroker broker)
+        public ZLogLogger(string categoryName, AsyncStreamLineMessageWriter broker)
         {
             this.categoryName = categoryName;
             this.broker = broker;
@@ -18,14 +18,16 @@ namespace ZLog
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
+            var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
+
             if (state is IZLogState zstate)
             {
-                var entry = zstate.CreateLogEntry();
+                var entry = zstate.CreateLogEntry(info);
                 broker.Post(entry);
             }
             else
             {
-                broker.Post(StringFormatterEntry<TState>.Create(logLevel, eventId, state, exception, formatter));
+                broker.Post(StringFormatterEntry<TState>.Create(info, state, exception, formatter));
             }
         }
 
