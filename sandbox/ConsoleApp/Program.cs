@@ -42,21 +42,45 @@ namespace ConsoleApp
         }
 
 
-        public void Run()
+        public async Task Run()
         {
-            logger.LogDebug("foooooo  {0} {1}", 10, 20);
+            //logger.LogDebug("foooooo  {0} {1}", 10, 20);
 
             //logger.ZLog(LogLevel.Debug, "hogehoge", 100,);
 
-            // logger.ZDebug(obj, "foo{0} {1}", 100, 200);
+             //logger.ZDebug(obj, "foo{0} {1}", 100, 200);
             // Message: foo 100 200, Payload:{hoge:100, fafa:200}
 
-            //var obj = new { Foo = "foo!", Bar = "bar!" };
-            //logger.ZDebug(obj, x => ("Id:{0}", x.Id));
+            var obj = new { Foo = "foo!", Bar = "bar!" };
 
-            // { PayloadObject:Serialize(obj), Message:Format() }
+            //logger.ZDebug("foo {0}, bar {1}", 100, 200);
+            //logger.ZDebug(obj, "foo {0}, bar {1}", obj.Foo, obj.Bar);
+
+
+
             
 
+
+
+
+
+            
+
+            // logger.ZLogDebug(
+
+            logger.ZLog(LogLevel.Debug, "foo{0}", 100);
+            logger.ZLog(LogLevel.Debug, "foo{0}", 100);
+            logger.ZLog(LogLevel.Debug, "foo{0}", 100);
+            logger.ZLog(LogLevel.Debug, "foo{0}", 100);
+
+            await Task.Delay(TimeSpan.FromSeconds(10));
+            logger.ZLog(LogLevel.Debug, "foo{0}", 100);
+            logger.ZLog(LogLevel.Debug, "foo{0}", 100);
+            logger.ZLog(LogLevel.Debug, "foo{0}", 100);
+            logger.ZLog(LogLevel.Debug, "foo{0}", 100);
+            logger.ZLog(LogLevel.Debug, "foo{0}", 100);
+            logger.ZLog(LogLevel.Debug, "foo{0}", 100);
+            
 
             //logger.ZDebug(new Takoyaki { Foo = "e-!", Bar = "b-!" });
         }

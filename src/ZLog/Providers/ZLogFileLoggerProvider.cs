@@ -21,8 +21,8 @@ namespace ZLog.Providers
                 di.Create();
             }
 
-            // useAsync:false, use sync(in thread) processor
-            var stream = new FileStream(filePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 4096, false);
+            // useAsync:false, use sync(in thread) processor, don't use FileStream buffer(use buffer size = 1).
+            var stream = new FileStream(filePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 1, false);
             this.streamWriter = new AsyncStreamLineMessageWriter(stream, options.Value);
         }
 

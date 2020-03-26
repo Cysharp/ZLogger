@@ -14,4 +14,32 @@
         <PackageReference Include="ZString" Version="1.0.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="Entries\FormatLogEntry.tt">
+        <Generator>TextTemplatingFileGenerator</Generator>
+        <LastGenOutput>FormatLogEntry.cs</LastGenOutput>
+      </None>
+      <None Update="ZLogLoggerExtensions.tt">
+        <Generator>TextTemplatingFileGenerator</Generator>
+        <LastGenOutput>ZLogLoggerExtensions.cs</LastGenOutput>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Entries\FormatLogEntry.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>FormatLogEntry.tt</DependentUpon>
+      </Compile>
+      <Compile Update="ZLogLoggerExtensions.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>ZLogLoggerExtensions.tt</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
 </Project>

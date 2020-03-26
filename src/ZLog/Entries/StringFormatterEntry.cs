@@ -1,9 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 
 namespace ZLog.Entries
 {
@@ -34,15 +34,21 @@ namespace ZLog.Entries
             return entry;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, bool requireJavaScriptEncode)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
         {
-            // TODO:handle requireJavaScriptEncode
-
             var str = formatter(state, exception);
-            var memory = writer.GetMemory(Encoding.UTF8.GetMaxByteCount(str.Length));
-            MemoryMarshal.TryGetArray<byte>(memory, out var segment);
-            var written = Encoding.UTF8.GetBytes(str, 0, str.Length, segment.Array, segment.Offset);
-            writer.Advance(written);
+
+            if (options.IsStructuredLogging && jsonWriter != null)
+            {
+                jsonWriter.WriteString(options.MessagePropertyName, str);
+            }
+            else
+            {
+                var memory = writer.GetMemory(Encoding.UTF8.GetMaxByteCount(str.Length));
+                MemoryMarshal.TryGetArray<byte>(memory, out var segment);
+                var written = Encoding.UTF8.GetBytes(str, 0, str.Length, segment.Array, segment.Offset);
+                writer.Advance(written);
+            }
         }
 
         public void Return()

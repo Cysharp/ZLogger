@@ -1,0 +1,132 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#
+    static string CreateTypeArgument(int i)
+    {
+        return string.Join(", ", Enumerable.Range(0, i).Select(x => "T" + x));
+    }
+
+    static string CreateParameters(int i)
+    {
+        return string.Join(", ", Enumerable.Range(0, i).Select(x => "T" + x + " arg" + x));
+    }
+    
+
+    static string CreateParameterNames(int i)
+    {
+        return string.Join(", ", Enumerable.Range(0, i).Select(x => "arg" + x));
+    }
+
+    static string CreateStateParameterNames(int i)
+    {
+        return string.Join(", ", Enumerable.Range(0, i).Select(x => "state.Arg" + x));
+    }
+
+    string[] logLevels = new[] { "Trace", "Debug", "Information", "Warning", "Error", "Critical" };
+#>
+using System;
+using Cysharp.Text;
+using Microsoft.Extensions.Logging;
+using ZLog.Entries;
+
+namespace ZLog
+{
+    public static partial class ZLogLoggerExtensions
+    {
+<# for(var i = 1; i <= 16; i++) { #>
+        public static void ZLog<<#= CreateTypeArgument(i) #>>(this ILogger logger, LogLevel logLevel, string format, <#= CreateParameters(i) #>)
+        {
+            ZLog<<#= CreateTypeArgument(i) #>>(logger, logLevel, default, null, format, <#= CreateParameterNames(i) #>);
+        }
+
+        public static void ZLog<<#= CreateTypeArgument(i) #>>(this ILogger logger, LogLevel logLevel, EventId eventId, string format, <#= CreateParameters(i) #>)
+        {
+            ZLog<<#= CreateTypeArgument(i) #>>(logger, logLevel, eventId, null, format, <#= CreateParameterNames(i) #>);
+        }
+
+        public static void ZLog<<#= CreateTypeArgument(i) #>>(this ILogger logger, LogLevel logLevel, Exception exception, string format, <#= CreateParameters(i) #>)
+        {
+            ZLog<<#= CreateTypeArgument(i) #>>(logger, logLevel, default, exception, format, <#= CreateParameterNames(i) #>);
+        }
+
+        public static void ZLog<<#= CreateTypeArgument(i) #>>(this ILogger logger, LogLevel logLevel, EventId eventId, Exception? exception, string format, <#= CreateParameters(i) #>)
+        {
+            logger.Log(logLevel, eventId, new FormatLogState<object, <#= CreateTypeArgument(i) #>>(null, format, <#= CreateParameterNames(i) #>), exception, (state, ex) =>
+            {
+                return ZString.Format(state.Format, <#= CreateStateParameterNames(i) #>);
+            });
+        }
+        
+        public static void ZLog<TPayload, <#= CreateTypeArgument(i) #>>(this ILogger logger, LogLevel logLevel, TPayload payload, string format, <#= CreateParameters(i) #>)
+        {
+            ZLog<TPayload, <#= CreateTypeArgument(i) #>>(logger, logLevel, default, null, payload, format, <#= CreateParameterNames(i) #>);
+        }
+
+        public static void ZLog<TPayload, <#= CreateTypeArgument(i) #>>(this ILogger logger, LogLevel logLevel, EventId eventId, TPayload payload, string format, <#= CreateParameters(i) #>)
+        {
+            ZLog<TPayload, <#= CreateTypeArgument(i) #>>(logger, logLevel, eventId, null, payload, format, <#= CreateParameterNames(i) #>);
+        }
+
+        public static void ZLog<TPayload, <#= CreateTypeArgument(i) #>>(this ILogger logger, LogLevel logLevel, Exception exception, TPayload payload, string format, <#= CreateParameters(i) #>)
+        {
+            ZLog<TPayload, <#= CreateTypeArgument(i) #>>(logger, logLevel, default, exception, payload, format, <#= CreateParameterNames(i) #>);
+        }
+
+        public static void ZLog<TPayload, <#= CreateTypeArgument(i) #>>(this ILogger logger, LogLevel logLevel, EventId eventId, Exception? exception, TPayload payload, string format, <#= CreateParameters(i) #>)
+        {
+            logger.Log(logLevel, eventId, new FormatLogState<TPayload, <#= CreateTypeArgument(i) #>>(payload, format, <#= CreateParameterNames(i) #>), exception, (state, ex) =>
+            {
+                return ZString.Format(state.Format, <#= CreateStateParameterNames(i) #>);
+            });
+        }
+
+<# foreach(var logLevel in logLevels) { #>
+        public static void ZLog<#= logLevel #><<#= CreateTypeArgument(i) #>>(this ILogger logger, string format, <#= CreateParameters(i) #>)
+        {
+            ZLog<<#= CreateTypeArgument(i) #>>(logger, LogLevel.<#= logLevel #>, default, null, format, <#= CreateParameterNames(i) #>);
+        }
+
+        public static void ZLog<#= logLevel #><<#= CreateTypeArgument(i) #>>(this ILogger logger, EventId eventId, string format, <#= CreateParameters(i) #>)
+        {
+            ZLog<<#= CreateTypeArgument(i) #>>(logger, LogLevel.<#= logLevel #>, eventId, null, format, <#= CreateParameterNames(i) #>);
+        }
+
+        public static void ZLog<#= logLevel #><<#= CreateTypeArgument(i) #>>(this ILogger logger, Exception exception, string format, <#= CreateParameters(i) #>)
+        {
+            ZLog<<#= CreateTypeArgument(i) #>>(logger, LogLevel.<#= logLevel #>, default, exception, format, <#= CreateParameterNames(i) #>);
+        }
+
+        public static void ZLog<#= logLevel #><<#= CreateTypeArgument(i) #>>(this ILogger logger, EventId eventId, Exception? exception, string format, <#= CreateParameters(i) #>)
+        {
+            ZLog<<#= CreateTypeArgument(i) #>>(logger, LogLevel.<#= logLevel #>, eventId, exception, format, <#= CreateParameterNames(i) #>);
+        }
+
+        public static void ZLog<#= logLevel #><TPayload, <#= CreateTypeArgument(i) #>>(this ILogger logger, TPayload payload, string format, <#= CreateParameters(i) #>)
+        {
+            ZLog<TPayload, <#= CreateTypeArgument(i) #>>(logger, LogLevel.<#= logLevel #>, default, null, payload, format, <#= CreateParameterNames(i) #>);
+        }
+
+        public static void ZLog<#= logLevel #><TPayload, <#= CreateTypeArgument(i) #>>(this ILogger logger, EventId eventId, TPayload payload, string format, <#= CreateParameters(i) #>)
+        {
+            ZLog<TPayload, <#= CreateTypeArgument(i) #>>(logger, LogLevel.<#= logLevel #>, eventId, null, payload, format, <#= CreateParameterNames(i) #>);
+        }
+
+        public static void ZLog<#= logLevel #><TPayload, <#= CreateTypeArgument(i) #>>(this ILogger logger, Exception exception, TPayload payload, string format, <#= CreateParameters(i) #>)
+        {
+            ZLog<TPayload, <#= CreateTypeArgument(i) #>>(logger, LogLevel.<#= logLevel #>, default, exception, payload, format, <#= CreateParameterNames(i) #>);
+        }
+
+        public static void ZLog<#= logLevel #><TPayload, <#= CreateTypeArgument(i) #>>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, <#= CreateParameters(i) #>)
+        {
+            ZLog<TPayload, <#= CreateTypeArgument(i) #>>(logger, LogLevel.<#= logLevel #>, eventId, exception, payload, format, <#= CreateParameterNames(i) #>);
+        }
+
+<# } #>
+
+<# } #>
+    }
+}

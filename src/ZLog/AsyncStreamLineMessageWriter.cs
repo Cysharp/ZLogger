@@ -48,7 +48,7 @@ namespace ZLog
                 SingleWriter = false,
                 SingleReader = true,
             });
-            this.writeLoop = WriteLoop();
+            this.writeLoop = Task.Run(WriteLoop);
         }
 
 
@@ -96,12 +96,35 @@ namespace ZLog
                         {
                             var info = value.LogInfo;
 
-                            options.PrefixFormatter?.Invoke(writer, info);
+                            if (options.IsStructuredLogging)
+                            {
+                                var jsonWriter = options.GetThradStaticUtf8JsonWriter(writer);
+                                try
+                                {
+                                    jsonWriter.WriteStartObject();
 
-                            value.FormatUtf8(writer, options.RequireJavaScriptEncode);
-                            value.Return();
+                                    options.StructuredLoggingFormatter?.Invoke(jsonWriter, info);
+                                    
+                                    value.FormatUtf8(writer, options, jsonWriter);
+                                    value.Return();
 
-                            options.SuffixFormatter?.Invoke(writer, info);
+                                    jsonWriter.WriteEndObject();
+                                    jsonWriter.Flush();
+                                }
+                                finally
+                                {
+                                    jsonWriter.Reset();
+                                }
+                            }
+                            else
+                            {
+                                options.PrefixFormatter?.Invoke(writer, info);
+
+                                value.FormatUtf8(writer, options, null);
+                                value.Return();
+
+                                options.SuffixFormatter?.Invoke(writer, info);
+                            }
 
                             AppendLine(writer);
                         }

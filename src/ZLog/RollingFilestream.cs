@@ -147,7 +147,8 @@ namespace ZLog
                         {
                             di.Create();
                         }
-                        innerStream = new FileStream(fileName, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 4096, false);
+                        // useAsync:false, use sync(in thread) processor, don't use FileStream buffer(use buffer size = 1).
+                        innerStream = new FileStream(fileName, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 1, false);
                     }
                     catch (Exception ex)
                     {

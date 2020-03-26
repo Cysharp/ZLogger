@@ -15,6 +15,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{BA8EAC7A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZLog.Tests", "tests\ZLog.Tests\ZLog.Tests.csproj", "{F4ADB9AC-E3FF-40D2-9538-D3DE600EECB6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmark", "sandbox\Benchmark\Benchmark.csproj", "{D817C5DF-B922-4697-A84A-A16241D076EC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{F4ADB9AC-E3FF-40D2-9538-D3DE600EECB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F4ADB9AC-E3FF-40D2-9538-D3DE600EECB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F4ADB9AC-E3FF-40D2-9538-D3DE600EECB6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D817C5DF-B922-4697-A84A-A16241D076EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D817C5DF-B922-4697-A84A-A16241D076EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D817C5DF-B922-4697-A84A-A16241D076EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D817C5DF-B922-4697-A84A-A16241D076EC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -41,6 +47,7 @@ Global
 		{72C3035E-A0F8-4B05-B6AB-3C177CF3F79D} = {108EBE73-8E8B-4BC8-ACBB-FB97D2B64B2E}
 		{54C5F84D-31C0-4337-AA68-F4D00255407C} = {87C57843-6AA8-462F-B383-0E756D1E389C}
 		{F4ADB9AC-E3FF-40D2-9538-D3DE600EECB6} = {BA8EAC7A-0D94-4EE2-A8F5-3998D73E3325}
+		{D817C5DF-B922-4697-A84A-A16241D076EC} = {87C57843-6AA8-462F-B383-0E756D1E389C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D6093B62-9CF6-4344-8924-80BF89EEB4BA}

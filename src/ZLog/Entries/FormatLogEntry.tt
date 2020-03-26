@@ -1,0 +1,125 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#
+    static string CreateTypeArgument(int i)
+    {
+        return string.Join(", ", Enumerable.Range(0, i).Select(x => "T" + x));
+    }
+
+    static string CreateParameters(int i)
+    {
+        return string.Join(", ", Enumerable.Range(0, i).Select(x => "T" + x + " arg" + x));
+    }
+
+
+    static string CreateStateParameterNames(int i)
+    {
+        return string.Join(", ", Enumerable.Range(0, i).Select(x => "state.Arg" + x));
+    }
+#>
+using Cysharp.Text;
+using System.Buffers;
+using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+
+namespace ZLog.Entries
+{
+<# for(var i = 1; i <= 16; i++) { #>
+    internal struct FormatLogState<TPayload, <#= CreateTypeArgument(i) #>> : IZLogState
+    {
+        public readonly TPayload Payload;
+        public readonly string? Format;
+<# for(var j = 0; j < i; j++) { #>
+        public readonly T<#= j #> Arg<#= j #>;
+<# } #>
+
+        public FormatLogState([AllowNull]TPayload payload, string? format, <#= CreateParameters(i) #>)
+        {
+            Payload = payload;
+            Format = format;
+<# for(var j = 0; j < i; j++) { #>
+            Arg<#= j #> = arg<#= j #>;
+<# } #>
+        }
+
+        public IZLogEntry CreateLogEntry(LogInfo logInfo)
+        {
+            return FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>.Create(logInfo, this);
+        }
+    }
+
+    internal class FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>> : IZLogEntry
+    {
+        static readonly ConcurrentQueue<FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>>();
+
+        FormatLogState<TPayload, <#= CreateTypeArgument(i) #>> state;
+
+        public LogInfo LogInfo { get; private set; }
+
+        FormatLogEntry()
+        {
+        }
+
+        public static FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>> Create(in LogInfo logInfo, in FormatLogState<TPayload, <#= CreateTypeArgument(i) #>> state)
+        {
+            if (!cache.TryDequeue(out var result))
+            {
+                result = new FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>();
+            }
+
+            result.LogInfo = logInfo;
+            result.state = state;
+            return result;
+        }
+
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
+        {
+            if (options.IsStructuredLogging && jsonWriter != null)
+            {
+                using (var sb = ZString.CreateUtf8StringBuilder(true))
+                {
+                    sb.AppendFormat(state.Format, <#= CreateStateParameterNames(i) #>);
+                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
+                }
+
+                jsonWriter.WritePropertyName(options.PayloadPropertyName);
+                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+            }
+            else
+            {
+                if (state.Format != null)
+                {
+                    // TODO: ZString.FormatUtf8(writer);
+                    using (var sb = ZString.CreateUtf8StringBuilder(true))
+                    {
+                        sb.AppendFormat(state.Format, <#= CreateStateParameterNames(i) #>);
+                        var dest = writer.GetSpan(sb.Length);
+                        sb.TryCopyTo(dest, out var written);
+                        writer.Advance(written);
+                    }
+                }
+                else
+                {
+                    using (var writer2 = new Utf8JsonWriter(writer))
+                    {
+                        JsonSerializer.Serialize(writer2, state.Payload);
+                    }
+                }
+            }
+        }
+
+        public void Return()
+        {
+            state = default;
+            LogInfo = default!;
+            cache.Enqueue(this);
+        }
+    }
+
+<# } #>
+}
