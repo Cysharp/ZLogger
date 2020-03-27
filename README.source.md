@@ -6,7 +6,8 @@ Coming soon.
 
 toc
 
-Preview:
+
+## NuGet
 
 > PM> Install-Package [ZLogger](https://www.nuget.org/packages/ZLogger)
 

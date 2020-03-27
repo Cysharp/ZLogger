@@ -14,11 +14,13 @@ Coming soon.
 <!-- toc -->
 ## Contents
 
+  * [NuGet](#nuget)
   * [Usage](#usage)
     * [Config at startup](#config-at-startup)
     * [Writing entries](#writing-entries)<!-- endtoc -->
 
-Preview:
+
+## NuGet
 
 > PM> Install-Package [ZLogger](https://www.nuget.org/packages/ZLogger)
 
