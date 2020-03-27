@@ -81,7 +81,7 @@ namespace ConsoleApp
 
             var tako = ZLoggerMessage.Define<int, int, int>(LogLevel.Debug, new EventId(10, "hogehoge"), "foo{0} bar {1} baz{2}");
 
-            var tako3 = ZLoggerMessage.DefineWithPayload<MyMessage, int, int, int>(LogLevel.Warning, new EventId(10, "hogehoge"), "foo{0} bar{1} baz{2}");
+            var logmsg = ZLoggerMessage.DefineWithPayload<MyMessage, int, int, int>(LogLevel.Warning, new EventId(10, "hogehoge"), "foo{0} bar{1} baz{2}");
 
 
             //logger.ZLogDebug("foo{0} bar {1} baz{2}", 10, 20, 30);
@@ -91,7 +91,7 @@ namespace ConsoleApp
             //tako(logger, 100, 200, 300, null);
 
 
-            tako3(logger, new MyMessage(100, 200), 100, 200, 300, null);
+            logmsg(logger, new MyMessage { Foo = 100, Bar = 200 }, 100, 200, 300, null);
 
 
             //tako(logger, 100, 200, 300,

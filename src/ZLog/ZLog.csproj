@@ -1,62 +1,71 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFrameworks>netstandard2.0;netcoreapp3.1</TargetFrameworks>
         <Nullable>enable</Nullable>
         <LangVersion>8.0</LangVersion>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>1701;1702;1591;1573</NoWarn>
+
+        <!-- NuGet Packaging -->
+        <PackageVersion>$(Version)</PackageVersion>
+        <Company>Cysharp</Company>
+        <Authors>Cysharp</Authors>
+        <Copyright>© Cysharp, Inc.</Copyright>
+        <PackageTags>logging;</PackageTags>
+        <Description>Zero Allocation Text/Strcutured Logger for .NET Core, built on top of a Microsoft.Extensions.Logging.</Description>
+        <PackageProjectUrl>https://github.com/Cysharp/ZLog</PackageProjectUrl>
+        <RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
 
     <ItemGroup>
-      <None Include="ZLoggerMessage.cs">
-        <DesignTime>True</DesignTime>
-        <AutoGen>True</AutoGen>
-        <DependentUpon>ZLoggerMessage.tt</DependentUpon>
-      </None>
-    </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.2" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="3.1.2" />
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.3" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="3.1.3" />
         <PackageReference Include="System.Text.Json" Version="4.7.1" />
         <PackageReference Include="System.Threading.Channels" Version="4.7.0" />
         <PackageReference Include="ZString" Version="1.0.0" />
     </ItemGroup>
 
-    <ItemGroup>
-      <None Update="Entries\FormatLogEntry.tt">
-        <Generator>TextTemplatingFileGenerator</Generator>
-        <LastGenOutput>FormatLogEntry.cs</LastGenOutput>
-      </None>
-      <None Update="ZLoggerMessage.tt">
-        <Generator>TextTemplatingFileGenerator</Generator>
-        <LastGenOutput>ZLoggerMessage.cs</LastGenOutput>
-      </None>
-      <None Update="ZLogLoggerExtensions.tt">
-        <Generator>TextTemplatingFileGenerator</Generator>
-        <LastGenOutput>ZLogLoggerExtensions.cs</LastGenOutput>
-      </None>
+    <ItemGroup Condition="$(TargetFramework) == 'netstandard2.1'">
+        <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+        <None Update="Entries\FormatLogEntry.tt">
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>FormatLogEntry.cs</LastGenOutput>
+        </None>
+        <None Update="ZLoggerMessage.tt">
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>ZLoggerMessage.cs</LastGenOutput>
+        </None>
+        <None Update="ZLogLoggerExtensions.tt">
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>ZLogLoggerExtensions.cs</LastGenOutput>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Update="Entries\FormatLogEntry.cs">
-        <DesignTime>True</DesignTime>
-        <AutoGen>True</AutoGen>
-        <DependentUpon>FormatLogEntry.tt</DependentUpon>
-      </Compile>
-      <Compile Update="ZLoggerMessage.cs">
-        <DesignTime>True</DesignTime>
-        <AutoGen>True</AutoGen>
-        <DependentUpon>ZLoggerMessage.tt</DependentUpon>
-      </Compile>
-      <Compile Update="ZLogLoggerExtensions.cs">
-        <DesignTime>True</DesignTime>
-        <AutoGen>True</AutoGen>
-        <DependentUpon>ZLogLoggerExtensions.tt</DependentUpon>
-      </Compile>
+        <Compile Update="Entries\FormatLogEntry.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>FormatLogEntry.tt</DependentUpon>
+        </Compile>
+        <Compile Update="ZLoggerMessage.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>ZLoggerMessage.tt</DependentUpon>
+        </Compile>
+        <Compile Update="ZLogLoggerExtensions.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>ZLogLoggerExtensions.tt</DependentUpon>
+        </Compile>
     </ItemGroup>
 
+    <ItemGroup>
+        <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+    </ItemGroup>
 </Project>

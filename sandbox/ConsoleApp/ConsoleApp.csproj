@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <PackageReference Include="ConsoleAppFramework" Version="2.1.0" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -55,19 +55,20 @@ namespace ZLog.Entries
                 }
 
                 var memory = writer.GetMemory(Encoding.UTF8.GetMaxByteCount(str.Length + exceptionMessageLength));
-                MemoryMarshal.TryGetArray<byte>(memory, out var segment);
-                
-                var written1 = Encoding.UTF8.GetBytes(str, 0, str.Length, segment.Array, segment.Offset);
-                var written2 = 0;
-                var written3 = 0;
-                if (exceptionMessage != null)
+                if (MemoryMarshal.TryGetArray<byte>(memory, out var segment) && segment.Array != null)
                 {
-                    newLineBytes.CopyTo(segment.Array, segment.Offset + written1);
-                    written2 = newLineBytes.Length;
-                    written3 = Encoding.UTF8.GetBytes(exceptionMessage, 0, exceptionMessage.Length, segment.Array, segment.Offset + written1 + written2);
-                }
+                    var written1 = Encoding.UTF8.GetBytes(str, 0, str.Length, segment.Array, segment.Offset);
+                    var written2 = 0;
+                    var written3 = 0;
+                    if (exceptionMessage != null)
+                    {
+                        newLineBytes.CopyTo(segment.Array, segment.Offset + written1);
+                        written2 = newLineBytes.Length;
+                        written3 = Encoding.UTF8.GetBytes(exceptionMessage, 0, exceptionMessage.Length, segment.Array, segment.Offset + written1 + written2);
+                    }
 
-                writer.Advance(written1 + written2 + written3);
+                    writer.Advance(written1 + written2 + written3);
+                }
             }
         }
 
