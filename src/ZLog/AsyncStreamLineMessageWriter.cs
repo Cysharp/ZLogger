@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ZLog
 {
-    internal class AsyncStreamLineMessageWriter : IAsyncDisposable
+    public class AsyncStreamLineMessageWriter : IAsyncLogProcessor, IAsyncDisposable
     {
         readonly byte[] newLine;
         readonly bool crlf;
@@ -104,7 +104,7 @@ namespace ZLog
                                     jsonWriter.WriteStartObject();
 
                                     options.StructuredLoggingFormatter?.Invoke(jsonWriter, info);
-                                    
+
                                     value.FormatUtf8(writer, options, jsonWriter);
                                     value.Return();
 

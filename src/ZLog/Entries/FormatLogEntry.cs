@@ -79,7 +79,7 @@ namespace ZLog.Entries
                 {
                     using (var writer2 = new Utf8JsonWriter(writer))
                     {
-                        JsonSerializer.Serialize(writer2, state.Payload);
+                        JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
                     }
                 }
             }
@@ -168,7 +168,7 @@ namespace ZLog.Entries
                 {
                     using (var writer2 = new Utf8JsonWriter(writer))
                     {
-                        JsonSerializer.Serialize(writer2, state.Payload);
+                        JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
                     }
                 }
             }
@@ -259,7 +259,7 @@ namespace ZLog.Entries
                 {
                     using (var writer2 = new Utf8JsonWriter(writer))
                     {
-                        JsonSerializer.Serialize(writer2, state.Payload);
+                        JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
                     }
                 }
             }
@@ -352,7 +352,7 @@ namespace ZLog.Entries
                 {
                     using (var writer2 = new Utf8JsonWriter(writer))
                     {
-                        JsonSerializer.Serialize(writer2, state.Payload);
+                        JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
                     }
                 }
             }
@@ -447,7 +447,7 @@ namespace ZLog.Entries
                 {
                     using (var writer2 = new Utf8JsonWriter(writer))
                     {
-                        JsonSerializer.Serialize(writer2, state.Payload);
+                        JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
                     }
                 }
             }
@@ -544,7 +544,7 @@ namespace ZLog.Entries
                 {
                     using (var writer2 = new Utf8JsonWriter(writer))
                     {
-                        JsonSerializer.Serialize(writer2, state.Payload);
+                        JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
                     }
                 }
             }
@@ -643,7 +643,7 @@ namespace ZLog.Entries
                 {
                     using (var writer2 = new Utf8JsonWriter(writer))
                     {
-                        JsonSerializer.Serialize(writer2, state.Payload);
+                        JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
                     }
                 }
             }
@@ -744,7 +744,7 @@ namespace ZLog.Entries
                 {
                     using (var writer2 = new Utf8JsonWriter(writer))
                     {
-                        JsonSerializer.Serialize(writer2, state.Payload);
+                        JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
                     }
                 }
             }
@@ -847,7 +847,7 @@ namespace ZLog.Entries
                 {
                     using (var writer2 = new Utf8JsonWriter(writer))
                     {
-                        JsonSerializer.Serialize(writer2, state.Payload);
+                        JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
                     }
                 }
             }
@@ -952,7 +952,7 @@ namespace ZLog.Entries
                 {
                     using (var writer2 = new Utf8JsonWriter(writer))
                     {
-                        JsonSerializer.Serialize(writer2, state.Payload);
+                        JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
                     }
                 }
             }
@@ -1059,7 +1059,7 @@ namespace ZLog.Entries
                 {
                     using (var writer2 = new Utf8JsonWriter(writer))
                     {
-                        JsonSerializer.Serialize(writer2, state.Payload);
+                        JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
                     }
                 }
             }
@@ -1168,7 +1168,7 @@ namespace ZLog.Entries
                 {
                     using (var writer2 = new Utf8JsonWriter(writer))
                     {
-                        JsonSerializer.Serialize(writer2, state.Payload);
+                        JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
                     }
                 }
             }
@@ -1279,7 +1279,7 @@ namespace ZLog.Entries
                 {
                     using (var writer2 = new Utf8JsonWriter(writer))
                     {
-                        JsonSerializer.Serialize(writer2, state.Payload);
+                        JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
                     }
                 }
             }
@@ -1392,7 +1392,7 @@ namespace ZLog.Entries
                 {
                     using (var writer2 = new Utf8JsonWriter(writer))
                     {
-                        JsonSerializer.Serialize(writer2, state.Payload);
+                        JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
                     }
                 }
             }
@@ -1507,7 +1507,7 @@ namespace ZLog.Entries
                 {
                     using (var writer2 = new Utf8JsonWriter(writer))
                     {
-                        JsonSerializer.Serialize(writer2, state.Payload);
+                        JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
                     }
                 }
             }
@@ -1624,7 +1624,7 @@ namespace ZLog.Entries
                 {
                     using (var writer2 = new Utf8JsonWriter(writer))
                     {
-                        JsonSerializer.Serialize(writer2, state.Payload);
+                        JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
                     }
                 }
             }

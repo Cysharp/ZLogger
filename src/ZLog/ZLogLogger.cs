@@ -11,12 +11,12 @@ namespace ZLog
     internal class ZLogLogger : ILogger
     {
         readonly string categoryName;
-        readonly AsyncStreamLineMessageWriter streamWriter;
+        readonly IAsyncLogProcessor logProcessor;
 
-        public ZLogLogger(string categoryName, AsyncStreamLineMessageWriter streamWriter)
+        public ZLogLogger(string categoryName, IAsyncLogProcessor logProcessor)
         {
             this.categoryName = categoryName;
-            this.streamWriter = streamWriter;
+            this.logProcessor = logProcessor;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
@@ -26,12 +26,12 @@ namespace ZLog
             {
                 var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
                 var entry = factory.Invoke(state, info);
-                streamWriter.Post(entry);
+                logProcessor.Post(entry);
             }
             else
             {
                 var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
-                streamWriter.Post(StringFormatterEntry<TState>.Create(info, state, exception, formatter));
+                logProcessor.Post(StringFormatterEntry<TState>.Create(info, state, exception, formatter));
             }
         }
 

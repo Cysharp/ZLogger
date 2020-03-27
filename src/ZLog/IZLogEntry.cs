@@ -9,4 +9,4 @@ namespace ZLog
         void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter);
         void Return();
     }
-}
+} 

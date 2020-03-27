@@ -128,5 +128,100 @@ namespace ZLog
 <# } #>
 
 <# } #>
+        public static void ZLogMessage(this ILogger logger, LogLevel logLevel, string message)
+        {
+            ZLogMessage(logger, logLevel, default, null, message);
+        }
+
+        public static void ZLogMessage(this ILogger logger, LogLevel logLevel, EventId eventId, string message)
+        {
+            ZLogMessage(logger, logLevel, eventId, null, message);
+        }
+
+        public static void ZLogMessage(this ILogger logger, LogLevel logLevel, Exception exception, string message)
+        {
+            ZLogMessage<object>(logger, logLevel, default, exception, null!, message);
+        }
+
+        public static void ZLogMessage(this ILogger logger, LogLevel logLevel, EventId eventId, Exception? exception, string message)
+        {
+            logger.Log(logLevel, eventId, new FormatLogState<object, object>(null, message, null!), exception, (state, ex) =>
+            {
+                return state.Format;
+            });
+        }
+
+        public static void ZLogMessage<TPayload>(this ILogger logger, LogLevel logLevel, TPayload payload, string message)
+        {
+            ZLogMessage<TPayload>(logger, logLevel, default, null, payload, message);
+        }
+
+        public static void ZLogMessage<TPayload>(this ILogger logger, LogLevel logLevel, EventId eventId, TPayload payload, string message)
+        {
+            ZLogMessage<TPayload>(logger, logLevel, eventId, null, payload, message);
+        }
+
+        public static void ZLogMessage<TPayload>(this ILogger logger, LogLevel logLevel, Exception exception, TPayload payload, string message)
+        {
+            ZLogMessage<TPayload>(logger, logLevel, default, exception, payload, message);
+        }
+
+        public static void ZLogMessage<TPayload>(this ILogger logger, LogLevel logLevel, EventId eventId, Exception? exception, TPayload payload, string message)
+        {
+            logger.Log(logLevel, eventId, new FormatLogState<TPayload, object>(payload, message, null!), exception, (state, ex) =>
+            {
+                return message;
+            });
+        }
+
+<# foreach(var logLevel in logLevels) { #>
+        public static void ZLog<#= logLevel #>Message(this ILogger logger, string message)
+        {
+            ZLog<#= logLevel #>Message(logger, default, null, message);
+        }
+
+        public static void ZLog<#= logLevel #>Message(this ILogger logger, EventId eventId, string message)
+        {
+            ZLog<#= logLevel #>Message(logger, eventId, null, message);
+        }
+
+        public static void ZLog<#= logLevel #>Message(this ILogger logger, Exception exception, string message)
+        {
+            ZLog<#= logLevel #>Message<object>(logger, default, exception, null!, message);
+        }
+
+        public static void ZLog<#= logLevel #>Message(this ILogger logger, EventId eventId, Exception? exception, string message)
+        {
+            logger.Log(LogLevel.<#= logLevel #>, eventId, new FormatLogState<object, object>(null, message, null!), exception, (state, ex) =>
+            {
+                return state.Format;
+            });
+        }
+
+        public static void ZLog<#= logLevel #>Message<TPayload>(this ILogger logger, TPayload payload, string message)
+        {
+            ZLog<#= logLevel #>Message<TPayload>(logger, default, null, payload, message);
+        }
+
+        public static void ZLog<#= logLevel #>Message<TPayload>(this ILogger logger, EventId eventId, TPayload payload, string message)
+        {
+            ZLog<#= logLevel #>Message<TPayload>(logger, eventId, null, payload, message);
+        }
+
+        public static void ZLog<#= logLevel #>Message<TPayload>(this ILogger logger, Exception exception, TPayload payload, string message)
+        {
+            ZLog<#= logLevel #>Message<TPayload>(logger, default, exception, payload, message);
+        }
+
+        public static void ZLog<#= logLevel #>Message<TPayload>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string message)
+        {
+            logger.Log(LogLevel.<#= logLevel #>, eventId, new FormatLogState<TPayload, object>(payload, message, null!), exception, (state, ex) =>
+            {
+                return message;
+            });
+        }
+
+<# } #>
+
     }
 }

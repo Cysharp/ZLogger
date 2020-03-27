@@ -9,7 +9,9 @@ namespace ZLog.Entries
 {
     internal class StringFormatterEntry<TState> : IZLogEntry
     {
-        static ConcurrentQueue<StringFormatterEntry<TState>> cache = new ConcurrentQueue<StringFormatterEntry<TState>>();
+        static readonly ConcurrentQueue<StringFormatterEntry<TState>> cache = new ConcurrentQueue<StringFormatterEntry<TState>>();
+        static readonly byte[] newLineBytes = Encoding.UTF8.GetBytes(Environment.NewLine);
+
 #pragma warning disable CS8618
         TState state;
         Exception exception;
@@ -44,10 +46,28 @@ namespace ZLog.Entries
             }
             else
             {
-                var memory = writer.GetMemory(Encoding.UTF8.GetMaxByteCount(str.Length));
+                string? exceptionMessage = default;
+                int exceptionMessageLength = 0;
+                if (exception != null)
+                {
+                    exceptionMessage = exception.ToString();
+                    exceptionMessageLength = exceptionMessage.Length + newLineBytes.Length;
+                }
+
+                var memory = writer.GetMemory(Encoding.UTF8.GetMaxByteCount(str.Length + exceptionMessageLength));
                 MemoryMarshal.TryGetArray<byte>(memory, out var segment);
-                var written = Encoding.UTF8.GetBytes(str, 0, str.Length, segment.Array, segment.Offset);
-                writer.Advance(written);
+                
+                var written1 = Encoding.UTF8.GetBytes(str, 0, str.Length, segment.Array, segment.Offset);
+                var written2 = 0;
+                var written3 = 0;
+                if (exceptionMessage != null)
+                {
+                    newLineBytes.CopyTo(segment.Array, segment.Offset + written1);
+                    written2 = newLineBytes.Length;
+                    written3 = Encoding.UTF8.GetBytes(exceptionMessage, 0, exceptionMessage.Length, segment.Array, segment.Offset + written1 + written2);
+                }
+
+                writer.Advance(written1 + written2 + written3);
             }
         }
 
