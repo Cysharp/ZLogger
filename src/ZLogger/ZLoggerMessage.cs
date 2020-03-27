@@ -7,7 +7,7 @@ namespace ZLogger
 {
     // TODO:use ZString.Prepare
 
-    public static class ZLoggergerMessage
+    public static class ZLoggerMessage
     {
         public static Action<ILogger, Exception> Define(LogLevel logLevel, EventId eventId, string message)
         {

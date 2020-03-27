@@ -25,6 +25,9 @@ namespace ConsoleApp
                         1024);
                         */
 
+
+                    logging.AddZLoggerRollingFile((dt, x) => $"logs/{dt.ToLocalTime():yyyy-MM-dd}_{x:000}.log", x => x.ToLocalTime().Date, 1024 * 1024);
+
                     logging.AddZLoggerConsole(options =>
                     {
                         options.UseDefaultStructuredLogFormatter();
@@ -79,9 +82,9 @@ namespace ConsoleApp
 
             var tako2 = LoggerMessage.Define<int, int, int>(LogLevel.Debug, new EventId(10, "hogehoge"), "foo{0} bar {1} baz{2}");
 
-            var tako = ZLoggergerMessage.Define<int, int, int>(LogLevel.Debug, new EventId(10, "hogehoge"), "foo{0} bar {1} baz{2}");
+            var tako = ZLoggerMessage.Define<int, int, int>(LogLevel.Debug, new EventId(10, "hogehoge"), "foo{0} bar {1} baz{2}");
 
-            var logmsg = ZLoggergerMessage.DefineWithPayload<MyMessage, int, int, int>(LogLevel.Warning, new EventId(10, "hogehoge"), "foo{0} bar{1} baz{2}");
+            var logmsg = ZLoggerMessage.DefineWithPayload<MyMessage, int, int, int>(LogLevel.Warning, new EventId(10, "hogehoge"), "foo{0} bar{1} baz{2}");
 
 
             //logger.ZLoggerDebug("foo{0} bar {1} baz{2}", 10, 20, 30);

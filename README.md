@@ -40,10 +40,10 @@ logger.ZLogDebug("foo{0} bar{1}", 10, 20);
 logger.ZLogDebug(new { Foo = 10, Bar = 20 }, "foo{0} bar{1}", 10, 20);
 
 // Prepared logging
-var foobarLogger1 = ZLoggergerMessage.Define<int, int>(LogLevel.Debug, new EventId(10, "hoge"), "foo{0} bar{1}");
+var foobarLogger1 = ZLoggerMessage.Define<int, int>(LogLevel.Debug, new EventId(10, "hoge"), "foo{0} bar{1}");
 
 // Prepared logging with structure
-var foobarLogger2 = ZLoggergerMessage.DefineWithPayload<MyMessage, int, int>(LogLevel.Warning, new EventId(10, "hoge"), "foo{0} bar{1}");
+var foobarLogger2 = ZLoggerMessage.DefineWithPayload<MyMessage, int, int>(LogLevel.Warning, new EventId(10, "hoge"), "foo{0} bar{1}");
 ```
 
 License
