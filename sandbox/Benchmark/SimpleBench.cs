@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using ZLog;
+using ZLogger;
 
 namespace Benchmark
 {
@@ -17,7 +17,7 @@ namespace Benchmark
             //new SeriLogBench().Run();
             //new NLogBench().Run();
 
-            new ZLogBench().Run();
+            new ZLoggerBench().Run();
         }
 
 
@@ -53,9 +53,9 @@ namespace Benchmark
             }
         }
 
-        class ZLogBench : BenchmarkBase<Microsoft.Extensions.Logging.ILogger>
+        class ZLoggerBench : BenchmarkBase<Microsoft.Extensions.Logging.ILogger>
         {
-            protected override string Name => "ZLog";
+            protected override string Name => "ZLogger";
 
             ILoggerProvider factory;
 
@@ -64,8 +64,8 @@ namespace Benchmark
                 var serviceCollection = new ServiceCollection();
                 serviceCollection.AddLogging(options =>
                 {
-                    options.AddZLogFile("zlog.log");
-                    //options.AddZLogConsole();
+                    options.AddZLoggerFile("ZLogger.log");
+                    //options.AddZLoggerConsole();
                 });
                 var serviceProvider = serviceCollection.BuildServiceProvider();
                 factory = serviceProvider.GetService<ILoggerProvider>();

@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace ZLog
+namespace ZLogger
 {
     public class AsyncStreamLineMessageWriter : IAsyncLogProcessor, IAsyncDisposable
     {
@@ -16,12 +16,12 @@ namespace ZLog
         readonly byte newLine2;
 
         readonly Stream stream;
-        readonly Channel<IZLogEntry> channel;
+        readonly Channel<IZLoggerEntry> channel;
         readonly Task writeLoop;
         readonly CancellationTokenSource cancellationTokenSource;
-        readonly ZLogOptions options;
+        readonly ZLoggerOptions options;
 
-        public AsyncStreamLineMessageWriter(Stream stream, ZLogOptions options)
+        public AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options)
         {
             this.newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
             if (newLine.Length == 1)
@@ -42,7 +42,7 @@ namespace ZLog
             this.options = options;
             this.cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(options.CancellationToken);
             this.stream = stream;
-            this.channel = Channel.CreateUnbounded<IZLogEntry>(new UnboundedChannelOptions
+            this.channel = Channel.CreateUnbounded<IZLoggerEntry>(new UnboundedChannelOptions
             {
                 AllowSynchronousContinuations = false, // always should be in async loop.
                 SingleWriter = false,
@@ -53,7 +53,7 @@ namespace ZLog
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Post(IZLogEntry log)
+        public void Post(IZLoggerEntry log)
         {
             channel.Writer.TryWrite(log);
         }

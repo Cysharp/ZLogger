@@ -27,10 +27,10 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
-namespace ZLog.Entries
+namespace ZLogger.Entries
 {
 <# for(var i = 1; i <= 16; i++) { #>
-    internal struct FormatLogState<TPayload, <#= CreateTypeArgument(i) #>> : IZLogState
+    internal struct FormatLogState<TPayload, <#= CreateTypeArgument(i) #>> : IZLoggerState
     {
         public readonly TPayload Payload;
         public readonly string? Format;
@@ -47,13 +47,13 @@ namespace ZLog.Entries
 <# } #>
         }
 
-        public IZLogEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>> : IZLogEntry
+    internal class FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>>();
 
@@ -77,7 +77,7 @@ namespace ZLog.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
             if (options.IsStructuredLogging && jsonWriter != null)
             {

@@ -6,14 +6,14 @@ using System.IO;
 using System.Text;
 using System.Threading;
 
-namespace ZLog.Providers
+namespace ZLogger.Providers
 {
-    [ProviderAlias("ZLogFile")]
-    public class ZLogFileLoggerProvider : ILoggerProvider
+    [ProviderAlias("ZLoggerFile")]
+    public class ZLoggerFileLoggerProvider : ILoggerProvider
     {
         AsyncStreamLineMessageWriter streamWriter;
 
-        public ZLogFileLoggerProvider(string filePath, IOptions<ZLogOptions> options)
+        public ZLoggerFileLoggerProvider(string filePath, IOptions<ZLoggerOptions> options)
         {
             var di = new FileInfo(filePath).Directory;
             if (!di.Exists)
@@ -28,7 +28,7 @@ namespace ZLog.Providers
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new ZLogLogger(categoryName, streamWriter);
+            return new AsyncProcessZLogger(categoryName, streamWriter);
         }
 
         public void Dispose()

@@ -5,9 +5,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 
-namespace ZLog.Entries
+namespace ZLogger.Entries
 {
-    internal class StringFormatterEntry<TState> : IZLogEntry
+    internal class StringFormatterEntry<TState> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<StringFormatterEntry<TState>> cache = new ConcurrentQueue<StringFormatterEntry<TState>>();
         static readonly byte[] newLineBytes = Encoding.UTF8.GetBytes(Environment.NewLine);
@@ -36,7 +36,7 @@ namespace ZLog.Entries
             return entry;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
             var str = formatter(state, exception);
 

@@ -14,7 +14,7 @@
         <Copyright>© Cysharp, Inc.</Copyright>
         <PackageTags>logging;</PackageTags>
         <Description>Zero Allocation Text/Strcutured Logger for .NET Core, built on top of a Microsoft.Extensions.Logging.</Description>
-        <PackageProjectUrl>https://github.com/Cysharp/ZLog</PackageProjectUrl>
+        <PackageProjectUrl>https://github.com/Cysharp/ZLogger</PackageProjectUrl>
         <RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -41,9 +41,9 @@
             <Generator>TextTemplatingFileGenerator</Generator>
             <LastGenOutput>ZLoggerMessage.cs</LastGenOutput>
         </None>
-        <None Update="ZLogLoggerExtensions.tt">
+        <None Update="ZLoggerExtensions.tt">
             <Generator>TextTemplatingFileGenerator</Generator>
-            <LastGenOutput>ZLogLoggerExtensions.cs</LastGenOutput>
+            <LastGenOutput>ZLoggerExtensions.cs</LastGenOutput>
         </None>
     </ItemGroup>
 
@@ -58,10 +58,10 @@
             <AutoGen>True</AutoGen>
             <DependentUpon>ZLoggerMessage.tt</DependentUpon>
         </Compile>
-        <Compile Update="ZLogLoggerExtensions.cs">
+        <Compile Update="ZLoggerExtensions.cs">
             <DesignTime>True</DesignTime>
             <AutoGen>True</AutoGen>
-            <DependentUpon>ZLogLoggerExtensions.tt</DependentUpon>
+            <DependentUpon>ZLoggerExtensions.tt</DependentUpon>
         </Compile>
     </ItemGroup>
 

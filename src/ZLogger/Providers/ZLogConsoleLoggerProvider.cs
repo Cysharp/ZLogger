@@ -2,21 +2,21 @@
 using Microsoft.Extensions.Options;
 using System;
 
-namespace ZLog.Providers
+namespace ZLogger.Providers
 {
-    [ProviderAlias("ZLogConsole")]
-    public class ZLogConsoleLoggerProvider : ILoggerProvider
+    [ProviderAlias("ZLoggerConsole")]
+    public class ZLoggerConsoleLoggerProvider : ILoggerProvider
     {
         AsyncStreamLineMessageWriter streamWriter;
 
-        public ZLogConsoleLoggerProvider(IOptions<ZLogOptions> options)
+        public ZLoggerConsoleLoggerProvider(IOptions<ZLoggerOptions> options)
         {
             this.streamWriter = new AsyncStreamLineMessageWriter(Console.OpenStandardOutput(), options.Value);
         }
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new ZLogLogger(categoryName, streamWriter);
+            return new AsyncProcessZLogger(categoryName, streamWriter);
         }
 
         public void Dispose()

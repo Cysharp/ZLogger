@@ -3,11 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ZLog
+namespace ZLogger
 {
-    // TODO:use ZLog.Prepare
+    // TODO:use ZString.Prepare
 
-    public static class ZLoggerMessage
+    public static class ZLoggergerMessage
     {
         public static Action<ILogger, Exception> Define(LogLevel logLevel, EventId eventId, string message)
         {

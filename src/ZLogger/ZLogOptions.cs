@@ -3,9 +3,9 @@ using System.Buffers;
 using System.Text.Json;
 using System.Threading;
 
-namespace ZLog
+namespace ZLogger
 {
-    public class ZLogOptions
+    public class ZLoggerOptions
     {
         public Action<Exception>? ErrorLogger { get; set; }
         public CancellationToken CancellationToken { get; set; }

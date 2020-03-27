@@ -1,12 +1,12 @@
-ZLog
+ZLogger
 ===
-[![CircleCI](https://circleci.com/gh/Cysharp/ZLog.svg?style=svg)](https://circleci.com/gh/Cysharp/ZLog)
+[![CircleCI](https://circleci.com/gh/Cysharp/ZLogger.svg?style=svg)](https://circleci.com/gh/Cysharp/ZLogger)
 
 Coming soon.
 
 Preview:
 
-> PM> Install-Package [ZLog](https://www.nuget.org/packages/ZLog)
+> PM> Install-Package [ZLog](https://www.nuget.org/packages/ZLogger)
 
 
 License

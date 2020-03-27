@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
 
-namespace ZLog
+namespace ZLogger
 {
     internal class StreamBufferWriter : IBufferWriter<byte>
     {

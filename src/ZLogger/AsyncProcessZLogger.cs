@@ -1,19 +1,16 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
-using ZLog.Entries;
+using ZLogger.Entries;
 
-namespace ZLog
+namespace ZLogger
 {
-    internal class ZLogLogger : ILogger
+    public class AsyncProcessZLogger : ILogger
     {
         readonly string categoryName;
         readonly IAsyncLogProcessor logProcessor;
 
-        public ZLogLogger(string categoryName, IAsyncLogProcessor logProcessor)
+        public AsyncProcessZLogger(string categoryName, IAsyncLogProcessor logProcessor)
         {
             this.categoryName = categoryName;
             this.logProcessor = logProcessor;
@@ -63,22 +60,22 @@ namespace ZLog
 
         // call CreateLogEntry without cast(boxing)
         static class CreateLogEntry<T>
-        // where T:IZLogState
+        // where T:IZLoggerState
         {
-            public static readonly Func<T, LogInfo, IZLogEntry>? factory;
+            public static readonly Func<T, LogInfo, IZLoggerEntry>? factory;
 
             static CreateLogEntry()
             {
-                if (typeof(IZLogState).IsAssignableFrom(typeof(T)))
+                if (typeof(IZLoggerState).IsAssignableFrom(typeof(T)))
                 {
-                    var create = typeof(T).GetMethod(nameof(IZLogState.CreateLogEntry));
+                    var create = typeof(T).GetMethod(nameof(IZLoggerState.CreateLogEntry));
 
                     var state = Expression.Parameter(typeof(T), "state");
                     var info = Expression.Parameter(typeof(LogInfo), "info");
 
                     var callCreate = Expression.Call(state, create, info);
 
-                    var lambda = Expression.Lambda<Func<T, LogInfo, IZLogEntry>>(callCreate, state, info);
+                    var lambda = Expression.Lambda<Func<T, LogInfo, IZLoggerEntry>>(callCreate, state, info);
 
                     factory = lambda.Compile();
                 }

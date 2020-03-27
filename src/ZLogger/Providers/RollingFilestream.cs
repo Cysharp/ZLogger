@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace ZLog
+namespace ZLogger.Providers
 {
     internal class RollingFilestream : Stream
     {
@@ -12,7 +12,7 @@ namespace ZLog
         readonly Func<DateTimeOffset, DateTimeOffset> timestampPattern;
         readonly Func<DateTimeOffset, int, string> fileNameSelector;
         readonly long rollSizeInBytes;
-        readonly ZLogOptions options;
+        readonly ZLoggerOptions options;
 
 #pragma warning disable CS8618
 
@@ -22,7 +22,7 @@ namespace ZLog
         Stream innerStream;
         DateTimeOffset currentTimestampPattern;
 
-        public RollingFilestream(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, ZLogOptions options)
+        public RollingFilestream(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, ZLoggerOptions options)
         {
             this.timestampPattern = timestampPattern;
             this.fileNameSelector = fileNameSelector;

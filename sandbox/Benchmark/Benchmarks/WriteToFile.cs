@@ -1,5 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
-using ZLog;
+using ZLogger;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -12,8 +12,8 @@ namespace Benchmark.Benchmarks
     {
         Serilog.Core.Logger serilogLogger;
 
-        ILoggerProvider zlog;
-        Microsoft.Extensions.Logging.ILogger zlogLogger;
+        ILoggerProvider ZLogger;
+        Microsoft.Extensions.Logging.ILogger ZLoggerLogger;
 
         public WriteToFile()
         {
@@ -25,12 +25,12 @@ namespace Benchmark.Benchmarks
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddLogging(options =>
             {
-                options.AddZLogFile(@$"C:\logs\{guid}\zlog.log");
-                //options.AddZLogConsole();
+                options.AddZLoggerFile(@$"C:\logs\{guid}\ZLogger.log");
+                //options.AddZLoggerConsole();
             });
             var serviceProvider = serviceCollection.BuildServiceProvider();
-            zlog = serviceProvider.GetService<ILoggerProvider>();
-            zlogLogger = zlog.CreateLogger("temp");
+            ZLogger = serviceProvider.GetService<ILoggerProvider>();
+            ZLoggerLogger = ZLogger.CreateLogger("temp");
 
 
         }
@@ -44,13 +44,13 @@ namespace Benchmark.Benchmarks
         [Benchmark]
         public void ZFile()
         {
-            zlogLogger.ZLogInformation("foo{0} bar{1} nazo{2}", 10, 20, 30);
+            ZLoggerLogger.ZLogInformation("foo{0} bar{1} nazo{2}", 10, 20, 30);
         }
 
 
     }
 
-    internal struct FormatLogState<TPayload, T0, T1> : IZLogState
+    internal struct FormatLogState<TPayload, T0, T1> : IZLoggerState
     {
         public readonly TPayload Payload;
         public readonly string Format;
@@ -65,7 +65,7 @@ namespace Benchmark.Benchmarks
             Arg1 = arg1;
         }
 
-        public IZLogEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return null;
         }

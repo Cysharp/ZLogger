@@ -13,7 +13,7 @@
         <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\src\ZLog\ZLog.csproj" />
+      <ProjectReference Include="..\..\src\ZLogger\ZLogger.csproj" />
     </ItemGroup>
     <ItemGroup>
       <None Update="NLog.config">

@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ZLog
+namespace ZLogger
 {
     public interface IAsyncLogProcessor : IAsyncDisposable
     {
-        void Post(IZLogEntry log);
+        void Post(IZLoggerEntry log);
     }
 }

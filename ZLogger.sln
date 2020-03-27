@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{108EBE73-8E8B-4BC8-ACBB-FB97D2B64B2E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZLog", "src\ZLog\ZLog.csproj", "{72C3035E-A0F8-4B05-B6AB-3C177CF3F79D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZLogger", "src\ZLogger\ZLogger.csproj", "{72C3035E-A0F8-4B05-B6AB-3C177CF3F79D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sandbox", "sandbox", "{87C57843-6AA8-462F-B383-0E756D1E389C}"
 EndProject
@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp", "sandbox\Conso
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{BA8EAC7A-0D94-4EE2-A8F5-3998D73E3325}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZLog.Tests", "tests\ZLog.Tests\ZLog.Tests.csproj", "{F4ADB9AC-E3FF-40D2-9538-D3DE600EECB6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZLogger.Tests", "tests\ZLogger.Tests\ZLogger.Tests.csproj", "{F4ADB9AC-E3FF-40D2-9538-D3DE600EECB6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmark", "sandbox\Benchmark\Benchmark.csproj", "{D817C5DF-B922-4697-A84A-A16241D076EC}"
 EndProject

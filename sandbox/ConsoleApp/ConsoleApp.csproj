@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\ZLog\ZLog.csproj" />
+    <ProjectReference Include="..\..\src\ZLogger\ZLogger.csproj" />
   </ItemGroup>
 
 </Project>

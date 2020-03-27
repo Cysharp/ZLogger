@@ -1,7 +1,7 @@
 using System;
 using Xunit;
 
-namespace ZLog.Tests
+namespace ZLogger.Tests
 {
     public class UnitTest1
     {

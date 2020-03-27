@@ -2,7 +2,7 @@
 using System;
 using System.Text.Json;
 
-namespace ZLog
+namespace ZLogger
 {
     public readonly struct LogInfo
     {

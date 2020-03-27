@@ -4,9 +4,9 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
-namespace ZLog.Entries
+namespace ZLogger.Entries
 {
-    internal struct FormatLogState<TPayload, T0> : IZLogState
+    internal struct FormatLogState<TPayload, T0> : IZLoggerState
     {
         public readonly TPayload Payload;
         public readonly string? Format;
@@ -19,13 +19,13 @@ namespace ZLog.Entries
             Arg0 = arg0;
         }
 
-        public IZLogEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T0>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T0> : IZLogEntry
+    internal class FormatLogEntry<TPayload, T0> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T0>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T0>>();
 
@@ -49,7 +49,7 @@ namespace ZLog.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
             if (options.IsStructuredLogging && jsonWriter != null)
             {
@@ -93,7 +93,7 @@ namespace ZLog.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T0, T1> : IZLogState
+    internal struct FormatLogState<TPayload, T0, T1> : IZLoggerState
     {
         public readonly TPayload Payload;
         public readonly string? Format;
@@ -108,13 +108,13 @@ namespace ZLog.Entries
             Arg1 = arg1;
         }
 
-        public IZLogEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T0, T1>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T0, T1> : IZLogEntry
+    internal class FormatLogEntry<TPayload, T0, T1> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T0, T1>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T0, T1>>();
 
@@ -138,7 +138,7 @@ namespace ZLog.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
             if (options.IsStructuredLogging && jsonWriter != null)
             {
@@ -182,7 +182,7 @@ namespace ZLog.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T0, T1, T2> : IZLogState
+    internal struct FormatLogState<TPayload, T0, T1, T2> : IZLoggerState
     {
         public readonly TPayload Payload;
         public readonly string? Format;
@@ -199,13 +199,13 @@ namespace ZLog.Entries
             Arg2 = arg2;
         }
 
-        public IZLogEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T0, T1, T2>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T0, T1, T2> : IZLogEntry
+    internal class FormatLogEntry<TPayload, T0, T1, T2> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2>>();
 
@@ -229,7 +229,7 @@ namespace ZLog.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
             if (options.IsStructuredLogging && jsonWriter != null)
             {
@@ -273,7 +273,7 @@ namespace ZLog.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T0, T1, T2, T3> : IZLogState
+    internal struct FormatLogState<TPayload, T0, T1, T2, T3> : IZLoggerState
     {
         public readonly TPayload Payload;
         public readonly string? Format;
@@ -292,13 +292,13 @@ namespace ZLog.Entries
             Arg3 = arg3;
         }
 
-        public IZLogEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T0, T1, T2, T3>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T0, T1, T2, T3> : IZLogEntry
+    internal class FormatLogEntry<TPayload, T0, T1, T2, T3> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3>>();
 
@@ -322,7 +322,7 @@ namespace ZLog.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
             if (options.IsStructuredLogging && jsonWriter != null)
             {
@@ -366,7 +366,7 @@ namespace ZLog.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4> : IZLogState
+    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4> : IZLoggerState
     {
         public readonly TPayload Payload;
         public readonly string? Format;
@@ -387,13 +387,13 @@ namespace ZLog.Entries
             Arg4 = arg4;
         }
 
-        public IZLogEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T0, T1, T2, T3, T4>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4> : IZLogEntry
+    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4>>();
 
@@ -417,7 +417,7 @@ namespace ZLog.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
             if (options.IsStructuredLogging && jsonWriter != null)
             {
@@ -461,7 +461,7 @@ namespace ZLog.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5> : IZLogState
+    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5> : IZLoggerState
     {
         public readonly TPayload Payload;
         public readonly string? Format;
@@ -484,13 +484,13 @@ namespace ZLog.Entries
             Arg5 = arg5;
         }
 
-        public IZLogEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5> : IZLogEntry
+    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5>>();
 
@@ -514,7 +514,7 @@ namespace ZLog.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
             if (options.IsStructuredLogging && jsonWriter != null)
             {
@@ -558,7 +558,7 @@ namespace ZLog.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6> : IZLogState
+    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6> : IZLoggerState
     {
         public readonly TPayload Payload;
         public readonly string? Format;
@@ -583,13 +583,13 @@ namespace ZLog.Entries
             Arg6 = arg6;
         }
 
-        public IZLogEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6> : IZLogEntry
+    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6>>();
 
@@ -613,7 +613,7 @@ namespace ZLog.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
             if (options.IsStructuredLogging && jsonWriter != null)
             {
@@ -657,7 +657,7 @@ namespace ZLog.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6, T7> : IZLogState
+    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6, T7> : IZLoggerState
     {
         public readonly TPayload Payload;
         public readonly string? Format;
@@ -684,13 +684,13 @@ namespace ZLog.Entries
             Arg7 = arg7;
         }
 
-        public IZLogEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7> : IZLogEntry
+    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7>>();
 
@@ -714,7 +714,7 @@ namespace ZLog.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
             if (options.IsStructuredLogging && jsonWriter != null)
             {
@@ -758,7 +758,7 @@ namespace ZLog.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8> : IZLogState
+    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8> : IZLoggerState
     {
         public readonly TPayload Payload;
         public readonly string? Format;
@@ -787,13 +787,13 @@ namespace ZLog.Entries
             Arg8 = arg8;
         }
 
-        public IZLogEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8> : IZLogEntry
+    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8>>();
 
@@ -817,7 +817,7 @@ namespace ZLog.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
             if (options.IsStructuredLogging && jsonWriter != null)
             {
@@ -861,7 +861,7 @@ namespace ZLog.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> : IZLogState
+    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> : IZLoggerState
     {
         public readonly TPayload Payload;
         public readonly string? Format;
@@ -892,13 +892,13 @@ namespace ZLog.Entries
             Arg9 = arg9;
         }
 
-        public IZLogEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> : IZLogEntry
+    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>>();
 
@@ -922,7 +922,7 @@ namespace ZLog.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
             if (options.IsStructuredLogging && jsonWriter != null)
             {
@@ -966,7 +966,7 @@ namespace ZLog.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : IZLogState
+    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : IZLoggerState
     {
         public readonly TPayload Payload;
         public readonly string? Format;
@@ -999,13 +999,13 @@ namespace ZLog.Entries
             Arg10 = arg10;
         }
 
-        public IZLogEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : IZLogEntry
+    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>>();
 
@@ -1029,7 +1029,7 @@ namespace ZLog.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
             if (options.IsStructuredLogging && jsonWriter != null)
             {
@@ -1073,7 +1073,7 @@ namespace ZLog.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IZLogState
+    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IZLoggerState
     {
         public readonly TPayload Payload;
         public readonly string? Format;
@@ -1108,13 +1108,13 @@ namespace ZLog.Entries
             Arg11 = arg11;
         }
 
-        public IZLogEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IZLogEntry
+    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>>();
 
@@ -1138,7 +1138,7 @@ namespace ZLog.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
             if (options.IsStructuredLogging && jsonWriter != null)
             {
@@ -1182,7 +1182,7 @@ namespace ZLog.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : IZLogState
+    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : IZLoggerState
     {
         public readonly TPayload Payload;
         public readonly string? Format;
@@ -1219,13 +1219,13 @@ namespace ZLog.Entries
             Arg12 = arg12;
         }
 
-        public IZLogEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : IZLogEntry
+    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>>();
 
@@ -1249,7 +1249,7 @@ namespace ZLog.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
             if (options.IsStructuredLogging && jsonWriter != null)
             {
@@ -1293,7 +1293,7 @@ namespace ZLog.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : IZLogState
+    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : IZLoggerState
     {
         public readonly TPayload Payload;
         public readonly string? Format;
@@ -1332,13 +1332,13 @@ namespace ZLog.Entries
             Arg13 = arg13;
         }
 
-        public IZLogEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : IZLogEntry
+    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>>();
 
@@ -1362,7 +1362,7 @@ namespace ZLog.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
             if (options.IsStructuredLogging && jsonWriter != null)
             {
@@ -1406,7 +1406,7 @@ namespace ZLog.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : IZLogState
+    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : IZLoggerState
     {
         public readonly TPayload Payload;
         public readonly string? Format;
@@ -1447,13 +1447,13 @@ namespace ZLog.Entries
             Arg14 = arg14;
         }
 
-        public IZLogEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : IZLogEntry
+    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>>();
 
@@ -1477,7 +1477,7 @@ namespace ZLog.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
             if (options.IsStructuredLogging && jsonWriter != null)
             {
@@ -1521,7 +1521,7 @@ namespace ZLog.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : IZLogState
+    internal struct FormatLogState<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : IZLoggerState
     {
         public readonly TPayload Payload;
         public readonly string? Format;
@@ -1564,13 +1564,13 @@ namespace ZLog.Entries
             Arg15 = arg15;
         }
 
-        public IZLogEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : IZLogEntry
+    internal class FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>>();
 
@@ -1594,7 +1594,7 @@ namespace ZLog.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLogOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
             if (options.IsStructuredLogging && jsonWriter != null)
             {

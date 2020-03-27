@@ -1,11 +1,11 @@
 ﻿using System;
 using Cysharp.Text;
 using Microsoft.Extensions.Logging;
-using ZLog.Entries;
+using ZLogger.Entries;
 
-namespace ZLog
+namespace ZLogger
 {
-    public static partial class ZLogLoggerExtensions
+    public static partial class ZLoggerExtensions
     {
         public static void ZLog<T0>(this ILogger logger, LogLevel logLevel, string format, T0 arg0)
         {
