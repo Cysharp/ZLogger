@@ -6,7 +6,7 @@ Coming soon.
 
 Preview:
 
-> PM> Install-Package [ZLog](https://www.nuget.org/packages/ZLogger)
+> PM> Install-Package [ZLogger](https://www.nuget.org/packages/ZLogger)
 
 
 License
