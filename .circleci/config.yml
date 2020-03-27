@@ -21,9 +21,9 @@ jobs:
       - run: dotnet test -c Release --no-build < /dev/null
       - run: dotnet pack ./src/ZLogger/ZLogger.csproj -c Release --no-build -p:Version=${CIRCLE_TAG}
       - store_artifacts:
-          path: ./src/ZLog/bin/Release
+          path: ./src/ZLogger/bin/Release
           destination: ./ZLogger/
-      - run: dotnet nuget push ./src/ZLogger/bin/Release/ZLog.${CIRCLE_TAG}.nupkg -s https://www.nuget.org/api/v2/package -k ${NUGET_KEY}
+      - run: dotnet nuget push ./src/ZLogger/bin/Release/ZLogger.${CIRCLE_TAG}.nupkg -s https://www.nuget.org/api/v2/package -k ${NUGET_KEY}
 workflows:
   version: 2
   build-and-push:
