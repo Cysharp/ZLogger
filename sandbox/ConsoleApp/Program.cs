@@ -22,7 +22,16 @@ namespace ConsoleApp
                 .ConfigureLogging(logging =>
                 {
                     logging.ClearProviders();
-                    logging.SetMinimumLevel(LogLevel.Debug);
+
+                    logging.AddFilter((category, level) =>
+                    {
+                        if (level < LogLevel.Debug) return false;
+                        if (category == "Microsoft.Extensions.Hosting.Internal.Host" && level == LogLevel.Debug) return false;
+                        if (category == "ConsoleAppFramework.ConsoleAppEngine" && level == LogLevel.Debug) return false;
+
+                        return true;
+                    });
+
 
                     /*
                     logging.AddZLoggerRollingFile((dt, x) => $"logs/{dt.ToLocalTime():yyyy-MM-dd_HH-mm-ss}_{x:000}.log",
@@ -30,14 +39,25 @@ namespace ConsoleApp
                         1024);
                         */
 
+                    // logging.ReplaceToSimpleConsole();
 
                     //logging.AddZLoggerRollingFile((dt, x) => $"logs/{dt.ToLocalTime():yyyy-MM-dd}_{x:000}.log", x => x.ToLocalTime().Date, 1024 * 1024);
 
-                    logging.AddZLoggerConsole(options =>
-                    {
-                        options.UseDefaultStructuredLogFormatter();
 
+                    logging.AddZLoggerConsole(x =>
+                    {
+                        //x.PrefixFormatter = (writer, info) =>
+                        //{
+                        //    Console.Write(info.LogLevel);
+
+
+                        //x.UseDefaultStructuredLogFormatter();
+                        //};
                     });
+                    //logging.AddZLoggerConsole(options =>
+                    //{
+                    //    // options.UseDefaultStructuredLogFormatter();
+                    //});
                 })
                 .RunConsoleAppFrameworkAsync<Program>(args);
         }
@@ -50,7 +70,7 @@ namespace ConsoleApp
         }
 
 
-        public  struct MyMessage
+        public struct MyMessage
         {
             public int Foo { get; set; }
             public int Bar { get; set; }
@@ -65,13 +85,12 @@ namespace ConsoleApp
             //logger.ZDebug(obj, "foo{0} {1}", 100, 200);
             // Message: foo 100 200, Payload:{hoge:100, fafa:200}
 
-            var obj = new { Foo = "あいうえお!", Bar = "bar!" };
+            //var obj = new { Foo = "あいうえお!", Bar = "bar!" };
 
             //logger.ZDebug("foo {0}, bar {1}", 100, 200);
             //logger.ZDebug(obj, "foo {0}, bar {1}", obj.Foo, obj.Bar);
 
-            Console.WriteLine("たこやき！！！");
-
+            RunExce();
 
             ////var message = LoggerMessage.Define<int, int, int, int>(LogLevel.Debug, default, "foo{0}bar{1}");
             //// message(
@@ -94,12 +113,12 @@ namespace ConsoleApp
 
             //logger.ZLoggerDebug("foo{0} bar {1} baz{2}", 10, 20, 30);
 
-            
-            
-            
+
+
+
             //new 
 
-            logger.ZLogDebug(new Exception("かきくけこ"), new { 名前 = "あいうえお" },  "さしすせそ{0}", "なにぬねの");
+            logger.ZLogDebug(new Exception("かきくけこ"), new { 名前 = "あいうえお" }, "さしすせそ{0}", "なにぬねの");
             //logger.ZLogInformation("さしすせそ{0}", "なにぬねの");
 
 
@@ -165,6 +184,22 @@ namespace ConsoleApp
 
 
             //logger.ZDebug(new Takoyaki { Foo = "e-!", Bar = "b-!" });
+        }
+
+        void RunExce()
+        {
+            try
+            {
+                RunExce2();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("invalid???", ex);
+            }
+        }
+        void RunExce2()
+        {
+            throw new ArgumentException("invalid???");
         }
     }
 

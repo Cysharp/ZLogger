@@ -124,6 +124,11 @@ namespace ZLogger
                                 value.Return();
 
                                 options.SuffixFormatter?.Invoke(writer, info);
+
+                                if (info.Exception != null)
+                                {
+                                    options.ExceptionFormatter(writer, info.Exception);
+                                }
                             }
 
                             AppendLine(writer);
