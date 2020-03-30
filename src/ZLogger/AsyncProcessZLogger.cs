@@ -35,7 +35,7 @@ namespace ZLogger
         public IDisposable BeginScope<TState>(TState state)
         {
             // currently scope is not supported...
-            return NUllDisposable.Instance;
+            return NullDisposable.Instance;
         }
 
         public bool IsEnabled(LogLevel logLevel)
@@ -43,11 +43,11 @@ namespace ZLogger
             return logLevel != LogLevel.None;
         }
 
-        class NUllDisposable : IDisposable
+        class NullDisposable : IDisposable
         {
-            public static IDisposable Instance = new NUllDisposable();
+            public static IDisposable Instance = new NullDisposable();
 
-            NUllDisposable()
+            NullDisposable()
             {
 
             }

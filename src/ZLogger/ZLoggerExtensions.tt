@@ -48,7 +48,7 @@ namespace ZLogger
             ZLog<<#= CreateTypeArgument(i) #>>(logger, logLevel, eventId, null, format, <#= CreateParameterNames(i) #>);
         }
 
-        public static void ZLog<<#= CreateTypeArgument(i) #>>(this ILogger logger, LogLevel logLevel, Exception exception, string format, <#= CreateParameters(i) #>)
+        public static void ZLog<<#= CreateTypeArgument(i) #>>(this ILogger logger, LogLevel logLevel, Exception? exception, string format, <#= CreateParameters(i) #>)
         {
             ZLog<<#= CreateTypeArgument(i) #>>(logger, logLevel, default, exception, format, <#= CreateParameterNames(i) #>);
         }
@@ -71,7 +71,7 @@ namespace ZLogger
             ZLog<TPayload, <#= CreateTypeArgument(i) #>>(logger, logLevel, eventId, null, payload, format, <#= CreateParameterNames(i) #>);
         }
 
-        public static void ZLog<TPayload, <#= CreateTypeArgument(i) #>>(this ILogger logger, LogLevel logLevel, Exception exception, TPayload payload, string format, <#= CreateParameters(i) #>)
+        public static void ZLog<TPayload, <#= CreateTypeArgument(i) #>>(this ILogger logger, LogLevel logLevel, Exception? exception, TPayload payload, string format, <#= CreateParameters(i) #>)
         {
             ZLog<TPayload, <#= CreateTypeArgument(i) #>>(logger, logLevel, default, exception, payload, format, <#= CreateParameterNames(i) #>);
         }
@@ -95,7 +95,7 @@ namespace ZLogger
             ZLog<<#= CreateTypeArgument(i) #>>(logger, LogLevel.<#= logLevel #>, eventId, null, format, <#= CreateParameterNames(i) #>);
         }
 
-        public static void ZLog<#= logLevel #><<#= CreateTypeArgument(i) #>>(this ILogger logger, Exception exception, string format, <#= CreateParameters(i) #>)
+        public static void ZLog<#= logLevel #><<#= CreateTypeArgument(i) #>>(this ILogger logger, Exception? exception, string format, <#= CreateParameters(i) #>)
         {
             ZLog<<#= CreateTypeArgument(i) #>>(logger, LogLevel.<#= logLevel #>, default, exception, format, <#= CreateParameterNames(i) #>);
         }
@@ -115,7 +115,7 @@ namespace ZLogger
             ZLog<TPayload, <#= CreateTypeArgument(i) #>>(logger, LogLevel.<#= logLevel #>, eventId, null, payload, format, <#= CreateParameterNames(i) #>);
         }
 
-        public static void ZLog<#= logLevel #><TPayload, <#= CreateTypeArgument(i) #>>(this ILogger logger, Exception exception, TPayload payload, string format, <#= CreateParameters(i) #>)
+        public static void ZLog<#= logLevel #><TPayload, <#= CreateTypeArgument(i) #>>(this ILogger logger, Exception? exception, TPayload payload, string format, <#= CreateParameters(i) #>)
         {
             ZLog<TPayload, <#= CreateTypeArgument(i) #>>(logger, LogLevel.<#= logLevel #>, default, exception, payload, format, <#= CreateParameterNames(i) #>);
         }
@@ -138,7 +138,7 @@ namespace ZLogger
             ZLogMessage(logger, logLevel, eventId, null, message);
         }
 
-        public static void ZLogMessage(this ILogger logger, LogLevel logLevel, Exception exception, string message)
+        public static void ZLogMessage(this ILogger logger, LogLevel logLevel, Exception? exception, string message)
         {
             ZLogMessage<object>(logger, logLevel, default, exception, null!, message);
         }
@@ -161,7 +161,7 @@ namespace ZLogger
             ZLogMessage<TPayload>(logger, logLevel, eventId, null, payload, message);
         }
 
-        public static void ZLogMessage<TPayload>(this ILogger logger, LogLevel logLevel, Exception exception, TPayload payload, string message)
+        public static void ZLogMessage<TPayload>(this ILogger logger, LogLevel logLevel, Exception? exception, TPayload payload, string message)
         {
             ZLogMessage<TPayload>(logger, logLevel, default, exception, payload, message);
         }
@@ -185,7 +185,7 @@ namespace ZLogger
             ZLog<#= logLevel #>Message(logger, eventId, null, message);
         }
 
-        public static void ZLog<#= logLevel #>Message(this ILogger logger, Exception exception, string message)
+        public static void ZLog<#= logLevel #>Message(this ILogger logger, Exception? exception, string message)
         {
             ZLog<#= logLevel #>Message<object>(logger, default, exception, null!, message);
         }
@@ -208,7 +208,7 @@ namespace ZLogger
             ZLog<#= logLevel #>Message<TPayload>(logger, eventId, null, payload, message);
         }
 
-        public static void ZLog<#= logLevel #>Message<TPayload>(this ILogger logger, Exception exception, TPayload payload, string message)
+        public static void ZLog<#= logLevel #>Message<TPayload>(this ILogger logger, Exception? exception, TPayload payload, string message)
         {
             ZLog<#= logLevel #>Message<TPayload>(logger, default, exception, payload, message);
         }

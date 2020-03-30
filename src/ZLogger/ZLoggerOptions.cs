@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Buffers;
-using System.Diagnostics;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -13,7 +11,7 @@ namespace ZLogger
 {
     public class ZLoggerOptions
     {
-        public Action<Exception>? ErrorLogger { get; set; }
+        public Action<Exception>? InternalErrorLogger { get; set; }
         public CancellationToken CancellationToken { get; set; }
 
         // Options for Text logging
@@ -140,13 +138,13 @@ namespace ZLogger
 
         internal void LogException(Exception ex)
         {
-            if (ErrorLogger == null)
+            if (InternalErrorLogger == null)
             {
                 Console.WriteLine(ex);
             }
             else
             {
-                ErrorLogger(ex);
+                InternalErrorLogger(ex);
             }
         }
     }

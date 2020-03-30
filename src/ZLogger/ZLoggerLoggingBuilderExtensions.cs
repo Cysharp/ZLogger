@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Options;
 using System;
+using System.IO;
 using System.Text;
 using ZLogger.Providers;
 
@@ -34,6 +35,52 @@ namespace ZLogger
             }
 
             builder.AddZLoggerConsole(consoleOutputEncodingToUtf8);
+            builder.Services.Configure(configure);
+
+            return builder;
+        }
+
+        public static ILoggingBuilder AddZLoggerStream(this ILoggingBuilder builder, Stream stream)
+        {
+            builder.AddConfiguration();
+
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerStreamLoggerProvider>(x => new ZLoggerStreamLoggerProvider(stream, x.GetService<IOptions<ZLoggerOptions>>())));
+            LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerStreamLoggerProvider>(builder.Services);
+
+            return builder;
+        }
+
+        public static ILoggingBuilder AddZLoggerStream(this ILoggingBuilder builder, Stream stream, Action<ZLoggerOptions> configure)
+        {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            builder.AddZLoggerStream(stream);
+            builder.Services.Configure(configure);
+
+            return builder;
+        }
+
+        public static ILoggingBuilder AddZLoggerLogProcessor(this ILoggingBuilder builder, IAsyncLogProcessor logProcessor)
+        {
+            builder.AddConfiguration();
+
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerLogProcessorProvider>(x => new ZLoggerLogProcessorProvider(logProcessor, x.GetService<IOptions<ZLoggerOptions>>())));
+            LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerLogProcessorProvider>(builder.Services);
+
+            return builder;
+        }
+
+        public static ILoggingBuilder AddZLoggerLogProcessor(this ILoggingBuilder builder, IAsyncLogProcessor logProcessor, Action<ZLoggerOptions> configure)
+        {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            builder.AddZLoggerLogProcessor(logProcessor);
             builder.Services.Configure(configure);
 
             return builder;

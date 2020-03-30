@@ -139,9 +139,9 @@ namespace ZLogger
                     {
                         try
                         {
-                            if (options.ErrorLogger != null)
+                            if (options.InternalErrorLogger != null)
                             {
-                                options.ErrorLogger(ex);
+                                options.InternalErrorLogger(ex);
                             }
                             else
                             {
