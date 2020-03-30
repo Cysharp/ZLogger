@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 using System;
 using Cysharp.Text;
 using System.Threading;
+using System.Text.Json;
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
+using System.Buffers;
+using System.Text;
 
 namespace ConsoleApp
 {
@@ -17,7 +22,7 @@ namespace ConsoleApp
                 .ConfigureLogging(logging =>
                 {
                     logging.ClearProviders();
-                    logging.SetMinimumLevel(LogLevel.Trace);
+                    logging.SetMinimumLevel(LogLevel.Debug);
 
                     /*
                     logging.AddZLoggerRollingFile((dt, x) => $"logs/{dt.ToLocalTime():yyyy-MM-dd_HH-mm-ss}_{x:000}.log",
@@ -26,7 +31,7 @@ namespace ConsoleApp
                         */
 
 
-                    logging.AddZLoggerRollingFile((dt, x) => $"logs/{dt.ToLocalTime():yyyy-MM-dd}_{x:000}.log", x => x.ToLocalTime().Date, 1024 * 1024);
+                    //logging.AddZLoggerRollingFile((dt, x) => $"logs/{dt.ToLocalTime():yyyy-MM-dd}_{x:000}.log", x => x.ToLocalTime().Date, 1024 * 1024);
 
                     logging.AddZLoggerConsole(options =>
                     {
@@ -60,41 +65,82 @@ namespace ConsoleApp
             //logger.ZDebug(obj, "foo{0} {1}", 100, 200);
             // Message: foo 100 200, Payload:{hoge:100, fafa:200}
 
-            var obj = new { Foo = "foo!", Bar = "bar!" };
+            var obj = new { Foo = "あいうえお!", Bar = "bar!" };
 
             //logger.ZDebug("foo {0}, bar {1}", 100, 200);
             //logger.ZDebug(obj, "foo {0}, bar {1}", obj.Foo, obj.Bar);
 
+            Console.WriteLine("たこやき！！！");
 
 
+            ////var message = LoggerMessage.Define<int, int, int, int>(LogLevel.Debug, default, "foo{0}bar{1}");
+            //// message(
 
-            //var message = LoggerMessage.Define<int, int, int, int>(LogLevel.Debug, default, "foo{0}bar{1}");
-            // message(
+            //// logger.LogDebug(
+            ////logger.ZLoggerDebug(
 
-            // logger.LogDebug(
-            //logger.ZLoggerDebug(
+            //// logger.
 
-            // logger.
-
-            //logger.ZLoggerMessage(LogLevel.Debug, "foobarbaz");
-            //logger.ZLoggerMessage(LogLevel.Debug, new { tako = 100 }, "nano");
+            ////logger.ZLoggerMessage(LogLevel.Debug, "foobarbaz");
+            ////logger.ZLoggerMessage(LogLevel.Debug, new { tako = 100 }, "nano");
 
 
-            var tako2 = LoggerMessage.Define<int, int, int>(LogLevel.Debug, new EventId(10, "hogehoge"), "foo{0} bar {1} baz{2}");
+            //var tako2 = LoggerMessage.Define<int, int, int>(LogLevel.Debug, new EventId(10, "hogehoge"), "foo{0} bar {1} baz{2}");
 
-            var tako = ZLoggerMessage.Define<int, int, int>(LogLevel.Debug, new EventId(10, "hogehoge"), "foo{0} bar {1} baz{2}");
+            //var tako = ZLoggerMessage.Define<int, int, int>(LogLevel.Debug, new EventId(10, "hogehoge"), "foo{0} bar {1} baz{2}");
 
-            var logmsg = ZLoggerMessage.DefineWithPayload<MyMessage, int, int, int>(LogLevel.Warning, new EventId(10, "hogehoge"), "foo{0} bar{1} baz{2}");
+            //var logmsg = ZLoggerMessage.DefineWithPayload<MyMessage, int, int, int>(LogLevel.Warning, new EventId(10, "hogehoge"), "foo{0} bar{1} baz{2}");
 
 
             //logger.ZLoggerDebug("foo{0} bar {1} baz{2}", 10, 20, 30);
 
-            logger.ZLogDebug(new { foo = 100 }, "foo{0} bar {1} baz{2}", 10, 20, 30);
+            
+            
+            
+            //new 
+
+            logger.ZLogDebug(new Exception("かきくけこ"), new { 名前 = "あいうえお" },  "さしすせそ{0}", "なにぬねの");
+            //logger.ZLogInformation("さしすせそ{0}", "なにぬねの");
+
 
             //tako(logger, 100, 200, 300, null);
 
 
-            logmsg(logger, new MyMessage { Foo = 100, Bar = 200 }, 100, 200, 300, null);
+            //var opt = new JsonSerializerOptions
+            //{
+            //    WriteIndented = false,
+            //    IgnoreNullValues = false,
+            //    Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+            //};
+
+
+            //var buff = new ArrayBufferWriter<byte>();
+
+            //var writer = new Utf8JsonWriter(buff, new JsonWriterOptions { Encoder = JavaScriptEncoder.Create(UnicodeRanges.All) });
+            //writer.WriteStartObject();
+            //writer.WritePropertyName("foo");
+            //JsonSerializer.Serialize(writer, new { Tako = "あいうえお" }, new JsonSerializerOptions { Encoder = JavaScriptEncoder.Create(UnicodeRanges.All) } );
+            //writer.WriteEndObject();
+
+
+            //var str = Encoding.UTF8.GetString(buff.WrittenSpan);
+            //Console.WriteLine(str);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            //logmsg(logger, new MyMessage { Foo = 100, Bar = 200 }, 100, 200, 300, null);
 
 
             //tako(logger, 100, 200, 300,

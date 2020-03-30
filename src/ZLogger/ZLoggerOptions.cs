@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Buffers;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Unicode;
 using System.Threading;
 
 namespace ZLogger
@@ -24,6 +26,7 @@ namespace ZLogger
         {
             WriteIndented = false,
             IgnoreNullValues = false,
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
 
         public void UseDefaultStructuredLogFormatter()
@@ -40,7 +43,12 @@ namespace ZLogger
             Utf8JsonWriter writer;
             if (jsonWriter == null)
             {
-                writer = jsonWriter = new Utf8JsonWriter(buffer, new JsonWriterOptions { Indented = false, SkipValidation = true });
+                writer = jsonWriter = new Utf8JsonWriter(buffer, new JsonWriterOptions
+                {
+                    Indented = this.JsonSerializerOptions.WriteIndented,
+                    SkipValidation = true,
+                    Encoder = this.JsonSerializerOptions.Encoder
+                });
             }
             else
             {

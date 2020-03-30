@@ -4,14 +4,20 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Options;
 using System;
+using System.Text;
 using ZLogger.Providers;
 
 namespace ZLogger
 {
     public static class ZLoggerLoggingBuilderExtensions
     {
-        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder)
+        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, bool consoleOutputEncodingToUtf8 = true)
         {
+            if (consoleOutputEncodingToUtf8)
+            {
+                Console.OutputEncoding = new UTF8Encoding(false);
+            }
+
             builder.AddConfiguration();
 
             builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerConsoleLoggerProvider>());
@@ -20,14 +26,14 @@ namespace ZLogger
             return builder;
         }
 
-        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, Action<ZLoggerOptions> configure)
+        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, Action<ZLoggerOptions> configure, bool consoleOutputEncodingToUtf8 = true)
         {
             if (configure == null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            builder.AddZLoggerConsole();
+            builder.AddZLoggerConsole(consoleOutputEncodingToUtf8);
             builder.Services.Configure(configure);
 
             return builder;

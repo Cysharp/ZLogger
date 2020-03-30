@@ -77,9 +77,15 @@ namespace ZLogger.Entries
                 }
                 else
                 {
-                    using (var writer2 = new Utf8JsonWriter(writer))
+                    var writer2 = options.GetThradStaticUtf8JsonWriter(writer);
+                    try
                     {
                         JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
+                        writer2.Flush();
+                    }
+                    finally
+                    {
+                        writer2.Reset();
                     }
                 }
             }
@@ -166,9 +172,15 @@ namespace ZLogger.Entries
                 }
                 else
                 {
-                    using (var writer2 = new Utf8JsonWriter(writer))
+                    var writer2 = options.GetThradStaticUtf8JsonWriter(writer);
+                    try
                     {
                         JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
+                        writer2.Flush();
+                    }
+                    finally
+                    {
+                        writer2.Reset();
                     }
                 }
             }
@@ -257,9 +269,15 @@ namespace ZLogger.Entries
                 }
                 else
                 {
-                    using (var writer2 = new Utf8JsonWriter(writer))
+                    var writer2 = options.GetThradStaticUtf8JsonWriter(writer);
+                    try
                     {
                         JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
+                        writer2.Flush();
+                    }
+                    finally
+                    {
+                        writer2.Reset();
                     }
                 }
             }
@@ -350,9 +368,15 @@ namespace ZLogger.Entries
                 }
                 else
                 {
-                    using (var writer2 = new Utf8JsonWriter(writer))
+                    var writer2 = options.GetThradStaticUtf8JsonWriter(writer);
+                    try
                     {
                         JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
+                        writer2.Flush();
+                    }
+                    finally
+                    {
+                        writer2.Reset();
                     }
                 }
             }
@@ -445,9 +469,15 @@ namespace ZLogger.Entries
                 }
                 else
                 {
-                    using (var writer2 = new Utf8JsonWriter(writer))
+                    var writer2 = options.GetThradStaticUtf8JsonWriter(writer);
+                    try
                     {
                         JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
+                        writer2.Flush();
+                    }
+                    finally
+                    {
+                        writer2.Reset();
                     }
                 }
             }
@@ -542,9 +572,15 @@ namespace ZLogger.Entries
                 }
                 else
                 {
-                    using (var writer2 = new Utf8JsonWriter(writer))
+                    var writer2 = options.GetThradStaticUtf8JsonWriter(writer);
+                    try
                     {
                         JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
+                        writer2.Flush();
+                    }
+                    finally
+                    {
+                        writer2.Reset();
                     }
                 }
             }
@@ -641,9 +677,15 @@ namespace ZLogger.Entries
                 }
                 else
                 {
-                    using (var writer2 = new Utf8JsonWriter(writer))
+                    var writer2 = options.GetThradStaticUtf8JsonWriter(writer);
+                    try
                     {
                         JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
+                        writer2.Flush();
+                    }
+                    finally
+                    {
+                        writer2.Reset();
                     }
                 }
             }
@@ -742,9 +784,15 @@ namespace ZLogger.Entries
                 }
                 else
                 {
-                    using (var writer2 = new Utf8JsonWriter(writer))
+                    var writer2 = options.GetThradStaticUtf8JsonWriter(writer);
+                    try
                     {
                         JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
+                        writer2.Flush();
+                    }
+                    finally
+                    {
+                        writer2.Reset();
                     }
                 }
             }
@@ -845,9 +893,15 @@ namespace ZLogger.Entries
                 }
                 else
                 {
-                    using (var writer2 = new Utf8JsonWriter(writer))
+                    var writer2 = options.GetThradStaticUtf8JsonWriter(writer);
+                    try
                     {
                         JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
+                        writer2.Flush();
+                    }
+                    finally
+                    {
+                        writer2.Reset();
                     }
                 }
             }
@@ -950,9 +1004,15 @@ namespace ZLogger.Entries
                 }
                 else
                 {
-                    using (var writer2 = new Utf8JsonWriter(writer))
+                    var writer2 = options.GetThradStaticUtf8JsonWriter(writer);
+                    try
                     {
                         JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
+                        writer2.Flush();
+                    }
+                    finally
+                    {
+                        writer2.Reset();
                     }
                 }
             }
@@ -1057,9 +1117,15 @@ namespace ZLogger.Entries
                 }
                 else
                 {
-                    using (var writer2 = new Utf8JsonWriter(writer))
+                    var writer2 = options.GetThradStaticUtf8JsonWriter(writer);
+                    try
                     {
                         JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
+                        writer2.Flush();
+                    }
+                    finally
+                    {
+                        writer2.Reset();
                     }
                 }
             }
@@ -1166,9 +1232,15 @@ namespace ZLogger.Entries
                 }
                 else
                 {
-                    using (var writer2 = new Utf8JsonWriter(writer))
+                    var writer2 = options.GetThradStaticUtf8JsonWriter(writer);
+                    try
                     {
                         JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
+                        writer2.Flush();
+                    }
+                    finally
+                    {
+                        writer2.Reset();
                     }
                 }
             }
@@ -1277,9 +1349,15 @@ namespace ZLogger.Entries
                 }
                 else
                 {
-                    using (var writer2 = new Utf8JsonWriter(writer))
+                    var writer2 = options.GetThradStaticUtf8JsonWriter(writer);
+                    try
                     {
                         JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
+                        writer2.Flush();
+                    }
+                    finally
+                    {
+                        writer2.Reset();
                     }
                 }
             }
@@ -1390,9 +1468,15 @@ namespace ZLogger.Entries
                 }
                 else
                 {
-                    using (var writer2 = new Utf8JsonWriter(writer))
+                    var writer2 = options.GetThradStaticUtf8JsonWriter(writer);
+                    try
                     {
                         JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
+                        writer2.Flush();
+                    }
+                    finally
+                    {
+                        writer2.Reset();
                     }
                 }
             }
@@ -1505,9 +1589,15 @@ namespace ZLogger.Entries
                 }
                 else
                 {
-                    using (var writer2 = new Utf8JsonWriter(writer))
+                    var writer2 = options.GetThradStaticUtf8JsonWriter(writer);
+                    try
                     {
                         JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
+                        writer2.Flush();
+                    }
+                    finally
+                    {
+                        writer2.Reset();
                     }
                 }
             }
@@ -1622,9 +1712,15 @@ namespace ZLogger.Entries
                 }
                 else
                 {
-                    using (var writer2 = new Utf8JsonWriter(writer))
+                    var writer2 = options.GetThradStaticUtf8JsonWriter(writer);
+                    try
                     {
                         JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
+                        writer2.Flush();
+                    }
+                    finally
+                    {
+                        writer2.Reset();
                     }
                 }
             }
