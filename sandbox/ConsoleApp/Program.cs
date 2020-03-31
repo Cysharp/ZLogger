@@ -11,26 +11,84 @@ using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using System.Buffers;
 using System.Text;
+using Microsoft.Extensions.DependencyInjection;
+using ZLogger.Providers;
+using ConsoleAppFramework.Logging;
 
 namespace ConsoleApp
 {
+    public class MyClass22
+    {
+
+    }
+
+
+    public static class GlobalLogger
+    {
+        static ILogger? globalLogger;
+        static ILoggerFactory? loggerFactory;
+
+        public static void SetServiceProvider(ILoggerFactory loggerFactory, string categoryName)
+        {
+            GlobalLogger.loggerFactory = loggerFactory;
+            GlobalLogger.globalLogger = loggerFactory.CreateLogger(categoryName);
+        }
+
+        public static ILogger Log => globalLogger!;
+
+        public static ILogger<T> GetLogger<T>() where T : class => loggerFactory!.CreateLogger<T>();
+        public static ILogger GetLogger(string categoryName) => loggerFactory!.CreateLogger(categoryName);
+    }
+
+
+
+    public class HoGeMoge
+    {
+        public static readonly ILogger<HoGeMoge> logger = GlobalLogger.GetLogger<HoGeMoge>();
+
+        public void Foo(int x)
+        {
+            logger.ZLogDebug("do do do: {0}", x);
+        }
+    }
+
     class Program : ConsoleAppBase
     {
         static async Task Main(string[] args)
         {
-            await Host.CreateDefaultBuilder()
+            var host = Host.CreateDefaultBuilder()
                 .ConfigureLogging(logging =>
                 {
                     logging.ClearProviders();
 
-                    logging.AddFilter((category, level) =>
-                    {
-                        if (level < LogLevel.Debug) return false;
-                        if (category == "Microsoft.Extensions.Hosting.Internal.Host" && level == LogLevel.Debug) return false;
-                        if (category == "ConsoleAppFramework.ConsoleAppEngine" && level == LogLevel.Debug) return false;
+                    //logging.SetMinimumLevel(LogLevel.Trace)
+                    //    .AddZLoggerConsole(configure =>
+                    //    {
+                    //        configure.IsStructuredLogging = true;
+                    //    });
 
-                        return true;
-                    });
+
+                    // logging.AddFilter(
+
+
+                    logging.AddFilter<ZLoggerConsoleLoggerProvider>(x => true).AddZLoggerConsole();
+
+                    logging.AddFilter<SimpleConsoleLoggerProvider>(x => x == LogLevel.Debug).AddSimpleConsole();
+
+                    //logging.AddFilter((category, level) =>
+                    //    {
+                    //        if (category == "Microsoft.Extensions.Hosting.Internal.Host") return true;
+                    //        return false;
+                    //    })
+                    //    .AddZLoggerConsole();
+
+
+                    //logging.AddFilter((category, level) =>
+                    //{
+                    //    if (category != "Microsoft.Extensions.Hosting.Internal.Host") return true;
+                    //    return false;
+                    //})
+                    //       .AddConsole();
 
 
                     /*
@@ -44,27 +102,38 @@ namespace ConsoleApp
                     //logging.AddZLoggerRollingFile((dt, x) => $"logs/{dt.ToLocalTime():yyyy-MM-dd}_{x:000}.log", x => x.ToLocalTime().Date, 1024 * 1024);
 
 
-                    logging.AddZLoggerLogProcessor(new Processor());
+                    //logging.AddZLoggerLogProcessor(new Processor());
 
 
-                    logging.AddZLoggerConsole(x =>
-                    {
-                        //x.PrefixFormatter = (writer, info) =>
-                        //{
-                        //    Console.Write(info.LogLevel);
+                    //logging.AddZLoggerFile("filelog.log");
+
+                    logging.AddZLoggerConsole();
+                    logging.AddZLoggerFile("foo.log");
+
+
+                    //logging.AddZLoggerConsole(x =>
+                    //{
+                    //    //x.PrefixFormatter = (writer, info) =>
+                    //    //{
+                    //    //    Console.Write(info.LogLevel);
 
 
 
 
-                        //x.UseDefaultStructuredLogFormatter();
-                        //};
-                    });
+                    //    //x.UseDefaultStructuredLogFormatter();
+                    //    //};
+                    //});
                     //logging.AddZLoggerConsole(options =>
                     //{
                     //    // options.UseDefaultStructuredLogFormatter();
                     //});
                 })
-                .RunConsoleAppFrameworkAsync<Program>(args);
+                .UseConsoleAppFramework<Program>(args)
+                .Build();
+
+            GlobalLogger.SetServiceProvider(host.Services.GetRequiredService<ILoggerFactory>(), "MyApp");
+
+            await host.RunAsync();
         }
 
         readonly ILogger<Program> logger;
@@ -83,6 +152,8 @@ namespace ConsoleApp
 
         public async Task Run()
         {
+            new HoGeMoge().Foo();
+
             //logger.LogDebug("foooooo  {0} {1}", 10, 20);
 
             //logger.ZLogger(LogLevel.Debug, "hogehoge", 100,);
@@ -158,14 +229,6 @@ namespace ConsoleApp
 
 
 
-
-            var prepare = ZLoggerMessage.Define<int, int>(LogLevel.Debug, new EventId(10, "foo"), "takoyaki {0} nanoka {1}");
-
-            prepare(logger, 100, 200, null);
-
-
-
-
             //logmsg(logger, new MyMessage { Foo = 100, Bar = 200 }, 100, 200, 300, null);
 
 
@@ -189,10 +252,6 @@ namespace ConsoleApp
             //logger.ZLogger(LogLevel.Debug, "foo{0}", 100);
             //logger.ZLogger(LogLevel.Debug, "foo{0}", 100);
 
-
-
-            logger.ZLogDebug(new Takoyaki { Foo = "e-!", Bar = "b-!" }, "foo{0}", 100);
-            logger.ZLogDebug(new Takoyaki2 { Foo = "e-!", Bar = "b-!" }, "foo{0}", 100);
 
 
 
