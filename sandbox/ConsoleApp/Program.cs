@@ -44,11 +44,16 @@ namespace ConsoleApp
                     //logging.AddZLoggerRollingFile((dt, x) => $"logs/{dt.ToLocalTime():yyyy-MM-dd}_{x:000}.log", x => x.ToLocalTime().Date, 1024 * 1024);
 
 
+                    logging.AddZLoggerLogProcessor(new Processor());
+
+
                     logging.AddZLoggerConsole(x =>
                     {
                         //x.PrefixFormatter = (writer, info) =>
                         //{
                         //    Console.Write(info.LogLevel);
+
+
 
 
                         //x.UseDefaultStructuredLogFormatter();
@@ -90,7 +95,7 @@ namespace ConsoleApp
             //logger.ZDebug("foo {0}, bar {1}", 100, 200);
             //logger.ZDebug(obj, "foo {0}, bar {1}", obj.Foo, obj.Bar);
 
-            RunExce();
+            //RunExce();
 
             ////var message = LoggerMessage.Define<int, int, int, int>(LogLevel.Debug, default, "foo{0}bar{1}");
             //// message(
@@ -118,7 +123,7 @@ namespace ConsoleApp
 
             //new 
 
-            logger.ZLogDebug(new Exception("かきくけこ"), new { 名前 = "あいうえお" }, "さしすせそ{0}", "なにぬねの");
+            //logger.ZLogDebug(new Exception("かきくけこ"), new { 名前 = "あいうえお" }, "さしすせそ{0}", "なにぬねの");
             //logger.ZLogInformation("さしすせそ{0}", "なにぬねの");
 
 
@@ -154,7 +159,9 @@ namespace ConsoleApp
 
 
 
+            var prepare = ZLoggerMessage.Define<int, int>(LogLevel.Debug, new EventId(10, "foo"), "takoyaki {0} nanoka {1}");
 
+            prepare(logger, 100, 200, null);
 
 
 
@@ -165,7 +172,7 @@ namespace ConsoleApp
             //tako(logger, 100, 200, 300,
 
 
-            await Task.Yield();
+            //await Task.Yield();
 
             // logger.ZLoggerDebug(
 
@@ -183,7 +190,13 @@ namespace ConsoleApp
             //logger.ZLogger(LogLevel.Debug, "foo{0}", 100);
 
 
-            //logger.ZDebug(new Takoyaki { Foo = "e-!", Bar = "b-!" });
+
+            logger.ZLogDebug(new Takoyaki { Foo = "e-!", Bar = "b-!" }, "foo{0}", 100);
+            logger.ZLogDebug(new Takoyaki2 { Foo = "e-!", Bar = "b-!" }, "foo{0}", 100);
+
+
+
+            await Task.Yield();
         }
 
         void RunExce()
@@ -209,5 +222,30 @@ namespace ConsoleApp
         public string Bar { get; set; }
     }
 
+    public class Takoyaki2
+    {
+        public string? Foo { get; set; }
+        public string? Bar { get; set; }
+    }
+
+    public class Processor : IAsyncLogProcessor
+    {
+        public ValueTask DisposeAsync()
+        {
+            return default;
+        }
+
+        public void Post(IZLoggerEntry log)
+        {
+            //var takoyaki = log.GetPayloadAs<Takoyaki2>();
+
+            log.SwitchCasePayload<Takoyaki>((entry, obj, state) =>
+            {
+
+                Console.WriteLine(obj.Bar);
+            }, null);
+
+        }
+    }
 
 }

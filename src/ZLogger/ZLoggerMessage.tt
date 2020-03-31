@@ -7,56 +7,71 @@
 <#
     static string CreateTypeArgument(int i)
     {
-        return string.Join(", ", Enumerable.Range(0, i).Select(x => "T" + x));
+        return string.Join(", ", Enumerable.Range(0, i).Select(x => "T" + (x + 1)));
     }
 
     static string CreateParameters(int i)
     {
-        return string.Join(", ", Enumerable.Range(0, i).Select(x => "T" + x + " arg" + x));
+        return string.Join(", ", Enumerable.Range(0, i).Select(x => "T" + (x + 1) + " arg" + (x + 1)));
     }
     
 
     static string CreateParameterNames(int i)
     {
-        return string.Join(", ", Enumerable.Range(0, i).Select(x => "arg" + x));
+        return string.Join(", ", Enumerable.Range(0, i).Select(x => "arg" + (x + 1)));
+    }
+
+    static string CreateStateParameterNames(int i)
+    {
+        return string.Join(", ", Enumerable.Range(0, i).Select(x => "state.Arg" + (x + 1)));
     }
 #>
+using Cysharp.Text;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using ZLogger.Entries;
 
 namespace ZLogger
 {
-    // TODO:use ZString.Prepare
-
     public static class ZLoggerMessage
     {
-        public static Action<ILogger, Exception> Define(LogLevel logLevel, EventId eventId, string message)
+        public static Action<ILogger, Exception?> Define(LogLevel logLevel, EventId eventId, string message)
         {
-            return (ILogger logger, Exception ex) =>
+            return (ILogger logger, Exception? ex) =>
             {
                 logger.ZLogMessage(logLevel, eventId, ex, message);
             };
         }
 
 <# for(var i = 1; i <= 14; i++) { #>
-        public static Action<ILogger, <#= CreateTypeArgument(i) #>, Exception> Define<<#= CreateTypeArgument(i) #>>(LogLevel logLevel, EventId eventId, string format)
+        public static Action<ILogger, <#= CreateTypeArgument(i) #>, Exception?> Define<<#= CreateTypeArgument(i) #>>(LogLevel logLevel, EventId eventId, string format)
         {
-            return (ILogger logger, <#= CreateParameters(i) #>, Exception ex) =>
+            var prepared = ZString.PrepareUtf8<<#= CreateTypeArgument(i) #>>(format);
+
+            return (ILogger logger, <#= CreateParameters(i) #>, Exception? ex) =>
             {
-                logger.ZLog<<#= CreateTypeArgument(i) #>>(logLevel, eventId, ex, format, <#= CreateParameterNames(i) #>);
+                logger.Log(logLevel, eventId, new PreparedFormatLogState<object, <#= CreateTypeArgument(i) #>>(null, prepared, <#= CreateParameterNames(i) #>), ex, (state, ex) =>
+                {
+                    return state.Format.Format(<#= CreateStateParameterNames(i) #>);
+                });
             };
         }
 
 <# } #>
 
 <# for(var i = 1; i <= 13; i++) { #>
-        public static Action<ILogger, TPayload, <#= CreateTypeArgument(i) #>, Exception> DefineWithPayload<TPayload, <#= CreateTypeArgument(i) #>>(LogLevel logLevel, EventId eventId, string format)
+        public static Action<ILogger, TPayload, <#= CreateTypeArgument(i) #>, Exception?> DefineWithPayload<TPayload, <#= CreateTypeArgument(i) #>>(LogLevel logLevel, EventId eventId, string format)
         {
-            return (ILogger logger, TPayload payload, <#= CreateParameters(i) #>, Exception ex) =>
+            var prepared = ZString.PrepareUtf8<<#= CreateTypeArgument(i) #>>(format);
+
+            return (ILogger logger, TPayload payload, <#= CreateParameters(i) #>, Exception? ex) =>
             {
-                logger.ZLog<TPayload, <#= CreateTypeArgument(i) #>>(logLevel, eventId, ex, payload, format, <#= CreateParameterNames(i) #>);
+                logger.Log(logLevel, eventId, new PreparedFormatLogState<TPayload, <#= CreateTypeArgument(i) #>>(payload, prepared, <#= CreateParameterNames(i) #>), ex, (state, ex) =>
+                {
+                    return state.Format.Format(<#= CreateStateParameterNames(i) #>);
+                });
             };
         }
 

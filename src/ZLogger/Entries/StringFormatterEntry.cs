@@ -55,6 +55,15 @@ namespace ZLogger.Entries
             }
         }
 
+        public object? GetPayload()
+        {
+            return null;
+        }
+
+        public void SwitchCasePayload<TPayload>(Action<IZLoggerEntry, TPayload, object?> payloadCallback, object? state)
+        {
+        }
+
         public void Return()
         {
             this.state = default!;
