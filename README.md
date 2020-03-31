@@ -10,7 +10,7 @@ Logging to standard output is very important, especially in the age of container
 
 ZLogger writes directly as UTF8 by the our zero allocation string builder [ZString](https://github.com/Cysharp/ZString). In addition, thorough generics, struct, and cache are utilized to achieve the maximum performance. Default options is set to the best for performance by the async and buffered, so you don't have to worry about the logger settings.
 
-ZLogger is built directly on top of Microsoft.Extensions.Logging. By not having a separate logger framework layer, we are extracting better performance. In addition to ConsoleLogging, we provides FileLogger, RollingFileLogger, and StreamLogger. They too are designed to bring out the best in performance.
+ZLogger is built directly on top of `Microsoft.Extensions.Logging`. By not having a separate logger framework layer, we are extracting better performance. In addition to ConsoleLogging, we provides **FileLogger**, **RollingFileLogger**, and **StreamLogger**. They too are designed to bring out the best in performance.
 
 Getting Started
 ---
@@ -63,6 +63,10 @@ var foobarLogger2 = ZLoggerMessage.DefineWithPayload<MyMessage, int, int>(LogLev
 
 // TODO: more reference.
 
+Banned API Analyzer
+---
+// TODO:
+
 Global LoggerFactory
 ---
 Like the traditional log manager, how to get and store logger per type without DI(such as `static readonly ILogger logger = LogManager.GetLogger()`). You can get `ILoggerFactory` from `IHost` before Run and set to the global static loggerfactory store.
@@ -109,7 +113,7 @@ public static class GlobalLogger
 
 You can use this loggger manager like following.
 
-```
+```csharp
 public class Foo
 {
     public static readonly ILogger<Foo> logger = GlobalLogger.GetLogger<Foo>();
