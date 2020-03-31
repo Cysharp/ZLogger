@@ -23,22 +23,22 @@ namespace ConsoleApp
     }
 
 
-    public static class GlobalLogger
-    {
-        static ILogger? globalLogger;
-        static ILoggerFactory? loggerFactory;
-
-        public static void SetServiceProvider(ILoggerFactory loggerFactory, string categoryName)
+        public static class GlobalLogger
         {
-            GlobalLogger.loggerFactory = loggerFactory;
-            GlobalLogger.globalLogger = loggerFactory.CreateLogger(categoryName);
+            static ILogger? globalLogger;
+            static ILoggerFactory? loggerFactory;
+
+            public static void SetServiceProvider(ILoggerFactory loggerFactory, string categoryName)
+            {
+                GlobalLogger.loggerFactory = loggerFactory;
+                GlobalLogger.globalLogger = loggerFactory.CreateLogger(categoryName);
+            }
+
+            public static ILogger Log => globalLogger!;
+
+            public static ILogger<T> GetLogger<T>() where T : class => loggerFactory!.CreateLogger<T>();
+            public static ILogger GetLogger(string categoryName) => loggerFactory!.CreateLogger(categoryName);
         }
-
-        public static ILogger Log => globalLogger!;
-
-        public static ILogger<T> GetLogger<T>() where T : class => loggerFactory!.CreateLogger<T>();
-        public static ILogger GetLogger(string categoryName) => loggerFactory!.CreateLogger(categoryName);
-    }
 
 
 
@@ -46,10 +46,10 @@ namespace ConsoleApp
     {
         public static readonly ILogger<HoGeMoge> logger = GlobalLogger.GetLogger<HoGeMoge>();
 
-        public void Foo(int x)
-        {
-            logger.ZLogDebug("do do do: {0}", x);
-        }
+            public void Foo(int x)
+            {
+                logger.ZLogDebug("do do do: {0}", x);
+            }
     }
 
     class Program : ConsoleAppBase
@@ -61,7 +61,9 @@ namespace ConsoleApp
                 {
                     logging.ClearProviders();
 
-                    //logging.SetMinimumLevel(LogLevel.Trace)
+                    // optional(MS.E.Logging): default is Info, you can use this or AddFilter to filtering log.
+                    logging.SetMinimumLevel(LogLevel.Debug);
+
                     //    .AddZLoggerConsole(configure =>
                     //    {
                     //        configure.IsStructuredLogging = true;
@@ -69,6 +71,9 @@ namespace ConsoleApp
 
 
                     // logging.AddFilter(
+
+
+
 
 
                     logging.AddFilter<ZLoggerConsoleLoggerProvider>(x => true).AddZLoggerConsole();
@@ -152,7 +157,7 @@ namespace ConsoleApp
 
         public async Task Run()
         {
-            new HoGeMoge().Foo();
+            // new HoGeMoge().Foo();
 
             //logger.LogDebug("foooooo  {0} {1}", 10, 20);
 
