@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace ZLogger.Entries
 {
-    internal class StringFormatterEntry<TState> : IZLoggerEntry
+    public class StringFormatterEntry<TState> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<StringFormatterEntry<TState>> cache = new ConcurrentQueue<StringFormatterEntry<TState>>();
         static readonly byte[] newLineBytes = Encoding.UTF8.GetBytes(Environment.NewLine);

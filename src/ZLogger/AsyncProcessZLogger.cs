@@ -68,21 +68,42 @@ namespace ZLogger
             {
                 if (typeof(IZLoggerState).IsAssignableFrom(typeof(T)))
                 {
-                    var create = typeof(T).GetMethod(nameof(IZLoggerState.CreateLogEntry));
+                    try
+                    {
+                        var factoryField = typeof(T).GetField("Factory", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+                        LogForUnity(factoryField);
 
-                    var state = Expression.Parameter(typeof(T), "state");
-                    var info = Expression.Parameter(typeof(LogInfo), "info");
-
-                    var callCreate = Expression.Call(state, create, info);
-
-                    var lambda = Expression.Lambda<Func<T, LogInfo, IZLoggerEntry>>(callCreate, state, info);
-
-                    factory = lambda.Compile();
+                        if (factoryField != null)
+                        {
+                            factory = factoryField.GetValue(null) as Func<T, LogInfo, IZLoggerEntry>;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LogForUnity(ex);
+                    }
                 }
                 else
                 {
                     factory = null;
                 }
+            }
+
+            static void LogForUnity(System.Reflection.FieldInfo? fieldInfo)
+            {
+#if UNITY_2018_3_OR_NEWER
+                if(fieldInfo == null)
+                {
+                    UnityEngine.Debug.Log("State.Factory FieldInfo is null.");
+                }
+#endif
+            }
+
+            static void LogForUnity(Exception ex)
+            {
+#if UNITY_2018_3_OR_NEWER
+                UnityEngine.Debug.Log(ex);
+#endif
             }
         }
     }

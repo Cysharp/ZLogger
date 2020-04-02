@@ -52,7 +52,7 @@ namespace ZLogger
 
             return (ILogger logger, <#= CreateParameters(i) #>, Exception? ex) =>
             {
-                logger.Log(logLevel, eventId, new PreparedFormatLogState<object, <#= CreateTypeArgument(i) #>>(null, prepared, <#= CreateParameterNames(i) #>), ex, (state, ex) =>
+                logger.Log(logLevel, eventId, new PreparedFormatLogState<object, <#= CreateTypeArgument(i) #>>(null, prepared, <#= CreateParameterNames(i) #>), ex, (state, _) =>
                 {
                     return state.Format.Format(<#= CreateStateParameterNames(i) #>);
                 });
@@ -68,7 +68,7 @@ namespace ZLogger
 
             return (ILogger logger, TPayload payload, <#= CreateParameters(i) #>, Exception? ex) =>
             {
-                logger.Log(logLevel, eventId, new PreparedFormatLogState<TPayload, <#= CreateTypeArgument(i) #>>(payload, prepared, <#= CreateParameterNames(i) #>), ex, (state, ex) =>
+                logger.Log(logLevel, eventId, new PreparedFormatLogState<TPayload, <#= CreateTypeArgument(i) #>>(payload, prepared, <#= CreateParameterNames(i) #>), ex, (state, _) =>
                 {
                     return state.Format.Format(<#= CreateStateParameterNames(i) #>);
                 });

@@ -22,6 +22,7 @@
     }
 #>
 using Cysharp.Text;
+using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
@@ -31,8 +32,10 @@ using System.Runtime.CompilerServices;
 namespace ZLogger.Entries
 {
 <# for(var i = 1; i <= 16; i++) { #>
-    internal struct FormatLogState<TPayload, <#= CreateTypeArgument(i) #>> : IZLoggerState
+    public struct FormatLogState<TPayload, <#= CreateTypeArgument(i) #>> : IZLoggerState
     {
+        public static readonly Func<FormatLogState<TPayload, <#= CreateTypeArgument(i) #>>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly string? Format;
 <# for(var j = 0; j < i; j++) { #>
@@ -48,14 +51,21 @@ namespace ZLogger.Entries
 <# } #>
         }
 
+        static IZLoggerEntry factory(FormatLogState<TPayload, <#= CreateTypeArgument(i) #>> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>.Create(logInfo, this);
         }
     }
 
-    internal struct PreparedFormatLogState<TPayload, <#= CreateTypeArgument(i) #>> : IZLoggerState
+    public struct PreparedFormatLogState<TPayload, <#= CreateTypeArgument(i) #>> : IZLoggerState
     {
+        public static readonly Func<PreparedFormatLogState<TPayload, <#= CreateTypeArgument(i) #>>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly Utf8PreparedFormat<<#= CreateTypeArgument(i) #>> Format;
 <# for(var j = 0; j < i; j++) { #>
@@ -71,13 +81,18 @@ namespace ZLogger.Entries
 <# } #>
         }
 
+        static IZLoggerEntry factory(PreparedFormatLogState<TPayload, <#= CreateTypeArgument(i) #>> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return PreparedFormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>> : IZLoggerEntry
+    public class FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>>();
 
@@ -157,7 +172,7 @@ namespace ZLogger.Entries
         }
     }
 
-    internal class PreparedFormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>> : IZLoggerEntry
+    public class PreparedFormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<PreparedFormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>> cache = new ConcurrentQueue<PreparedFormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>>();
 

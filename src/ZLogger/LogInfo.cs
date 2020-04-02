@@ -28,6 +28,11 @@ namespace ZLogger
         static readonly JsonEncodedText EventIdNameText = JsonEncodedText.Encode("EventIdName");
         static readonly JsonEncodedText ExceptionText = JsonEncodedText.Encode(nameof(Exception));
 
+        static readonly JsonEncodedText NameText = JsonEncodedText.Encode("Name");
+        static readonly JsonEncodedText MessageText = JsonEncodedText.Encode("Message");
+        static readonly JsonEncodedText StackTraceText = JsonEncodedText.Encode("StackTrace");
+        static readonly JsonEncodedText InnerExceptionText = JsonEncodedText.Encode("InnerException");
+
         static readonly JsonEncodedText Trace = JsonEncodedText.Encode(nameof(LogLevel.Trace));
         static readonly JsonEncodedText Debug = JsonEncodedText.Encode(nameof(LogLevel.Debug));
         static readonly JsonEncodedText Information = JsonEncodedText.Encode(nameof(LogLevel.Information));
@@ -57,10 +62,10 @@ namespace ZLogger
             {
                 writer.WriteStartObject();
                 {
-                    writer.WriteString("Name", ex.GetType().FullName);
-                    writer.WriteString("Message", ex.Message);
-                    writer.WriteString("StackTrace", ex.StackTrace);
-                    writer.WritePropertyName("InnerException");
+                    writer.WriteString(NameText, ex.GetType().FullName);
+                    writer.WriteString(MessageText, ex.Message);
+                    writer.WriteString(StackTraceText, ex.StackTrace);
+                    writer.WritePropertyName(InnerExceptionText);
                     {
                         WriteException(ref writer, ex.InnerException);
                     }

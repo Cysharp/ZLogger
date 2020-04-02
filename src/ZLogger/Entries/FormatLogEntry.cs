@@ -1,4 +1,5 @@
 ﻿using Cysharp.Text;
+using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
@@ -7,8 +8,10 @@ using System.Runtime.CompilerServices;
 
 namespace ZLogger.Entries
 {
-    internal struct FormatLogState<TPayload, T1> : IZLoggerState
+    public struct FormatLogState<TPayload, T1> : IZLoggerState
     {
+        public static readonly Func<FormatLogState<TPayload, T1>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly string? Format;
         public readonly T1 Arg1;
@@ -20,14 +23,21 @@ namespace ZLogger.Entries
             Arg1 = arg1;
         }
 
+        static IZLoggerEntry factory(FormatLogState<TPayload, T1> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T1>.Create(logInfo, this);
         }
     }
 
-    internal struct PreparedFormatLogState<TPayload, T1> : IZLoggerState
+    public struct PreparedFormatLogState<TPayload, T1> : IZLoggerState
     {
+        public static readonly Func<PreparedFormatLogState<TPayload, T1>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly Utf8PreparedFormat<T1> Format;
         public readonly T1 Arg1;
@@ -39,13 +49,18 @@ namespace ZLogger.Entries
             Arg1 = arg1;
         }
 
+        static IZLoggerEntry factory(PreparedFormatLogState<TPayload, T1> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return PreparedFormatLogEntry<TPayload, T1>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T1> : IZLoggerEntry
+    public class FormatLogEntry<TPayload, T1> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T1>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T1>>();
 
@@ -125,7 +140,7 @@ namespace ZLogger.Entries
         }
     }
 
-    internal class PreparedFormatLogEntry<TPayload, T1> : IZLoggerEntry
+    public class PreparedFormatLogEntry<TPayload, T1> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1>> cache = new ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1>>();
 
@@ -210,8 +225,10 @@ namespace ZLogger.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T1, T2> : IZLoggerState
+    public struct FormatLogState<TPayload, T1, T2> : IZLoggerState
     {
+        public static readonly Func<FormatLogState<TPayload, T1, T2>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly string? Format;
         public readonly T1 Arg1;
@@ -225,14 +242,21 @@ namespace ZLogger.Entries
             Arg2 = arg2;
         }
 
+        static IZLoggerEntry factory(FormatLogState<TPayload, T1, T2> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T1, T2>.Create(logInfo, this);
         }
     }
 
-    internal struct PreparedFormatLogState<TPayload, T1, T2> : IZLoggerState
+    public struct PreparedFormatLogState<TPayload, T1, T2> : IZLoggerState
     {
+        public static readonly Func<PreparedFormatLogState<TPayload, T1, T2>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly Utf8PreparedFormat<T1, T2> Format;
         public readonly T1 Arg1;
@@ -246,13 +270,18 @@ namespace ZLogger.Entries
             Arg2 = arg2;
         }
 
+        static IZLoggerEntry factory(PreparedFormatLogState<TPayload, T1, T2> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return PreparedFormatLogEntry<TPayload, T1, T2>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T1, T2> : IZLoggerEntry
+    public class FormatLogEntry<TPayload, T1, T2> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T1, T2>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T1, T2>>();
 
@@ -332,7 +361,7 @@ namespace ZLogger.Entries
         }
     }
 
-    internal class PreparedFormatLogEntry<TPayload, T1, T2> : IZLoggerEntry
+    public class PreparedFormatLogEntry<TPayload, T1, T2> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2>> cache = new ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2>>();
 
@@ -417,8 +446,10 @@ namespace ZLogger.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T1, T2, T3> : IZLoggerState
+    public struct FormatLogState<TPayload, T1, T2, T3> : IZLoggerState
     {
+        public static readonly Func<FormatLogState<TPayload, T1, T2, T3>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly string? Format;
         public readonly T1 Arg1;
@@ -434,14 +465,21 @@ namespace ZLogger.Entries
             Arg3 = arg3;
         }
 
+        static IZLoggerEntry factory(FormatLogState<TPayload, T1, T2, T3> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T1, T2, T3>.Create(logInfo, this);
         }
     }
 
-    internal struct PreparedFormatLogState<TPayload, T1, T2, T3> : IZLoggerState
+    public struct PreparedFormatLogState<TPayload, T1, T2, T3> : IZLoggerState
     {
+        public static readonly Func<PreparedFormatLogState<TPayload, T1, T2, T3>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly Utf8PreparedFormat<T1, T2, T3> Format;
         public readonly T1 Arg1;
@@ -457,13 +495,18 @@ namespace ZLogger.Entries
             Arg3 = arg3;
         }
 
+        static IZLoggerEntry factory(PreparedFormatLogState<TPayload, T1, T2, T3> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return PreparedFormatLogEntry<TPayload, T1, T2, T3>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T1, T2, T3> : IZLoggerEntry
+    public class FormatLogEntry<TPayload, T1, T2, T3> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3>>();
 
@@ -543,7 +586,7 @@ namespace ZLogger.Entries
         }
     }
 
-    internal class PreparedFormatLogEntry<TPayload, T1, T2, T3> : IZLoggerEntry
+    public class PreparedFormatLogEntry<TPayload, T1, T2, T3> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3>> cache = new ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3>>();
 
@@ -628,8 +671,10 @@ namespace ZLogger.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T1, T2, T3, T4> : IZLoggerState
+    public struct FormatLogState<TPayload, T1, T2, T3, T4> : IZLoggerState
     {
+        public static readonly Func<FormatLogState<TPayload, T1, T2, T3, T4>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly string? Format;
         public readonly T1 Arg1;
@@ -647,14 +692,21 @@ namespace ZLogger.Entries
             Arg4 = arg4;
         }
 
+        static IZLoggerEntry factory(FormatLogState<TPayload, T1, T2, T3, T4> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T1, T2, T3, T4>.Create(logInfo, this);
         }
     }
 
-    internal struct PreparedFormatLogState<TPayload, T1, T2, T3, T4> : IZLoggerState
+    public struct PreparedFormatLogState<TPayload, T1, T2, T3, T4> : IZLoggerState
     {
+        public static readonly Func<PreparedFormatLogState<TPayload, T1, T2, T3, T4>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly Utf8PreparedFormat<T1, T2, T3, T4> Format;
         public readonly T1 Arg1;
@@ -672,13 +724,18 @@ namespace ZLogger.Entries
             Arg4 = arg4;
         }
 
+        static IZLoggerEntry factory(PreparedFormatLogState<TPayload, T1, T2, T3, T4> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return PreparedFormatLogEntry<TPayload, T1, T2, T3, T4>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T1, T2, T3, T4> : IZLoggerEntry
+    public class FormatLogEntry<TPayload, T1, T2, T3, T4> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4>>();
 
@@ -758,7 +815,7 @@ namespace ZLogger.Entries
         }
     }
 
-    internal class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4> : IZLoggerEntry
+    public class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4>> cache = new ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4>>();
 
@@ -843,8 +900,10 @@ namespace ZLogger.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T1, T2, T3, T4, T5> : IZLoggerState
+    public struct FormatLogState<TPayload, T1, T2, T3, T4, T5> : IZLoggerState
     {
+        public static readonly Func<FormatLogState<TPayload, T1, T2, T3, T4, T5>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly string? Format;
         public readonly T1 Arg1;
@@ -864,14 +923,21 @@ namespace ZLogger.Entries
             Arg5 = arg5;
         }
 
+        static IZLoggerEntry factory(FormatLogState<TPayload, T1, T2, T3, T4, T5> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T1, T2, T3, T4, T5>.Create(logInfo, this);
         }
     }
 
-    internal struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5> : IZLoggerState
+    public struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5> : IZLoggerState
     {
+        public static readonly Func<PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly Utf8PreparedFormat<T1, T2, T3, T4, T5> Format;
         public readonly T1 Arg1;
@@ -891,13 +957,18 @@ namespace ZLogger.Entries
             Arg5 = arg5;
         }
 
+        static IZLoggerEntry factory(PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T1, T2, T3, T4, T5> : IZLoggerEntry
+    public class FormatLogEntry<TPayload, T1, T2, T3, T4, T5> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5>>();
 
@@ -977,7 +1048,7 @@ namespace ZLogger.Entries
         }
     }
 
-    internal class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5> : IZLoggerEntry
+    public class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5>> cache = new ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5>>();
 
@@ -1062,8 +1133,10 @@ namespace ZLogger.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6> : IZLoggerState
+    public struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6> : IZLoggerState
     {
+        public static readonly Func<FormatLogState<TPayload, T1, T2, T3, T4, T5, T6>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly string? Format;
         public readonly T1 Arg1;
@@ -1085,14 +1158,21 @@ namespace ZLogger.Entries
             Arg6 = arg6;
         }
 
+        static IZLoggerEntry factory(FormatLogState<TPayload, T1, T2, T3, T4, T5, T6> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6>.Create(logInfo, this);
         }
     }
 
-    internal struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6> : IZLoggerState
+    public struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6> : IZLoggerState
     {
+        public static readonly Func<PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly Utf8PreparedFormat<T1, T2, T3, T4, T5, T6> Format;
         public readonly T1 Arg1;
@@ -1114,13 +1194,18 @@ namespace ZLogger.Entries
             Arg6 = arg6;
         }
 
+        static IZLoggerEntry factory(PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6> : IZLoggerEntry
+    public class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6>>();
 
@@ -1200,7 +1285,7 @@ namespace ZLogger.Entries
         }
     }
 
-    internal class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6> : IZLoggerEntry
+    public class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6>> cache = new ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6>>();
 
@@ -1285,8 +1370,10 @@ namespace ZLogger.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7> : IZLoggerState
+    public struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7> : IZLoggerState
     {
+        public static readonly Func<FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly string? Format;
         public readonly T1 Arg1;
@@ -1310,14 +1397,21 @@ namespace ZLogger.Entries
             Arg7 = arg7;
         }
 
+        static IZLoggerEntry factory(FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7>.Create(logInfo, this);
         }
     }
 
-    internal struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7> : IZLoggerState
+    public struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7> : IZLoggerState
     {
+        public static readonly Func<PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly Utf8PreparedFormat<T1, T2, T3, T4, T5, T6, T7> Format;
         public readonly T1 Arg1;
@@ -1341,13 +1435,18 @@ namespace ZLogger.Entries
             Arg7 = arg7;
         }
 
+        static IZLoggerEntry factory(PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7> : IZLoggerEntry
+    public class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7>>();
 
@@ -1427,7 +1526,7 @@ namespace ZLogger.Entries
         }
     }
 
-    internal class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7> : IZLoggerEntry
+    public class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7>> cache = new ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7>>();
 
@@ -1512,8 +1611,10 @@ namespace ZLogger.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8> : IZLoggerState
+    public struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8> : IZLoggerState
     {
+        public static readonly Func<FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly string? Format;
         public readonly T1 Arg1;
@@ -1539,14 +1640,21 @@ namespace ZLogger.Entries
             Arg8 = arg8;
         }
 
+        static IZLoggerEntry factory(FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>.Create(logInfo, this);
         }
     }
 
-    internal struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8> : IZLoggerState
+    public struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8> : IZLoggerState
     {
+        public static readonly Func<PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly Utf8PreparedFormat<T1, T2, T3, T4, T5, T6, T7, T8> Format;
         public readonly T1 Arg1;
@@ -1572,13 +1680,18 @@ namespace ZLogger.Entries
             Arg8 = arg8;
         }
 
+        static IZLoggerEntry factory(PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8> : IZLoggerEntry
+    public class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>>();
 
@@ -1658,7 +1771,7 @@ namespace ZLogger.Entries
         }
     }
 
-    internal class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8> : IZLoggerEntry
+    public class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>> cache = new ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>>();
 
@@ -1743,8 +1856,10 @@ namespace ZLogger.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9> : IZLoggerState
+    public struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9> : IZLoggerState
     {
+        public static readonly Func<FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly string? Format;
         public readonly T1 Arg1;
@@ -1772,14 +1887,21 @@ namespace ZLogger.Entries
             Arg9 = arg9;
         }
 
+        static IZLoggerEntry factory(FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>.Create(logInfo, this);
         }
     }
 
-    internal struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9> : IZLoggerState
+    public struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9> : IZLoggerState
     {
+        public static readonly Func<PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly Utf8PreparedFormat<T1, T2, T3, T4, T5, T6, T7, T8, T9> Format;
         public readonly T1 Arg1;
@@ -1807,13 +1929,18 @@ namespace ZLogger.Entries
             Arg9 = arg9;
         }
 
+        static IZLoggerEntry factory(PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9> : IZLoggerEntry
+    public class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>>();
 
@@ -1893,7 +2020,7 @@ namespace ZLogger.Entries
         }
     }
 
-    internal class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9> : IZLoggerEntry
+    public class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>> cache = new ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>>();
 
@@ -1978,8 +2105,10 @@ namespace ZLogger.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : IZLoggerState
+    public struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : IZLoggerState
     {
+        public static readonly Func<FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly string? Format;
         public readonly T1 Arg1;
@@ -2009,14 +2138,21 @@ namespace ZLogger.Entries
             Arg10 = arg10;
         }
 
+        static IZLoggerEntry factory(FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.Create(logInfo, this);
         }
     }
 
-    internal struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : IZLoggerState
+    public struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : IZLoggerState
     {
+        public static readonly Func<PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly Utf8PreparedFormat<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> Format;
         public readonly T1 Arg1;
@@ -2046,13 +2182,18 @@ namespace ZLogger.Entries
             Arg10 = arg10;
         }
 
+        static IZLoggerEntry factory(PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : IZLoggerEntry
+    public class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>>();
 
@@ -2132,7 +2273,7 @@ namespace ZLogger.Entries
         }
     }
 
-    internal class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : IZLoggerEntry
+    public class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>> cache = new ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>>();
 
@@ -2217,8 +2358,10 @@ namespace ZLogger.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IZLoggerState
+    public struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IZLoggerState
     {
+        public static readonly Func<FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly string? Format;
         public readonly T1 Arg1;
@@ -2250,14 +2393,21 @@ namespace ZLogger.Entries
             Arg11 = arg11;
         }
 
+        static IZLoggerEntry factory(FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.Create(logInfo, this);
         }
     }
 
-    internal struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IZLoggerState
+    public struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IZLoggerState
     {
+        public static readonly Func<PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly Utf8PreparedFormat<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> Format;
         public readonly T1 Arg1;
@@ -2289,13 +2439,18 @@ namespace ZLogger.Entries
             Arg11 = arg11;
         }
 
+        static IZLoggerEntry factory(PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IZLoggerEntry
+    public class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>>();
 
@@ -2375,7 +2530,7 @@ namespace ZLogger.Entries
         }
     }
 
-    internal class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IZLoggerEntry
+    public class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>> cache = new ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>>();
 
@@ -2460,8 +2615,10 @@ namespace ZLogger.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : IZLoggerState
+    public struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : IZLoggerState
     {
+        public static readonly Func<FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly string? Format;
         public readonly T1 Arg1;
@@ -2495,14 +2652,21 @@ namespace ZLogger.Entries
             Arg12 = arg12;
         }
 
+        static IZLoggerEntry factory(FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.Create(logInfo, this);
         }
     }
 
-    internal struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : IZLoggerState
+    public struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : IZLoggerState
     {
+        public static readonly Func<PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly Utf8PreparedFormat<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> Format;
         public readonly T1 Arg1;
@@ -2536,13 +2700,18 @@ namespace ZLogger.Entries
             Arg12 = arg12;
         }
 
+        static IZLoggerEntry factory(PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : IZLoggerEntry
+    public class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>>();
 
@@ -2622,7 +2791,7 @@ namespace ZLogger.Entries
         }
     }
 
-    internal class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : IZLoggerEntry
+    public class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>> cache = new ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>>();
 
@@ -2707,8 +2876,10 @@ namespace ZLogger.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : IZLoggerState
+    public struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : IZLoggerState
     {
+        public static readonly Func<FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly string? Format;
         public readonly T1 Arg1;
@@ -2744,14 +2915,21 @@ namespace ZLogger.Entries
             Arg13 = arg13;
         }
 
+        static IZLoggerEntry factory(FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.Create(logInfo, this);
         }
     }
 
-    internal struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : IZLoggerState
+    public struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : IZLoggerState
     {
+        public static readonly Func<PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly Utf8PreparedFormat<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> Format;
         public readonly T1 Arg1;
@@ -2787,13 +2965,18 @@ namespace ZLogger.Entries
             Arg13 = arg13;
         }
 
+        static IZLoggerEntry factory(PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : IZLoggerEntry
+    public class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>>();
 
@@ -2873,7 +3056,7 @@ namespace ZLogger.Entries
         }
     }
 
-    internal class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : IZLoggerEntry
+    public class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>> cache = new ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>>();
 
@@ -2958,8 +3141,10 @@ namespace ZLogger.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : IZLoggerState
+    public struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : IZLoggerState
     {
+        public static readonly Func<FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly string? Format;
         public readonly T1 Arg1;
@@ -2997,14 +3182,21 @@ namespace ZLogger.Entries
             Arg14 = arg14;
         }
 
+        static IZLoggerEntry factory(FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.Create(logInfo, this);
         }
     }
 
-    internal struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : IZLoggerState
+    public struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : IZLoggerState
     {
+        public static readonly Func<PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly Utf8PreparedFormat<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> Format;
         public readonly T1 Arg1;
@@ -3042,13 +3234,18 @@ namespace ZLogger.Entries
             Arg14 = arg14;
         }
 
+        static IZLoggerEntry factory(PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : IZLoggerEntry
+    public class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>>();
 
@@ -3128,7 +3325,7 @@ namespace ZLogger.Entries
         }
     }
 
-    internal class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : IZLoggerEntry
+    public class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>> cache = new ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>>();
 
@@ -3213,8 +3410,10 @@ namespace ZLogger.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : IZLoggerState
+    public struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : IZLoggerState
     {
+        public static readonly Func<FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly string? Format;
         public readonly T1 Arg1;
@@ -3254,14 +3453,21 @@ namespace ZLogger.Entries
             Arg15 = arg15;
         }
 
+        static IZLoggerEntry factory(FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.Create(logInfo, this);
         }
     }
 
-    internal struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : IZLoggerState
+    public struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : IZLoggerState
     {
+        public static readonly Func<PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly Utf8PreparedFormat<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> Format;
         public readonly T1 Arg1;
@@ -3301,13 +3507,18 @@ namespace ZLogger.Entries
             Arg15 = arg15;
         }
 
+        static IZLoggerEntry factory(PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : IZLoggerEntry
+    public class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>>();
 
@@ -3387,7 +3598,7 @@ namespace ZLogger.Entries
         }
     }
 
-    internal class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : IZLoggerEntry
+    public class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>> cache = new ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>>();
 
@@ -3472,8 +3683,10 @@ namespace ZLogger.Entries
         }
     }
 
-    internal struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> : IZLoggerState
+    public struct FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> : IZLoggerState
     {
+        public static readonly Func<FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly string? Format;
         public readonly T1 Arg1;
@@ -3515,14 +3728,21 @@ namespace ZLogger.Entries
             Arg16 = arg16;
         }
 
+        static IZLoggerEntry factory(FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.Create(logInfo, this);
         }
     }
 
-    internal struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> : IZLoggerState
+    public struct PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> : IZLoggerState
     {
+        public static readonly Func<PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>, LogInfo, IZLoggerEntry> Factory = factory;
+
         public readonly TPayload Payload;
         public readonly Utf8PreparedFormat<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> Format;
         public readonly T1 Arg1;
@@ -3564,13 +3784,18 @@ namespace ZLogger.Entries
             Arg16 = arg16;
         }
 
+        static IZLoggerEntry factory(PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> self, LogInfo logInfo)
+        {
+            return self.CreateLogEntry(logInfo);
+        }
+
         public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
         {
             return PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.Create(logInfo, this);
         }
     }
 
-    internal class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> : IZLoggerEntry
+    public class FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>>();
 
@@ -3650,7 +3875,7 @@ namespace ZLogger.Entries
         }
     }
 
-    internal class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> : IZLoggerEntry
+    public class PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> : IZLoggerEntry
     {
         static readonly ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>> cache = new ConcurrentQueue<PreparedFormatLogEntry<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>>();
 
