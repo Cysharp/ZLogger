@@ -23,9 +23,6 @@ namespace Tests
         {
             var provider = new ZLoggerUnityLoggerProvider(Options.Create(new ZLoggerOptions()));
             var logger = provider.CreateLogger("mylogger");
-
-
-            // most simple Log.
             logger.Log(LogLevel.Debug, "foo");
         }
 
@@ -45,85 +42,68 @@ namespace Tests
             logger.ZLogDebug("foo{0} bar{1}", 100, 200);
         }
 
-        [Test]
-        public void ServiceCollectionBuild()
+        static ILogger<NewTestScript> CreaterLogger()
         {
+            var factory = UnityLoggerFactory.Create(builder =>
             {
-                var services = new ServiceCollection();
-                services.TryAdd(ServiceDescriptor.Singleton<ILoggerFactory, LoggerFactory>());
-                services.TryAdd(ServiceDescriptor.Singleton(typeof(ILogger<>), typeof(Logger<>)));
-                var serviceProvider = services.BuildServiceProvider();
-
-                var engineField = typeof(ServiceProvider).GetField("_engine", BindingFlags.GetField | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                UnityEngine.Debug.Log("ok? engineName:" + engineField.GetValue(serviceProvider).GetType().FullName);
-            }
-
-            {
-                var services = new ServiceCollection();
-                services.TryAdd(ServiceDescriptor.Singleton<ILoggerFactory, LoggerFactory>());
-                services.TryAdd(ServiceDescriptor.Singleton(typeof(ILogger<>), typeof(Logger<>)));
-
-                var options = new ServiceProviderOptions();
-                var mode = typeof(ServiceProviderOptions).GetProperty("Mode", BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-
-                 
-                mode.SetValue(options, Convert.ChangeType(Enum.GetValues(mode.PropertyType).GetValue(Array.IndexOf(Enum.GetNames(mode.PropertyType), "Runtime")), mode.PropertyType));
-
-                var serviceProvider = services.BuildServiceProvider(options);
-
-                var engineField = typeof(ServiceProvider).GetField("_engine", BindingFlags.GetField | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                UnityEngine.Debug.Log("ok? engineName:" + engineField.GetValue(serviceProvider).GetType().FullName);
-
-
-                var factory = serviceProvider.GetService<ILoggerFactory>();
-                UnityEngine.Debug.Log("go create?");
-                var log = factory.CreateLogger("my");
-                log.LogDebug("yeah");
-            }
-
-
-        }
-
-
-        [Test]
-        public void OnlyCreate()
-        {
-            UnityEngine.Debug.Log("run start");
-            var factory = LoggerFactory.Create(builder =>
-            {
-            });
-            UnityEngine.Debug.Log("factory create ok");
-            var mylogger = factory.CreateLogger<ILogger<NewTestScript>>();
-            UnityEngine.Debug.Log("logger create ok");
-        }
-
-
-
-        [Test]
-        public void FromLoggerFactory()
-        {
-            UnityEngine.Debug.Log("run start");
-
-            var factory = LoggerFactory.Create(builder =>
-            {
-                builder.SetMinimumLevel(LogLevel.Trace);
                 builder.AddZLoggerUnityDebug();
-                //builder.AddZLoggerUnityDebug(option =>
-                //{
-                //    option.PrefixFormatter = (writer, info) => ZString.Utf8Format(writer, "[{0}][{1}]", info.LogLevel, info.CategoryName);
-                //});
             });
-            UnityEngine.Debug.Log("factory is not null =>" + (factory == null));
 
-            var mylogger = factory.CreateLogger<ILogger<NewTestScript>>();
-            UnityEngine.Debug.Log("mylogger is null" + (mylogger == null));
-
-            mylogger.ZLogDebugMessage("foo");
-            UnityEngine.Debug.Log("ok simple message");
-
-            mylogger.ZLogDebug("Age:{0} Name:{1} Money:{2}", 35, "tako", 99);
+            var mylogger = factory.CreateLogger<NewTestScript>();
+            return mylogger;
         }
 
-        // TODO:try check option
+        [Test]
+        public void FromUnityLoggerFactory()
+        {
+            var logger = CreaterLogger();
+            logger.ZLogDebugMessage("foo");
+            logger.ZLogDebug("foo{0} bar{1}", 10, 20);
+        }
+
+        [Test]
+        public void AddFilterTest()
+        {
+            var factory = UnityLoggerFactory.Create(builder =>
+            {
+                builder.AddFilter<ZLoggerUnityLoggerProvider>("NewTestScript", LogLevel.Information);
+                builder.AddFilter<ZLoggerUnityLoggerProvider>("OldTestScript", LogLevel.Debug);
+                builder.AddZLoggerUnityDebug(x =>
+                {
+                    x.PrefixFormatter = (buf, info) => ZString.Utf8Format(buf, "[{0}][{1}]", info.LogLevel, info.Timestamp.LocalDateTime);
+                });
+            });
+
+            var newLogger = factory.CreateLogger<NewTestScript>();
+            var oldLogger = factory.CreateLogger("OldTestScript");
+
+            newLogger.ZLogInformationMessage("NEW OK INFO");
+            newLogger.ZLogDebugMessage("NEW OK DEBUG");
+
+            oldLogger.ZLogInformationMessage("OLD OK INFO");
+            oldLogger.ZLogDebugMessage("OLD OK DEBUG");
+        }
+
+        [Test]
+        public void AddManyProviderTest()
+        {
+            var factory = UnityLoggerFactory.Create(builder =>
+            {
+                builder.SetMinimumLevel(LogLevel.Debug);
+
+                builder.AddZLoggerUnityDebug(x =>
+                {
+                    x.PrefixFormatter = (buf, info) => ZString.Utf8Format(buf, "UNI [{0}][{1}]", info.LogLevel, info.Timestamp.LocalDateTime);
+                });
+                builder.AddZLoggerFile("test_il2cpp.log", x =>
+                {
+                    x.PrefixFormatter = (buf, info) => ZString.Utf8Format(buf, "FIL [{0}][{1}]", info.LogLevel, info.Timestamp.LocalDateTime);
+                });
+            });
+
+            var newLogger = factory.CreateLogger<NewTestScript>();
+            newLogger.ZLogInformationMessage("NEW OK INFO");
+            newLogger.ZLogDebugMessage("NEW OK DEBUG");
+        }
     }
 }

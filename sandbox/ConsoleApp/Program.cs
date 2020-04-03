@@ -19,6 +19,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging.Configuration;
+using System.Reflection;
 
 namespace ConsoleApp
 {
@@ -57,254 +59,36 @@ namespace ConsoleApp
         }
     }
 
-    public class SimpleServiceProvider : IServiceProvider, IDisposable
+
+
+
+
+    public class MyClassA
     {
-        readonly Dictionary<Type, List<ServiceItem>> items;
 
-        public SimpleServiceProvider(IServiceCollection services)
-        {
-            items = new Dictionary<Type, List<ServiceItem>>();
-            foreach (var item in services)
-            {
-                if (!items.TryGetValue(item.ServiceType, out var list))
-                {
-                    list = new List<ServiceItem>();
-                    items.Add(item.ServiceType, list);
-                }
-                var serviceItem = new ServiceItem(item)
-                {
-                    Item = item.ImplementationInstance
-                };
-
-                list.Add(serviceItem);
-            }
-        }
-
-        public void Dispose()
-        {
-            foreach (var item in items)
-            {
-                foreach (var item2 in item.Value)
-                {
-                    if (items is IDisposable d)
-                    {
-                        d.Dispose();
-                    }
-                }
-            }
-        }
-
-        static bool IsCollection(Type type)
-        {
-            if (type.IsGenericType)
-            {
-                type = type.GetGenericTypeDefinition();
-                if (type == typeof(IEnumerable<>) || type == typeof(IList<>) || type == typeof(ICollection<>))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public object? GetService(Type serviceType)
-        {
-            return GetServiceCore1(serviceType, null);
-        }
-
-        public object? GetServiceCore1(Type serviceType, Type? genericsType)
-        {
-            if (!items.TryGetValue(serviceType, out var list))
-            {
-                if (IsCollection(serviceType))
-                {
-                    var elemType = serviceType.GetGenericArguments()[0];
-                    return GetServiceCore2(elemType, genericsType);
-                }
-
-                Type? useGenericsType = genericsType;
-                if (serviceType.IsConstructedGenericType)
-                {
-                    var gen0 = serviceType.GetGenericArguments()[0];
-                    if (gen0.IsGenericTypeParameter && gen0.IsConstructedGenericType)
-                    {
-                        useGenericsType = gen0;
-                    }
-                    else if (!gen0.IsGenericType && !gen0.IsGenericTypeParameter)
-                    {
-                        useGenericsType = gen0;
-                    }
-                }
-
-                if (serviceType == serviceType.GetGenericTypeDefinition())
-                {
-                    throw new InvalidOperationException("Can not get service from: " + serviceType);
-                }
-
-                var innerService = GetServiceCore1(serviceType.GetGenericTypeDefinition(), useGenericsType);
-                return innerService;
-            }
-
-            return list.Last().Instantiate(this, genericsType);
-        }
-
-        public object?[] GetServiceCore2(Type serviceType, Type? genericsType)
-        {
-            if (!items.TryGetValue(serviceType, out var list))
-            {
-                if (IsCollection(serviceType))
-                {
-                    var elemType = serviceType.GetGenericArguments()[0];
-                    return GetServiceCore2(elemType, genericsType);
-                }
-
-                Type? useGenericsType = genericsType;
-                if (serviceType.IsConstructedGenericType)
-                {
-                    var gen0 = serviceType.GetGenericArguments()[0];
-                    if (gen0.IsGenericTypeParameter && gen0.IsConstructedGenericType)
-                    {
-                        useGenericsType = gen0;
-                    }
-                    else if (!gen0.IsGenericType && !gen0.IsGenericTypeParameter)
-                    {
-                        useGenericsType = gen0;
-                    }
-                }
-
-                if (serviceType == serviceType.GetGenericTypeDefinition())
-                {
-                    throw new InvalidOperationException("Can not get service from: " + serviceType);
-                }
-
-                var innerService = GetServiceCore1(serviceType.GetGenericTypeDefinition(), useGenericsType);
-                return new object?[] { innerService };
-            }
-
-            return list.Select(x => x.Instantiate(this, genericsType)).ToArray();
-        }
-
-        class ServiceItem
-        {
-            public readonly ServiceDescriptor descriptor;
-            public object? Item;
-            public Dictionary<Type, object>? ItemPerGenerics;
-
-            bool isGenericType;
-
-            public ServiceItem(ServiceDescriptor descriptor)
-            {
-                this.descriptor = descriptor;
-                this.isGenericType = descriptor.ServiceType.IsGenericType && !descriptor.ServiceType.IsConstructedGenericType;
-                if (isGenericType)
-                {
-                    ItemPerGenerics = new Dictionary<Type, object>();
-                }
-            }
-
-            public object Instantiate(SimpleServiceProvider provider, Type? genericsElementType)
-            {
-                if (descriptor.Lifetime == ServiceLifetime.Singleton)
-                {
-                    if (isGenericType && genericsElementType != null)
-                    {
-                        if (ItemPerGenerics.TryGetValue(genericsElementType, out var value))
-                        {
-                            return value;
-                        }
-                    }
-                    else
-                    {
-                        if (Item != null)
-                        {
-                            return Item;
-                        }
-                    }
-                }
-
-                lock (this)
-                {
-                    object? instance;
-                    if (descriptor.ImplementationFactory != null)
-                    {
-                        instance = descriptor.ImplementationFactory(provider);
-                    }
-                    else
-                    {
-                        var implType = descriptor.ImplementationType;
-                        if (isGenericType && genericsElementType != null)
-                        {
-                            implType = implType.MakeGenericType(genericsElementType);
-                        }
-
-                        var ctor = descriptor.ImplementationType.GetConstructors().OrderByDescending(x => x.GetParameters().Length).First();
-                        var parameters = ctor.GetParameters();
-                        var args = parameters.Select(x => provider.GetServiceCore1(x.ParameterType, genericsElementType)).ToArray();
-                        instance = ctor.Invoke(args);
-                    }
-
-                    if (descriptor.Lifetime == ServiceLifetime.Singleton)
-                    {
-                        if (isGenericType && genericsElementType != null)
-                        {
-                            ItemPerGenerics.TryAdd(genericsElementType, instance);
-                        }
-                        else
-                        {
-                            Item = instance;
-                        }
-                        return instance;
-                    }
-                    else
-                    {
-                        // Transient, Scoped(not supported, same as Transient).
-                        return instance;
-                    }
-                }
-            }
-        }
     }
 
-    public static class UnityLoggerFactory
+    public class MyClassB
     {
-        public static ILoggerFactory Create(Action<ILoggingBuilder> configure)
+
+    }
+
+    public class MyClassC
+    {
+
+        public MyClassC()
         {
-            var services = new ServiceCollection();
-            services.AddLogging(configure);
-
-            // use simple ServiceProvider for IL2CPP.
-            var provider = new SimpleServiceProvider(services);
-
-            var loggerFactory = provider.GetService<ILoggerFactory>();
-            // new LoggerFactory(
-            return new DisposingLoggerFactory(loggerFactory, provider);
+            Console.WriteLine("called ()");
         }
 
-        class DisposingLoggerFactory : ILoggerFactory, IDisposable
+        public MyClassC(MyClassA a)
         {
-            readonly ILoggerFactory loggerFactory;
-            readonly SimpleServiceProvider serviceProvider;
+            Console.WriteLine("called a");
+        }
 
-            public DisposingLoggerFactory(ILoggerFactory loggerFactory, SimpleServiceProvider serviceProvider)
-            {
-                this.loggerFactory = loggerFactory;
-                this.serviceProvider = serviceProvider;
-            }
-
-            public void Dispose()
-            {
-                serviceProvider.Dispose();
-            }
-
-            public ILogger CreateLogger(string categoryName)
-            {
-                return loggerFactory.CreateLogger(categoryName);
-            }
-
-            public void AddProvider(ILoggerProvider provider)
-            {
-                loggerFactory.AddProvider(provider);
-            }
+        public MyClassC(MyClassA a, MyClassB b)
+        {
+            Console.WriteLine("called a+b");
         }
     }
 
@@ -313,35 +97,9 @@ namespace ConsoleApp
     {
         static async Task Main(string[] args)
         {
-            var factory = UnityLoggerFactory.Create(builder =>
-            {
-                builder.ClearProviders();
-                builder.SetMinimumLevel(LogLevel.Debug);
-                builder.AddZLoggerConsole();
-                builder.AddZLoggerFile("foo.log");
-            });
-
-            //var services = new ServiceCollection();
-            //services.TryAdd(ServiceDescriptor.Singleton(typeof(IOptions<>), typeof(OptionsManager<>)));
-            //services.TryAdd(ServiceDescriptor.Scoped(typeof(IOptionsSnapshot<>), typeof(OptionsManager<>)));
-            //services.TryAdd(ServiceDescriptor.Singleton(typeof(IOptionsMonitor<>), typeof(OptionsMonitor<>)));
-            //services.TryAdd(ServiceDescriptor.Transient(typeof(IOptionsFactory<>), typeof(OptionsFactory<>)));
-            //services.TryAdd(ServiceDescriptor.Singleton(typeof(IOptionsMonitorCache<>), typeof(OptionsCache<>)));
-
-            //services.AddLogging();
-            
-            
-            //var provider = new SimpleServiceProvider(services);
 
 
-            //var myOption = provider.GetService<IOptions<ZLoggerOptions>>();
 
-
-            //services.TryAdd(ServiceDescriptor.Singleton<ILoggerFactory, LoggerFactory>());
-            //services.TryAdd(ServiceDescriptor.Singleton(typeof(ILogger<>), typeof(Logger<>)));
-            //var serviceProvider = services.BuildServiceProvider();
-
-            //var myLogger = factory.CreateLogger<ILogger<Program>>();
 
 
 
@@ -367,9 +125,9 @@ namespace ConsoleApp
 
 
 
-                    logging.AddFilter<ZLoggerConsoleLoggerProvider>(x => true).AddZLoggerConsole();
+                    //logging.AddFilter<ZLoggerConsoleLoggerProvider>(x => true).AddZLoggerConsole();
 
-                    logging.AddFilter<SimpleConsoleLoggerProvider>(x => x == LogLevel.Debug).AddSimpleConsole();
+                    //logging.AddFilter<SimpleConsoleLoggerProvider>(x => x == LogLevel.Debug).AddSimpleConsole();
 
                     //logging.AddFilter((category, level) =>
                     //    {
@@ -403,22 +161,34 @@ namespace ConsoleApp
 
                     //logging.AddZLoggerFile("filelog.log");
 
-                    logging.AddZLoggerConsole();
-                    logging.AddZLoggerFile("foo.log");
+                    //logging.AddZLoggerConsole();
+                    //logging.AddZLoggerFile("foo.log");
 
 
-                    //logging.AddZLoggerConsole(x =>
-                    //{
-                    //    //x.PrefixFormatter = (writer, info) =>
-                    //    //{
-                    //    //    Console.Write(info.LogLevel);
+                    logging.AddZLoggerConsole(x =>
+                    {
+                        x.PrefixFormatter = (writer, info) =>
+                        {
+                            ZString.Utf8Format(writer, "[{0}]", info.LogLevel);
 
 
 
 
-                    //    //x.UseDefaultStructuredLogFormatter();
-                    //    //};
-                    //});
+
+                        };
+                    });
+
+
+                    var removeTargets = logging.Services.Where(item =>
+                        (item.ServiceType == typeof(IConfigureOptions<ZLoggerOptions>)
+                      && (item?.ImplementationType?.FullName?.StartsWith("Microsoft.Extensions.Logging.Configuration.LoggerProviderConfigureOptions") ?? false)))
+                        .ToArray();
+
+
+
+
+                    var hoge = logging;
+
                     //logging.AddZLoggerConsole(options =>
                     //{
                     //    // options.UseDefaultStructuredLogFormatter();

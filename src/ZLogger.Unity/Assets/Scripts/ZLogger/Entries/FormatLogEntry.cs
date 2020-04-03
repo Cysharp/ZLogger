@@ -101,7 +101,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     ZString.Utf8Format(writer, state.Format, state.Arg1);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -186,7 +188,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     state.Format.FormatTo(ref writer, state.Arg1);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -322,7 +326,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -407,7 +413,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     state.Format.FormatTo(ref writer, state.Arg1, state.Arg2);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -547,7 +555,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -632,7 +642,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -776,7 +788,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -861,7 +875,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -1009,7 +1025,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -1094,7 +1112,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -1246,7 +1266,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -1331,7 +1353,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -1487,7 +1511,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -1572,7 +1598,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -1732,7 +1760,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -1817,7 +1847,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -1981,7 +2013,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -2066,7 +2100,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -2234,7 +2270,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -2319,7 +2357,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -2491,7 +2531,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -2576,7 +2618,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -2752,7 +2796,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -2837,7 +2883,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -3017,7 +3065,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -3102,7 +3152,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -3286,7 +3338,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13, state.Arg14);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -3371,7 +3425,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13, state.Arg14);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -3559,7 +3615,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13, state.Arg14, state.Arg15);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -3644,7 +3702,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13, state.Arg14, state.Arg15);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -3836,7 +3896,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13, state.Arg14, state.Arg15, state.Arg16);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {
@@ -3921,7 +3983,9 @@ namespace ZLogger.Entries
             {
                 if (state.Format != null)
                 {
+                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
                     state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13, state.Arg14, state.Arg15, state.Arg16);
+                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
                 }
                 else
                 {

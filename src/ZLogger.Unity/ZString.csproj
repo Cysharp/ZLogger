@@ -295,9 +295,6 @@
  <Reference Include="Microsoft.Bcl.AsyncInterfaces">
  <HintPath>C:/Users/S04451/source/repos/ZLog/src/ZLogger.Unity/Assets/Plugins/Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
  </Reference>
- <Reference Include="Microsoft.Extensions.Configuration 1">
- <HintPath>C:/Users/S04451/source/repos/ZLog/src/ZLogger.Unity/Assets/Plugins/Microsoft.Extensions.Configuration 1.dll</HintPath>
- </Reference>
  <Reference Include="Microsoft.Extensions.Configuration.Abstractions">
  <HintPath>C:/Users/S04451/source/repos/ZLog/src/ZLogger.Unity/Assets/Plugins/Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
  </Reference>
