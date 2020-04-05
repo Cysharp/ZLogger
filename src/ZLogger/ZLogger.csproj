@@ -80,6 +80,6 @@
         <Copy SourceFiles="@(TargetFiles1)" DestinationFiles="$(DestinationRoot)\%(RecursiveDir)%(Filename)%(Extension)" SkipUnchangedFiles="true" />
 
         <!-- After copy, remove nullable reference -->
-        <Exec Command="dotnet run --no-build --project $(MSBuildProjectDirectory)\..\..\tools\CommandTools\CommandTools.csproj -- remove-nullable-reference -directory $(DestinationRoot)" />
+        <Exec Command="dotnet run --no-build -c $(ConfigurationName) --project $(MSBuildProjectDirectory)\..\..\tools\CommandTools\CommandTools.csproj -- remove-nullable-reference -directory $(DestinationRoot)" />
     </Target>
 </Project>
