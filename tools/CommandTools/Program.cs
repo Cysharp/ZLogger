@@ -1,5 +1,6 @@
 ﻿using ConsoleAppFramework;
 using Microsoft.Extensions.Hosting;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -41,6 +42,8 @@ namespace CommandTools
                 {"FieldInfo?", "FieldInfo" }
             };
 
+            System.Console.WriteLine("Start to remove nullable reference.");
+
             foreach (var path in Directory.EnumerateFiles(directory, "*.cs", SearchOption.AllDirectories))
             {
                 var text = File.ReadAllText(path, Encoding.UTF8);
@@ -51,6 +54,48 @@ namespace CommandTools
                 }
 
                 File.WriteAllText(path, text);
+            }
+
+            System.Console.WriteLine("Remove complete.");
+        }
+
+        [Command("collect-dll")]
+        public void CollectDll([Option(0)]string dest)
+        {
+            const string ExtensionsVersion = "3.1.0";
+
+            var dict = new Dictionary<string, string>
+            {
+                {"Microsoft.Extensions.Logging", ExtensionsVersion },
+                {"Microsoft.Extensions.Logging.Configuration", ExtensionsVersion },
+                {"Microsoft.Extensions.Logging.Abstractions", ExtensionsVersion },
+                {"Microsoft.Extensions.Configuration", ExtensionsVersion },
+                {"Microsoft.Extensions.Configuration.Binder", ExtensionsVersion },
+                {"Microsoft.Extensions.Configuration.Abstractions", ExtensionsVersion },
+                {"Microsoft.Extensions.DependencyInjection", ExtensionsVersion },
+                {"Microsoft.Extensions.DependencyInjection.Abstractions", ExtensionsVersion },
+                {"Microsoft.Extensions.Options", ExtensionsVersion },
+                {"Microsoft.Extensions.Options.ConfigurationExtensions", ExtensionsVersion },
+                {"Microsoft.Extensions.Primitives", ExtensionsVersion },
+
+                {"Microsoft.Bcl.AsyncInterfaces", "1.1.0" },
+                {"System.Threading.Channels", "4.7.0" },
+            };
+
+            foreach (var item in dict)
+            {
+                var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages", item.Key.ToLower(), item.Value, "lib", "netstandard2.0");
+                if (!Directory.Exists(path))
+                {
+                    throw new InvalidOperationException("Directory does not exists. Path: " + path);
+                }
+
+                foreach (var file in Directory.GetFiles(path, "*.dll", SearchOption.TopDirectoryOnly))
+                {
+                    var destPath = Path.Combine(dest, Path.GetFileName(file));
+                    File.Copy(file, destPath, true);
+                    Console.WriteLine("MoveFile: " + destPath);
+                }
             }
         }
     }

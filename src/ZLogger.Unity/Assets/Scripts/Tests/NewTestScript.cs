@@ -31,7 +31,7 @@ namespace Tests
         {
             var provider = new ZLoggerUnityLoggerProvider(Options.Create(new ZLoggerOptions()));
             var logger = provider.CreateLogger("mylogger1");
-            logger.ZLogDebugMessage("foo");
+            logger.ZLogDebug("foo");
         }
 
         [Test]
@@ -57,7 +57,7 @@ namespace Tests
         public void FromUnityLoggerFactory()
         {
             var logger = CreaterLogger();
-            logger.ZLogDebugMessage("foo");
+            logger.ZLogDebug("foo");
             logger.ZLogDebug("foo{0} bar{1}", 10, 20);
         }
 
@@ -77,11 +77,11 @@ namespace Tests
             var newLogger = factory.CreateLogger<NewTestScript>();
             var oldLogger = factory.CreateLogger("OldTestScript");
 
-            newLogger.ZLogInformationMessage("NEW OK INFO");
-            newLogger.ZLogDebugMessage("NEW OK DEBUG");
+            newLogger.ZLogInformation("NEW OK INFO");
+            newLogger.ZLogDebug("NEW OK DEBUG");
 
-            oldLogger.ZLogInformationMessage("OLD OK INFO");
-            oldLogger.ZLogDebugMessage("OLD OK DEBUG");
+            oldLogger.ZLogInformation("OLD OK INFO");
+            oldLogger.ZLogDebug("OLD OK DEBUG");
         }
 
         [Test]
@@ -102,8 +102,8 @@ namespace Tests
             });
 
             var newLogger = factory.CreateLogger<NewTestScript>();
-            newLogger.ZLogInformationMessage("NEW OK INFO");
-            newLogger.ZLogDebugMessage("NEW OK DEBUG");
+            newLogger.ZLogInformation("NEW OK INFO");
+            newLogger.ZLogDebug("NEW OK DEBUG");
         }
     }
 }

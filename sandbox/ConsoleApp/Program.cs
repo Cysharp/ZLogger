@@ -176,6 +176,11 @@ namespace ConsoleApp
 
 
                         };
+
+                        //Utf16PreparedFormat
+
+
+                        //x.SuffixFormatter = (writer, info) => prepared.FormatTo(ref writer, info.LogLevel);
                     });
 
 
@@ -290,6 +295,16 @@ namespace ConsoleApp
 
 
 
+            logger.ZLogDebug("foo");
+            logger.ZLogDebug(new EventId(10), "foo");
+            logger.ZLogDebug(new Exception(), "foo");
+            logger.ZLogDebug(new EventId(10), new Exception(), "foo");
+            logger.ZLogDebug("foo {0}", "bar");
+            logger.ZLogDebug(new EventId(10), "foo {0}", "bar");
+            logger.ZLogDebug(new Exception(), "foo {0}", "bar");
+            logger.ZLogDebug(new EventId(10), new Exception(), "foo {0}", "bar");
+
+            logger.ZLogDebugWithPayload(new { foo = "bar" }, "foo");
 
 
 
@@ -305,7 +320,7 @@ namespace ConsoleApp
 
             // logger.ZLoggerDebug(
 
-            logger.ZLogDebug(LogLevel.Debug, "foo{0}", 100);
+            //logger.ZLogDebug(LogLevel.Debug, "foo{0}", 100);
             //logger.ZLogger(LogLevel.Debug, "foo{0}", 100);
             //logger.ZLogger(LogLevel.Debug, "foo{0}", 100);
             //logger.ZLogger(LogLevel.Debug, "foo{0}", 100);

@@ -123,3 +123,4 @@ nuget/tools/*
 # Unity
 Library/
 Temp/
+tools/CommandTools/Properties/launchSettings.json

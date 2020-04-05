@@ -13,7 +13,7 @@ namespace ZLogger
         {
             return (ILogger logger, Exception? ex) =>
             {
-                logger.ZLogMessage(logLevel, eventId, ex, message);
+                logger.ZLog(logLevel, eventId, ex, message);
             };
         }
 
