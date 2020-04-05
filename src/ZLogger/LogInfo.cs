@@ -41,7 +41,7 @@ namespace ZLogger
         static readonly JsonEncodedText Critical = JsonEncodedText.Encode(nameof(LogLevel.Critical));
         static readonly JsonEncodedText None = JsonEncodedText.Encode(nameof(LogLevel.None));
 
-        internal void WriteToJsonWriter(ref Utf8JsonWriter writer)
+        public void WriteToJsonWriter(Utf8JsonWriter writer)
         {
             writer.WriteString(CategoryNameText, CategoryName);
             writer.WriteString(LogLevelText, LogLevelToEncodedText(LogLevel));
@@ -49,10 +49,10 @@ namespace ZLogger
             writer.WriteString(EventIdNameText, EventId.Name);
             writer.WriteString(TimestampText, Timestamp);
             writer.WritePropertyName(ExceptionText);
-            WriteException(ref writer, Exception);
+            WriteException(writer, Exception);
         }
 
-        static void WriteException(ref Utf8JsonWriter writer, Exception? ex)
+        static void WriteException(Utf8JsonWriter writer, Exception? ex)
         {
             if (ex == null)
             {
@@ -67,7 +67,7 @@ namespace ZLogger
                     writer.WriteString(StackTraceText, ex.StackTrace);
                     writer.WritePropertyName(InnerExceptionText);
                     {
-                        WriteException(ref writer, ex.InnerException);
+                        WriteException(writer, ex.InnerException);
                     }
                 }
                 writer.WriteEndObject();

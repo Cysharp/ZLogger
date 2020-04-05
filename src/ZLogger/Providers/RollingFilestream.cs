@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace ZLogger.Providers
 {
-    internal class RollingFilestream : Stream
+    internal class RollingFileStream : Stream
     {
         static readonly Regex NumberRegex = new Regex("(\\d)+$", RegexOptions.Compiled);
 
@@ -22,7 +22,7 @@ namespace ZLogger.Providers
         Stream innerStream;
         DateTimeOffset currentTimestampPattern;
 
-        public RollingFilestream(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, ZLoggerOptions options)
+        public RollingFileStream(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, ZLoggerOptions options)
         {
             this.timestampPattern = timestampPattern;
             this.fileNameSelector = fileNameSelector;

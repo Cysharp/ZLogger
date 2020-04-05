@@ -15,7 +15,7 @@ namespace ZLogger.Providers
 
         public ZLoggerRollingFileLoggerProvider(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, IOptions<ZLoggerOptions> options)
         {
-            var stream = new RollingFilestream(fileNameSelector, timestampPattern, rollSizeKB, options.Value);
+            var stream = new RollingFileStream(fileNameSelector, timestampPattern, rollSizeKB, options.Value);
             this.streamWriter = new AsyncStreamLineMessageWriter(stream, options.Value);
         }
 

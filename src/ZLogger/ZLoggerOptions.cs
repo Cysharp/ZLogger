@@ -64,7 +64,7 @@ namespace ZLogger
 
         static void DefaultStructuredLoggingFormatter(Utf8JsonWriter writer, LogInfo info)
         {
-            info.WriteToJsonWriter(ref writer);
+            info.WriteToJsonWriter(writer);
         }
 
         static byte[] newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
