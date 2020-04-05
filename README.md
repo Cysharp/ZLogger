@@ -2,7 +2,7 @@ ZLogger
 ===
 [![CircleCI](https://circleci.com/gh/Cysharp/ZLogger.svg?style=svg)](https://circleci.com/gh/Cysharp/ZLogger)
 
-**Z**ero Allocation Text/Strcutured **Logger** for .NET Core, built on top of a Microsoft.Extensions.Logging.
+**Z**ero Allocation Text/Strcutured **Logger** for .NET Core and Unity, built on top of a Microsoft.Extensions.Logging.
 
 Logging to standard output is very important, especially in the age of containerization, but traditionally its performance has been very slow, however anyone no concerned about it. It also supports both text logs and structured logs, which are important in cloud.
 

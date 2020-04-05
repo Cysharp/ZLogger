@@ -1,4 +1,5 @@
-﻿using Cysharp.Text;
+﻿#pragma warning disable CS8601
+using Cysharp.Text;
 using System;
 using System.Buffers;
 using System.Collections.Concurrent;
