@@ -64,7 +64,7 @@ namespace ZLogger.Providers
 
         void TryChangeNewRollingFile()
         {
-            var now = DateTime.Now;
+            var now = DateTimeOffset.UtcNow;
             DateTimeOffset ts;
             try
             {
@@ -79,7 +79,7 @@ namespace ZLogger.Providers
             if (innerStream == null || ts != currentTimestampPattern || writtenLength >= rollSizeInBytes)
             {
                 int sequenceNo = 0;
-                if (innerStream != null)
+                if (innerStream != null && ts == currentTimestampPattern)
                 {
                     sequenceNo = ExtractCurrentSequence(fileName) + 1;
                 }

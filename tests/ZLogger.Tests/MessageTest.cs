@@ -196,12 +196,14 @@ namespace ZLogger.Tests
                 x.SetMinimumLevel(LogLevel.Debug);
                 x.AddZLoggerStream(ms, option =>
                 {
+                    var hashProp = JsonEncodedText.Encode("Hash");
+
                     option.IsStructuredLogging = true;
                     option.StructuredLoggingFormatter = (writer, info) =>
                     {
                         // Use default and add custom metadata
                         info.WriteToJsonWriter(writer);
-                        writer.WriteString("Hash", sourceCodeHash);
+                        writer.WriteString(hashProp, sourceCodeHash);
                     };
                 });
             });
