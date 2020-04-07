@@ -347,7 +347,7 @@ namespace ConsoleApp
 
 
 
-            logger.ZLogInformation("Registered User: Id = {0}, UserName = {1}", id, userName);
+            // logger.ZLogInformation("Registered User: Id = {0}, UserName = {1}", id, userName);
 
             //            // {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":{"Id":10,"Name":"Mike"}}
             //            logger.ZLogInformationWithPayload(new UserRegisteredLog
