@@ -53,7 +53,7 @@ public class MyClass
     readonly ILogger<MyClass> logger;
 
     // get logger from DI.
-    pulbic class MyClass(ILogger<MyClass> logger)
+    public class MyClass(ILogger<MyClass> logger)
     {
         this.logger = logger;
     }
