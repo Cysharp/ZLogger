@@ -63,9 +63,27 @@ var foobarLogger2 = ZLoggerMessage.DefineWithPayload<MyMessage, int, int>(LogLev
 
 // TODO: more reference.
 
-Banned API Analyzer
+
+Providers
 ---
-// TODO:
+
+
+Options
+---
+
+
+Microsoft.CodeAnalysis.BannedApiAnalyzers
+---
+[Microsoft.CodeAnalysis.BannedApiAnalyzers](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md) is an interesting analyzer, you can use this to prohibit the normal Log method.
+
+![image](https://user-images.githubusercontent.com/46207/78545188-56ea8a80-7836-11ea-81f2-6cbf7119f027.png)
+
+All you have to do is prepare the following configuration.
+
+```
+T:Microsoft.Extensions.Logging.LoggerExtensions;Don't use this, use ZLog*** instead.
+T:System.Console;Don't use this, use logger instead.
+```
 
 Global LoggerFactory
 ---
@@ -95,8 +113,8 @@ await host.RunAsync();
 // Own static loggger manager
 public static class GlobalLogger
 {
-    static ILogger? globalLogger;
-    static ILoggerFactory? loggerFactory;
+    static ILogger globalLogger;
+    static ILoggerFactory loggerFactory;
 
     public static void SetServiceProvider(ILoggerFactory loggerFactory, string categoryName)
     {
@@ -106,8 +124,8 @@ public static class GlobalLogger
 
     public static ILogger Log => globalLogger!;
 
-    public static ILogger<T> GetLogger<T>() where T : class => loggerFactory!.CreateLogger<T>();
-    public static ILogger GetLogger(string categoryName) => loggerFactory!.CreateLogger(categoryName);
+    public static ILogger<T> GetLogger<T>() where T : class => loggerFactory.CreateLogger<T>();
+    public static ILogger GetLogger(string categoryName) => loggerFactory.CreateLogger(categoryName);
 }
 ```
 
@@ -124,6 +142,10 @@ public class Foo
     }
 }
 ```
+
+Unity
+---
+TODO:
 
 License
 ---

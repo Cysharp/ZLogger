@@ -12,7 +12,6 @@ namespace ZLogger
     public class ZLoggerOptions
     {
         public Action<Exception> InternalErrorLogger { get; set; }
-        public CancellationToken CancellationToken { get; set; }
 
         // Options for Text logging
         public Action<IBufferWriter<byte>, LogInfo> PrefixFormatter { get; set; }

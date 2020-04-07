@@ -18,7 +18,6 @@ namespace ZLogger
         readonly Stream stream;
         readonly Channel<IZLoggerEntry> channel;
         readonly Task writeLoop;
-        readonly CancellationTokenSource cancellationTokenSource;
         readonly ZLoggerOptions options;
 
         public AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options)
@@ -40,7 +39,6 @@ namespace ZLogger
             }
 
             this.options = options;
-            this.cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(options.CancellationToken);
             this.stream = stream;
             this.channel = Channel.CreateUnbounded<IZLoggerEntry>(new UnboundedChannelOptions
             {
@@ -88,7 +86,7 @@ namespace ZLogger
             var reader = channel.Reader;
             try
             {
-                while (await reader.WaitToReadAsync(cancellationTokenSource.Token).ConfigureAwait(false))
+                while (await reader.WaitToReadAsync().ConfigureAwait(false))
                 {
                     try
                     {
@@ -170,8 +168,6 @@ namespace ZLogger
             try
             {
                 channel.Writer.Complete();
-                await channel.Reader.Completion;
-                cancellationTokenSource.Cancel();
                 await writeLoop;
             }
             finally
