@@ -21,6 +21,8 @@ For .NET Core, use NuGet. For Unity(ZLogger for Unity run on IL2CPP, all platfor
 You can setup logger by [.NET Generic Host](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/generic-host), for ASP.NET Core and if you want to use this in ConsoleApplication, we provides [ConsoleAppFramework](https://github.com/Cysharp/ConsoleAppFramework) to use hosting abstraction.
 
 ```csharp
+using ZLogger;
+
 Host.CreateDefaultBuilder()
     .ConfigureLogging(logging =>
     {
@@ -93,7 +95,7 @@ Structured Logging
 ---
 Structured logging is important for cloud logging. For example, Stackdriver Logging, Datadog logs, etc..., are provides fileter, query log by simple syntax. Or store to storage by Structured Log(JSON), Amazon Athena, Google BigQuery, Azure Data Lake, etc..., you can query and analyze many log files.
 
-ZLogger natively supports StructuredLogging and uses System.Text.JsonWriter to achieve complete zero-allocation in the pipeline without ever converting it to a string.
+ZLogger natively supports StructuredLogging and uses System.Text.Json.JsonSerializer to achieve complete zero-allocation in the pipeline without ever converting it to a string.
 
 ```csharp
 // To setup, `EnableStructuredLogging = true`.
