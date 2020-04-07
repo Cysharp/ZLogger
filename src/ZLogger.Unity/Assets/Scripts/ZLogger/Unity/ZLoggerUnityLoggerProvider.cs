@@ -45,33 +45,39 @@ namespace ZLogger.Providers
 
         public void Post(IZLoggerEntry log)
         {
-            var msg = log.FormatToString(options, null);
-
-            switch (log.LogInfo.LogLevel)
+            try
             {
-                case LogLevel.Trace:
-                case LogLevel.Debug:
-                case LogLevel.Information:
-                    UnityEngine.Debug.Log(msg);
-                    break;
-                case LogLevel.Warning:
-                case LogLevel.Critical:
-                    UnityEngine.Debug.LogWarning(msg);
-                    break;
-                case LogLevel.Error:
-                    if (log.LogInfo.Exception != null)
-                    {
-                        UnityEngine.Debug.LogException(log.LogInfo.Exception);
-                    }
-                    else
-                    {
-                        UnityEngine.Debug.LogError(msg);
-                    }
-                    break;
-                case LogLevel.None:
-                    break;
-                default:
-                    break;
+                var msg = log.FormatToString(options, null);
+                switch (log.LogInfo.LogLevel)
+                {
+                    case LogLevel.Trace:
+                    case LogLevel.Debug:
+                    case LogLevel.Information:
+                        UnityEngine.Debug.Log(msg);
+                        break;
+                    case LogLevel.Warning:
+                    case LogLevel.Critical:
+                        UnityEngine.Debug.LogWarning(msg);
+                        break;
+                    case LogLevel.Error:
+                        if (log.LogInfo.Exception != null)
+                        {
+                            UnityEngine.Debug.LogException(log.LogInfo.Exception);
+                        }
+                        else
+                        {
+                            UnityEngine.Debug.LogError(msg);
+                        }
+                        break;
+                    case LogLevel.None:
+                        break;
+                    default:
+                        break;
+                }
+            }
+            finally
+            {
+                log.Return();
             }
         }
     }

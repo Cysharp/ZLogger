@@ -14,7 +14,7 @@ ZLogger is built directly on top of `Microsoft.Extensions.Logging`. By not havin
 
 Getting Started
 ---
-For .NET Core, use NuGet. For Unity, please read [Unity](#unity) section.
+For .NET Core, use NuGet. For Unity(ZLogger for Unity run on IL2CPP, all platforms), please read [Unity](#unity) section.
 
 > PM> Install-Package [ZLogger](https://www.nuget.org/packages/ZLogger)
 
@@ -48,27 +48,68 @@ Host.CreateDefaultBuilder()
 ```
 
 ```csharp
-// log text.
-logger.ZLogDebug("foo{0} bar{1}", 10, 20);
+public class MyClass
+{
+    readonly ILogger<MyClass> logger;
 
-// log text with structure
-logger.ZLogDebugWithPayload(new { Foo = 10, Bar = 20 }, "foo{0} bar{1}", 10, 20);
+    // get logger from DI.
+    pulbic class MyClass(ILogger<MyClass> logger)
+    {
+        this.logger = logger;
+    }
 
-// Prepared logging
-var foobarLogger1 = ZLoggerMessage.Define<int, int>(LogLevel.Debug, new EventId(10, "hoge"), "foo{0} bar{1}");
+    public void Foo()
+    {
+        // log text.
+        logger.ZLogDebug("foo{0} bar{1}", 10, 20);
 
-// Prepared logging with structure
-var foobarLogger2 = ZLoggerMessage.DefineWithPayload<MyMessage, int, int>(LogLevel.Warning, new EventId(10, "hoge"), "foo{0} bar{1}");
+        // log text with structure
+        logger.ZLogDebugWithPayload(new { Foo = 10, Bar = 20 }, "foo{0} bar{1}", 10, 20);
+    }
+}
 ```
 
-// TODO: more reference.
+The setup and get the logger follows [Microsoft.Extensions.Logging](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/). However, writing logs uses `ZLog`, `ZLogDebug`, `ZLogException`, etc. with a prefix of **Z**. 
 
+All logging methods are completely similar as [Microsoft.Extensions.Logging.LoggerExtensions](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.loggerextensions), but it has **Z** prefix and has many generics overload to avoid allocation of boxing.
 
+```csharp
+// ZLog, ZLogTrace, ZLogDebug, ZLogInformation, ZLogWarning, ZLogError, ZLogCritical and *WithPayload.
+public static void ZLogDebug(this ILogger logger, string format)
+public static void ZLogDebug(this ILogger logger, EventId eventId, string format)
+public static void ZLogDebug(this ILogger logger, Exception? exception, string format)
+public static void ZLogDebug(this ILogger logger, EventId eventId, Exception? exception, string format)
+public static void ZLogDebug<T1>(this ILogger logger, string format, T1 arg1)
+public static void ZLogDebug<T1>(this ILogger logger, EventId eventId, string format, T1 arg1)
+public static void ZLogDebug<T1>(this ILogger logger, Exception? exception, string format, T1 arg1)
+public static void ZLogDebug<T1>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1)
+// T1~T16
+public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15, T16 arg16)
+```
 
+If you want to replace an existing .NET Core logger, you can setup the builder.AddZLogger and simply replace LogDebug -> ZLogDebug. If you want to check and prohibit standard log methods, see the [Microsoft.CodeAnalysis.BannedApiAnalyzers](#microsoftcodeanalysisbannedapianalyzers) section. If you want to use the logger without DI, see the [Global LoggerFactory](#global-loggerfactory) section.
 
 Structured Logging
 ---
-TODO:
+Structured logging is important for cloud logging. For example, Stackdriver Logging, Datadog logs, etc..., are provides fileter, query log by simple syntax. Or store to storage by Structured Log(JSON), Amazon Athena, Google BigQuery, Azure Data Lake, etc..., you can query and analyze many log files.
+
+ZLogger natively supports StructuredLogging and uses System.Text.JsonWriter to achieve complete zero-allocation in the pipeline without ever converting it to a string.
+
+```csharp
+// To setup, `EnableStructuredLogging = true`.
+logging.AddZLoggerConsole(option =>
+{
+    options.EnableStructuredLogging = true;
+});
+
+// In default, output JSON with log information(categoryName, level, timestamp, exception), message and payload(if exists).
+
+// {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":{"Id":10,"Name":"Mike"}}
+logger.ZLogInformation("Registered User: Id = {0}, UserName = {1}", id, userName);
+
+// {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":{"Id":10,"Name":"Mike"}}
+logger.ZLogInformationWithPayload(new UserRegisteredLog { Id = id, Name = userName }, "Registered User: Id = {0}, UserName = {1}", id, userName);
+```
 
 Filters
 ---
@@ -114,7 +155,7 @@ logging.AddZLoggerFile("applog.log");
 
 ### RollingFile
 
-Changes the output file path, depending on date-time or file size.
+Output to the file that is changed the output file path, depending on date-time or file size.
 
 ```csharp
 logging.AddZLoggerRollingFile((dt, x) => 
@@ -138,14 +179,143 @@ The specification is a little more complicated for performance reasons of avoidi
 The generated files will not be deleted. If you want to do a log rotation, please do it from outside.
 
 ### Stream
-TODO:
+
+Output to the Stream. This is useful when writing data to a MemoryStream or a NetworkStream.
+
+```csharp
+var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+socket.Connect("127.0.0.1", 12345);
+var network = new NetworkStream(socket);
+                    
+logging.AddZLoggerStream(network);
+```
+
+Stream methods are only called `Write(byte[] buffer, int offset, int count)` and `Flush()` from ThreadPool thread. If you implement custom stream, you can hook the write/flush timing and raw buffer data.
 
 ### LogProcessor
-TODO:
 
-Preaparing Message
+Output to the custom `IAsyncLogProcessor`. You can create custom output for each message by implementing the `Post(IZLoggerEntry)` method, which is called synchronously when the Log method is called.
+
+```csharp
+public interface IAsyncLogProcessor : IAsyncDisposable
+{
+    void Post(IZLoggerEntry log);
+
+    // DisposeAsync is called when LoggerFactory is disposed(application stopped).
+    ValueTask DisposeAsync();
+}
+
+public interface IZLoggerEntry
+{
+    LogInfo LogInfo { get; }
+    void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter);
+    void SwitchCasePayload<TPayload>(Action<IZLoggerEntry, TPayload, object?> payloadCallback, object? state);
+    object? GetPayload();
+    void Return();
+
+    // Extension Methods
+    string FormatToString(ZLoggerOptions options, Utf8JsonWriter? jsonWriter);
+}
+```
+
+`IZLoggerEntry` is poolable value, you should call `Return` after used. For example, this is routing log entry to UnityEngine's logger.
+
+```csharp
+public void Post(IZLoggerEntry log)
+{
+    try
+    {
+        var msg = log.FormatToString(options, null);
+        switch (log.LogInfo.LogLevel)
+        {
+            case LogLevel.Trace:
+            case LogLevel.Debug:
+            case LogLevel.Information:
+                UnityEngine.Debug.Log(msg);
+                break;
+            case LogLevel.Warning:
+            case LogLevel.Critical:
+                UnityEngine.Debug.LogWarning(msg);
+                break;
+            case LogLevel.Error:
+                if (log.LogInfo.Exception != null)
+                {
+                    UnityEngine.Debug.LogException(log.LogInfo.Exception);
+                }
+                else
+                {
+                    UnityEngine.Debug.LogError(msg);
+                }
+                break;
+            case LogLevel.None:
+                break;
+            default:
+                break;
+        }
+    }
+    finally
+    {
+        // return to pool.
+        log.Return();
+    }
+}
+```
+
+Preparing Message Format
 ---
-TODO:
+As introduced in [High-performance logging with LoggerMessage in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/loggermessage), ZLogger also allows logging with parsed strings in `ZLoggerMessage.Define` and `DefineWithPayload`.
+
+```csharp
+public class UserModel
+{
+    static readonly Action<ILogger, int, string, Exception?> registerdUser = ZLoggerMessage.Define<int, string>(LogLevel.Information, new EventId(9, "RegisteredUser"), "Registered User: Id = {0}, UserName = {1}");
+
+    readonly ILogger<UserModel> logger;
+
+    public UserModel(ILogger<UserModel> logger)
+    {
+        this.logger = logger;
+    }
+
+    public void RegisterUser(int id, string name)
+    {
+        // ...do anything
+
+        // use defined delegate instead of ZLog.
+        registerdUser(logger, id, name, null);
+    }
+}
+```
+
+If you also want to use Payload in StructuredLogging, you can call DefineWithPayload.
+
+```csharp
+public class UserModel
+{
+    static readonly Action<ILogger, UserRegisteredLog, int, string, Exception?> registerdUser = ZLoggerMessage.Define<UserRegisteredLog, int, string>(LogLevel.Information, new EventId(9, "RegisteredUser"), "Registered User: Id = {0}, UserName = {1}");
+
+    readonly ILogger<UserModel> logger;
+
+    public UserModel(ILogger<UserModel> logger)
+    {
+        this.logger = logger;
+    }
+
+    public void RegisterUser(int id, string name)
+    {
+        // ...do anything
+
+        // use defined delegate instead of ZLog.
+        registerdUser(logger, new UserRegisteredLog { Id = id, Name = name }, id, name, null);
+    }
+    
+    public struct UserRegisteredLog
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+}
+```
 
 Options
 ---
@@ -219,14 +389,14 @@ logging.AddZLoggerConsole(option =>
 logger.ZLogInformation("Registered User: Id = {0}, UserName = {1}", id, userName);
 
 // {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":{"Id":10,"Name":"Mike"}}
-logger.ZLogInformationWithPayload(new UserLogInfo { Id = id, Name = userName }, "Registered User: Id = {0}, UserName = {1}", id, userName);
+logger.ZLogInformationWithPayload(new UserRegisteredLog { Id = id, Name = userName }, "Registered User: Id = {0}, UserName = {1}", id, userName);
 
 // Due to the constraints of System.Text.JSON.JSONSerializer,
 // only properties can be serialized.
-public struct MyMessage
+public struct UserRegisteredLog
 {
-    public int Foo { get; set; }
-    public int Bar { get; set; }
+    public int Id { get; set; }
+    public string Name { get; set; }
 }
 ```
 
@@ -402,6 +572,8 @@ public class MyScript : MonoBehaviour
 The advantages of using ZLogger include more log levels, filtering, automatic category(typename from `GetLogger<T>`) granting, and common log headers/footers than the standard Unity logger. Adding categories can be very useful for filtering logs using something like [EditorConsolePro](https://assetstore.unity.com/packages/tools/utilities/editor-console-pro-11889) (e.g. [UI], [Battle], [Network], etc.).
 
 You can also use `ZLoggerFileLoggerProvider`, `ZLoggerRollingFileLoggerProvider` to write out logs to files, which can be useful if you want to output as a PC application(Steam, VR, etc...). You can also use `ZLoggerStreamLoggerProvider` or `ZLoggerLogProcessorProvider` as an extension point for your own log output.
+
+> Limitation: Currently ZLogger for Unity does not support structured logging so you can not set `EnableStructuredLogging = true`.
 
 License
 ---

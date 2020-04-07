@@ -124,3 +124,15 @@ nuget/tools/*
 Library/
 Temp/
 tools/CommandTools/Properties/launchSettings.json
+
+src/ZLogger.Unity/Assembly-CSharp-Editor.csproj
+
+src/ZLogger.Unity/Assembly-CSharp.csproj
+
+src/ZLogger.Unity/RuntimeUnitTestToolkit.csproj
+
+src/ZLogger.Unity/ZLogger.csproj
+
+src/ZLogger.Unity/ZLogger.Unity.sln
+
+src/ZLogger.Unity/ZString.csproj

@@ -22,6 +22,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging.Configuration;
 using System.Reflection;
 using System.Threading.Channels;
+using System.Net.Sockets;
 
 namespace ConsoleApp
 {
@@ -31,6 +32,7 @@ namespace ConsoleApp
         public void Main2()
         {
             //logger.LogDebug("foo");
+
 
 
 
@@ -141,7 +143,33 @@ namespace ConsoleApp
     {
 
     }
+    // Due to the constraints of System.Text.JSON.JSONSerializer,
+    // only properties can be serialized.
+    public struct UserRegisteredLog
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
 
+    public class UserModel
+    {
+        static readonly Action<ILogger, UserRegisteredLog, int, string, Exception?> registerdUser = ZLoggerMessage.Define<UserRegisteredLog, int, string>(LogLevel.Information, new EventId(9, "RegisteredUser"), "Registered User: Id = {0}, UserName = {1}");
+
+        readonly ILogger<UserModel> logger;
+
+        public UserModel(ILogger<UserModel> logger)
+        {
+            this.logger = logger;
+        }
+
+        public void RegisterUser(int id, string name)
+        {
+            // ...do anything
+
+            // use defined delegate instead of ZLog.
+            registerdUser(logger, new UserRegisteredLog { Id = id, Name = name }, id, name, null);
+        }
+    }
 
     class Program : ConsoleAppBase
     {
@@ -184,10 +212,10 @@ namespace ConsoleApp
                     logging.AddFilter<ZLoggerConsoleLoggerProvider>(level => level == LogLevel.Information);
                     logging.AddFilter<ZLoggerFileLoggerProvider>(level => level == LogLevel.Trace);
 
-                    
 
 
-                
+
+
 
                     //logging.AddFilter<ZLoggerFileLoggerProvider>(
 
@@ -247,9 +275,14 @@ namespace ConsoleApp
                     //    //x.SuffixFormatter = (writer, info) => prepared.FormatTo(ref writer, info.LogLevel);
                     //});
 
+                    var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+                    socket.Connect("127.0.0.1", 12345);
+                    var network = new NetworkStream(socket);
+
+                    logging.AddZLoggerStream(network);
 
 
-                    
+
 
 
                     var gitHash = Guid.NewGuid().ToString();
@@ -308,6 +341,21 @@ namespace ConsoleApp
 
             //logger.ZDebug("foo {0}, bar {1}", 100, 200);
             //logger.ZDebug(obj, "foo {0}, bar {1}", obj.Foo, obj.Bar);
+
+
+
+
+
+
+            logger.ZLogInformation("Registered User: Id = {0}, UserName = {1}", id, userName);
+
+            //            // {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":{"Id":10,"Name":"Mike"}}
+            //            logger.ZLogInformationWithPayload(new UserRegisteredLog
+            //            {
+            //                Id = id,
+            //                Name = userName
+            //            }, "Registered User: Id = {0}, UserName = {1}", id, userName);
+            ////
 
             //RunExce();
 

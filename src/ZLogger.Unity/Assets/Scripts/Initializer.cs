@@ -28,6 +28,8 @@ public static class GlobalLogger
             // and other configuration(AddFileLog, etc...)
         });
 
+        globalLogger = loggerFactory.CreateLogger("Global");
+
         Application.quitting += () =>
         {
             // when quit, flush unfinished log entries.
