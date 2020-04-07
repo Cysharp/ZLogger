@@ -37,6 +37,7 @@ namespace System.Text.Json
         public void WriteNullValue() { }
         public void WriteStartObject() { }
         public void WriteEndObject() { }
+        public void WriteNull(JsonEncodedText text) { }
     }
 
     public static class JsonSerializer

@@ -11,54 +11,10 @@ using ZLogger.Providers;
 
 public class NewBehaviourScript : MonoBehaviour
 {
-    // Start is called before the first frame update
+    static readonly ILogger<NewBehaviourScript> logger = GlobalLogger.GetLogger<NewBehaviourScript>();
     void Start()
     {
-        //var factory = new LoggerFactory(;
-     
-
-
-        //var factory = LoggerFactory.Create(builder =>
-        //{
-        //    builder.SetMinimumLevel(LogLevel.Trace);
-        //    builder.AddZLoggerUnityDebug();
-        //});
-
-        //var mylogger = factory.CreateLogger<ILogger<NewBehaviourScript>>();
-
-        //mylogger.ZLogDebugMessage("foo bar baz");
-
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
+        logger.ZLogDebug("Init!");
     }
 }
 
-internal static class MyProviderAliasUtilities
-{
-    private const string AliasAttibuteTypeFullName = "Microsoft.Extensions.Logging.ProviderAliasAttribute";
-    private const string AliasAttibuteAliasProperty = "Alias";
-
-    internal static string GetAlias(Type providerType)
-    {
-        foreach (var attribute in providerType.GetTypeInfo().GetCustomAttributes(inherit: false))
-        {
-            if (attribute.GetType().FullName == AliasAttibuteTypeFullName)
-            {
-                var valueProperty = attribute
-                    .GetType()
-                    .GetProperty(AliasAttibuteAliasProperty, BindingFlags.Public | BindingFlags.Instance);
-
-                if (valueProperty != null)
-                {
-                    return valueProperty.GetValue(attribute) as string;
-                }
-            }
-        }
-
-        return null;
-    }
-}

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using System;
 using System.IO;
+using System.Text;
 
 namespace ZLogger.Providers
 {
@@ -11,7 +12,17 @@ namespace ZLogger.Providers
         AsyncStreamLineMessageWriter streamWriter;
 
         public ZLoggerConsoleLoggerProvider(IOptions<ZLoggerOptions> options)
+            : this(true, options)
         {
+        }
+
+        public ZLoggerConsoleLoggerProvider(bool consoleOutputEncodingToUtf8, IOptions<ZLoggerOptions> options)
+        {
+            if (consoleOutputEncodingToUtf8)
+            {
+                Console.OutputEncoding = new UTF8Encoding(false);
+            }
+
             this.streamWriter = new AsyncStreamLineMessageWriter(Console.OpenStandardOutput(), options.Value);
         }
 

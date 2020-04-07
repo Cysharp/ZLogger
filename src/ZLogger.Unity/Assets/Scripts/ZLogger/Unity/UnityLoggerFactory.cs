@@ -57,7 +57,7 @@ namespace ZLogger
             builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<ZLoggerOptions>, LoggerProviderConfigureOptions<ZLoggerOptions, ZLoggerFileLoggerProvider>>());
             builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<ZLoggerOptions>, LoggerProviderConfigureOptions<ZLoggerOptions, ZLoggerRollingFileLoggerProvider>>());
             builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<ZLoggerOptions>, LoggerProviderConfigureOptions<ZLoggerOptions, ZLoggerStreamLoggerProvider>>());
-            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<ZLoggerOptions>, LoggerProviderConfigureOptions<ZLoggerOptions, ZLoggerLogProcessorProvider>>());
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<ZLoggerOptions>, LoggerProviderConfigureOptions<ZLoggerOptions, ZLoggerLogProcessorLoggerProvider>>());
         }
 
         // for IL2CPP.
@@ -121,9 +121,9 @@ namespace ZLogger
                     _ = new LoggerProviderOptionsChangeTokenSource<ZLoggerOptions, ZLoggerStreamLoggerProvider>(providerConfiguration);
                 }
                 {
-                    var providerConfiguration = new LoggerProviderConfiguration<ZLoggerLogProcessorProvider>(loggingProviderConfigurationFactory);
-                    _ = new LoggerProviderConfigureOptions<ZLoggerOptions, ZLoggerLogProcessorProvider>(providerConfiguration);
-                    _ = new LoggerProviderOptionsChangeTokenSource<ZLoggerOptions, ZLoggerLogProcessorProvider>(providerConfiguration);
+                    var providerConfiguration = new LoggerProviderConfiguration<ZLoggerLogProcessorLoggerProvider>(loggingProviderConfigurationFactory);
+                    _ = new LoggerProviderConfigureOptions<ZLoggerOptions, ZLoggerLogProcessorLoggerProvider>(providerConfiguration);
+                    _ = new LoggerProviderOptionsChangeTokenSource<ZLoggerOptions, ZLoggerLogProcessorLoggerProvider>(providerConfiguration);
                 }
             }
         }

@@ -198,7 +198,7 @@ namespace ZLogger.Tests
                 {
                     var hashProp = JsonEncodedText.Encode("Hash");
 
-                    option.IsStructuredLogging = true;
+                    option.EnableStructuredLogging = true;
                     option.StructuredLoggingFormatter = (writer, info) =>
                     {
                         // Use default and add custom metadata

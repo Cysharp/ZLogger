@@ -14,14 +14,9 @@ namespace ZLogger
     {
         public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, bool consoleOutputEncodingToUtf8 = true)
         {
-            if (consoleOutputEncodingToUtf8)
-            {
-                Console.OutputEncoding = new UTF8Encoding(false);
-            }
-
             builder.AddConfiguration();
 
-            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerConsoleLoggerProvider>());
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerConsoleLoggerProvider>(x => new ZLoggerConsoleLoggerProvider(consoleOutputEncodingToUtf8, x.GetService<IOptions<ZLoggerOptions>>())));
             LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerConsoleLoggerProvider>(builder.Services);
 
             return builder;
@@ -67,8 +62,8 @@ namespace ZLogger
         {
             builder.AddConfiguration();
 
-            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerLogProcessorProvider>(x => new ZLoggerLogProcessorProvider(logProcessor, x.GetService<IOptions<ZLoggerOptions>>())));
-            LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerLogProcessorProvider>(builder.Services);
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerLogProcessorLoggerProvider>(x => new ZLoggerLogProcessorLoggerProvider(logProcessor, x.GetService<IOptions<ZLoggerOptions>>())));
+            LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerLogProcessorLoggerProvider>(builder.Services);
 
             return builder;
         }

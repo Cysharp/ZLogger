@@ -21,12 +21,44 @@ using System.Collections;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging.Configuration;
 using System.Reflection;
+using System.Threading.Channels;
 
 namespace ConsoleApp
 {
     public class MyClass22
     {
 
+        public void Main2()
+        {
+            //logger.LogDebug("foo");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            //logger.Log(LogLevel.Debug, new EventId(0), new Exception(), "foo", "bar");
+
+            //System.Console.WriteLine("hoge");
+            // new BannedType();
+        }
     }
 
 
@@ -78,40 +110,66 @@ namespace ConsoleApp
 
         public MyClassC()
         {
-            Console.WriteLine("called ()");
+
+            //Console.WriteLine("called ()");
         }
 
         public MyClassC(MyClassA a)
         {
-            Console.WriteLine("called a");
+            //    Console.WriteLine("called a");
         }
 
         public MyClassC(MyClassA a, MyClassB b)
         {
-            Console.WriteLine("called a+b");
+            //  Console.WriteLine("called a+b");
         }
+    }
+
+    public struct UserLogInfo
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class BattleLogic
+    {
+
+    }
+
+
+    public class View
+    {
+
     }
 
 
     class Program : ConsoleAppBase
     {
+        static async Task Loop(ChannelReader<int> reader)
+        {
+            Console.WriteLine("Wait Start");
+            while (await reader.WaitToReadAsync())
+            {
+                //throw new Exception();
+                await Task.Delay(TimeSpan.FromSeconds(5));
+                reader.TryRead(out var i);
+                reader.TryRead(out i);
+                reader.TryRead(out i);
+            }
+            Console.WriteLine("Wait Complete");
+            await Task.Delay(TimeSpan.FromSeconds(10));
+            Console.WriteLine("END");
+        }
+
         static async Task Main(string[] args)
         {
-
-
-
-
-
-
-
-
             var host = Host.CreateDefaultBuilder()
                 .ConfigureLogging(logging =>
                 {
                     logging.ClearProviders();
 
                     // optional(MS.E.Logging): default is Info, you can use this or AddFilter to filtering log.
-                    logging.SetMinimumLevel(LogLevel.Debug);
+                    logging.SetMinimumLevel(LogLevel.Trace);
 
                     //    .AddZLoggerConsole(configure =>
                     //    {
@@ -122,6 +180,16 @@ namespace ConsoleApp
                     // logging.AddFilter(
 
 
+
+                    logging.AddFilter<ZLoggerConsoleLoggerProvider>(level => level == LogLevel.Information);
+                    logging.AddFilter<ZLoggerFileLoggerProvider>(level => level == LogLevel.Trace);
+
+                    
+
+
+                
+
+                    //logging.AddFilter<ZLoggerFileLoggerProvider>(
 
 
 
@@ -165,39 +233,43 @@ namespace ConsoleApp
                     //logging.AddZLoggerFile("foo.log");
 
 
-                    logging.AddZLoggerConsole(x =>
+                    //logging.AddZLoggerConsole(x =>
+                    //{
+                    //    //x.PrefixFormatter = (writer, info) =>
+                    //    //{
+                    //    //    ZString.Utf8Format(writer, "[{0}]", info.LogLevel);
+                    //    //};
+
+                    //    //Utf16PreparedFormat
+
+                    //    // x.IsStructuredLogging = true;
+
+                    //    //x.SuffixFormatter = (writer, info) => prepared.FormatTo(ref writer, info.LogLevel);
+                    //});
+
+
+
+                    
+
+
+                    var gitHash = Guid.NewGuid().ToString();
+
+
+                    logging.AddZLoggerConsole(options =>
                     {
-                        x.PrefixFormatter = (writer, info) =>
+                        options.EnableStructuredLogging = true;
+
+                        var gitHashName = JsonEncodedText.Encode("GitHash");
+                        var gitHashValue = JsonEncodedText.Encode(gitHash);
+
+                        options.StructuredLoggingFormatter = (writer, info) =>
                         {
-                            ZString.Utf8Format(writer, "[{0}]", info.LogLevel);
-
-
-
-
-
+                            writer.WriteString(gitHashName, gitHashValue);
+                            info.WriteToJsonWriter(writer);
                         };
-
-                        //Utf16PreparedFormat
-
-
-                        //x.SuffixFormatter = (writer, info) => prepared.FormatTo(ref writer, info.LogLevel);
                     });
 
-
-                    var removeTargets = logging.Services.Where(item =>
-                        (item.ServiceType == typeof(IConfigureOptions<ZLoggerOptions>)
-                      && (item?.ImplementationType?.FullName?.StartsWith("Microsoft.Extensions.Logging.Configuration.LoggerProviderConfigureOptions") ?? false)))
-                        .ToArray();
-
-
-
-
-                    var hoge = logging;
-
-                    //logging.AddZLoggerConsole(options =>
-                    //{
-                    //    // options.UseDefaultStructuredLogFormatter();
-                    //});
+                    logging.AddZLoggerRollingFile((dt, x) => $"logs/{dt.ToLocalTime():yyyy-MM-dd}_{x:000}.log", x => x.ToLocalTime().Date, 1024);
                 })
                 .UseConsoleAppFramework<Program>(args)
                 .Build();
@@ -262,7 +334,6 @@ namespace ConsoleApp
 
 
 
-
             //new 
 
             //logger.ZLogDebug(new Exception("かきくけこ"), new { 名前 = "あいうえお" }, "さしすせそ{0}", "なにぬねの");
@@ -292,23 +363,21 @@ namespace ConsoleApp
             //var str = Encoding.UTF8.GetString(buff.WrittenSpan);
             //Console.WriteLine(str);
 
+            var id = 10;
+            var userName = "Mike";
+
+
+            // {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":{"Id":10,"Name":"Mike"}}
+            logger.ZLogInformation("Registered User: Id = {0}, UserName = {1}", id, userName);
+
+            // {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":{"Id":10,"Name":"Mike"}}
+            logger.ZLogInformationWithPayload(new UserLogInfo { Id = id, Name = userName }, "Registered User: Id = {0}, UserName = {1}", id, userName);
 
 
 
-            logger.ZLogDebug("foo");
-            logger.ZLogDebug(new EventId(10), "foo");
-            logger.ZLogDebug(new Exception(), "foo");
-            logger.ZLogDebug(new EventId(10), new Exception(), "foo");
-            logger.ZLogDebug("foo {0}", "bar");
-            logger.ZLogDebug(new EventId(10), "foo {0}", "bar");
-            logger.ZLogDebug(new Exception(), "foo {0}", "bar");
-            logger.ZLogDebug(new EventId(10), new Exception(), "foo {0}", "bar");
+            //logger.ZLogInformationWithPayload(
 
-            logger.ZLogDebugWithPayload(new { foo = "bar" }, "foo");
-
-
-
-
+            //ZLogger.ZLoggerMessage.DefineWithPayload<string,int>(LogLevel.Information, default, "").Invoke(
 
             //logmsg(logger, new MyMessage { Foo = 100, Bar = 200 }, 100, 200, 300, null);
 
@@ -382,7 +451,7 @@ namespace ConsoleApp
             log.SwitchCasePayload<Takoyaki>((entry, obj, state) =>
             {
 
-                Console.WriteLine(obj.Bar);
+                // Console.WriteLine(obj.Bar);
             }, null);
 
         }

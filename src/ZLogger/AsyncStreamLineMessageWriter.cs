@@ -94,14 +94,12 @@ namespace ZLogger
                         {
                             var info = value.LogInfo;
 
-                            if (options.IsStructuredLogging)
+                            if (options.EnableStructuredLogging)
                             {
                                 var jsonWriter = options.GetThradStaticUtf8JsonWriter(writer);
                                 try
                                 {
                                     jsonWriter.WriteStartObject();
-
-                                    options.StructuredLoggingFormatter?.Invoke(jsonWriter, info);
 
                                     value.FormatUtf8(writer, options, jsonWriter);
                                     value.Return();
@@ -116,17 +114,8 @@ namespace ZLogger
                             }
                             else
                             {
-                                options.PrefixFormatter?.Invoke(writer, info);
-
                                 value.FormatUtf8(writer, options, null);
                                 value.Return();
-
-                                options.SuffixFormatter?.Invoke(writer, info);
-
-                                if (info.Exception != null)
-                                {
-                                    options.ExceptionFormatter(writer, info.Exception);
-                                }
                             }
 
                             AppendLine(writer);

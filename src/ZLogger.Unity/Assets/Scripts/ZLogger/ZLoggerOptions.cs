@@ -19,8 +19,8 @@ namespace ZLogger
         public Action<IBufferWriter<byte>, Exception> ExceptionFormatter { get; set; } = DefaultExceptionLoggingFormatter;
 
         // Options for Structured Logging
-        public bool IsStructuredLogging { get; set; }
-        public Action<Utf8JsonWriter, LogInfo> StructuredLoggingFormatter { get; set; }
+        public bool EnableStructuredLogging { get; set; }
+        public Action<Utf8JsonWriter, LogInfo> StructuredLoggingFormatter { get; set; } = DefaultStructuredLoggingFormatter;
         public JsonEncodedText MessagePropertyName { get; set; } = JsonEncodedText.Encode("Message");
         public JsonEncodedText PayloadPropertyName { get; set; } = JsonEncodedText.Encode("Payload");
 
@@ -30,12 +30,6 @@ namespace ZLogger
             IgnoreNullValues = false,
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
-
-        public void UseDefaultStructuredLogFormatter()
-        {
-            IsStructuredLogging = true;
-            StructuredLoggingFormatter = DefaultStructuredLoggingFormatter;
-        }
 
         [ThreadStatic]
         static Utf8JsonWriter jsonWriter;

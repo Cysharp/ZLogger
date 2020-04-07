@@ -118,8 +118,10 @@ namespace ZLogger.Entries
 
         public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
-            if (options.IsStructuredLogging && jsonWriter != null)
+            if (options.EnableStructuredLogging && jsonWriter != null)
             {
+                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
+
                 using (var sb = ZString.CreateUtf8StringBuilder(true))
                 {
                     sb.AppendFormat(state.Format, <#= CreateStateParameterNames(i) #>);
@@ -131,24 +133,12 @@ namespace ZLogger.Entries
             }
             else
             {
-                if (state.Format != null)
+                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
+                ZString.Utf8Format(writer, state.Format, <#= CreateStateParameterNames(i) #>);
+                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
+                if (this.LogInfo.Exception != null)
                 {
-                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                    ZString.Utf8Format(writer, state.Format, <#= CreateStateParameterNames(i) #>);
-                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                }
-                else
-                {
-                    var writer2 = options.GetThradStaticUtf8JsonWriter(writer);
-                    try
-                    {
-                        JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
-                        writer2.Flush();
-                    }
-                    finally
-                    {
-                        writer2.Reset();
-                    }
+                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
                 }
             }
         }
@@ -200,8 +190,10 @@ namespace ZLogger.Entries
 
         public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
-            if (options.IsStructuredLogging && jsonWriter != null)
+            if (options.EnableStructuredLogging && jsonWriter != null)
             {
+                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
+
                 var sb = ZString.CreateUtf8StringBuilder(true);
                 try
                 {
@@ -218,24 +210,12 @@ namespace ZLogger.Entries
             }
             else
             {
-                if (state.Format != null)
+                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
+                state.Format.FormatTo(ref writer, <#= CreateStateParameterNames(i) #>);
+                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
+                if (this.LogInfo.Exception != null)
                 {
-                    options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                    state.Format.FormatTo(ref writer, <#= CreateStateParameterNames(i) #>);
-                    options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                }
-                else
-                {
-                    var writer2 = options.GetThradStaticUtf8JsonWriter(writer);
-                    try
-                    {
-                        JsonSerializer.Serialize(writer2, state.Payload, options.JsonSerializerOptions);
-                        writer2.Flush();
-                    }
-                    finally
-                    {
-                        writer2.Reset();
-                    }
+                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
                 }
             }
         }

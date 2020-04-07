@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.IO;
@@ -7,12 +7,12 @@ namespace ZLogger.Providers
 
 {
 
-    [ProviderAlias("ZLoggerLogProcessorProvider")]
-    public class ZLoggerLogProcessorProvider : ILoggerProvider
+    [ProviderAlias("ZLoggerLogProcessor")]
+    public class ZLoggerLogProcessorLoggerProvider : ILoggerProvider
     {
         IAsyncLogProcessor processor;
 
-        public ZLoggerLogProcessorProvider(IAsyncLogProcessor processor, IOptions<ZLoggerOptions> options)
+        public ZLoggerLogProcessorLoggerProvider(IAsyncLogProcessor processor, IOptions<ZLoggerOptions> options)
         {
             this.processor = processor;
         }

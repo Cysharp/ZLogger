@@ -40,9 +40,11 @@ namespace ZLogger.Entries
         {
             var str = formatter(state, exception);
 
-            if (options.IsStructuredLogging && jsonWriter != null)
+            if (options.EnableStructuredLogging && jsonWriter != null)
             {
+                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
                 jsonWriter.WriteString(options.MessagePropertyName, str);
+                jsonWriter.WriteNull(options.PayloadPropertyName);
             }
             else
             {
@@ -56,6 +58,10 @@ namespace ZLogger.Entries
                 }
 
                 options.SuffixFormatter?.Invoke(writer, this.LogInfo);
+                if (this.LogInfo.Exception != null)
+                {
+                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
+                }
             }
         }
 
