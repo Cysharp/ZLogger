@@ -65,7 +65,7 @@ public class MyClass
         // log text.
         logger.ZLogDebug("foo{0} bar{1}", 10, 20);
 
-        // log text with structure
+        // log text with structure in Structured Logging.
         logger.ZLogDebugWithPayload(new { Foo = 10, Bar = 20 }, "foo{0} bar{1}", 10, 20);
     }
 }
@@ -91,6 +91,8 @@ public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, 
 
 If you want to replace an existing .NET Core logger, you can setup the builder.AddZLogger and simply replace LogDebug -> ZLogDebug. If you want to check and prohibit standard log methods, see the [Microsoft.CodeAnalysis.BannedApiAnalyzers](#microsoftcodeanalysisbannedapianalyzers) section. If you want to use the logger without DI, see the [Global LoggerFactory](#global-loggerfactory) section.
 
+Configuring message format(add LogLevel prefix, timestamp prefix, etc...), please see [Options for Text Logging](#options-for-text-logging) section.
+
 Structured Logging
 ---
 Structured logging is important for cloud logging. For example, Stackdriver Logging, Datadog logs, etc..., are provides fileter, query log by simple syntax. Or store to storage by Structured Log(JSON), Amazon Athena, Google BigQuery, Azure Data Lake, etc..., you can query and analyze many log files.
@@ -112,6 +114,8 @@ logger.ZLogInformation("Registered User: Id = {0}, UserName = {1}", id, userName
 // {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":{"Id":10,"Name":"Mike"}}
 logger.ZLogInformationWithPayload(new UserRegisteredLog { Id = id, Name = userName }, "Registered User: Id = {0}, UserName = {1}", id, userName);
 ```
+
+To details, see [Options for Structured Logging](#options-for-structured-logging) section.
 
 Filters
 ---
