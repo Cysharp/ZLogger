@@ -196,113 +196,20 @@ namespace ConsoleApp
                 {
                     logging.ClearProviders();
 
-                    // optional(MS.E.Logging): default is Info, you can use this or AddFilter to filtering log.
                     logging.SetMinimumLevel(LogLevel.Trace);
 
-                    //    .AddZLoggerConsole(configure =>
-                    //    {
-                    //        configure.IsStructuredLogging = true;
-                    //    });
-
-
-                    // logging.AddFilter(
-
-
-
-                    logging.AddFilter<ZLoggerConsoleLoggerProvider>(level => level == LogLevel.Information);
-                    logging.AddFilter<ZLoggerFileLoggerProvider>(level => level == LogLevel.Trace);
-
-
-
-
-
-
-                    //logging.AddFilter<ZLoggerFileLoggerProvider>(
-
-
-
-                    //logging.AddFilter<ZLoggerConsoleLoggerProvider>(x => true).AddZLoggerConsole();
-
-                    //logging.AddFilter<SimpleConsoleLoggerProvider>(x => x == LogLevel.Debug).AddSimpleConsole();
-
-                    //logging.AddFilter((category, level) =>
-                    //    {
-                    //        if (category == "Microsoft.Extensions.Hosting.Internal.Host") return true;
-                    //        return false;
-                    //    })
-                    //    .AddZLoggerConsole();
-
-
-                    //logging.AddFilter((category, level) =>
-                    //{
-                    //    if (category != "Microsoft.Extensions.Hosting.Internal.Host") return true;
-                    //    return false;
-                    //})
-                    //       .AddConsole();
-
-
-                    /*
-                    logging.AddZLoggerRollingFile((dt, x) => $"logs/{dt.ToLocalTime():yyyy-MM-dd_HH-mm-ss}_{x:000}.log",
-                        x => { var time = x.ToLocalTime(); return new DateTimeOffset(time.Year, time.Month, time.Day, 0, 0, 0, time.Second, TimeSpan.Zero); },
-                        1024);
-                        */
-
-                    // logging.ReplaceToSimpleConsole();
-
-                    //logging.AddZLoggerRollingFile((dt, x) => $"logs/{dt.ToLocalTime():yyyy-MM-dd}_{x:000}.log", x => x.ToLocalTime().Date, 1024 * 1024);
-
-
-                    //logging.AddZLoggerLogProcessor(new Processor());
-
-
-                    //logging.AddZLoggerFile("filelog.log");
-
-                    //logging.AddZLoggerConsole();
-                    //logging.AddZLoggerFile("foo.log");
-
-
-                    //logging.AddZLoggerConsole(x =>
-                    //{
-                    //    //x.PrefixFormatter = (writer, info) =>
-                    //    //{
-                    //    //    ZString.Utf8Format(writer, "[{0}]", info.LogLevel);
-                    //    //};
-
-                    //    //Utf16PreparedFormat
-
-                    //    // x.IsStructuredLogging = true;
-
-                    //    //x.SuffixFormatter = (writer, info) => prepared.FormatTo(ref writer, info.LogLevel);
-                    //});
-
-                    var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-                    socket.Connect("127.0.0.1", 12345);
-                    var network = new NetworkStream(socket);
-
-                    logging.AddZLoggerStream(network);
-
-
-
-
-
-                    var gitHash = Guid.NewGuid().ToString();
-
-
-                    logging.AddZLoggerConsole(options =>
+                    logging.AddZLoggerFile("myfile.log", x =>
                     {
-                        options.EnableStructuredLogging = true;
-
-                        var gitHashName = JsonEncodedText.Encode("GitHash");
-                        var gitHashValue = JsonEncodedText.Encode(gitHash);
-
-                        options.StructuredLoggingFormatter = (writer, info) =>
-                        {
-                            writer.WriteString(gitHashName, gitHashValue);
-                            info.WriteToJsonWriter(writer);
-                        };
+                        x.EnableStructuredLogging = true;
                     });
 
-                    logging.AddZLoggerRollingFile((dt, x) => $"logs/{dt.ToLocalTime():yyyy-MM-dd}_{x:000}.log", x => x.ToLocalTime().Date, 1024);
+                    logging.AddZLoggerConsole(x =>
+                    {
+                        Console.WriteLine(x.EnableStructuredLogging);
+                    });
+
+
+
                 })
                 .UseConsoleAppFramework<Program>(args)
                 .Build();
