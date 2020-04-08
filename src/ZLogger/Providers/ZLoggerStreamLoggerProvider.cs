@@ -9,11 +9,18 @@ namespace ZLogger.Providers
     [ProviderAlias("ZLoggerStream")]
     public class ZLoggerStreamLoggerProvider : ILoggerProvider
     {
+        internal const string DefaultOptionName = "ZLoggerStream.Default";
+
         AsyncStreamLineMessageWriter streamWriter;
 
-        public ZLoggerStreamLoggerProvider(Stream stream, IOptions<ZLoggerOptions> options)
+        public ZLoggerStreamLoggerProvider(Stream stream, IOptionsSnapshot<ZLoggerOptions> options)
+            : this(stream, DefaultOptionName, options)
         {
-            this.streamWriter = new AsyncStreamLineMessageWriter(stream, options.Value);
+        }
+
+        public ZLoggerStreamLoggerProvider(Stream stream, string? optionName, IOptionsSnapshot<ZLoggerOptions> options)
+        {
+            this.streamWriter = new AsyncStreamLineMessageWriter(stream, options.Get(optionName ?? DefaultOptionName));
         }
 
         public ILogger CreateLogger(string categoryName)

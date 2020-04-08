@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
-using System.IO;
 using System.Text;
 
 namespace ZLogger.Providers
@@ -9,21 +8,24 @@ namespace ZLogger.Providers
     [ProviderAlias("ZLoggerConsole")]
     public class ZLoggerConsoleLoggerProvider : ILoggerProvider
     {
+        internal const string DefaultOptionName = "ZLoggerConsole.Default";
+
         AsyncStreamLineMessageWriter streamWriter;
 
-        public ZLoggerConsoleLoggerProvider(IOptions<ZLoggerOptions> options)
-            : this(true, options)
+        public ZLoggerConsoleLoggerProvider(IOptionsSnapshot<ZLoggerOptions> options)
+            : this(true, null, options)
         {
         }
 
-        public ZLoggerConsoleLoggerProvider(bool consoleOutputEncodingToUtf8, IOptions<ZLoggerOptions> options)
+        public ZLoggerConsoleLoggerProvider(bool consoleOutputEncodingToUtf8, string optionName, IOptionsSnapshot<ZLoggerOptions> options)
         {
             if (consoleOutputEncodingToUtf8)
             {
                 Console.OutputEncoding = new UTF8Encoding(false);
             }
 
-            this.streamWriter = new AsyncStreamLineMessageWriter(Console.OpenStandardOutput(), options.Value);
+            var opt = options.Get(optionName ?? DefaultOptionName);
+            this.streamWriter = new AsyncStreamLineMessageWriter(Console.OpenStandardOutput(), opt);
         }
 
         public ILogger CreateLogger(string categoryName)
