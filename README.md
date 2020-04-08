@@ -267,6 +267,15 @@ public void Post(IZLoggerEntry log)
 }
 ```
 
+Multiple Providers
+---
+ZLogger allows to add multiple same type providers. In this case, you need to give it a different name in string optionName.
+
+```csharp
+logging.AddZLoggerFile("plain-text.log", "file-plain", x => { x.PrefixFormatter = (writer, info) => ZString.Utf8Format(writer, "[{0}]", info.Timestamp.ToLocalTime().DateTime); });
+logging.AddZLoggerFile("json.log", "file-structured", x => { x.EnableStructuredLogging = true; });
+```
+
 Preparing Message Format
 ---
 As introduced in [High-performance logging with LoggerMessage in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/loggermessage), ZLogger also allows logging with parsed strings in `ZLoggerMessage.Define` and `DefineWithPayload`.

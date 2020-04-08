@@ -192,6 +192,11 @@ namespace ConsoleApp
         static async Task Main(string[] args)
         {
             var host = Host.CreateDefaultBuilder()
+                .ConfigureServices(x =>
+                {
+                    
+
+                })
                 .ConfigureLogging(logging =>
                 {
                     logging.ClearProviders();
@@ -204,11 +209,17 @@ namespace ConsoleApp
                     //});
 
                     //logging.AddZLoggerConsole();
+                    
+                    
+
                     logging.AddZLoggerConsole(x =>
                     {
-                        x.PrefixFormatter = (writer, info) => ZString.Utf8Format(writer, "[{0}]", info.LogLevel);
+                        x.PrefixFormatter = (writer, info) => ZString.Utf8Format(writer, "[{0:O}]", info.LogLevel);
                     });
 
+
+logging.AddZLoggerFile("plain-text.log", "file-plain", x => { x.PrefixFormatter = (writer, info) => ZString.Utf8Format(writer, "[{0:O}]", info.Timestamp.ToLocalTime().DateTime); });
+logging.AddZLoggerFile("json.log", "file-structured", x => { x.EnableStructuredLogging = true; });
 
                 })
                 .UseConsoleAppFramework<Program>(args)
