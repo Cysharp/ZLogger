@@ -203,8 +203,8 @@ namespace ConsoleApp
                     //    x.EnableStructuredLogging = true;
                     //});
 
-                    logging.AddZLoggerConsole();
-                    logging.AddZLoggerConsole("bar", x =>
+                    //logging.AddZLoggerConsole();
+                    logging.AddZLoggerConsole(x =>
                     {
                         x.PrefixFormatter = (writer, info) => ZString.Utf8Format(writer, "[{0}]", info.LogLevel);
                     });

@@ -21,7 +21,7 @@ namespace ZLogger
 
         public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, Action<ZLoggerOptions> configure, bool consoleOutputEncodingToUtf8 = true)
         {
-            return AddZLoggerConsole(builder, null, configure, consoleOutputEncodingToUtf8);
+            return AddZLoggerConsole(builder, ZLoggerConsoleLoggerProvider.DefaultOptionName, configure, consoleOutputEncodingToUtf8);
         }
 
         public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, string optionName, Action<ZLoggerOptions> configure, bool consoleOutputEncodingToUtf8 = true)
@@ -51,7 +51,7 @@ namespace ZLogger
 
         public static ILoggingBuilder AddZLoggerStream(this ILoggingBuilder builder, Stream stream, Action<ZLoggerOptions> configure)
         {
-            return AddZLoggerStream(builder, stream, null, configure);
+            return AddZLoggerStream(builder, stream, ZLoggerStreamLoggerProvider.DefaultOptionName, configure);
         }
 
         public static ILoggingBuilder AddZLoggerStream(this ILoggingBuilder builder, Stream stream, string optionName, Action<ZLoggerOptions> configure)
@@ -91,7 +91,7 @@ namespace ZLogger
 
         public static ILoggingBuilder AddZLoggerFile(this ILoggingBuilder builder, string fileName, Action<ZLoggerOptions> configure)
         {
-            return AddZLoggerFile(builder, fileName, null, configure);
+            return AddZLoggerFile(builder, fileName, ZLoggerFileLoggerProvider.DefaultOptionName, configure);
         }
 
         public static ILoggingBuilder AddZLoggerFile(this ILoggingBuilder builder, string fileName, string optionName, Action<ZLoggerOptions> configure)
@@ -128,7 +128,7 @@ namespace ZLogger
         /// <param name="rollSizeKB">Limit size of single file.</param>
         public static ILoggingBuilder AddZLoggerRollingFile(this ILoggingBuilder builder, Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, Action<ZLoggerOptions> configure)
         {
-            return AddZLoggerRollingFile(builder, fileNameSelector, timestampPattern, rollSizeKB, null, configure);
+            return AddZLoggerRollingFile(builder, fileNameSelector, timestampPattern, rollSizeKB, ZLoggerRollingFileLoggerProvider.DefaultOptionName, configure);
         }
 
         /// <param name="fileNameSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
