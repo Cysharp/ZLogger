@@ -43,7 +43,7 @@ For .NET Core, use NuGet. For Unity(ZLogger for Unity run on IL2CPP, all platfor
 You can setup logger by [.NET Generic Host](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/generic-host), for ASP.NET Core and if you want to use this in ConsoleApplication, we provides [ConsoleAppFramework](https://github.com/Cysharp/ConsoleAppFramework) to use hosting abstraction.
 
 ```csharp
-using ZLogger;
+using ZLogger; // namespace
 
 Host.CreateDefaultBuilder()
     .ConfigureLogging(logging =>
