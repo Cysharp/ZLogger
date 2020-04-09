@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace CommandTools
 {
@@ -25,6 +26,13 @@ namespace CommandTools
         [Command("remove-nullable-reference")]
         public void RemoveNullableReferenceDefine(string directory)
         {
+            var mutex = new Mutex(false, "ZLogger." + nameof(RemoveNullableReferenceDefine));
+            if (!mutex.WaitOne(0, false))
+            {
+                System.Console.WriteLine("running in another process, quit.");
+                return; // mutex will release after quit.
+            }
+
             var replaceSet = new Dictionary<string, string>
             {
                 {"Exception?", "Exception" },
