@@ -99,16 +99,16 @@ All logging methods are completely similar as [Microsoft.Extensions.Logging.Logg
 
 ```csharp
 // ZLog, ZLogTrace, ZLogDebug, ZLogInformation, ZLogWarning, ZLogError, ZLogCritical and *WithPayload.
-public static void ZLogDebug(this ILogger logger, string format)
-public static void ZLogDebug(this ILogger logger, EventId eventId, string format)
-public static void ZLogDebug(this ILogger logger, Exception? exception, string format)
-public static void ZLogDebug(this ILogger logger, EventId eventId, Exception? exception, string format)
-public static void ZLogDebug<T1>(this ILogger logger, string format, T1 arg1)
-public static void ZLogDebug<T1>(this ILogger logger, EventId eventId, string format, T1 arg1)
-public static void ZLogDebug<T1>(this ILogger logger, Exception? exception, string format, T1 arg1)
-public static void ZLogDebug<T1>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1)
+public static void ZLogDebug(this ILogger logger, string format);
+public static void ZLogDebug(this ILogger logger, EventId eventId, string format);
+public static void ZLogDebug(this ILogger logger, Exception? exception, string format);
+public static void ZLogDebug(this ILogger logger, EventId eventId, Exception? exception, string format);
+public static void ZLogDebug<T1>(this ILogger logger, string format, T1 arg1);
+public static void ZLogDebug<T1>(this ILogger logger, EventId eventId, string format, T1 arg1);
+public static void ZLogDebug<T1>(this ILogger logger, Exception? exception, string format, T1 arg1);
+public static void ZLogDebug<T1>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1);
 // T1~T16
-public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15, T16 arg16)
+public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15, T16 arg16);
 ```
 
 If you want to replace an existing .NET Core logger, you can setup the builder.AddZLogger and simply replace LogDebug -> ZLogDebug. If you want to check and prohibit standard log methods, see the [Microsoft.CodeAnalysis.BannedApiAnalyzers](#microsoftcodeanalysisbannedapianalyzers) section. If you want to use the logger without DI, see the [Global LoggerFactory](#global-loggerfactory) section.
