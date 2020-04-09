@@ -1,4 +1,6 @@
 ﻿using ConsoleAppFramework;
+using System.Linq;
+using Markdig.Syntax;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
@@ -97,6 +99,32 @@ namespace CommandTools
                     Console.WriteLine("MoveFile: " + destPath);
                 }
             }
+        }
+
+        // build-table-of-contents ../../../../../ReadMe.md
+        [Command("build-table-of-contents")]
+        public void BuildTableOfContents([Option(0)]string readMePath)
+        {
+            var md = Markdig.Markdown.Parse(File.ReadAllText(readMePath));
+
+            var sb = new StringBuilder();
+            foreach (var block in md.OfType<Markdig.Syntax.HeadingBlock>())
+            {
+                if (block.Level == 1) continue; // skip title
+
+                var headerText = block.Inline.FirstChild.ToString();
+
+                sb.Append(' ', (block.Level - 2) * 4);
+
+                sb.Append("- [");
+                sb.Append(headerText);
+                sb.Append("](#");
+                sb.Append(headerText.ToLower().Replace(' ', '-').Replace(".", ""));
+                sb.Append(")");
+                sb.AppendLine();
+            }
+
+            Console.WriteLine(sb.ToString());
         }
     }
 }

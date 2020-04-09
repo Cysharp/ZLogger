@@ -4,13 +4,35 @@ ZLogger
 
 **Z**ero Allocation Text/Strcutured **Logger** for .NET Core and Unity, built on top of a Microsoft.Extensions.Logging.
 
-Logging to standard output is very important, especially in the age of containerization, but traditionally its performance has been very slow, however anyone no concerned about it. It also supports both text logs and structured logs, which are important in cloud.
+Logging to standard output is very important, especially in the age of containerization(described in [The Twelve Factor App - Logs](https://12factor.net/logs) saids should write to stdout), but traditionally its performance has been very slow, however anyone no concerned about it. It also supports both text logs and structured logs, which are important in cloud log management.
 
 ![image](https://user-images.githubusercontent.com/46207/78019524-d4238480-738a-11ea-88ac-00caa8bc5228.png)
 
 ZLogger writes directly as UTF8 by the our zero allocation string builder [ZString](https://github.com/Cysharp/ZString). In addition, thorough generics, struct, and cache are utilized to achieve the maximum performance. Default options is set to the best for performance by the async and buffered, so you don't have to worry about the logger settings.
 
 ZLogger is built directly on top of `Microsoft.Extensions.Logging`. By not having a separate logger framework layer, we are extracting better performance. In addition to ConsoleLogging, we provides **FileLogger**, **RollingFileLogger**, and **StreamLogger**. They too are designed to bring out the best in performance, write to UTF8 directly.
+
+## Table of contents
+
+- [Getting Started](#getting-started)
+- [Structured Logging](#structured-logging)
+- [Filters](#filters)
+- [Output Providers](#output-providers)
+    - [Console](#console)
+    - [File](#file)
+    - [RollingFile](#rollingfile)
+    - [Stream](#stream)
+    - [LogProcessor](#logprocessor)
+- [Multiple Providers](#multiple-providers)
+- [Preparing Message Format](#preparing-message-format)
+- [Options](#options)
+    - [Common](#common)
+    - [Options for Text Logging](#options-for-text-logging)
+    - [Options for Structured Logging](#options-for-structured-logging)
+- [Microsoft.CodeAnalysis.BannedApiAnalyzers](#microsoftcodeanalysisbannedapianalyzers)
+- [Global LoggerFactory](#global-loggerfactory)
+- [Unity](#unity)
+- [License](#license)
 
 Getting Started
 ---
