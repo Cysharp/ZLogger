@@ -123,7 +123,7 @@ ZLogger natively supports StructuredLogging and uses System.Text.Json.JsonSerial
 
 ```csharp
 // To setup, `EnableStructuredLogging = true`.
-logging.AddZLoggerConsole(option =>
+logging.AddZLoggerConsole(options =>
 {
     options.EnableStructuredLogging = true;
 });
@@ -374,13 +374,13 @@ InternalErrorLogger is an delegate of when exception occured in log writing proc
 For performance reason, we do not use string so use the `IBufferWriter<byte>` instead. You can use `ZString.Utf8Format` to help set formatter.
 
 ```csharp
-logging.AddZLoggerConsole(option =>
+logging.AddZLoggerConsole(options =>
 {
-    option.PrefixFormatter = (writer, info) => ZString.Utf8Format(writer, "[{0}][{1}]", info.LogLevel, info.Timestamp.DateTime.ToLocalTime());
+    options.PrefixFormatter = (writer, info) => ZString.Utf8Format(writer, "[{0}][{1}]", info.LogLevel, info.Timestamp.DateTime.ToLocalTime());
 
     // Tips: use PrepareUtf8 to achive better performance.
     var prefixFormat = ZString.PrepareUtf8<LogLevel, DateTime>("[{0}][{1}]");
-    option.PrefixFormatter = (writer, info) => prefixFormat.FormatTo(ref writer, info.LogLevel, info.Timestamp.DateTime.ToLocalTime());
+    options.PrefixFormatter = (writer, info) => prefixFormat.FormatTo(ref writer, info.LogLevel, info.Timestamp.DateTime.ToLocalTime());
 });
 
 // output:
@@ -417,7 +417,7 @@ public readonly struct LogInfo
 The StructuredLoggingFormatter is called when `EnableStructuredLogging = true`. `LogInfo.WriteToJsonWriter` is defined by default, which writes all LogInfo properties.
 
 ```csharp
-logging.AddZLoggerConsole(option =>
+logging.AddZLoggerConsole(options =>
 {
     options.EnableStructuredLogging = true;
 });
