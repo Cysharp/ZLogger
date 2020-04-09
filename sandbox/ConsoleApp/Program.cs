@@ -201,25 +201,12 @@ namespace ConsoleApp
                 {
                     logging.ClearProviders();
 
-                    logging.SetMinimumLevel(LogLevel.Trace);
+                    // logging.SetMinimumLevel(LogLevel.Trace);
 
-                    //logging.AddZLoggerFile("myfile.log", x =>
-                    //{
-                    //    x.EnableStructuredLogging = true;
-                    //});
-
-                    //logging.AddZLoggerConsole();
-                    
-                    
-
-                    logging.AddZLoggerConsole(x =>
+                    logging.AddZLoggerConsole(options =>
                     {
-                        x.PrefixFormatter = (writer, info) => ZString.Utf8Format(writer, "[{0:O}]", info.LogLevel);
+                        options.EnableStructuredLogging = true;
                     });
-
-
-logging.AddZLoggerFile("plain-text.log", "file-plain", x => { x.PrefixFormatter = (writer, info) => ZString.Utf8Format(writer, "[{0:O}]", info.Timestamp.ToLocalTime().DateTime); });
-logging.AddZLoggerFile("json.log", "file-structured", x => { x.EnableStructuredLogging = true; });
 
                 })
                 .UseConsoleAppFramework<Program>(args)
@@ -244,7 +231,7 @@ logging.AddZLoggerFile("json.log", "file-structured", x => { x.EnableStructuredL
             public int Bar { get; set; }
         }
 
-        public async Task Run()
+        public void Run()
         {
             // new HoGeMoge().Foo();
 
@@ -261,9 +248,15 @@ logging.AddZLoggerFile("json.log", "file-structured", x => { x.EnableStructuredL
             //logger.ZDebug(obj, "foo {0}, bar {1}", obj.Foo, obj.Bar);
 
 
+            var id = 10;
+            var userName = "Mike";
+
+            logger.ZLogInformation("Registered User: Id = {0}, UserName = {1}", id, userName);
+
+            logger.ZLogInformationWithPayload(new UserRegisteredLog { Id = id, Name = userName }, "Registered User: Id = {0}, UserName = {1}", id, userName);
 
 
-
+            return;
 
             // logger.ZLogInformation("Registered User: Id = {0}, UserName = {1}", id, userName);
 
@@ -329,12 +322,9 @@ logging.AddZLoggerFile("json.log", "file-structured", x => { x.EnableStructuredL
             //var str = Encoding.UTF8.GetString(buff.WrittenSpan);
             //Console.WriteLine(str);
 
-            var id = 10;
-            var userName = "Mike";
 
 
             // {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":{"Id":10,"Name":"Mike"}}
-            logger.ZLogInformation("Registered User: Id = {0}, UserName = {1}", id, userName);
 
             // {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":{"Id":10,"Name":"Mike"}}
             //logger.ZLogInformationWithPayload(new UserLogInfo { Id = id, Name = userName }, "Registered User: Id = {0}, UserName = {1}", id, userName);
@@ -371,7 +361,6 @@ logging.AddZLoggerFile("json.log", "file-structured", x => { x.EnableStructuredL
 
 
 
-            await Task.Yield();
         }
 
         void RunExce()

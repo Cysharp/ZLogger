@@ -130,12 +130,14 @@ logging.AddZLoggerConsole(options =>
 
 // In default, output JSON with log information(categoryName, level, timestamp, exception), message and payload(if exists).
 
-// {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":{"Id":10,"Name":"Mike"}}
+// {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":null}
 logger.ZLogInformation("Registered User: Id = {0}, UserName = {1}", id, userName);
 
 // {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":{"Id":10,"Name":"Mike"}}
 logger.ZLogInformationWithPayload(new UserRegisteredLog { Id = id, Name = userName }, "Registered User: Id = {0}, UserName = {1}", id, userName);
 ```
+
+Write log by JSON, supports extra information(category-name, log-level, timestamp and custom metadatas) + message, info + message + custom payload.
 
 To details, see [Options for Structured Logging](#options-for-structured-logging) section.
 
@@ -422,7 +424,7 @@ logging.AddZLoggerConsole(options =>
     options.EnableStructuredLogging = true;
 });
 
-// {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":{"Id":10,"Name":"Mike"}}
+// {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":null}
 logger.ZLogInformation("Registered User: Id = {0}, UserName = {1}", id, userName);
 
 // {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":{"Id":10,"Name":"Mike"}}
@@ -459,6 +461,7 @@ logging.AddZLoggerConsole(options =>
 });
 
 // {"GitHash":"XXXX","CategoryName":...,"Message":"...","Payload":...}
+logger.ZLog(....
 ```
 
 You can change the serialization behavior of the payload by changing the `JsonSerializerOptions`. If you want to set up a custom Converter, set it here. By default, the following configuration is used
