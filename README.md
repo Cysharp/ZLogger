@@ -614,4 +614,4 @@ You can also use `ZLoggerFileLoggerProvider`, `ZLoggerRollingFileLoggerProvider`
 
 License
 ---
-This library is licensed under the the MIT License.
+This library is licensed under the MIT License.
