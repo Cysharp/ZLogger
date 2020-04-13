@@ -1,13 +1,13 @@
 ﻿using ConsoleAppFramework;
-using System.Linq;
-using Markdig.Syntax;
+using Markdig.Syntax.Inlines;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CommandTools
 {
@@ -24,7 +24,7 @@ namespace CommandTools
         }
 
         [Command("remove-nullable-reference")]
-        public void RemoveNullableReferenceDefine(string directory)
+        public void RemoveNullableReferenceDefine([Option(0)]string directory)
         {
             var mutex = new Mutex(false, "ZLogger." + nameof(RemoveNullableReferenceDefine));
             if (!mutex.WaitOne(0, false))
@@ -120,19 +120,39 @@ namespace CommandTools
             {
                 if (block.Level == 1) continue; // skip title
 
-                var headerText = block.Inline.FirstChild.ToString();
+                var headerText = ToStringInline(block.Inline);
 
                 sb.Append(' ', (block.Level - 2) * 4);
 
                 sb.Append("- [");
                 sb.Append(headerText);
                 sb.Append("](#");
-                sb.Append(headerText.ToLower().Replace(' ', '-').Replace(".", ""));
+                sb.Append(headerText.ToLower().Replace(' ', '-').Replace(".", "").Replace("/", "").Replace("(", "").Replace(")", "").Replace("`", "").Replace("<", "").Replace(">", "").Replace(",", ""));
                 sb.Append(")");
                 sb.AppendLine();
             }
 
             Console.WriteLine(sb.ToString());
+        }
+
+
+        static string ToStringInline(ContainerInline inline)
+        {
+            var sb = new StringBuilder();
+            foreach (var item in inline)
+            {
+                if (item is LiteralInline li)
+                {
+                    sb.Append(li.Content.ToString());
+                }
+                else if (item is CodeInline ci)
+                {
+                    sb.Append('`');
+                    sb.Append(ci.Content);
+                    sb.Append('`');
+                }
+            }
+            return sb.ToString();
         }
     }
 }
