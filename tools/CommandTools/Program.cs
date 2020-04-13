@@ -127,7 +127,7 @@ namespace CommandTools
                 sb.Append("- [");
                 sb.Append(headerText);
                 sb.Append("](#");
-                sb.Append(headerText.ToLower().Replace(' ', '-').Replace(".", "").Replace("/", "").Replace("(", "").Replace(")", "").Replace("`", "").Replace("<", "").Replace(">", "").Replace(",", ""));
+                sb.Append(headerText.ToLower().Replace(' ', '-').Replace(".", "").Replace("/", "").Replace("(", "").Replace(")", "").Replace("`", "").Replace("<", "").Replace(">", "").Replace(",", "").Replace("#", ""));
                 sb.Append(")");
                 sb.AppendLine();
             }
