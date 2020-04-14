@@ -34,7 +34,7 @@ namespace ZLogger
         [ThreadStatic]
         static Utf8JsonWriter jsonWriter;
 
-        internal Utf8JsonWriter GetThradStaticUtf8JsonWriter(IBufferWriter<byte> buffer)
+        internal Utf8JsonWriter GetThreadStaticUtf8JsonWriter(IBufferWriter<byte> buffer)
         {
             Utf8JsonWriter writer;
             if (jsonWriter == null)

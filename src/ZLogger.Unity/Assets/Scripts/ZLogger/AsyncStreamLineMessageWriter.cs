@@ -96,7 +96,7 @@ namespace ZLogger
 
                             if (options.EnableStructuredLogging)
                             {
-                                var jsonWriter = options.GetThradStaticUtf8JsonWriter(writer);
+                                var jsonWriter = options.GetThreadStaticUtf8JsonWriter(writer);
                                 try
                                 {
                                     jsonWriter.WriteStartObject();
