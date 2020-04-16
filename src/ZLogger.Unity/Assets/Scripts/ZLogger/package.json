@@ -1,0 +1,18 @@
+{
+    "name": "com.cysharp.zlogger",
+    "displayName": "ZLogger",
+    "version": "1.1.0",
+    "unity": "2018.3",
+    "description": "Zero Allocation Text/Strcutured Logger for .NET Core and Unity, built on top of a Microsoft.Extensions.Logging.",
+    "keywords": ["logging"],
+    "license": "MIT",
+    "category": "Logger",
+    "dependencies": {},
+    "samples": [
+      {
+        "displayName": "Import Managed DLL Dependencies to Plugins",
+        "description": "Install NuGet Managed dlls(System.*.dll, Microsoft.*.dll).",
+        "path": "ManagedDlls~/Plugins"
+      }
+    ]
+}
