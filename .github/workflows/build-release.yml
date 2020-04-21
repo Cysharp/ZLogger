@@ -89,6 +89,8 @@ jobs:
 
     # Download (All) Artifacts to current directory
     - uses: actions/download-artifact@v2-preview
+      with:
+        path: ./
 
     # Upload to NuGet
     - run: dotnet nuget push ./ZLogger.${{ env.GITHUB_TAG }}.nupkg -s https://www.nuget.org/api/v2/package -k ${{ secrets.NUGET_KEY }}
