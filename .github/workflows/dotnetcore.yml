@@ -17,5 +17,7 @@ jobs:
           dotnet-version: 3.1.101
 
       - run: dotnet restore
+      # build CommandTools first(use dotnet run command in ZLogger.csproj)
+      - run: dotnet build -c Debug ./tools/CommandTools/CommandTools.csproj
       - run: dotnet build -c Debug
       - run: dotnet test -c Debug --no-build
