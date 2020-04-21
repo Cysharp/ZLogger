@@ -20,7 +20,7 @@ jobs:
       # build CommandTools first (use dotnet run command in ZLogger.csproj)
       - run: dotnet build -c Debug ./tools/CommandTools/CommandTools.csproj
       - run: dotnet build -c Debug
-      - run: dotnet test -c Debug --no-build
+      - run: dotnet test -c Debug --no-build ./tests/ZLogger.Tests/ZLogger.Tests.csproj < /dev/nul
 
   build-unity:
     strategy:
