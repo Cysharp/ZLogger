@@ -61,6 +61,7 @@ jobs:
     # Execute scripts: RuntimeUnitTestToolkit(IL2CPP)
     - name: Build UnitTest(Linux64, IL2CPP)
       run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod UnitTestBuilder.BuildUnitTest /headless /ScriptBackend IL2CPP /BuildTarget StandaloneLinux64
+      working-directory: src/ZLogger.Unity
     - name: Execute UnitTest
       run: RuntimeUnitTestToolkit/bin/UnitTest/StandaloneLinux64_IL2CPP/test
 
