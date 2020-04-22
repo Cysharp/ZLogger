@@ -40,7 +40,7 @@ jobs:
             license: UNITY_2020_1
     runs-on: ubuntu-latest
     container:
-      # with linux-il2cpp. image from  https://hub.docker.com/r/gableroux/unity3d/tags
+      # with linux-il2cpp. image from https://hub.docker.com/r/gableroux/unity3d/tags
       image: gableroux/unity3d:${{ matrix.unity }}-linux-il2cpp
     steps:
     - run: apt update && apt install git -y
