@@ -46,23 +46,23 @@ jobs:
       # with linux-il2cpp. image from https://hub.docker.com/r/gableroux/unity3d/tags
       image: gableroux/unity3d:${{ matrix.unity }}-linux-il2cpp
     steps:
-    - run: apt update && apt install git -y
-    - uses: actions/checkout@v2
-    - run: echo -n "$UNITY_LICENSE" >> .Unity.ulf
-      env:
-        UNITY_LICENSE: ${{ secrets[matrix.license] }}
-    - run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -manualLicenseFile .Unity.ulf || exit 0
+      - run: apt update && apt install git -y
+      - uses: actions/checkout@v2
+      - run: echo -n "$UNITY_LICENSE" >> .Unity.ulf
+        env:
+          UNITY_LICENSE: ${{ secrets[matrix.license] }}
+      - run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -manualLicenseFile .Unity.ulf || exit 0
 
-    # Execute scripts: Export Package
-    - name: Export unitypackage
-      run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod PackageExporter.Export
-      working-directory: src/ZLogger.Unity
+      # Execute scripts: Export Package
+      - name: Export unitypackage
+        run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod PackageExporter.Export
+        working-directory: src/ZLogger.Unity
 
-    # Store artifacts.
-    - uses: actions/upload-artifact@v1
-      with:
-        name: ZLogger.Unity.unitypackage
-        path: ./src/ZLogger.Unity/ZLogger.Unity.unitypackage
+      # Store artifacts.
+      - uses: actions/upload-artifact@v1
+        with:
+          name: ZLogger.Unity.unitypackage
+          path: ./src/ZLogger.Unity/ZLogger.Unity.unitypackage
 
   create-release:
     needs: [build-dotnet, build-unity]
@@ -88,16 +88,14 @@ jobs:
       with:
         tag_name: ${{ github.ref }}
         release_name: Ver.${{ github.ref }}
-        draft: true
-        prerelease: false
+        draft: "true"
+        prerelease: "false"
 
     # Download (All) Artifacts to current directory
     - uses: actions/download-artifact@v2-preview
-      with:
-        path: ./
 
     # Upload to NuGet
-    - run: dotnet nuget push ./ZLogger.${{ env.GIT_TAG }}.nupkg -s https://www.nuget.org/api/v2/package -k ${{ secrets.NUGET_KEY }}
+    - run: dotnet nuget push ./ZLogger/ZLogger.${{ env.GIT_TAG }}.nupkg -s https://www.nuget.org/api/v2/package -k ${{ secrets.NUGET_KEY }}
 
     # Upload to Releases(unitypackage)
     - uses: actions/upload-release-asset@v1
@@ -105,6 +103,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./ZLogger.Unity.unitypackage.zip
+        asset_path: ./ZLogger/ZLogger.Unity.unitypackage.zip
         asset_name: ZLogger.Unity.unitypackage.zip
         asset_content_type: application/zip
