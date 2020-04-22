@@ -43,35 +43,35 @@ jobs:
       # with linux-il2cpp. image from https://hub.docker.com/r/gableroux/unity3d/tags
       image: gableroux/unity3d:${{ matrix.unity }}-linux-il2cpp
     steps:
-    - run: apt update && apt install git -y
-    - uses: actions/checkout@v2
-    # create unity activation file and store to artifacts.
-    - run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -logFile -createManualActivationFile || exit 0
-    - uses: actions/upload-artifact@v1
-      with:
-        name: Unity_v${{ matrix.unity }}.alf
-        path: ./Unity_v${{ matrix.unity }}.alf
-    # activate Unity from manual license file(ulf)
-    - run: echo -n "$UNITY_LICENSE" >> .Unity.ulf
-      env:
-        UNITY_LICENSE: ${{ secrets[matrix.license] }}
-    - name: Activate Unity, always returns a success. But if a subsequent run fails, the activation may have failed(if succeeded, shows `Next license update check is after` and not shows other message(like GUID != GUID). If fails not). In that case, upload the artifact's .alf file to https://license.unity3d.com/manual to get the .ulf file and set it to secrets.
-      run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -manualLicenseFile .Unity.ulf || exit 0
+      - run: apt update && apt install git -y
+      - uses: actions/checkout@v2
+      # create unity activation file and store to artifacts.
+      - run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -logFile -createManualActivationFile || exit 0
+      - uses: actions/upload-artifact@v1
+        with:
+          name: Unity_v${{ matrix.unity }}.alf
+          path: ./Unity_v${{ matrix.unity }}.alf
+      # activate Unity from manual license file(ulf)
+      - run: echo -n "$UNITY_LICENSE" >> .Unity.ulf
+        env:
+          UNITY_LICENSE: ${{ secrets[matrix.license] }}
+      - name: Activate Unity, always returns a success. But if a subsequent run fails, the activation may have failed(if succeeded, shows `Next license update check is after` and not shows other message(like GUID != GUID). If fails not). In that case, upload the artifact's .alf file to https://license.unity3d.com/manual to get the .ulf file and set it to secrets.
+        run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -manualLicenseFile .Unity.ulf || exit 0
 
-    # Execute scripts: RuntimeUnitTestToolkit
-    - name: Build UnitTest(Linux64, mono)
-      run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod UnitTestBuilder.BuildUnitTest /headless /ScriptBackend mono /BuildTarget StandaloneLinux64
-      working-directory: src/ZLogger.Unity
-    - name: Execute UnitTest
-      run: ./src/ZLogger.Unity/bin/UnitTest/StandaloneLinux64_Mono2x/test
+      # Execute scripts: RuntimeUnitTestToolkit
+      - name: Build UnitTest(Linux64, mono)
+        run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod UnitTestBuilder.BuildUnitTest /headless /ScriptBackend mono /BuildTarget StandaloneLinux64
+        working-directory: src/ZLogger.Unity
+      - name: Execute UnitTest
+        run: ./src/ZLogger.Unity/bin/UnitTest/StandaloneLinux64_Mono2x/test
 
-    # Execute scripts: Export Package
-    - name: Export unitypackage
-      run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod PackageExporter.Export
-      working-directory: src/ZLogger.Unity
+      # Execute scripts: Export Package
+      - name: Export unitypackage
+        run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod PackageExporter.Export
+        working-directory: src/ZLogger.Unity
 
-    # Store artifacts.      
-    - uses: actions/upload-artifact@v1
-      with:
-        name: ZLogger.Unity.unitypackage
-        path: ./src/ZLogger.Unity/ZLogger.Unity.unitypackage
+      # Store artifacts.      
+      - uses: actions/upload-artifact@v1
+        with:
+          name: ZLogger.Unity.unitypackage
+          path: ./src/ZLogger.Unity/ZLogger.Unity.unitypackage
