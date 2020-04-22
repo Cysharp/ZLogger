@@ -26,13 +26,13 @@ jobs:
         unity: ['2018.3.12f1', '2018.4.21f1', '2019.3.9f1-linux-il2cpp', '2020.1.0b5-linux-il2cpp']
         include:
           - unity: 2018.3.12f1
-            license: ${{ secrets.UNITY_2018_3 }}
+            license: UNITY_2018_3
           - unity: 2018.4.21f1
-            license: ${{ secrets.UNITY_2018_4 }}
+            license: UNITY_2018_4
           - unity: 2019.3.9f1-linux-il2cpp
-            license: ${{ secrets.UNITY_2019_3 }}
+            license: UNITY_2019_3
           - unity: 2020.1.0b5-linux-il2cpp
-            license: ${{ secrets.UNITY_2020_1 }}
+            license: UNITY_2020_1
     runs-on: ubuntu-latest
     container:
       # https://hub.docker.com/r/gableroux/unity3d/tags
@@ -44,9 +44,8 @@ jobs:
     - run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -logFile -createManualActivationFile || exit 0
     - run: cat Unity_v${{ matrix.unity }}.alf # file name same as image's version
     # get from UNITY_LICENSE, this file is generated from above manual activation
-    - run: echo ${{ matrix.license }} >> .Unity.ulf
+    - run: echo ${{ secrets[matrix.license] }} >> .Unity.ulf
     - run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -manualLicenseFile .Unity.ulf || exit 0
-    
     # Execute scripts/Export Package
     - name: Export unitypackage
       run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod PackageExporter.Export
