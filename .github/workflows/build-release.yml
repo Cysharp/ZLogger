@@ -31,7 +31,7 @@ jobs:
       # Store artifacts.
       - uses: actions/upload-artifact@v1
         with:
-          name: ZLogger.${{ env.GIT_TAG }}.nupkg
+          name: nuget
           path: ./src/ZLogger/bin/Release/ZLogger.${{ env.GIT_TAG }}.nupkg
       
   build-unity:
@@ -57,12 +57,14 @@ jobs:
       - name: Export unitypackage
         run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod PackageExporter.Export
         working-directory: src/ZLogger.Unity
+        env:
+          UNITY_PACKAGE_VERSION: ${{ env.GIT_TAG }}
 
       # Store artifacts.
       - uses: actions/upload-artifact@v1
         with:
-          name: ZLogger.Unity.unitypackage
-          path: ./src/ZLogger.Unity/ZLogger.Unity.unitypackage
+          name: ZLogger.Unity.${{ env.GIT_TAG }}.unitypackage
+          path: ./src/ZLogger.Unity/ZLogger.Unity.${{ env.GIT_TAG }}.unitypackage
 
   create-release:
     needs: [build-dotnet, build-unity]
@@ -95,7 +97,7 @@ jobs:
     - uses: actions/download-artifact@v2-preview
 
     # Upload to NuGet
-    - run: dotnet nuget push "./ZLogger.${{ env.GIT_TAG }}.nupkg/ZLogger.${{ env.GIT_TAG }}.nupkg" --skip-duplicate -s https://www.nuget.org/api/v2/package -k ${{ secrets.NUGET_KEY }}
+    - run: dotnet nuget push "./nuget/*.nupkg" -s https://www.nuget.org/api/v2/package -k ${{ secrets.NUGET_KEY }}
 
     # Upload to Releases(unitypackage)
     - uses: actions/upload-release-asset@v1
@@ -103,6 +105,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./ZLogger.Unity.unitypackage/ZLogger.Unity.unitypackage
+        asset_path: ./ZLogger.Unity.${{ env.GIT_TAG }}.unitypackage/ZLogger.Unity.${{ env.GIT_TAG }}.unitypackage
         asset_name: ZLogger.Unity.unitypackage
         asset_content_type: application/octet-stream
