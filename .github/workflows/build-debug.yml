@@ -24,7 +24,8 @@ jobs:
   build-unity:
     strategy:
       matrix:
-        unity: ['2018.3.12f1'] # , '2018.4.21f1', '2019.3.9f1-linux-il2cpp', '2020.1.0b5-linux-il2cpp']
+        # ['2018.3.12f1', '2018.4.21f1', '2019.3.9f1-linux-il2cpp', '2020.1.0b5-linux-il2cpp']
+        unity: ['2018.3.12f1']
         include:
     runs-on: ubuntu-latest
     container:
