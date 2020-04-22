@@ -15,7 +15,7 @@ jobs:
         with:
           dotnet-version: 3.1.101
 
-      # build CommandTools first (use dotnet run command in ZLogger.csproj)
+      # build CommandTools first (using dotnet run command in ZLogger.csproj)
       - run: dotnet build -c Debug ./tools/CommandTools/CommandTools.csproj
       - run: dotnet build -c Debug
       - run: dotnet test -c Debug --no-build ./tests/ZLogger.Tests/ZLogger.Tests.csproj
