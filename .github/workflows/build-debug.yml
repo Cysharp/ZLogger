@@ -1,6 +1,15 @@
 name: Build-Debug
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - "**"
+    tags:
+      - "!*" # not a tag push
+  pull_request:
+    types:
+      - opened
+      - synchronize
 
 jobs:
   build-dotnet:
@@ -45,7 +54,9 @@ jobs:
     - name: show activation file in output, if fail to activate unity, use this key and activate from https://license.unity3d.com/manual and set .ulf to secrets.
       run: cat Unity_v${{ matrix.unity }}.alf
     # activate Unity from manual license file(ulf)
-    - run: echo ${{ secrets[matrix.license] }} >> .Unity.ulf
+    - run: echo ${UNITY_LICENSE} >> .Unity.ulf
+      env:
+        UNITY_LICENSE: ${{ secrets[matrix.license] }}
     - run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -manualLicenseFile .Unity.ulf || exit 0
 
     # Execute scripts/Export Package
