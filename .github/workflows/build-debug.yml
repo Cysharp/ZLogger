@@ -63,7 +63,7 @@ jobs:
       run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod UnitTestBuilder.BuildUnitTest /headless /ScriptBackend mono /BuildTarget StandaloneLinux64
       working-directory: src/ZLogger.Unity
     - name: Execute UnitTest
-      run: RuntimeUnitTestToolkit/bin/UnitTest/StandaloneLinux64_mono/test
+      run: ./src/ZLogger.Unity/bin/UnitTest/StandaloneLinux64_Mono2x/test
 
     # Execute scripts: Export Package
     - name: Export unitypackage
