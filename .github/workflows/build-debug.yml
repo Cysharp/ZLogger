@@ -56,7 +56,7 @@ jobs:
         name: Unity_v${{ matrix.unity }}.alf
         path: ./Unity_v${{ matrix.unity }}.alf
     # activate Unity from manual license file(ulf)
-    - run: echo ${UNITY_LICENSE} >> .Unity.ulf
+    - run: echo -n "$UNITY_LICENSE" >> .Unity.ulf
       env:
         UNITY_LICENSE: ${{ secrets[matrix.license] }}
     - name: Activate Unity, always returns a success. But if a subsequent run fails, the activation may have failed. In that case, upload the artifact's .alf file to https://license.unity3d.com/manual to get the .ulf file and set it to secrets.
