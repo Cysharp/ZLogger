@@ -90,8 +90,6 @@ jobs:
       with:
         tag_name: ${{ github.ref }}
         release_name: Ver.${{ github.ref }}
-        draft: "true"
-        prerelease: "false"
 
     # Download (All) Artifacts to current directory
     - uses: actions/download-artifact@v2-preview
@@ -106,5 +104,5 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./ZLogger.Unity.${{ env.GIT_TAG }}.unitypackage/ZLogger.Unity.${{ env.GIT_TAG }}.unitypackage
-        asset_name: ZLogger.Unity.unitypackage
+        asset_name: ZLogger.Unity.${{ env.GIT_TAG }}.unitypackage
         asset_content_type: application/octet-stream
