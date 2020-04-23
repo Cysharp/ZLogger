@@ -15,12 +15,12 @@ namespace ZLogger.Providers
 
         AsyncStreamLineMessageWriter streamWriter;
 
-        public ZLoggerFileLoggerProvider(string filePath, IOptionsSnapshot<ZLoggerOptions> options)
+        public ZLoggerFileLoggerProvider(string filePath, IOptionsMonitor<ZLoggerOptions> options)
             : this(filePath, DefaultOptionName, options)
         {
         }
 
-        public ZLoggerFileLoggerProvider(string filePath, string optionName, IOptionsSnapshot<ZLoggerOptions> options)
+        public ZLoggerFileLoggerProvider(string filePath, string optionName, IOptionsMonitor<ZLoggerOptions> options)
         {
             var di = new FileInfo(filePath).Directory;
             if (!di.Exists)

@@ -12,12 +12,12 @@ namespace ZLogger.Providers
 
         AsyncStreamLineMessageWriter streamWriter;
 
-        public ZLoggerConsoleLoggerProvider(IOptionsSnapshot<ZLoggerOptions> options)
+        public ZLoggerConsoleLoggerProvider(IOptionsMonitor<ZLoggerOptions> options)
             : this(true, null, options)
         {
         }
 
-        public ZLoggerConsoleLoggerProvider(bool consoleOutputEncodingToUtf8, string? optionName, IOptionsSnapshot<ZLoggerOptions> options)
+        public ZLoggerConsoleLoggerProvider(bool consoleOutputEncodingToUtf8, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
         {
             if (consoleOutputEncodingToUtf8)
             {

@@ -191,6 +191,9 @@ namespace ConsoleApp
 
         static async Task Main(string[] args)
         {
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Development");
+
+
             var host = Host.CreateDefaultBuilder()
                 .ConfigureServices(x =>
                 {
@@ -233,6 +236,8 @@ namespace ConsoleApp
 
         public void Run()
         {
+            logger.LogInformation("started");
+
             // new HoGeMoge().Foo();
 
             //logger.LogDebug("foooooo  {0} {1}", 10, 20);

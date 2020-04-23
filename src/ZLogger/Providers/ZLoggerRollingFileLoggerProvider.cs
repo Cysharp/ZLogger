@@ -15,12 +15,12 @@ namespace ZLogger.Providers
 
         AsyncStreamLineMessageWriter streamWriter;
 
-        public ZLoggerRollingFileLoggerProvider(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, IOptionsSnapshot<ZLoggerOptions> options)
+        public ZLoggerRollingFileLoggerProvider(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, IOptionsMonitor<ZLoggerOptions> options)
             : this(fileNameSelector, timestampPattern, rollSizeKB, DefaultOptionName, options)
         {
         }
 
-        public ZLoggerRollingFileLoggerProvider(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, string? optionName, IOptionsSnapshot<ZLoggerOptions> options)
+        public ZLoggerRollingFileLoggerProvider(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
         {
             var opt = options.Get(optionName ?? DefaultOptionName);
             var stream = new RollingFileStream(fileNameSelector, timestampPattern, rollSizeKB, opt);

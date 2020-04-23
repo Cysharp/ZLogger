@@ -13,12 +13,12 @@ namespace ZLogger.Providers
 
         AsyncStreamLineMessageWriter streamWriter;
 
-        public ZLoggerStreamLoggerProvider(Stream stream, IOptionsSnapshot<ZLoggerOptions> options)
+        public ZLoggerStreamLoggerProvider(Stream stream, IOptionsMonitor<ZLoggerOptions> options)
             : this(stream, DefaultOptionName, options)
         {
         }
 
-        public ZLoggerStreamLoggerProvider(Stream stream, string? optionName, IOptionsSnapshot<ZLoggerOptions> options)
+        public ZLoggerStreamLoggerProvider(Stream stream, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
         {
             this.streamWriter = new AsyncStreamLineMessageWriter(stream, options.Get(optionName ?? DefaultOptionName));
         }
