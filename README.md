@@ -12,6 +12,7 @@ ZLogger writes directly as UTF8 by the our zero allocation string builder [ZStri
 
 ZLogger is built directly on top of `Microsoft.Extensions.Logging`. By not having a separate logger framework layer, we are extracting better performance. In addition to ConsoleLogging, we provides **FileLogger**, **RollingFileLogger**, and **StreamLogger**. They too are designed to bring out the best in performance, write to UTF8 directly.
 
+<!-- START doctoc -->
 ## Table of contents
 
 - [Getting Started](#getting-started)
@@ -33,6 +34,7 @@ ZLogger is built directly on top of `Microsoft.Extensions.Logging`. By not havin
 - [Global LoggerFactory](#global-loggerfactory)
 - [Unity](#unity)
 - [License](#license)
+<!-- END doctoc -->
 
 Getting Started
 ---
