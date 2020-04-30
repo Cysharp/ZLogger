@@ -599,7 +599,7 @@ public static class LogManager
     public static Microsoft.Extensions.Logging.ILogger GetLogger(string categoryName) => loggerFactory.CreateLogger(categoryName);
 }
 
-// ----
+// ---
 
 public class MyScript : MonoBehaviour
 {
