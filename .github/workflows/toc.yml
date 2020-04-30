@@ -8,5 +8,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: technote-space/toc-generator@v2.4.0
-      - with:
+        with:
           TOC_TITLE: "## Table of Contents"
