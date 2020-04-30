@@ -1,6 +1,9 @@
 name: TOC Generator
 
-on: push
+on:
+  push:
+    paths:
+      - 'ReadMe.md'
 
 jobs:
   generateTOC:
