@@ -14,7 +14,7 @@ ZLogger is built directly on top of `Microsoft.Extensions.Logging`. By not havin
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**
+## Table of Contents
 
 - [Getting Started](#getting-started)
 - [Structured Logging](#structured-logging)
