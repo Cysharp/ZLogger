@@ -523,7 +523,7 @@ public static class LogManager
     static ILogger globalLogger;
     static ILoggerFactory loggerFactory;
 
-    public static void SetServiceProvider(ILoggerFactory loggerFactory, string categoryName)
+    public static void SetLoggerFactory(ILoggerFactory loggerFactory, string categoryName)
     {
         LogManager.loggerFactory = loggerFactory;
         LogManager.globalLogger = loggerFactory.CreateLogger(categoryName);
