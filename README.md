@@ -27,6 +27,7 @@ ZLogger is built directly on top of `Microsoft.Extensions.Logging`. By not havin
   - [LogProcessor](#logprocessor)
 - [Multiple Providers](#multiple-providers)
 - [Preparing Message Format](#preparing-message-format)
+- [Format and DateTime Handling](#format-and-datetime-handling)
 - [Options](#options)
   - [Common](#common)
   - [Options for Text Logging](#options-for-text-logging)
