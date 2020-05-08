@@ -117,6 +117,24 @@ public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, 
 
 If you want to replace an existing .NET Core logger, you can setup the builder.AddZLogger and simply replace LogDebug -> ZLogDebug. If you want to check and prohibit standard log methods, see the [Microsoft.CodeAnalysis.BannedApiAnalyzers](#microsoftcodeanalysisbannedapianalyzers) section. If you want to use the logger without DI, see the [Global LoggerFactory](#global-loggerfactory) section.
 
+If you want to use without .NET Generic Host(for simple use, for unit testing, etc.), create the logger factory and store to static/singleton field to it.
+
+```csharp
+// in real case, store to static/singleton field.
+var loggerFactory = LoggerFactory.Create(builder =>
+{
+    builder.ClearProviders();
+    builder.SetMinimumLevel(LogLevel.Debug);
+    builder.AddZLoggerConsole();
+});
+
+// logger should store to static/singleton field.
+var logger = loggerFactory.CreateLogger<Foo>();
+
+// on application quit, Dispose logger factory(flush and wait remains log entries).
+loggerFactory.Dispose();
+```
+
 Configuring message format(add LogLevel prefix, timestamp prefix, etc...), please see [Options for Text Logging](#options-for-text-logging) section.
 
 Structured Logging
@@ -360,6 +378,12 @@ public class UserModel
 }
 ```
 
+Format and DateTime Handling
+---
+ZLogger's format string internaly using ZString's format under it uses dotnet [Utf8Formatter.TryFormat](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.text.utf8formatter.tryformat). There format string is not same as standard format. It uses [StandardFormat](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.standardformat), combinate of symbol char and precision. Supported format string symbol can find in Utf8Formatter.TryFormat document(For example Int32 supports `G`, `D`, `N`, `X` and Boolean supports `G`, `I`). Precision(zero padding) can pass after symbol like `D2`. For example `logger.ZDebug("{0:D2}:{1:D2}:{2:D2}", hour, minute, second)`.
+
+[TryFormat(DateTime)](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.text.utf8formatter.tryformat?view=netcore-3.1#System_Buffers_Text_Utf8Formatter_TryFormat_System_DateTime_System_Span_System_Byte__System_Int32__System_Buffers_StandardFormat_)(also DateTimeOffset) and [TryFormat(TimeSpan)](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.text.utf8formatter.tryformat?view=netcore-3.1#System_Buffers_Text_Utf8Formatter_TryFormat_System_TimeSpan_System_Span_System_Byte__System_Int32__System_Buffers_StandardFormat_) symbol is too restricted than standard string format. If you want to use custom format, deconstruct there `Day`, `Hour`, etc.
+
 Options
 ---
 `ZLoggerOptions` can be configured with `Action<ZLoggerOptions> configure` when adding to `ILoggingBuilder`. The options applied to StructuredLogging(`EnableStructuredLogging = true`) are different from those applied to TextLogging. The default is TextLogging(`EnableStructuredLogging = false`).
@@ -393,6 +417,8 @@ logging.AddZLoggerConsole(options =>
 // [Information][04/07/2020 20:21:46]fooooo!
 logger.ZLogInformation("fooooo!");
 ```
+
+Note: formatting DateTime, see [Format and DateTime Handling](#format-and-datetime-handling) section.
 
 LogInfo has these informations.
 
@@ -584,7 +610,7 @@ public static class LogManager
             // and other configuration(AddFileLog, etc...)
         });
 
-        globalLogger = loggerFactory.GetLogger("Global");
+        globalLogger = loggerFactory.CreateLogger("Global");
 
         Application.quitting += () =>
         {
