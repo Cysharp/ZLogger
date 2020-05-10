@@ -238,6 +238,8 @@ namespace ConsoleApp
         {
             logger.LogInformation("started");
 
+            logger.ZLogInformation("{abc=1}");
+
             // new HoGeMoge().Foo();
 
             //logger.LogDebug("foooooo  {0} {1}", 10, 20);

@@ -50,11 +50,14 @@ namespace ZLogger.Entries
             {
                 options.PrefixFormatter?.Invoke(writer, this.LogInfo);
 
-                var memory = writer.GetMemory(Encoding.UTF8.GetMaxByteCount(str.Length));
-                if (MemoryMarshal.TryGetArray<byte>(memory, out var segment) && segment.Array != null)
+                if (str != null)
                 {
-                    var written1 = Encoding.UTF8.GetBytes(str, 0, str.Length, segment.Array, segment.Offset);
-                    writer.Advance(written1);
+                    var memory = writer.GetMemory(Encoding.UTF8.GetMaxByteCount(str.Length));
+                    if (MemoryMarshal.TryGetArray<byte>(memory, out var segment) && segment.Array != null)
+                    {
+                        var written1 = Encoding.UTF8.GetBytes(str, 0, str.Length, segment.Array, segment.Offset);
+                        writer.Advance(written1);
+                    }
                 }
 
                 options.SuffixFormatter?.Invoke(writer, this.LogInfo);

@@ -177,24 +177,24 @@ namespace ZLogger
 <# foreach(var logLevel in logLevels) { #>
         public static void ZLog<#= logLevel #>(this ILogger logger, string message)
         {
-            ZLog<#= logLevel #><object>(logger, default, null, message, null!);
+            ZLog<#= logLevel #>(logger, default(EventId), default(Exception), message);
         }
 
         public static void ZLog<#= logLevel #>(this ILogger logger, EventId eventId, string message)
         {
-            ZLog<#= logLevel #><object>(logger, eventId, null, message, null!);
+            ZLog<#= logLevel #>(logger, eventId, default(Exception), message);
         }
 
         public static void ZLog<#= logLevel #>(this ILogger logger, Exception? exception, string message)
         {
-            ZLog<#= logLevel #><object>(logger, default, exception, message, null!);
+            ZLog<#= logLevel #>(logger, default(EventId), exception, message);
         }
 
         public static void ZLog<#= logLevel #>(this ILogger logger, EventId eventId, Exception? exception, string message)
         {
-            logger.Log(LogLevel.<#= logLevel #>, eventId, new FormatLogState<object, object>(null, message, null!), exception, (state, ex) =>
+            logger.Log(LogLevel.<#= logLevel #>, eventId, new MessageLogState<object>(null, message), exception, (state, ex) =>
             {
-                return state.Format;
+                return state.Message;
             });
         }
 
@@ -215,9 +215,9 @@ namespace ZLogger
 
         public static void ZLog<#= logLevel #>WithPayload<TPayload>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string message)
         {
-            logger.Log(LogLevel.<#= logLevel #>, eventId, new FormatLogState<TPayload, object>(payload, message, null!), exception, (state, ex) =>
+            logger.Log(LogLevel.<#= logLevel #>, eventId, new MessageLogState<TPayload>(payload, message), exception, (state, ex) =>
             {
-                return message;
+                return state.Message;
             });
         }
 

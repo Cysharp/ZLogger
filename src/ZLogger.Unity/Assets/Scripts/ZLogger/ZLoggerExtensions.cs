@@ -4647,24 +4647,24 @@ namespace ZLogger
 
         public static void ZLogTrace(this ILogger logger, string message)
         {
-            ZLogTrace<object>(logger, default, null, message, null);
+            ZLogTrace(logger, default(EventId), default(Exception), message);
         }
 
         public static void ZLogTrace(this ILogger logger, EventId eventId, string message)
         {
-            ZLogTrace<object>(logger, eventId, null, message, null);
+            ZLogTrace(logger, eventId, default(Exception), message);
         }
 
         public static void ZLogTrace(this ILogger logger, Exception exception, string message)
         {
-            ZLogTrace<object>(logger, default, exception, message, null);
+            ZLogTrace(logger, default(EventId), exception, message);
         }
 
         public static void ZLogTrace(this ILogger logger, EventId eventId, Exception exception, string message)
         {
-            logger.Log(LogLevel.Trace, eventId, new FormatLogState<object, object>(null, message, null), exception, (state, ex) =>
+            logger.Log(LogLevel.Trace, eventId, new MessageLogState<object>(null, message), exception, (state, ex) =>
             {
-                return state.Format;
+                return state.Message;
             });
         }
 
@@ -4685,32 +4685,32 @@ namespace ZLogger
 
         public static void ZLogTraceWithPayload<TPayload>(this ILogger logger, EventId eventId, Exception exception, TPayload payload, string message)
         {
-            logger.Log(LogLevel.Trace, eventId, new FormatLogState<TPayload, object>(payload, message, null), exception, (state, ex) =>
+            logger.Log(LogLevel.Trace, eventId, new MessageLogState<TPayload>(payload, message), exception, (state, ex) =>
             {
-                return message;
+                return state.Message;
             });
         }
 
         public static void ZLogDebug(this ILogger logger, string message)
         {
-            ZLogDebug<object>(logger, default, null, message, null);
+            ZLogDebug(logger, default(EventId), default(Exception), message);
         }
 
         public static void ZLogDebug(this ILogger logger, EventId eventId, string message)
         {
-            ZLogDebug<object>(logger, eventId, null, message, null);
+            ZLogDebug(logger, eventId, default(Exception), message);
         }
 
         public static void ZLogDebug(this ILogger logger, Exception exception, string message)
         {
-            ZLogDebug<object>(logger, default, exception, message, null);
+            ZLogDebug(logger, default(EventId), exception, message);
         }
 
         public static void ZLogDebug(this ILogger logger, EventId eventId, Exception exception, string message)
         {
-            logger.Log(LogLevel.Debug, eventId, new FormatLogState<object, object>(null, message, null), exception, (state, ex) =>
+            logger.Log(LogLevel.Debug, eventId, new MessageLogState<object>(null, message), exception, (state, ex) =>
             {
-                return state.Format;
+                return state.Message;
             });
         }
 
@@ -4731,32 +4731,32 @@ namespace ZLogger
 
         public static void ZLogDebugWithPayload<TPayload>(this ILogger logger, EventId eventId, Exception exception, TPayload payload, string message)
         {
-            logger.Log(LogLevel.Debug, eventId, new FormatLogState<TPayload, object>(payload, message, null), exception, (state, ex) =>
+            logger.Log(LogLevel.Debug, eventId, new MessageLogState<TPayload>(payload, message), exception, (state, ex) =>
             {
-                return message;
+                return state.Message;
             });
         }
 
         public static void ZLogInformation(this ILogger logger, string message)
         {
-            ZLogInformation<object>(logger, default, null, message, null);
+            ZLogInformation(logger, default(EventId), default(Exception), message);
         }
 
         public static void ZLogInformation(this ILogger logger, EventId eventId, string message)
         {
-            ZLogInformation<object>(logger, eventId, null, message, null);
+            ZLogInformation(logger, eventId, default(Exception), message);
         }
 
         public static void ZLogInformation(this ILogger logger, Exception exception, string message)
         {
-            ZLogInformation<object>(logger, default, exception, message, null);
+            ZLogInformation(logger, default(EventId), exception, message);
         }
 
         public static void ZLogInformation(this ILogger logger, EventId eventId, Exception exception, string message)
         {
-            logger.Log(LogLevel.Information, eventId, new FormatLogState<object, object>(null, message, null), exception, (state, ex) =>
+            logger.Log(LogLevel.Information, eventId, new MessageLogState<object>(null, message), exception, (state, ex) =>
             {
-                return state.Format;
+                return state.Message;
             });
         }
 
@@ -4777,32 +4777,32 @@ namespace ZLogger
 
         public static void ZLogInformationWithPayload<TPayload>(this ILogger logger, EventId eventId, Exception exception, TPayload payload, string message)
         {
-            logger.Log(LogLevel.Information, eventId, new FormatLogState<TPayload, object>(payload, message, null), exception, (state, ex) =>
+            logger.Log(LogLevel.Information, eventId, new MessageLogState<TPayload>(payload, message), exception, (state, ex) =>
             {
-                return message;
+                return state.Message;
             });
         }
 
         public static void ZLogWarning(this ILogger logger, string message)
         {
-            ZLogWarning<object>(logger, default, null, message, null);
+            ZLogWarning(logger, default(EventId), default(Exception), message);
         }
 
         public static void ZLogWarning(this ILogger logger, EventId eventId, string message)
         {
-            ZLogWarning<object>(logger, eventId, null, message, null);
+            ZLogWarning(logger, eventId, default(Exception), message);
         }
 
         public static void ZLogWarning(this ILogger logger, Exception exception, string message)
         {
-            ZLogWarning<object>(logger, default, exception, message, null);
+            ZLogWarning(logger, default(EventId), exception, message);
         }
 
         public static void ZLogWarning(this ILogger logger, EventId eventId, Exception exception, string message)
         {
-            logger.Log(LogLevel.Warning, eventId, new FormatLogState<object, object>(null, message, null), exception, (state, ex) =>
+            logger.Log(LogLevel.Warning, eventId, new MessageLogState<object>(null, message), exception, (state, ex) =>
             {
-                return state.Format;
+                return state.Message;
             });
         }
 
@@ -4823,32 +4823,32 @@ namespace ZLogger
 
         public static void ZLogWarningWithPayload<TPayload>(this ILogger logger, EventId eventId, Exception exception, TPayload payload, string message)
         {
-            logger.Log(LogLevel.Warning, eventId, new FormatLogState<TPayload, object>(payload, message, null), exception, (state, ex) =>
+            logger.Log(LogLevel.Warning, eventId, new MessageLogState<TPayload>(payload, message), exception, (state, ex) =>
             {
-                return message;
+                return state.Message;
             });
         }
 
         public static void ZLogError(this ILogger logger, string message)
         {
-            ZLogError<object>(logger, default, null, message, null);
+            ZLogError(logger, default(EventId), default(Exception), message);
         }
 
         public static void ZLogError(this ILogger logger, EventId eventId, string message)
         {
-            ZLogError<object>(logger, eventId, null, message, null);
+            ZLogError(logger, eventId, default(Exception), message);
         }
 
         public static void ZLogError(this ILogger logger, Exception exception, string message)
         {
-            ZLogError<object>(logger, default, exception, message, null);
+            ZLogError(logger, default(EventId), exception, message);
         }
 
         public static void ZLogError(this ILogger logger, EventId eventId, Exception exception, string message)
         {
-            logger.Log(LogLevel.Error, eventId, new FormatLogState<object, object>(null, message, null), exception, (state, ex) =>
+            logger.Log(LogLevel.Error, eventId, new MessageLogState<object>(null, message), exception, (state, ex) =>
             {
-                return state.Format;
+                return state.Message;
             });
         }
 
@@ -4869,32 +4869,32 @@ namespace ZLogger
 
         public static void ZLogErrorWithPayload<TPayload>(this ILogger logger, EventId eventId, Exception exception, TPayload payload, string message)
         {
-            logger.Log(LogLevel.Error, eventId, new FormatLogState<TPayload, object>(payload, message, null), exception, (state, ex) =>
+            logger.Log(LogLevel.Error, eventId, new MessageLogState<TPayload>(payload, message), exception, (state, ex) =>
             {
-                return message;
+                return state.Message;
             });
         }
 
         public static void ZLogCritical(this ILogger logger, string message)
         {
-            ZLogCritical<object>(logger, default, null, message, null);
+            ZLogCritical(logger, default(EventId), default(Exception), message);
         }
 
         public static void ZLogCritical(this ILogger logger, EventId eventId, string message)
         {
-            ZLogCritical<object>(logger, eventId, null, message, null);
+            ZLogCritical(logger, eventId, default(Exception), message);
         }
 
         public static void ZLogCritical(this ILogger logger, Exception exception, string message)
         {
-            ZLogCritical<object>(logger, default, exception, message, null);
+            ZLogCritical(logger, default(EventId), exception, message);
         }
 
         public static void ZLogCritical(this ILogger logger, EventId eventId, Exception exception, string message)
         {
-            logger.Log(LogLevel.Critical, eventId, new FormatLogState<object, object>(null, message, null), exception, (state, ex) =>
+            logger.Log(LogLevel.Critical, eventId, new MessageLogState<object>(null, message), exception, (state, ex) =>
             {
-                return state.Format;
+                return state.Message;
             });
         }
 
@@ -4915,9 +4915,9 @@ namespace ZLogger
 
         public static void ZLogCriticalWithPayload<TPayload>(this ILogger logger, EventId eventId, Exception exception, TPayload payload, string message)
         {
-            logger.Log(LogLevel.Critical, eventId, new FormatLogState<TPayload, object>(payload, message, null), exception, (state, ex) =>
+            logger.Log(LogLevel.Critical, eventId, new MessageLogState<TPayload>(payload, message), exception, (state, ex) =>
             {
-                return message;
+                return state.Message;
             });
         }
 
