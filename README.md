@@ -2,7 +2,7 @@ ZLogger
 ===
 [![GitHub Actions](https://github.com/Cysharp/ZLogger/workflows/Build-Debug/badge.svg)](https://github.com/Cysharp/ZLogger/actions) [![Releases](https://img.shields.io/github/release/Cysharp/ZLogger.svg)](https://github.com/Cysharp/ZLogger/releases)
 
-**Z**ero Allocation Text/Strcutured **Logger** for .NET Core and Unity, built on top of a Microsoft.Extensions.Logging.
+**Z**ero Allocation Text/Structured **Logger** for .NET Core and Unity, built on top of a Microsoft.Extensions.Logging.
 
 Logging to standard output is very important, especially in the age of containerization(described in [The Twelve Factor App - Logs](https://12factor.net/logs) saids should write to stdout), but traditionally its performance has been very slow, however anyone no concerned about it. It also supports both text logs and structured logs, which are important in cloud log management.
 
