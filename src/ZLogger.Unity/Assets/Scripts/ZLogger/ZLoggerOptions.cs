@@ -11,7 +11,7 @@ namespace ZLogger
 {
     public class ZLoggerOptions
     {
-        public Action<LogInfo, Exception>? InternalErrorLogger { get; set; }
+        public Action<LogInfo, Exception> InternalErrorLogger { get; set; }
 
         // Options for Text logging
         public Action<IBufferWriter<byte>, LogInfo> PrefixFormatter { get; set; }

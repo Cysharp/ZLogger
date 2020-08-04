@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System;
 using UnityEngine;
 using ZLogger;
 
@@ -26,7 +27,13 @@ public static class GlobalLogger
             builder.AddZLoggerUnityDebug();
 
             // and other configuration(AddFileLog, etc...)
+
+            builder.AddZLoggerRollingFile((offset, i) => $"Debug_Logs/{DateTime.Now.ToLocalTime():yyyy-MM-dd}_{i:000}.log", x => x.ToLocalTime().Date, 1024);
         });
+
+        
+    
+
 
         globalLogger = loggerFactory.CreateLogger("Global");
 

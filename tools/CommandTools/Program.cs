@@ -36,6 +36,7 @@ namespace CommandTools
             var replaceSet = new Dictionary<string, string>
             {
                 {"Exception?", "Exception" },
+                {"Action<LogInfo, Exception>?", "Action<LogInfo, Exception>" },
                 {"Utf8JsonWriter?", "Utf8JsonWriter" },
                 {"string?", "string" },
                 {"object?", "object" },

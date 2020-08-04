@@ -159,7 +159,7 @@ namespace ZLogger
             try
             {
                 channel.Writer.Complete();
-                await writeLoop;
+                await writeLoop.ConfigureAwait(false);
             }
             finally
             {
