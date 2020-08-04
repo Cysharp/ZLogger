@@ -11,7 +11,7 @@ namespace ZLogger
 {
     public class ZLoggerOptions
     {
-        public Action<Exception> InternalErrorLogger { get; set; }
+        public Action<LogInfo, Exception>? InternalErrorLogger { get; set; }
 
         // Options for Text logging
         public Action<IBufferWriter<byte>, LogInfo> PrefixFormatter { get; set; }
@@ -126,18 +126,6 @@ namespace ZLogger
                 var written2 = Encoding.UTF8.GetBytes(message2, 0, message2.Length, array.Array, array.Offset + written1);
                 var written3 = Encoding.UTF8.GetBytes(message3, 0, message3.Length, array.Array, array.Offset + written1 + written2);
                 writer.Advance(written1 + written2 + written3);
-            }
-        }
-
-        internal void LogException(Exception ex)
-        {
-            if (InternalErrorLogger == null)
-            {
-                Console.WriteLine(ex);
-            }
-            else
-            {
-                InternalErrorLogger(ex);
             }
         }
     }

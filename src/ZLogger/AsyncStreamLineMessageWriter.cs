@@ -88,11 +88,12 @@ namespace ZLogger
             {
                 while (await reader.WaitToReadAsync().ConfigureAwait(false))
                 {
+                    LogInfo info = default;
                     try
                     {
                         while (reader.TryRead(out var value))
                         {
-                            var info = value.LogInfo;
+                            info = value.LogInfo;
 
                             if (options.EnableStructuredLogging)
                             {
@@ -120,7 +121,8 @@ namespace ZLogger
 
                             AppendLine(writer);
                         }
-                        writer.Flush(); //flush before wait.
+                        info = default;
+                        writer.Flush(); // flush before wait.
                     }
                     catch (Exception ex)
                     {
@@ -128,7 +130,7 @@ namespace ZLogger
                         {
                             if (options.InternalErrorLogger != null)
                             {
-                                options.InternalErrorLogger(ex);
+                                options.InternalErrorLogger(info, ex);
                             }
                             else
                             {

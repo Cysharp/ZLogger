@@ -392,7 +392,7 @@ Options
 ### Common
 
 * `bool EnableStructuredLogging`
-* `Action<Exception>? InternalErrorLogger`
+* `Action<LogInfo, Exception>? InternalErrorLogger`
 
 InternalErrorLogger is an delegate of when exception occured in log writing process(such as serialization error). Default is `Console.WriteLine(exception)`.
 
