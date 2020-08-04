@@ -7,6 +7,8 @@ namespace ZLogger
 {
     public class AsyncProcessZLogger : ILogger
     {
+        readonly Func<string, Exception, string> ReturnStringStateFormatter = (state, _) => state;
+
         readonly string categoryName;
         readonly IAsyncLogProcessor logProcessor;
 
@@ -28,7 +30,28 @@ namespace ZLogger
             else
             {
                 var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
-                logProcessor.Post(StringFormatterEntry<TState>.Create(info, state, exception, formatter));
+                if (StateTypeDetector<TState>.IsInternalFormattedLogValues || state == null)
+                {
+                    // null state automatically converted to FormattedLogValues struct.
+                    logProcessor.Post(StringFormatterEntry<TState>.Create(info, state, exception, formatter));
+                }
+                else
+                {
+                    // sometimes state has context(like HttpContext), it require to format in scope.
+                    var message = formatter(state, exception);
+                    logProcessor.Post(StringFormatterEntry<string>.Create(info, message, exception, ReturnStringStateFormatter));
+                }
+            }
+        }
+
+
+        static class StateTypeDetector<TState>
+        {
+            public static readonly bool IsInternalFormattedLogValues;
+
+            static StateTypeDetector()
+            {
+                IsInternalFormattedLogValues = typeof(TState).FullName == "Microsoft.Extensions.Logging.FormattedLogValues";
             }
         }
 

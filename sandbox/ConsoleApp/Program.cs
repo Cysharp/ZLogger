@@ -197,14 +197,14 @@ namespace ConsoleApp
             var host = Host.CreateDefaultBuilder()
                 .ConfigureServices(x =>
                 {
-                    
+
 
                 })
                 .ConfigureLogging(logging =>
                 {
                     logging.ClearProviders();
 
-                    // logging.SetMinimumLevel(LogLevel.Trace);
+                    logging.SetMinimumLevel(LogLevel.Trace);
 
                     logging.AddZLoggerConsole(options =>
                     {
@@ -236,6 +236,9 @@ namespace ConsoleApp
 
         public void Run()
         {
+            logger.LogDebug("foo");
+            logger.Log(LogLevel.Debug, default(EventId), new { a = "tako" }, null, (x, y) => x.a + "yaki");
+
             logger.LogInformation("started");
 
             logger.ZLogInformation("{abc=1}");
