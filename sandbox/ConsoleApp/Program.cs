@@ -209,6 +209,7 @@ namespace ConsoleApp
                     logging.AddZLoggerConsole(options =>
                     {
                         options.EnableStructuredLogging = true;
+                        options.FlushRate = TimeSpan.FromSeconds(5);
                     });
 
                 })
@@ -236,6 +237,12 @@ namespace ConsoleApp
 
         public void Run()
         {
+            for (int i = 0; i < 10; i++)
+            {
+                logger.LogDebug("I:" + i);
+                Thread.Sleep(TimeSpan.FromSeconds(2));
+            }
+
             logger.LogDebug("foo");
             logger.Log(LogLevel.Debug, default(EventId), new { a = "tako" }, null, (x, y) => x.a + "yaki");
 

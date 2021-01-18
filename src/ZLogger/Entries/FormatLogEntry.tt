@@ -21,6 +21,9 @@
         return string.Join(", ", Enumerable.Range(0, i).Select(x => "state.Arg" + (x + 1)));
     }
 #>
+#pragma warning disable CS8601
+#pragma warning disable CS8618
+
 using Cysharp.Text;
 using System;
 using System.Buffers;

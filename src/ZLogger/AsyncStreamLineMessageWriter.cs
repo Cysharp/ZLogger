@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -19,10 +20,12 @@ namespace ZLogger
         readonly Channel<IZLoggerEntry> channel;
         readonly Task writeLoop;
         readonly ZLoggerOptions options;
+        readonly CancellationTokenSource cancellationTokenSource;
 
         public AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options)
         {
             this.newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
+            this.cancellationTokenSource = new CancellationTokenSource();
             if (newLine.Length == 1)
             {
                 // cr or lf
@@ -84,6 +87,7 @@ namespace ZLogger
         {
             var writer = new StreamBufferWriter(stream);
             var reader = channel.Reader;
+            var sw = Stopwatch.StartNew();
             try
             {
                 while (await reader.WaitToReadAsync().ConfigureAwait(false))
@@ -122,7 +126,27 @@ namespace ZLogger
                             AppendLine(writer);
                         }
                         info = default;
+
+                        if (options.FlushRate != null && !cancellationTokenSource.IsCancellationRequested)
+                        {
+                            sw.Stop();
+                            var sleepTime = options.FlushRate.Value - sw.Elapsed;
+                            if (sleepTime > TimeSpan.Zero)
+                            {
+                                Console.WriteLine("SLEEP:" + sleepTime);
+                                try
+                                {
+                                    await Task.Delay(sleepTime, cancellationTokenSource.Token).ConfigureAwait(false);
+                                }
+                                catch (OperationCanceledException)
+                                {
+                                }
+                            }
+                        }
                         writer.Flush(); // flush before wait.
+
+                        sw.Reset();
+                        sw.Start();
                     }
                     catch (Exception ex)
                     {
@@ -159,6 +183,7 @@ namespace ZLogger
             try
             {
                 channel.Writer.Complete();
+                cancellationTokenSource.Cancel();
                 await writeLoop.ConfigureAwait(false);
             }
             finally

@@ -393,8 +393,11 @@ Options
 
 * `bool EnableStructuredLogging`
 * `Action<LogInfo, Exception>? InternalErrorLogger`
+* `TimeSpan? FlushRate`
 
 InternalErrorLogger is an delegate of when exception occured in log writing process(such as serialization error). Default is `Console.WriteLine(exception)`.
+
+`FlushRate` is flush rate of buffer write. Default is null that flush immediately when thread is free, it is recommended option for performance.
 
 ### Options for Text Logging
 

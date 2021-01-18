@@ -1,3 +1,6 @@
+#pragma warning disable CS8601
+#pragma warning disable CS8618
+
 using Cysharp.Text;
 using System;
 using System.Buffers;
