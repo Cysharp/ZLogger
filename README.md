@@ -547,7 +547,7 @@ await host.RunAsync();
 
 // -----
 
-// Own static loggger manager
+// Own static logger manager
 public static class LogManager
 {
     static ILogger globalLogger;
@@ -566,7 +566,7 @@ public static class LogManager
 }
 ```
 
-You can use this loggger manager like following.
+You can use this logger manager like following.
 
 ```csharp
 public class Foo
@@ -623,7 +623,7 @@ public static class LogManager
         };
     }
 
-    public static Microsoft.Extensions.Logging.ILogger Loggger => globalLogger;
+    public static Microsoft.Extensions.Logging.ILogger Logger => globalLogger;
 
     public static ILogger<T> GetLogger<T>() where T : class => loggerFactory.CreateLogger<T>();
     public static Microsoft.Extensions.Logging.ILogger GetLogger(string categoryName) => loggerFactory.CreateLogger(categoryName);
