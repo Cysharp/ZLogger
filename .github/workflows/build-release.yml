@@ -121,7 +121,7 @@ jobs:
           UNITY_PACKAGE_VERSION: ${{ env.GIT_TAG }}
           UNITY_LICENSE: ${{ secrets[matrix.license] }}
         with:
-          projectPath: src/UniTask
+          projectPath: src/ZLogger.Unity
           unityVersion: ${{ matrix.unity }}
           targetPlatform: StandaloneLinux64
           buildMethod: PackageExporter.Export
