@@ -9,10 +9,9 @@ public static class PackageExporter
     [MenuItem("Tools/Export Unitypackage")]
     public static void Export()
     {
-        var version = Environment.GetEnvironmentVariable("UNITY_PACKAGE_VERSION");
-
-        // configure
         var root = "Scripts/ZLogger";
+        var version = GetVersion(root);
+        
         var fileName = string.IsNullOrEmpty(version) ? "ZLogger.Unity.unitypackage" : $"ZLogger.Unity.{version}.unitypackage";
         var exportPath = "./" + fileName;
 
@@ -39,5 +38,41 @@ public static class PackageExporter
             ExportPackageOptions.Default);
 
         UnityEngine.Debug.Log("Export complete: " + Path.GetFullPath(exportPath));
+    }
+
+    static string GetVersion(string root)
+    {
+        var version = Environment.GetEnvironmentVariable("UNITY_PACKAGE_VERSION");
+        var versionJson = Path.Combine(Application.dataPath, root, "package.json");
+
+        if (File.Exists(versionJson))
+        {
+            var v = JsonUtility.FromJson<Version>(File.ReadAllText(versionJson));
+
+            if (!string.IsNullOrEmpty(version))
+            {
+                if (v.version != version)
+                {
+                    var msg = $"package.json and env version are mismatched. UNITY_PACKAGE_VERSION:{version}, package.json:{v.version}";
+
+                    if (Application.isBatchMode)
+                    {
+                        Console.WriteLine(msg);
+                        Application.Quit(1);
+                    }
+
+                    throw new Exception("package.json and env version are mismatched.");
+                }
+            }
+
+            version = v.version;
+        }
+
+        return version;
+    }
+
+    public class Version
+    {
+        public string version;
     }
 }
