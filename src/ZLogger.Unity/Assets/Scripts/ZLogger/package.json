@@ -11,8 +11,8 @@
     "samples": [
       {
         "displayName": "Import Managed DLL Dependencies to Plugins",
-        "description": "Install NuGet Managed dlls(System.*.dll, Microsoft.*.dll).",
-        "path": "ManagedDlls~/Plugins"
+        "description": "Install Required Managed dlls(System.*.dll, Microsoft.*.dll).",
+        "path": "Samples~/RequiredManagedDLLs"
       }
     ]
 }
