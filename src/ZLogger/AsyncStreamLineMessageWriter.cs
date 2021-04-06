@@ -133,7 +133,6 @@ namespace ZLogger
                             var sleepTime = options.FlushRate.Value - sw.Elapsed;
                             if (sleepTime > TimeSpan.Zero)
                             {
-                                Console.WriteLine("SLEEP:" + sleepTime);
                                 try
                                 {
                                     await Task.Delay(sleepTime, cancellationTokenSource.Token).ConfigureAwait(false);
