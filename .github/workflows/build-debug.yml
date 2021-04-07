@@ -86,7 +86,7 @@ jobs:
         working-directory: src/ZLogger.Unity
 
       # Store artifacts.
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v2
         with:
           name: ZLogger.Unity.unitypackage
-          path: ./src/ZLogger.Unity/ZLogger.Unity.unitypackage
+          path: ./src/ZLogger.Unity/*.unitypackage
