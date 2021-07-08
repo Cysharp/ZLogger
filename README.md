@@ -211,8 +211,8 @@ logging.AddZLoggerFile("applog.log");
 Output to the file that is changed the output file path, depending on date-time or file size.
 
 ```csharp
-logging.AddZLoggerRollingFile((dt, x) => 
-    fileNameSelector: $"logs/{dt.ToLocalTime():yyyy-MM-dd}_{x:000}.log", 
+logging.AddZLoggerRollingFile(
+    fileNameSelector: (dt, x) => $"logs/{dt.ToLocalTime():yyyy-MM-dd}_{x:000}.log", 
     timestampPattern: x => x.ToLocalTime().Date, 
     rollSizeKB: 1024);
 ```
