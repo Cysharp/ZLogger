@@ -512,7 +512,7 @@ new JsonSerializerOptions
 
 Console Coloring
 ---
-For performance reason, in default, ZLogger does not colorize in Console. However, colorization can be useful in debugging. In order to colorize without degrading performance, the [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code) can be used in `PrefixFormatter` and `SuffixFormatter`.
+For performance reason, in default, ZLogger does not colorize in Console(using `System.Console.ForegroundColor = ConsoleColor...` causes poor performance). However, colorization can be useful in debugging. In order to colorize without degrading performance, the [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code) can be used in `PrefixFormatter` and `SuffixFormatter`.
 
 The following example shows the error in red and the framework log in gray.
 
