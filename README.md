@@ -32,6 +32,7 @@ ZLogger is built directly on top of `Microsoft.Extensions.Logging`. By not havin
   - [Common](#common)
   - [Options for Text Logging](#options-for-text-logging)
   - [Options for Structured Logging](#options-for-structured-logging)
+- [Console Coloring](#console-coloring)
 - [Microsoft.CodeAnalysis.BannedApiAnalyzers](#microsoftcodeanalysisbannedapianalyzers)
 - [Global LoggerFactory](#global-loggerfactory)
 - [Unity](#unity)
