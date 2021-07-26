@@ -42,6 +42,7 @@ namespace CommandTools
                 {"object?", "object" },
                 {"default!", "default" },
                 {"fn!", "fn" },
+                {"di!", "di" },
                 {"byte[]?", "byte[]" },
                 {"null!", "null" },
                 {"className!", "className" },

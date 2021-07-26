@@ -4,14 +4,20 @@ using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Options;
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using ZLogger.Providers;
 
 namespace ZLogger
 {
     public static class ZLoggerLoggingBuilderExtensions
     {
-        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, bool consoleOutputEncodingToUtf8 = true)
+        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, bool consoleOutputEncodingToUtf8 = true, bool configureEnableAnsiEscapeCode = false)
         {
+            if (configureEnableAnsiEscapeCode)
+            {
+                EnableAnsiEscapeCode();
+            }
+
             builder.AddConfiguration();
             builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerConsoleLoggerProvider>(x => new ZLoggerConsoleLoggerProvider(consoleOutputEncodingToUtf8, null, x.GetService<IOptionsMonitor<ZLoggerOptions>>())));
             LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerConsoleLoggerProvider>(builder.Services);
@@ -19,13 +25,23 @@ namespace ZLogger
             return builder;
         }
 
-        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, Action<ZLoggerOptions> configure, bool consoleOutputEncodingToUtf8 = true)
+        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, Action<ZLoggerOptions> configure, bool consoleOutputEncodingToUtf8 = true, bool configureEnableAnsiEscapeCode = false)
         {
+            if (configureEnableAnsiEscapeCode)
+            {
+                EnableAnsiEscapeCode();
+            }
+
             return AddZLoggerConsole(builder, ZLoggerConsoleLoggerProvider.DefaultOptionName, configure, consoleOutputEncodingToUtf8);
         }
 
-        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, string optionName, Action<ZLoggerOptions> configure, bool consoleOutputEncodingToUtf8 = true)
+        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, string optionName, Action<ZLoggerOptions> configure, bool consoleOutputEncodingToUtf8 = true, bool configureEnableAnsiEscapeCode = false)
         {
+            if (configureEnableAnsiEscapeCode)
+            {
+                EnableAnsiEscapeCode();
+            }
+
             if (configure == null)
             {
                 throw new ArgumentNullException(nameof(configure));
@@ -38,6 +54,14 @@ namespace ZLogger
             builder.Services.AddOptions<ZLoggerOptions>(optionName).Configure(configure);
 
             return builder;
+        }
+
+        static void EnableAnsiEscapeCode()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                WindowsConsoleMode.TryEnableVirtualTerminalProcessing();
+            }
         }
 
         public static ILoggingBuilder AddZLoggerStream(this ILoggingBuilder builder, Stream stream)
@@ -121,7 +145,6 @@ namespace ZLogger
 
             return builder;
         }
-
 
         /// <param name="fileNameSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
         /// <param name="timestampPattern">DateTimeOffset is write time of message(UTC). If pattern is different previously then roll new file.</param>

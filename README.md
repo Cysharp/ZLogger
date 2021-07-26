@@ -509,6 +509,53 @@ new JsonSerializerOptions
 }
 ```
 
+Console Coloring
+---
+For performance reason, in default, ZLogger does not colorize in Console. However, colorization can be useful in debugging. In order to colorize without degrading performance, the [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code) can be used in `PrefixFormatter` and `SuffixFormatter`.
+
+The following example shows the error in red and the framework log in gray.
+
+![image](https://user-images.githubusercontent.com/46207/126967082-66af362b-dd87-4ae7-833b-aad229054142.png)
+
+```csharp
+logging.AddZLoggerConsole(options =>
+{
+#if DEBUG
+    // \u001b[31m => Red(ANSI Escape Code)
+    // \u001b[0m => Reset
+    // \u001b[38;5;***m => 256 Colors(08 is Gray)
+    options.PrefixFormatter = (writer, info) =>
+    {
+        if (info.LogLevel == LogLevel.Error)
+        {
+            ZString.Utf8Format(writer, "\u001b[31m[{0}]", info.LogLevel);
+        }
+        else
+        {
+            if (!info.CategoryName.StartsWith("MyApp")) // your application namespace.
+            {
+                ZString.Utf8Format(writer, "\u001b[38;5;08m[{0}]", info.LogLevel);
+            }
+            else
+            {
+                ZString.Utf8Format(writer, "[{0}]", info.LogLevel);
+            }
+        }
+    };
+    options.SuffixFormatter = (writer, info) =>
+    {
+        if (info.LogLevel == LogLevel.Error || !info.CategoryName.StartsWith("MyApp"))
+        {
+            ZString.Utf8Format(writer, "\u001b[0m", "");
+        }
+    };
+#endif
+
+}, configureEnableAnsiEscapeCode: true); // configureEnableAnsiEscapeCode
+```
+
+`configureEnableAnsiEscapeCode: true` is important option for Windows(default is false). Visual Studio Debug Console, other 3rd party terminals, linux terminals are enabled ANSI escape code but default command prompt and powershell are not. If `configureEnableAnsiEscapeCode: true` then configure console option on execution and enable virtual terminal processing(enable ANSI escape code).
+
 Microsoft.CodeAnalysis.BannedApiAnalyzers
 ---
 [Microsoft.CodeAnalysis.BannedApiAnalyzers](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md) is an interesting analyzer, you can prohibit the normal Log method and induce the user to call ZLogger's ZLog method.

@@ -24,7 +24,7 @@ using System.Reflection;
 using System.Threading.Channels;
 using System.Net.Sockets;
 
-namespace ConsoleApp
+namespace MyApp
 {
     public class MyClass22
     {
@@ -208,9 +208,43 @@ namespace ConsoleApp
 
                     logging.AddZLoggerConsole(options =>
                     {
-                        options.EnableStructuredLogging = true;
-                        options.FlushRate = TimeSpan.FromSeconds(5);
-                    });
+                        options.EnableStructuredLogging = false;
+                        //options.FlushRate = TimeSpan.FromSeconds(5);
+
+#if DEBUG
+                        // \u001b[31m => Red(ANSI Escape Code)
+                        // \u001b[0m => Reset
+                        // \u001b[38;5;***m => 256 Colors(08 is Gray)
+                        options.PrefixFormatter = (writer, info) =>
+                        {
+                            if (info.LogLevel == LogLevel.Error)
+                            {
+                                ZString.Utf8Format(writer, "\u001b[31m[{0}]", info.LogLevel);
+                            }
+                            else
+                            {
+                                if (!info.CategoryName.StartsWith("MyApp")) // your application namespace.
+                                {
+                                    ZString.Utf8Format(writer, "\u001b[38;5;08m[{0}]", info.LogLevel);
+                                }
+                                else
+                                {
+                                    ZString.Utf8Format(writer, "[{0}]", info.LogLevel);
+                                }
+                            }
+                        };
+                        options.SuffixFormatter = (writer, info) =>
+                        {
+                            if (info.LogLevel == LogLevel.Error || !info.CategoryName.StartsWith("MyApp"))
+                            {
+                                ZString.Utf8Format(writer, "\u001b[0m", "");
+                            }
+                        };
+#endif
+
+                    }, configureEnableAnsiEscapeCode: true);
+
+
 
                 })
                 .UseConsoleAppFramework<Program>(args)
@@ -235,13 +269,16 @@ namespace ConsoleApp
             public int Bar { get; set; }
         }
 
-        public void Run()
+        public async Task Run()
         {
             for (int i = 0; i < 10; i++)
             {
-                logger.LogDebug("I:" + i);
-                Thread.Sleep(TimeSpan.FromSeconds(2));
+                logger.LogDebug("Debug Message:" + i);
+                logger.LogError("Error Message:" + i);
+                await Task.Delay(TimeSpan.FromSeconds(2), Context.CancellationToken);
             }
+
+
 
             logger.LogDebug("foo");
             logger.Log(LogLevel.Debug, default(EventId), new { a = "tako" }, null, (x, y) => x.a + "yaki");

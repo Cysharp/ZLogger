@@ -143,7 +143,7 @@ namespace ZLogger.Providers
                         }
 
                         var di = new FileInfo(fileName).Directory;
-                        if (!di.Exists)
+                        if (!di!.Exists)
                         {
                             di.Create();
                         }
