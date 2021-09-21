@@ -34,7 +34,7 @@ using System.Runtime.CompilerServices;
 
 namespace ZLogger.Entries
 {
-<# for(var i = 1; i <= 16; i++) { #>
+<# for(var i = 1; i <= 14; i++) { #>
     public struct FormatLogState<TPayload, <#= CreateTypeArgument(i) #>> : IZLoggerState
     {
         public static readonly Func<FormatLogState<TPayload, <#= CreateTypeArgument(i) #>>, LogInfo, IZLoggerEntry> Factory = factory;

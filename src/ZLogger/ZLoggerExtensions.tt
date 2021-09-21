@@ -37,7 +37,7 @@ namespace ZLogger
 {
     public static partial class ZLoggerExtensions
     {
-<# for(var i = 1; i <= 16; i++) { #>
+<# for(var i = 1; i <= 14; i++) { #>
         public static void ZLog<<#= CreateTypeArgument(i) #>>(this ILogger logger, LogLevel logLevel, string format, <#= CreateParameters(i) #>)
         {
             ZLog<<#= CreateTypeArgument(i) #>>(logger, logLevel, default, null, format, <#= CreateParameterNames(i) #>);
