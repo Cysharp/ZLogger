@@ -287,6 +287,10 @@ namespace MyApp
 
             logger.ZLogInformation("{abc=1}");
 
+            logger.ZLog(LogLevel.Information, "{a}");
+
+            logger.ZLogWithPayload(LogLevel.Debug, new { a = 1 }, "{b}");
+
             // new HoGeMoge().Foo();
 
             //logger.LogDebug("foooooo  {0} {1}", 10, 20);
