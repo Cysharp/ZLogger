@@ -130,24 +130,24 @@ namespace ZLogger
 <# } #>
         public static void ZLog(this ILogger logger, LogLevel logLevel, string message)
         {
-            ZLog<object>(logger, logLevel, default, null, message, null!);
+            ZLog(logger, logLevel, default(EventId), default(Exception), message);
         }
 
         public static void ZLog(this ILogger logger, LogLevel logLevel, EventId eventId, string message)
         {
-            ZLog<object>(logger, logLevel, eventId, null, message, null!);
+            ZLog(logger, logLevel, eventId, default(Exception), message);
         }
 
         public static void ZLog(this ILogger logger, LogLevel logLevel, Exception? exception, string message)
         {
-            ZLog<object>(logger, logLevel, default, exception, message, null!);
+            ZLog(logger, logLevel, default(EventId), exception, message);
         }
 
         public static void ZLog(this ILogger logger, LogLevel logLevel, EventId eventId, Exception? exception, string message)
         {
-            logger.Log(logLevel, eventId, new FormatLogState<object, object>(null, message, null!), exception, (state, ex) =>
+            logger.Log(logLevel, eventId, new MessageLogState<object>(null, message), exception, (state, ex) =>
             {
-                return state.Format;
+                return state.Message;
             });
         }
 
@@ -168,9 +168,9 @@ namespace ZLogger
 
         public static void ZLogWithPayload<TPayload>(this ILogger logger, LogLevel logLevel, EventId eventId, Exception? exception, TPayload payload, string message)
         {
-            logger.Log(logLevel, eventId, new FormatLogState<TPayload, object>(payload, message, null!), exception, (state, ex) =>
+            logger.Log(logLevel, eventId, new MessageLogState<TPayload>(payload, message), exception, (state, ex) =>
             {
-                return message;
+                return state.Message;
             });
         }
 
