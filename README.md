@@ -83,7 +83,7 @@ public class MyClass
     readonly ILogger<MyClass> logger;
 
     // get logger from DI.
-    public class MyClass(ILogger<MyClass> logger)
+    public MyClass(ILogger<MyClass> logger)
     {
         this.logger = logger;
     }
