@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.IO;
@@ -18,7 +18,7 @@ namespace ZLogger.Providers
         {
         }
 
-        public ZLoggerStreamLoggerProvider(Stream stream, string optionName, IOptionsMonitor<ZLoggerOptions> options)
+        public ZLoggerStreamLoggerProvider(Stream stream, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
         {
             this.streamWriter = new AsyncStreamLineMessageWriter(stream, options.Get(optionName ?? DefaultOptionName));
         }

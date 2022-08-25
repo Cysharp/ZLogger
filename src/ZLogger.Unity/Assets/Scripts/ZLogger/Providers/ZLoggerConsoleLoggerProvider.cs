@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Text;
@@ -17,7 +17,7 @@ namespace ZLogger.Providers
         {
         }
 
-        public ZLoggerConsoleLoggerProvider(bool consoleOutputEncodingToUtf8, string optionName, IOptionsMonitor<ZLoggerOptions> options)
+        public ZLoggerConsoleLoggerProvider(bool consoleOutputEncodingToUtf8, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
         {
             if (consoleOutputEncodingToUtf8)
             {

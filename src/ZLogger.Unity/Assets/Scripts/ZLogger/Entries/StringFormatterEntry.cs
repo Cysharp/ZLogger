@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
@@ -36,7 +36,7 @@ namespace ZLogger.Entries
             return entry;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
         {
             var str = formatter(state, exception);
 
@@ -68,21 +68,21 @@ namespace ZLogger.Entries
             }
         }
 
-        public object GetPayload()
+        public object? GetPayload()
         {
             return null;
         }
 
-        public void SwitchCasePayload<TPayload>(Action<IZLoggerEntry, TPayload, object> payloadCallback, object state)
+        public void SwitchCasePayload<TPayload>(Action<IZLoggerEntry, TPayload, object?> payloadCallback, object? state)
         {
         }
 
         public void Return()
         {
-            this.state = default;
-            this.LogInfo = default;
-            this.exception = default;
-            this.formatter = default;
+            this.state = default!;
+            this.LogInfo = default!;
+            this.exception = default!;
+            this.formatter = default!;
         }
     }
 }

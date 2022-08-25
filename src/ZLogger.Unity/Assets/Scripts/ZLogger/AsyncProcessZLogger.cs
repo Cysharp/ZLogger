@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Linq.Expressions;
 using ZLogger.Entries;
@@ -85,7 +85,7 @@ namespace ZLogger
         static class CreateLogEntry<T>
         // where T:IZLoggerState
         {
-            public static readonly Func<T, LogInfo, IZLoggerEntry> factory;
+            public static readonly Func<T, LogInfo, IZLoggerEntry>? factory;
 
             static CreateLogEntry()
             {
@@ -112,7 +112,7 @@ namespace ZLogger
                 }
             }
 
-            static void LogForUnity(System.Reflection.FieldInfo fieldInfo)
+            static void LogForUnity(System.Reflection.FieldInfo? fieldInfo)
             {
 #if UNITY_2018_3_OR_NEWER
                 if(fieldInfo == null)

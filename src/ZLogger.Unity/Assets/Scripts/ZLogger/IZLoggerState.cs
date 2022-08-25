@@ -1,4 +1,4 @@
-namespace ZLogger
+﻿namespace ZLogger
 {
     public interface IZLoggerState
     {

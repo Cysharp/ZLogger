@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -6,22 +6,25 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
 using System.Threading;
+using ZLogger.Entries;
 
 namespace ZLogger
 {
     public class ZLoggerOptions
     {
-        public Action<LogInfo, Exception> InternalErrorLogger { get; set; }
+        public Action<LogInfo, Exception>? InternalErrorLogger { get; set; }
         public TimeSpan? FlushRate { get; set; }
 
         // Options for Text logging
-        public Action<IBufferWriter<byte>, LogInfo> PrefixFormatter { get; set; }
-        public Action<IBufferWriter<byte>, LogInfo> SuffixFormatter { get; set; }
+        public Action<IBufferWriter<byte>, LogInfo>? PrefixFormatter { get; set; }
+        public Action<IBufferWriter<byte>, LogInfo>? SuffixFormatter { get; set; }
         public Action<IBufferWriter<byte>, Exception> ExceptionFormatter { get; set; } = DefaultExceptionLoggingFormatter;
 
         // Options for Structured Logging
         public bool EnableStructuredLogging { get; set; }
         public Action<Utf8JsonWriter, LogInfo> StructuredLoggingFormatter { get; set; } = DefaultStructuredLoggingFormatter;
+
+        // public Action<Utf8JsonWriter, MessageLogState> PayloadLoggingFormatter { get; set; } = DefaultPayloadLoggingFormatter;
         public JsonEncodedText MessagePropertyName { get; set; } = JsonEncodedText.Encode("Message");
         public JsonEncodedText PayloadPropertyName { get; set; } = JsonEncodedText.Encode("Payload");
 
@@ -33,7 +36,7 @@ namespace ZLogger
         };
 
         [ThreadStatic]
-        static Utf8JsonWriter jsonWriter;
+        static Utf8JsonWriter? jsonWriter;
 
         internal Utf8JsonWriter GetThreadStaticUtf8JsonWriter(IBufferWriter<byte> buffer)
         {
@@ -61,6 +64,26 @@ namespace ZLogger
             info.WriteToJsonWriter(writer);
         }
 
+        static void DefaultPayloadLoggingFormatter(Utf8JsonWriter writer, object? payload, 
+            JsonSerializerOptions serializerOptions, ZLoggerOptions zLoggerOptions)
+        {
+            writer.WritePropertyName(zLoggerOptions.PayloadPropertyName);
+            JsonSerializer.Serialize(writer, payload, serializerOptions);
+        }
+
+        // static void FlattenedPayloadLoggingFormatter(Utf8JsonWriter writer, object? payload,
+        //     JsonSerializerOptions serializerOptions, ZLoggerOptions zLoggerOptions)
+        // {
+        //     if (payload is null) return;
+        //
+        //     foreach (var propertyInfo in payload.GetType().GetProperties())
+        //     {
+        //         propertyInfo.PropertyType
+        //         writer.WritePropertyName(propertyInfo.Name);
+        //         propertyInfo.
+        //     }
+        // }
+
         static byte[] newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
 
         static void DefaultExceptionLoggingFormatter(IBufferWriter<byte> writer, Exception exception)
@@ -83,7 +106,7 @@ namespace ZLogger
             var innerException = exception.InnerException;
             var stackTrace = exception.StackTrace; // allocating stacktrace string but okay(shoganai).
 
-            Write(writer, className, ": ", message ?? "");
+            Write(writer, className!, ": ", message ?? "");
             if (innerException != null)
             {
                 Write(writer, Environment.NewLine, " ---> ");

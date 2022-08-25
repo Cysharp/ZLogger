@@ -23,10 +23,15 @@ namespace Benchmark.Benchmarks
                 .CreateLogger();
 
             var serviceCollection = new ServiceCollection();
+            void Options(ZLoggerOptions options)
+            {
+                options.EnableStructuredLogging = true;
+                options.PayloadLoggingFormatter = ZLoggerOptions.FlattenedPayloadLoggingFormatter;
+            }
             serviceCollection.AddLogging(options =>
             {
-                options.AddZLoggerFile(@$"C:\logs\{guid}\ZLogger.log");
-                //options.AddZLoggerConsole();
+                options.AddZLoggerFile("/tmp/ZLogger.log", Options);
+                // options.AddZLoggerConsole();
             });
             var serviceProvider = serviceCollection.BuildServiceProvider();
             ZLogger = serviceProvider.GetService<ILoggerProvider>();
@@ -45,6 +50,16 @@ namespace Benchmark.Benchmarks
         public void ZFile()
         {
             ZLoggerLogger.ZLogInformation("foo{0} bar{1} nazo{2}", 10, 20, 30);
+        }
+
+        [Benchmark]
+        public void ZFileWithPayload()
+        {
+            var payload = new {
+                Test = "test",
+                Num = 4
+            };
+            ZLoggerLogger.ZLogInformationWithPayload(payload, "foo{0} bar{1} nazo{2}", 10, 20, 30);
         }
 
 

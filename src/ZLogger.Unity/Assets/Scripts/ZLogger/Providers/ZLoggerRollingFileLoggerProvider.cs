@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -20,7 +20,7 @@ namespace ZLogger.Providers
         {
         }
 
-        public ZLoggerRollingFileLoggerProvider(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, string optionName, IOptionsMonitor<ZLoggerOptions> options)
+        public ZLoggerRollingFileLoggerProvider(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
         {
             var opt = options.Get(optionName ?? DefaultOptionName);
             var stream = new RollingFileStream(fileNameSelector, timestampPattern, rollSizeKB, opt);

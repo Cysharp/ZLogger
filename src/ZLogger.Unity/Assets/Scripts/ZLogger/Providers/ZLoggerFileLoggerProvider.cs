@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -20,10 +20,10 @@ namespace ZLogger.Providers
         {
         }
 
-        public ZLoggerFileLoggerProvider(string filePath, string optionName, IOptionsMonitor<ZLoggerOptions> options)
+        public ZLoggerFileLoggerProvider(string filePath, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
         {
             var di = new FileInfo(filePath).Directory;
-            if (!di.Exists)
+            if (!di!.Exists)
             {
                 di.Create();
             }

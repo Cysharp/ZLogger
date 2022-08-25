@@ -98,9 +98,7 @@ namespace ZLogger.Entries
                     sb.AppendFormat(state.Format, state.Arg1);
                     jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -175,9 +173,7 @@ namespace ZLogger.Entries
                 {
                     sb.Dispose();
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -303,9 +299,7 @@ namespace ZLogger.Entries
                     sb.AppendFormat(state.Format, state.Arg1, state.Arg2);
                     jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -380,9 +374,7 @@ namespace ZLogger.Entries
                 {
                     sb.Dispose();
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -513,8 +505,7 @@ namespace ZLogger.Entries
                     jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
                 }
 
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -589,9 +580,7 @@ namespace ZLogger.Entries
                 {
                     sb.Dispose();
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -725,9 +714,7 @@ namespace ZLogger.Entries
                     sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4);
                     jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -802,9 +789,7 @@ namespace ZLogger.Entries
                 {
                     sb.Dispose();
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -942,9 +927,7 @@ namespace ZLogger.Entries
                     sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5);
                     jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -1019,9 +1002,7 @@ namespace ZLogger.Entries
                 {
                     sb.Dispose();
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -1163,9 +1144,7 @@ namespace ZLogger.Entries
                     sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6);
                     jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -1240,9 +1219,7 @@ namespace ZLogger.Entries
                 {
                     sb.Dispose();
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -1388,9 +1365,7 @@ namespace ZLogger.Entries
                     sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7);
                     jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -1465,9 +1440,7 @@ namespace ZLogger.Entries
                 {
                     sb.Dispose();
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -1617,9 +1590,7 @@ namespace ZLogger.Entries
                     sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8);
                     jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -1694,9 +1665,7 @@ namespace ZLogger.Entries
                 {
                     sb.Dispose();
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -1850,9 +1819,7 @@ namespace ZLogger.Entries
                     sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9);
                     jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -1927,9 +1894,7 @@ namespace ZLogger.Entries
                 {
                     sb.Dispose();
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -2087,9 +2052,7 @@ namespace ZLogger.Entries
                     sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10);
                     jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -2164,9 +2127,7 @@ namespace ZLogger.Entries
                 {
                     sb.Dispose();
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -2328,9 +2289,7 @@ namespace ZLogger.Entries
                     sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11);
                     jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -2405,9 +2364,7 @@ namespace ZLogger.Entries
                 {
                     sb.Dispose();
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -2573,9 +2530,7 @@ namespace ZLogger.Entries
                     sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12);
                     jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -2650,9 +2605,7 @@ namespace ZLogger.Entries
                 {
                     sb.Dispose();
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -2822,9 +2775,7 @@ namespace ZLogger.Entries
                     sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13);
                     jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -2899,9 +2850,7 @@ namespace ZLogger.Entries
                 {
                     sb.Dispose();
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -3075,9 +3024,7 @@ namespace ZLogger.Entries
                     sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13, state.Arg14);
                     jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {
@@ -3152,9 +3099,7 @@ namespace ZLogger.Entries
                 {
                     sb.Dispose();
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {

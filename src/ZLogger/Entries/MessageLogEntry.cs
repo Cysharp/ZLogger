@@ -72,9 +72,7 @@ namespace ZLogger.Entries
                     sb.Append(state.Message);
                     jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
                 }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                options.PayloadLoggingFormatter.Invoke(jsonWriter, state.Payload, options.JsonSerializerOptions, options);
             }
             else
             {

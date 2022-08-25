@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>netstandard2.0;netcoreapp3.1;net5.0</TargetFrameworks>
+        <TargetFrameworks>netstandard2.0;netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
         <Nullable>enable</Nullable>
         <LangVersion>8.0</LangVersion>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -77,16 +77,16 @@
     </ItemGroup>
 
     <!-- Copy files for Unity -->
-    <PropertyGroup>
-        <DestinationRoot>$(MSBuildProjectDirectory)\..\ZLogger.Unity\Assets\Scripts\ZLogger\</DestinationRoot>
-    </PropertyGroup>
-    <ItemGroup>
-        <TargetFiles1 Include="$(MSBuildProjectDirectory)\**\*.cs" Exclude="**\bin\**\*.*;**\obj\**\*.*;_InternalVisibleTo.cs" />
-    </ItemGroup>
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-        <Copy SourceFiles="@(TargetFiles1)" DestinationFiles="$(DestinationRoot)\%(RecursiveDir)%(Filename)%(Extension)" SkipUnchangedFiles="true" />
+<!--    <PropertyGroup>-->
+<!--        <DestinationRoot>$(MSBuildProjectDirectory)\..\ZLogger.Unity\Assets\Scripts\ZLogger\</DestinationRoot>-->
+<!--    </PropertyGroup>-->
+<!--    <ItemGroup>-->
+<!--        <TargetFiles1 Include="$(MSBuildProjectDirectory)\**\*.cs" Exclude="**\bin\**\*.*;**\obj\**\*.*;_InternalVisibleTo.cs" />-->
+<!--    </ItemGroup>-->
+<!--    <Target Name="PostBuild" AfterTargets="PostBuildEvent">-->
+<!--        <Copy SourceFiles="@(TargetFiles1)" DestinationFiles="$(DestinationRoot)\%(RecursiveDir)%(Filename)%(Extension)" SkipUnchangedFiles="true" />-->
 
-        <!-- After copy, remove nullable reference -->
-        <Exec Command="dotnet run --no-build -c $(ConfigurationName) --project $(MSBuildProjectDirectory)\..\..\tools\CommandTools\CommandTools.csproj -- remove-nullable-reference $(DestinationRoot)" />
-    </Target>
+<!--        &lt;!&ndash; After copy, remove nullable reference &ndash;&gt;-->
+<!--        <Exec Command="dotnet run &#45;&#45;no-build -c $(ConfigurationName) &#45;&#45;project $(MSBuildProjectDirectory)\..\..\tools\CommandTools\CommandTools.csproj &#45;&#45; remove-nullable-reference $(DestinationRoot)" />-->
+<!--    </Target>-->
 </Project>

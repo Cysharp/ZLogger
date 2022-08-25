@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -54,7 +54,7 @@ namespace ZLogger
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetForNewLine([NotNullWhen(true)]out byte[] rawBuffer, out int rawWritten)
+        public bool TryGetForNewLine([NotNullWhen(true)]out byte[]? rawBuffer, out int rawWritten)
         {
             if (buffer.Length - written > 2)
             {

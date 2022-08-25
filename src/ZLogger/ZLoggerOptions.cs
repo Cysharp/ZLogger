@@ -22,6 +22,8 @@ namespace ZLogger
         // Options for Structured Logging
         public bool EnableStructuredLogging { get; set; }
         public Action<Utf8JsonWriter, LogInfo> StructuredLoggingFormatter { get; set; } = DefaultStructuredLoggingFormatter;
+
+        public Action<Utf8JsonWriter, object?, JsonSerializerOptions, ZLoggerOptions> PayloadLoggingFormatter { get; set; } = DefaultPayloadLoggingFormatter;
         public JsonEncodedText MessagePropertyName { get; set; } = JsonEncodedText.Encode("Message");
         public JsonEncodedText PayloadPropertyName { get; set; } = JsonEncodedText.Encode("Payload");
 
@@ -59,6 +61,24 @@ namespace ZLogger
         static void DefaultStructuredLoggingFormatter(Utf8JsonWriter writer, LogInfo info)
         {
             info.WriteToJsonWriter(writer);
+        }
+
+        static void DefaultPayloadLoggingFormatter(Utf8JsonWriter writer, object? payload, 
+            JsonSerializerOptions serializerOptions, ZLoggerOptions zLoggerOptions)
+        {
+            writer.WritePropertyName(zLoggerOptions.PayloadPropertyName);
+            JsonSerializer.Serialize(writer, payload, serializerOptions);
+        }
+
+        public static void FlattenedPayloadLoggingFormatter(Utf8JsonWriter writer, object? payload,
+            JsonSerializerOptions serializerOptions, ZLoggerOptions zLoggerOptions)
+        {
+            if (payload is null) return;
+        
+            foreach (var propertyInfo in payload.GetType().GetProperties())
+            {
+                writer.WriteString(propertyInfo.Name, propertyInfo.GetValue(payload).ToString());
+            }
         }
 
         static byte[] newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
