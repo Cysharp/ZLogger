@@ -7,7 +7,14 @@
     "keywords": ["logging"],
     "license": "MIT",
     "category": "Logger",
-    "dependencies": {},
+    "dependencies": {
+      "org.nuget.microsoft.bcl.asyncinterfaces": "6.0.0",
+      "org.nuget.microsoft.extensions.configuration.binder": "6.0.0",
+      "org.nuget.microsoft.extensions.dependencyinjection": "6.0.0",
+      "org.nuget.microsoft.extensions.logging.configuration": "6.0.0",
+      "org.nuget.system.text.json": "6.0.5",
+      "org.nuget.system.threading.channels": "6.0.0"
+    },
     "samples": [
       {
         "displayName": "Import Managed DLL Dependencies to Plugins",
