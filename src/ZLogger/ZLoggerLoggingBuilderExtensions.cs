@@ -11,7 +11,7 @@ namespace ZLogger
 {
     public static class ZLoggerLoggingBuilderExtensions
     {
-        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, bool consoleOutputEncodingToUtf8 = true, bool configureEnableAnsiEscapeCode = false)
+        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, bool consoleOutputEncodingToUtf8 = true, bool configureEnableAnsiEscapeCode = false, bool outputToErrorStream = false)
         {
             if (configureEnableAnsiEscapeCode)
             {
@@ -19,23 +19,18 @@ namespace ZLogger
             }
 
             builder.AddConfiguration();
-            builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerConsoleLoggerProvider>(x => new ZLoggerConsoleLoggerProvider(consoleOutputEncodingToUtf8, null, x.GetService<IOptionsMonitor<ZLoggerOptions>>())));
+            builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerConsoleLoggerProvider>(x => new ZLoggerConsoleLoggerProvider(consoleOutputEncodingToUtf8, outputToErrorStream, null, x.GetService<IOptionsMonitor<ZLoggerOptions>>())));
             LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerConsoleLoggerProvider>(builder.Services);
 
             return builder;
         }
 
-        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, Action<ZLoggerOptions> configure, bool consoleOutputEncodingToUtf8 = true, bool configureEnableAnsiEscapeCode = false)
+        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, Action<ZLoggerOptions> configure, bool consoleOutputEncodingToUtf8 = true, bool configureEnableAnsiEscapeCode = false, bool outputToErrorStream = false)
         {
-            if (configureEnableAnsiEscapeCode)
-            {
-                EnableAnsiEscapeCode();
-            }
-
-            return AddZLoggerConsole(builder, ZLoggerConsoleLoggerProvider.DefaultOptionName, configure, consoleOutputEncodingToUtf8);
+            return AddZLoggerConsole(builder, ZLoggerConsoleLoggerProvider.DefaultOptionName, configure, consoleOutputEncodingToUtf8: consoleOutputEncodingToUtf8, configureEnableAnsiEscapeCode: configureEnableAnsiEscapeCode, outputToErrorStream: outputToErrorStream);
         }
 
-        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, string optionName, Action<ZLoggerOptions> configure, bool consoleOutputEncodingToUtf8 = true, bool configureEnableAnsiEscapeCode = false)
+        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, string optionName, Action<ZLoggerOptions> configure, bool consoleOutputEncodingToUtf8 = true, bool configureEnableAnsiEscapeCode = false, bool outputToErrorStream = false)
         {
             if (configureEnableAnsiEscapeCode)
             {
@@ -48,7 +43,7 @@ namespace ZLogger
             }
 
             builder.AddConfiguration();
-            builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerConsoleLoggerProvider>(x => new ZLoggerConsoleLoggerProvider(consoleOutputEncodingToUtf8, optionName, x.GetService<IOptionsMonitor<ZLoggerOptions>>())));
+            builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerConsoleLoggerProvider>(x => new ZLoggerConsoleLoggerProvider(consoleOutputEncodingToUtf8, outputToErrorStream, optionName, x.GetService<IOptionsMonitor<ZLoggerOptions>>())));
             LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerConsoleLoggerProvider>(builder.Services);
 
             builder.Services.AddOptions<ZLoggerOptions>(optionName).Configure(configure);

@@ -197,7 +197,7 @@ logging.AddZLoggerConsole();
 
 It is useful for ConsoleApplication and containerized applications on cloud. For example, AWS CloudWatch, GCP Stackdriver Logging, and Datadog Logs agent collect data on the standard output. This is especially useful for debugging and analysis if these are output in a structured log.
 
-If `consoleOutputEncodingToUtf8 = true`(default is true), set `Console.OutputEncoding = new UTF8Encoding(false)` when the provider is created.
+If `consoleOutputEncodingToUtf8 = true`(default is true), set `Console.OutputEncoding = new UTF8Encoding(false)` when the provider is created. If `outputToErrorStream = false`(default is false), use standard error output.
 
 ### File
 

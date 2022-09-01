@@ -18,6 +18,11 @@ namespace ZLogger.Providers
         }
 
         public ZLoggerConsoleLoggerProvider(bool consoleOutputEncodingToUtf8, string optionName, IOptionsMonitor<ZLoggerOptions> options)
+            : this(consoleOutputEncodingToUtf8, false, optionName, options)
+        {
+        }
+
+        public ZLoggerConsoleLoggerProvider(bool consoleOutputEncodingToUtf8, bool outputToErrorStream, string optionName, IOptionsMonitor<ZLoggerOptions> options)
         {
             if (consoleOutputEncodingToUtf8)
             {
@@ -25,7 +30,8 @@ namespace ZLogger.Providers
             }
 
             var opt = options.Get(optionName ?? DefaultOptionName);
-            this.streamWriter = new AsyncStreamLineMessageWriter(Console.OpenStandardOutput(), opt);
+            var stream = outputToErrorStream ? Console.OpenStandardError() : Console.OpenStandardOutput();
+            this.streamWriter = new AsyncStreamLineMessageWriter(stream, opt);
         }
 
         public ILogger CreateLogger(string categoryName)
