@@ -10,9 +10,9 @@ namespace ZLogger
         public readonly DateTimeOffset Timestamp;
         public readonly LogLevel LogLevel;
         public readonly EventId EventId;
-        public readonly Exception Exception;
+        public readonly Exception? Exception;
 
-        public LogInfo(string categoryName, DateTimeOffset timestamp, LogLevel logLevel, EventId eventId, Exception exception)
+        public LogInfo(string categoryName, DateTimeOffset timestamp, LogLevel logLevel, EventId eventId, Exception? exception)
         {
             EventId = eventId;
             CategoryName = categoryName;
@@ -52,7 +52,7 @@ namespace ZLogger
             WriteException(writer, Exception);
         }
 
-        static void WriteException(Utf8JsonWriter writer, Exception ex)
+        static void WriteException(Utf8JsonWriter writer, Exception? ex)
         {
             if (ex == null)
             {

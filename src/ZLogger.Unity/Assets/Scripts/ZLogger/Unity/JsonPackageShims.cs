@@ -1,3 +1,5 @@
+#nullable disable
+
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -65,8 +67,19 @@ namespace System.Text.Json
     public sealed class JsonSerializerOptions
     {
         public bool WriteIndented { get; set; }
-        public bool IgnoreNullValues { get; set; }
+        public System.Text.Json.Serialization.JsonIgnoreCondition DefaultIgnoreCondition { get; set; }
         public JavaScriptEncoder Encoder { get; set; }
+    }
+}
+
+namespace System.Text.Json.Serialization
+{
+    public enum JsonIgnoreCondition
+    {
+        Never,
+        Always,
+        WhenWritingDefault,
+        WhenWritingNull
     }
 }
 

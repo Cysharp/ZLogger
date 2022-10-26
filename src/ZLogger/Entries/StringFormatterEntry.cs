@@ -14,14 +14,14 @@ namespace ZLogger.Entries
 
 #pragma warning disable CS8618
         TState state;
-        Exception exception;
-        Func<TState, Exception, string> formatter;
+        Exception? exception;
+        Func<TState, Exception?, string> formatter;
 
         public LogInfo LogInfo { get; private set; }
 
 #pragma warning restore CS8618
 
-        public static StringFormatterEntry<TState> Create(LogInfo info, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public static StringFormatterEntry<TState> Create(LogInfo info, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             if (!cache.TryDequeue(out var entry))
             {

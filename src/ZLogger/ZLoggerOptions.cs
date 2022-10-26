@@ -3,9 +3,10 @@ using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Encodings.Web;
-using System.Text.Json;
 using System.Text.Unicode;
 using System.Threading;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ZLogger
 {
@@ -28,7 +29,7 @@ namespace ZLogger
         public JsonSerializerOptions JsonSerializerOptions { get; set; } = new JsonSerializerOptions
         {
             WriteIndented = false,
-            IgnoreNullValues = false,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
 

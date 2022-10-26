@@ -40,12 +40,12 @@ namespace ZLogger.Entries
         public static readonly Func<FormatLogState<TPayload, <#= CreateTypeArgument(i) #>>, LogInfo, IZLoggerEntry> Factory = factory;
 
         public readonly TPayload Payload;
-        public readonly string? Format;
+        public readonly string Format;
 <# for(var j = 0; j < i; j++) { #>
         public readonly T<#= j + 1 #> Arg<#= j + 1 #>;
 <# } #>
 
-        public FormatLogState([AllowNull]TPayload payload, string? format, <#= CreateParameters(i) #>)
+        public FormatLogState([AllowNull]TPayload payload, string format, <#= CreateParameters(i) #>)
         {
             Payload = payload;
             Format = format;

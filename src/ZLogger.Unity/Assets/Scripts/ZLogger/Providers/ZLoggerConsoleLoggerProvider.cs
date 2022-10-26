@@ -17,12 +17,12 @@ namespace ZLogger.Providers
         {
         }
 
-        public ZLoggerConsoleLoggerProvider(bool consoleOutputEncodingToUtf8, string optionName, IOptionsMonitor<ZLoggerOptions> options)
+        public ZLoggerConsoleLoggerProvider(bool consoleOutputEncodingToUtf8, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
             : this(consoleOutputEncodingToUtf8, false, optionName, options)
         {
         }
 
-        public ZLoggerConsoleLoggerProvider(bool consoleOutputEncodingToUtf8, bool outputToErrorStream, string optionName, IOptionsMonitor<ZLoggerOptions> options)
+        public ZLoggerConsoleLoggerProvider(bool consoleOutputEncodingToUtf8, bool outputToErrorStream, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
         {
             if (consoleOutputEncodingToUtf8)
             {

@@ -24,7 +24,7 @@ namespace CommandTools
         }
 
         [Command("remove-nullable-reference")]
-        public void RemoveNullableReferenceDefine([Option(0)]string directory)
+        public void RemoveNullableReferenceDefine([Option(0)] string directory)
         {
             var mutex = new Mutex(false, "ZLogger." + nameof(RemoveNullableReferenceDefine));
             if (!mutex.WaitOne(0, false))
@@ -35,23 +35,24 @@ namespace CommandTools
 
             var replaceSet = new Dictionary<string, string>
             {
-                {"Exception?", "Exception" },
-                {"Action<LogInfo, Exception>?", "Action<LogInfo, Exception>" },
-                {"Utf8JsonWriter?", "Utf8JsonWriter" },
-                {"string?", "string" },
-                {"object?", "object" },
-                {"default!", "default" },
-                {"fn!", "fn" },
-                {"di!", "di" },
-                {"byte[]?", "byte[]" },
-                {"null!", "null" },
-                {"className!", "className" },
-                {"Action<Utf8JsonWriter, LogInfo>?", "Action<Utf8JsonWriter, LogInfo>" },
-                {"Action<IBufferWriter<byte>, LogInfo>?", "Action<IBufferWriter<byte>, LogInfo>" },
-                {"Action<Exception>?", "Action<Exception>" },
-                {"Func<T, LogInfo, IZLoggerEntry>?", "Func<T, LogInfo, IZLoggerEntry>" },
-                {"ToString()!", "ToString()" },
-                {"FieldInfo?", "FieldInfo" }
+                // keeping nullable.
+                //{"Exception?", "Exception" },
+                //{"Action<LogInfo, Exception>?", "Action<LogInfo, Exception>" },
+                //{"Utf8JsonWriter?", "Utf8JsonWriter" },
+                //{"string?", "string" },
+                //{"object?", "object" },
+                //{"default!", "default" },
+                //{"fn!", "fn" },
+                //{"di!", "di" },
+                //{"byte[]?", "byte[]" },
+                //{"null!", "null" },
+                //{"className!", "className" },
+                //{"Action<Utf8JsonWriter, LogInfo>?", "Action<Utf8JsonWriter, LogInfo>" },
+                //{"Action<IBufferWriter<byte>, LogInfo>?", "Action<IBufferWriter<byte>, LogInfo>" },
+                //{"Action<Exception>?", "Action<Exception>" },
+                //{"Func<T, LogInfo, IZLoggerEntry>?", "Func<T, LogInfo, IZLoggerEntry>" },
+                //{"ToString()!", "ToString()" },
+                //{"FieldInfo?", "FieldInfo" }
             };
 
             System.Console.WriteLine("Start to remove nullable reference.");
@@ -72,9 +73,9 @@ namespace CommandTools
         }
 
         [Command("collect-dll")]
-        public void CollectDll([Option(0)]string dest)
+        public void CollectDll([Option(0)] string dest)
         {
-            const string ExtensionsVersion = "3.1.0";
+            const string ExtensionsVersion = "6.0.0";
 
             var dict = new Dictionary<string, string>
             {
@@ -89,17 +90,23 @@ namespace CommandTools
                 {"Microsoft.Extensions.Options", ExtensionsVersion },
                 {"Microsoft.Extensions.Options.ConfigurationExtensions", ExtensionsVersion },
                 {"Microsoft.Extensions.Primitives", ExtensionsVersion },
+                {"System.Runtime.CompilerServices.Unsafe", ExtensionsVersion },
+                {"System.Threading.Channels", ExtensionsVersion },
 
-                {"Microsoft.Bcl.AsyncInterfaces", "1.1.0" },
-                {"System.Threading.Channels", "4.7.0" },
+                //{"Microsoft.Bcl.AsyncInterfaces", "1.1.0" },
             };
 
             foreach (var item in dict)
             {
-                var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages", item.Key.ToLower(), item.Value, "lib", "netstandard2.0");
+                var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages", item.Key.ToLower(), item.Value, "lib", "netstandard2.1");
                 if (!Directory.Exists(path))
                 {
-                    throw new InvalidOperationException("Directory does not exists. Path: " + path);
+                    // fallback to 2.0
+                    path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages", item.Key.ToLower(), item.Value, "lib", "netstandard2.0");
+                    if (!Directory.Exists(path))
+                    {
+                        throw new InvalidOperationException("Directory does not exists. Path: " + path);
+                    }
                 }
 
                 foreach (var file in Directory.GetFiles(path, "*.dll", SearchOption.TopDirectoryOnly))
@@ -113,7 +120,7 @@ namespace CommandTools
 
         // build-table-of-contents ../../../../../ReadMe.md
         [Command("build-table-of-contents")]
-        public void BuildTableOfContents([Option(0)]string readMePath)
+        public void BuildTableOfContents([Option(0)] string readMePath)
         {
             var md = Markdig.Markdown.Parse(File.ReadAllText(readMePath));
 

@@ -84,7 +84,7 @@ namespace ZLogger.Providers
                     sequenceNo = ExtractCurrentSequence(fileName) + 1;
                 }
 
-                string fn = null;
+                string? fn = null;
                 while (true)
                 {
                     try
@@ -131,7 +131,7 @@ namespace ZLogger.Providers
 
                     try
                     {
-                        fileName = fn;
+                        fileName = fn!;
                         currentTimestampPattern = ts;
                         if (File.Exists(fileName))
                         {
@@ -143,7 +143,7 @@ namespace ZLogger.Providers
                         }
 
                         var di = new FileInfo(fileName).Directory;
-                        if (!di.Exists)
+                        if (!di!.Exists)
                         {
                             di.Create();
                         }
