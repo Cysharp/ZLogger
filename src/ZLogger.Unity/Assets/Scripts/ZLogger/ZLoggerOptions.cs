@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.Unicode;
 using System.Threading;
 
@@ -11,12 +12,12 @@ namespace ZLogger
 {
     public class ZLoggerOptions
     {
-        public Action<LogInfo, Exception> InternalErrorLogger { get; set; }
+        public Action<LogInfo, Exception>? InternalErrorLogger { get; set; }
         public TimeSpan? FlushRate { get; set; }
 
         // Options for Text logging
-        public Action<IBufferWriter<byte>, LogInfo> PrefixFormatter { get; set; }
-        public Action<IBufferWriter<byte>, LogInfo> SuffixFormatter { get; set; }
+        public Action<IBufferWriter<byte>, LogInfo>? PrefixFormatter { get; set; }
+        public Action<IBufferWriter<byte>, LogInfo>? SuffixFormatter { get; set; }
         public Action<IBufferWriter<byte>, Exception> ExceptionFormatter { get; set; } = DefaultExceptionLoggingFormatter;
 
         // Options for Structured Logging
@@ -28,12 +29,12 @@ namespace ZLogger
         public JsonSerializerOptions JsonSerializerOptions { get; set; } = new JsonSerializerOptions
         {
             WriteIndented = false,
-            IgnoreNullValues = false,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
 
         [ThreadStatic]
-        static Utf8JsonWriter jsonWriter;
+        static Utf8JsonWriter? jsonWriter;
 
         internal Utf8JsonWriter GetThreadStaticUtf8JsonWriter(IBufferWriter<byte> buffer)
         {
@@ -83,7 +84,7 @@ namespace ZLogger
             var innerException = exception.InnerException;
             var stackTrace = exception.StackTrace; // allocating stacktrace string but okay(shoganai).
 
-            Write(writer, className, ": ", message ?? "");
+            Write(writer, className!, ": ", message ?? "");
             if (innerException != null)
             {
                 Write(writer, Environment.NewLine, " ---> ");

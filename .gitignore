@@ -25,7 +25,6 @@ x64/
 *.pdb
 *.pgc
 *.pgd
-*.rsp
 *.sbr
 *.tlb
 *.tli
@@ -136,3 +135,5 @@ src/ZLogger.Unity/ZLogger.csproj
 src/ZLogger.Unity/ZLogger.Unity.sln
 
 src/ZLogger.Unity/ZString.csproj
+
+src/ZLogger.Unity/*.csproj

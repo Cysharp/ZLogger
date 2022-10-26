@@ -7,7 +7,7 @@ namespace ZLogger
 {
     public class AsyncProcessZLogger : ILogger
     {
-        readonly Func<string, Exception, string> ReturnStringStateFormatter = (state, _) => state;
+        readonly Func<string, Exception?, string> ReturnStringStateFormatter = (state, _) => state;
 
         readonly string categoryName;
         readonly IAsyncLogProcessor logProcessor;
@@ -18,7 +18,7 @@ namespace ZLogger
             this.logProcessor = logProcessor;
         }
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             var factory = CreateLogEntry<TState>.factory;
             if (factory != null)

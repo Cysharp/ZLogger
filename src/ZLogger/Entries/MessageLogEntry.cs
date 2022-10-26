@@ -18,9 +18,9 @@ namespace ZLogger.Entries
         public static readonly Func<MessageLogState<TPayload>, LogInfo, IZLoggerEntry> Factory = factory;
 
         public readonly TPayload Payload;
-        public readonly string? Message;
+        public readonly string Message;
 
-        public MessageLogState([AllowNull]TPayload payload, string? message)
+        public MessageLogState([AllowNull]TPayload payload, string message)
         {
             Payload = payload;
             Message = message;
