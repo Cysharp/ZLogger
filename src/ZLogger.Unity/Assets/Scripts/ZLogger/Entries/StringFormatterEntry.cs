@@ -17,7 +17,7 @@ namespace ZLogger.Entries
         Exception? exception;
         Func<TState, Exception?, string> formatter;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
 
 #pragma warning restore CS8618
 

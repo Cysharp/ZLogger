@@ -69,7 +69,8 @@ namespace ZLogger.Entries
 
         FormatLogState<TPayload, T1> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         FormatLogEntry()
         {
@@ -141,7 +142,8 @@ namespace ZLogger.Entries
 
         PreparedFormatLogState<TPayload, T1> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         PreparedFormatLogEntry()
         {
@@ -274,7 +276,8 @@ namespace ZLogger.Entries
 
         FormatLogState<TPayload, T1, T2> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         FormatLogEntry()
         {
@@ -346,7 +349,8 @@ namespace ZLogger.Entries
 
         PreparedFormatLogState<TPayload, T1, T2> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         PreparedFormatLogEntry()
         {
@@ -483,7 +487,8 @@ namespace ZLogger.Entries
 
         FormatLogState<TPayload, T1, T2, T3> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         FormatLogEntry()
         {
@@ -555,7 +560,8 @@ namespace ZLogger.Entries
 
         PreparedFormatLogState<TPayload, T1, T2, T3> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         PreparedFormatLogEntry()
         {
@@ -696,7 +702,8 @@ namespace ZLogger.Entries
 
         FormatLogState<TPayload, T1, T2, T3, T4> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         FormatLogEntry()
         {
@@ -768,7 +775,8 @@ namespace ZLogger.Entries
 
         PreparedFormatLogState<TPayload, T1, T2, T3, T4> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         PreparedFormatLogEntry()
         {
@@ -913,7 +921,8 @@ namespace ZLogger.Entries
 
         FormatLogState<TPayload, T1, T2, T3, T4, T5> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         FormatLogEntry()
         {
@@ -985,7 +994,8 @@ namespace ZLogger.Entries
 
         PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         PreparedFormatLogEntry()
         {
@@ -1134,7 +1144,8 @@ namespace ZLogger.Entries
 
         FormatLogState<TPayload, T1, T2, T3, T4, T5, T6> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         FormatLogEntry()
         {
@@ -1206,7 +1217,8 @@ namespace ZLogger.Entries
 
         PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         PreparedFormatLogEntry()
         {
@@ -1359,7 +1371,8 @@ namespace ZLogger.Entries
 
         FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         FormatLogEntry()
         {
@@ -1431,7 +1444,8 @@ namespace ZLogger.Entries
 
         PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         PreparedFormatLogEntry()
         {
@@ -1588,7 +1602,8 @@ namespace ZLogger.Entries
 
         FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         FormatLogEntry()
         {
@@ -1660,7 +1675,8 @@ namespace ZLogger.Entries
 
         PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         PreparedFormatLogEntry()
         {
@@ -1821,7 +1837,8 @@ namespace ZLogger.Entries
 
         FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         FormatLogEntry()
         {
@@ -1893,7 +1910,8 @@ namespace ZLogger.Entries
 
         PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         PreparedFormatLogEntry()
         {
@@ -2058,7 +2076,8 @@ namespace ZLogger.Entries
 
         FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         FormatLogEntry()
         {
@@ -2130,7 +2149,8 @@ namespace ZLogger.Entries
 
         PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         PreparedFormatLogEntry()
         {
@@ -2299,7 +2319,8 @@ namespace ZLogger.Entries
 
         FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         FormatLogEntry()
         {
@@ -2371,7 +2392,8 @@ namespace ZLogger.Entries
 
         PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         PreparedFormatLogEntry()
         {
@@ -2544,7 +2566,8 @@ namespace ZLogger.Entries
 
         FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         FormatLogEntry()
         {
@@ -2616,7 +2639,8 @@ namespace ZLogger.Entries
 
         PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         PreparedFormatLogEntry()
         {
@@ -2793,7 +2817,8 @@ namespace ZLogger.Entries
 
         FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         FormatLogEntry()
         {
@@ -2865,7 +2890,8 @@ namespace ZLogger.Entries
 
         PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         PreparedFormatLogEntry()
         {
@@ -3046,7 +3072,8 @@ namespace ZLogger.Entries
 
         FormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         FormatLogEntry()
         {
@@ -3118,7 +3145,8 @@ namespace ZLogger.Entries
 
         PreparedFormatLogState<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
+
 
         PreparedFormatLogEntry()
         {

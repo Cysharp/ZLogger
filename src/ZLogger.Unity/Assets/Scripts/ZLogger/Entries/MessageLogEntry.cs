@@ -43,7 +43,7 @@ namespace ZLogger.Entries
 
         MessageLogState<TPayload> state;
 
-        public LogInfo LogInfo { get; private set; }
+        public LogInfo LogInfo { get; set; }
 
         MessageLogEntry()
         {

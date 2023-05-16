@@ -12,7 +12,7 @@ namespace ZLogger
 {
     public class ZLoggerOptions
     {
-        public Action<LogInfo, Exception>? InternalErrorLogger { get; set; }
+        public Action<LogInfo, Exception, IZLoggerEntry?>? InternalErrorLogger { get; set; }
         public TimeSpan? FlushRate { get; set; }
 
         // Options for Text logging

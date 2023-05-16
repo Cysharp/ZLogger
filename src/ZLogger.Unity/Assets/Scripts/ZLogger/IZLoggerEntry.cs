@@ -7,7 +7,7 @@ namespace ZLogger
 {
     public interface IZLoggerEntry
     {
-        LogInfo LogInfo { get; }
+        LogInfo LogInfo { get; set; }
         void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter);
         void SwitchCasePayload<TPayload>(Action<IZLoggerEntry, TPayload, object?> payloadCallback, object? state);
         object? GetPayload();

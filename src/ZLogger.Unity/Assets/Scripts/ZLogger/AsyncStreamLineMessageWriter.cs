@@ -88,6 +88,7 @@ namespace ZLogger
             var writer = new StreamBufferWriter(stream);
             var reader = channel.Reader;
             var sw = Stopwatch.StartNew();
+            IZLoggerEntry? value = default;
             try
             {
                 while (await reader.WaitToReadAsync().ConfigureAwait(false))
@@ -95,9 +96,15 @@ namespace ZLogger
                     LogInfo info = default;
                     try
                     {
-                        while (reader.TryRead(out var value))
+                        while (reader.TryRead(out value))
                         {
                             info = value.LogInfo;
+                            
+                            // OP: try to rewrite event id from payload if exists (see ILogEvent.cs)
+                            var payload = value.GetPayload();
+                            if (payload is ILogEvent logEvent)
+                                value.LogInfo 
+                                    = new LogInfo(info.CategoryName, info.Timestamp, info.LogLevel, logEvent.GetEventId(), info.Exception);
 
                             if (options.EnableStructuredLogging)
                             {
@@ -153,7 +160,7 @@ namespace ZLogger
                         {
                             if (options.InternalErrorLogger != null)
                             {
-                                options.InternalErrorLogger(info, ex);
+                                options.InternalErrorLogger(info, ex, value);
                             }
                             else
                             {
