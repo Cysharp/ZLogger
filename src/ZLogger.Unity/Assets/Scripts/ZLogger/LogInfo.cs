@@ -47,7 +47,7 @@ namespace ZLogger
             writer.WriteString(LogLevelText, LogLevelToEncodedText(LogLevel));
             writer.WriteNumber(EventIdText, EventId.Id);
             writer.WriteString(EventIdNameText, EventId.Name);
-            writer.WriteString(TimestampText, Timestamp);
+            writer.WriteDateTimeOffset(TimestampText, Timestamp);
             writer.WritePropertyName(ExceptionText);
             WriteException(writer, Exception);
         }
