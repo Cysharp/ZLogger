@@ -83,6 +83,8 @@ namespace ZLogger
             }
         }
 
+        private static object allThreadsLock = new();
+
         async Task WriteLoop()
         {
             var writer = new StreamBufferWriter(stream);
@@ -98,61 +100,69 @@ namespace ZLogger
                     {
                         while (reader.TryRead(out value))
                         {
-                            info = value.LogInfo;
-                            
-                            // OP: try to rewrite event id from payload if exists (see ILogEvent.cs)
-                            var payload = value.GetPayload();
-                            if (payload is ILogEvent logEvent)
-                                value.LogInfo 
-                                    = new LogInfo(info.CategoryName, info.Timestamp, info.LogLevel, logEvent.GetEventId(), info.Exception);
-
-                            if (options.EnableStructuredLogging)
+                            // XXX this solves the problem of corruption when alternating threads but I'm not sure why (OP)
+                            lock (allThreadsLock)
                             {
-                                var jsonWriter = options.GetThreadStaticUtf8JsonWriter(writer);
-                                try
-                                {
-                                    jsonWriter.WriteStartObject();
+                                info = value.LogInfo;
 
-                                    value.FormatUtf8(writer, options, jsonWriter);
+                                // OP: try to rewrite event id from payload if exists (see ILogEvent.cs)
+                                var payload = value.GetPayload();
+                                if (payload is ILogEvent logEvent)
+                                    value.LogInfo
+                                        = new LogInfo(info.CategoryName, info.Timestamp, info.LogLevel,
+                                            logEvent.GetEventId(), info.Exception);
+
+                                if (options.EnableStructuredLogging)
+                                {
+                                    var jsonWriter = options.GetThreadStaticUtf8JsonWriter(writer);
+                                    try
+                                    {
+                                        jsonWriter.WriteStartObject();
+
+                                        value.FormatUtf8(writer, options, jsonWriter);
+                                        value.Return();
+
+                                        jsonWriter.WriteEndObject();
+                                        jsonWriter.Flush();
+                                    }
+                                    finally
+                                    {
+                                        jsonWriter.Reset();
+                                    }
+                                }
+                                else
+                                {
+                                    value.FormatUtf8(writer, options, null);
                                     value.Return();
+                                }
 
-                                    jsonWriter.WriteEndObject();
-                                    jsonWriter.Flush();
-                                }
-                                finally
-                                {
-                                    jsonWriter.Reset();
-                                }
+                                AppendLine(writer);
                             }
-                            else
+
+                            info = default;
+
+                            if (options.FlushRate != null && !cancellationTokenSource.IsCancellationRequested)
                             {
-                                value.FormatUtf8(writer, options, null);
-                                value.Return();
-                            }
-
-                            AppendLine(writer);
-                        }
-                        info = default;
-
-                        if (options.FlushRate != null && !cancellationTokenSource.IsCancellationRequested)
-                        {
-                            sw.Stop();
-                            var sleepTime = options.FlushRate.Value - sw.Elapsed;
-                            if (sleepTime > TimeSpan.Zero)
-                            {
-                                try
+                                sw.Stop();
+                                var sleepTime = options.FlushRate.Value - sw.Elapsed;
+                                if (sleepTime > TimeSpan.Zero)
                                 {
-                                    await Task.Delay(sleepTime, cancellationTokenSource.Token).ConfigureAwait(false);
-                                }
-                                catch (OperationCanceledException)
-                                {
+                                    try
+                                    {
+                                        await Task.Delay(sleepTime, cancellationTokenSource.Token)
+                                            .ConfigureAwait(false);
+                                    }
+                                    catch (OperationCanceledException)
+                                    {
+                                    }
                                 }
                             }
-                        }
-                        writer.Flush(); // flush before wait.
 
-                        sw.Reset();
-                        sw.Start();
+                            writer.Flush(); // flush before wait.
+
+                            sw.Reset();
+                            sw.Start();
+                        }
                     }
                     catch (Exception ex)
                     {
