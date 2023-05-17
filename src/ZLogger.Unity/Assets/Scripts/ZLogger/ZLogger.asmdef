@@ -1,7 +1,9 @@
 {
     "name": "ZLogger",
+    "rootNamespace": "",
     "references": [
-        "ZString"
+        "ZString",
+        "Utf8Json"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -10,5 +12,6 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": []
+    "versionDefines": [],
+    "noEngineReferences": false
 }
