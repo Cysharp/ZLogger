@@ -1,19 +1,23 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Text.Json;
+using System.Threading;
 
 namespace ZLogger
 {
     public readonly struct LogInfo
     {
+        public readonly int LogId;
         public readonly string CategoryName;
         public readonly DateTimeOffset Timestamp;
         public readonly LogLevel LogLevel;
         public readonly EventId EventId;
         public readonly Exception? Exception;
 
-        public LogInfo(string categoryName, DateTimeOffset timestamp, LogLevel logLevel, EventId eventId, Exception? exception)
+        public LogInfo(int logId, string categoryName, DateTimeOffset timestamp, LogLevel logLevel, EventId eventId,
+            Exception? exception)
         {
+            LogId = logId;
             EventId = eventId;
             CategoryName = categoryName;
             Timestamp = timestamp;
@@ -27,7 +31,7 @@ namespace ZLogger
         static readonly JsonEncodedText EventIdText = JsonEncodedText.Encode(nameof(EventId));
         static readonly JsonEncodedText EventIdNameText = JsonEncodedText.Encode("EventIdName");
         static readonly JsonEncodedText ExceptionText = JsonEncodedText.Encode(nameof(Exception));
-
+        static readonly JsonEncodedText LogIdText = JsonEncodedText.Encode("LogId");
         static readonly JsonEncodedText NameText = JsonEncodedText.Encode("Name");
         static readonly JsonEncodedText MessageText = JsonEncodedText.Encode("Message");
         static readonly JsonEncodedText StackTraceText = JsonEncodedText.Encode("StackTrace");
@@ -43,6 +47,7 @@ namespace ZLogger
 
         public void WriteToJsonWriter(Utf8JsonWriter writer)
         {
+            writer.WriteNumber(LogIdText, LogId);
             writer.WriteString(CategoryNameText, CategoryName);
             writer.WriteString(LogLevelText, LogLevelToEncodedText(LogLevel));
             writer.WriteNumber(EventIdText, EventId.Id);

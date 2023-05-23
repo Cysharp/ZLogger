@@ -1,35 +1,43 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq.Expressions;
+using System.Threading;
 using ZLogger.Entries;
 
 namespace ZLogger
 {
     public class AsyncProcessZLogger : ILogger
     {
+        private static int globalLogId;
         readonly Func<string, Exception?, string> ReturnStringStateFormatter = (state, _) => state;
 
         readonly string categoryName;
         readonly IAsyncLogProcessor logProcessor;
+        readonly bool shouldIncrementLogId;
 
-        public AsyncProcessZLogger(string categoryName, IAsyncLogProcessor logProcessor)
+        public AsyncProcessZLogger(string categoryName, IAsyncLogProcessor logProcessor,  bool shouldIncrementLogId)
         {
             this.categoryName = categoryName;
             this.logProcessor = logProcessor;
+            this.shouldIncrementLogId = shouldIncrementLogId;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
+            var logId = globalLogId;
+            if (shouldIncrementLogId)
+                Interlocked.Increment(ref globalLogId);
+            
             var factory = CreateLogEntry<TState>.factory;
             if (factory != null)
             {
-                var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
+                var info = new LogInfo(logId, categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
                 var entry = factory.Invoke(state, info);
                 logProcessor.Post(entry);
             }
             else
             {
-                var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
+                var info = new LogInfo(logId, categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
                 if (StateTypeDetector<TState>.IsInternalFormattedLogValues || state == null)
                 {
                     // null state automatically converted to FormattedLogValues struct.

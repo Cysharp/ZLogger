@@ -14,6 +14,7 @@ namespace ZLogger.Providers
         internal const string DefaultOptionName = "ZLoggerFile.Default";
 
         AsyncStreamLineMessageWriter streamWriter;
+        private readonly bool isStructured;
 
         public ZLoggerFileLoggerProvider(string filePath, IOptionsMonitor<ZLoggerOptions> options)
             : this(filePath, DefaultOptionName, options)
@@ -33,11 +34,12 @@ namespace ZLogger.Providers
             // useAsync:false, use sync(in thread) processor, don't use FileStream buffer(use buffer size = 1).
             var stream = new FileStream(filePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 1, false);
             this.streamWriter = new AsyncStreamLineMessageWriter(stream, opt);
+            isStructured = opt.EnableStructuredLogging;
         }
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new AsyncProcessZLogger(categoryName, streamWriter);
+            return new AsyncProcessZLogger(categoryName, streamWriter, isStructured);
         }
 
         public void Dispose()

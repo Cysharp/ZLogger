@@ -15,7 +15,7 @@ namespace ZLogger.Providers
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new AsyncProcessZLogger(categoryName, processor);
+            return new AsyncProcessZLogger(categoryName, processor, false);
         }
 
         public void Dispose()

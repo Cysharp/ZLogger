@@ -12,6 +12,7 @@ namespace ZLogger.Providers
     public class ZLoggerRollingFileLoggerProvider : ILoggerProvider
     {
         internal const string DefaultOptionName = "ZLoggerRollingFile.Default";
+        private readonly bool isStructured;
 
         AsyncStreamLineMessageWriter streamWriter;
 
@@ -23,13 +24,14 @@ namespace ZLogger.Providers
         public ZLoggerRollingFileLoggerProvider(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
         {
             var opt = options.Get(optionName ?? DefaultOptionName);
+            isStructured = opt.EnableStructuredLogging;
             var stream = new RollingFileStream(fileNameSelector, timestampPattern, rollSizeKB, opt);
             this.streamWriter = new AsyncStreamLineMessageWriter(stream, opt);
         }
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new AsyncProcessZLogger(categoryName, streamWriter);
+            return new AsyncProcessZLogger(categoryName, streamWriter, isStructured);
         }
 
         public void Dispose()

@@ -109,7 +109,7 @@ namespace ZLogger
                                 var payload = value.GetPayload();
                                 if (payload is ILogEvent logEvent)
                                     value.LogInfo
-                                        = new LogInfo(info.CategoryName, info.Timestamp, info.LogLevel,
+                                        = new LogInfo(info.LogId, info.CategoryName, info.Timestamp, info.LogLevel,
                                             logEvent.GetEventId(), info.Exception);
 
                                 if (options.EnableStructuredLogging)

@@ -23,7 +23,7 @@ namespace ZLogger.Providers
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new AsyncProcessZLogger(categoryName, debugLogProcessor);
+            return new AsyncProcessZLogger(categoryName, debugLogProcessor, false);
         }
 
         public void Dispose()
