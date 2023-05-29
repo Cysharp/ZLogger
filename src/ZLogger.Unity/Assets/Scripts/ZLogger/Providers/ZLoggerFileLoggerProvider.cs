@@ -44,7 +44,7 @@ namespace ZLogger.Providers
 
         public void Dispose()
         {
-            streamWriter.DisposeAsync().AsTask().Wait();
+            streamWriter.DisposeAsync().AsTask().Wait(10000);
         }
     }
 }
