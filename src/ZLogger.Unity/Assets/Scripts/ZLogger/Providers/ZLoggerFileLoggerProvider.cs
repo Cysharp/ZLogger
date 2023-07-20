@@ -39,7 +39,7 @@ namespace ZLogger.Providers
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new AsyncProcessZLogger(categoryName, streamWriter, isStructured);
+            return new AsyncProcessZLogger(categoryName, streamWriter, shouldIncrementLogId: isStructured);
         }
 
         public void Dispose()
