@@ -8,7 +8,7 @@ namespace ZLogger
 {
     public class AsyncProcessZLogger : ILogger
     {
-        private static int globalLogId;
+        public static int globalLogId;
         readonly Func<string, Exception?, string> ReturnStringStateFormatter = (state, _) => state;
 
         readonly string categoryName;
