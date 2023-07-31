@@ -44,7 +44,17 @@ namespace ZLogger.Providers
 
         public void Dispose()
         {
-            streamWriter.DisposeAsync().AsTask().Wait(10000);
+            // busy-wait for a bit
+            var task = streamWriter.DisposeAsync().AsTask();
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            while (!task.IsCompleted)
+            {
+                if (sw.ElapsedMilliseconds > 1000)
+                {
+                    break;
+                }
+                Thread.Sleep(10);
+            }
         }
     }
 }
