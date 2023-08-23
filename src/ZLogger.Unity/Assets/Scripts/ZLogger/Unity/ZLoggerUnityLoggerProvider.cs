@@ -58,10 +58,10 @@ namespace ZLogger.Providers
                         UnityEngine.Debug.Log(msg);
                         break;
                     case LogLevel.Warning:
-                    case LogLevel.Critical:
                         UnityEngine.Debug.LogWarning(msg);
                         break;
                     case LogLevel.Error:
+                    case LogLevel.Critical:
                         if (log.LogInfo.Exception != null)
                         {
                             UnityEngine.Debug.LogException(log.LogInfo.Exception);
