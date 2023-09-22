@@ -2,7 +2,7 @@
     "name": "com.cysharp.zlogger",
     "displayName": "ZLogger",
     "version": "1.7.0",
-    "unity": "2018.3",
+    "unity": "2021.3",
     "description": "Zero Allocation Text/Strcutured Logger for .NET Core and Unity, built on top of a Microsoft.Extensions.Logging.",
     "keywords": ["logging"],
     "license": "MIT",
