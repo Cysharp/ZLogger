@@ -1,10 +1,8 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -12,8 +10,6 @@ namespace ZLogger.Tests
 {
     public class ProviderTest
     {
-        public static bool ENcoding { get; private set; }
-
         [Fact]
         public void FileProvider()
         {

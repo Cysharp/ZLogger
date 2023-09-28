@@ -1,9 +1,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Concurrent;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.Json;
 
 namespace ZLogger.Entries
 {
@@ -36,34 +34,20 @@ namespace ZLogger.Entries
             return entry;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            var str = formatter(state, exception);
-
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            var str = this.formatter(state, exception);
+            if (str != null)
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-                jsonWriter.WriteString(options.MessagePropertyName, str);
-                jsonWriter.WriteNull(options.PayloadPropertyName);
-            }
-            else
-            {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-
-                if (str != null)
+                var buffer = ArrayPool<byte>.Shared.Rent(Encoding.UTF8.GetMaxByteCount(str.Length));
+                try
                 {
-                    var memory = writer.GetMemory(Encoding.UTF8.GetMaxByteCount(str.Length));
-                    if (MemoryMarshal.TryGetArray<byte>(memory, out var segment) && segment.Array != null)
-                    {
-                        var written1 = Encoding.UTF8.GetBytes(str, 0, str.Length, segment.Array, segment.Offset);
-                        writer.Advance(written1);
-                    }
+                    var bytesWritten = Encoding.UTF8.GetBytes(str, 0, str.Length, buffer, 0);
+                    formatter.FormatLogEntry(writer, this, (string)null, buffer.AsSpan(0, bytesWritten));
                 }
-
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
+                finally
                 {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
+                    ArrayPool<byte>.Shared.Return(buffer);
                 }
             }
         }

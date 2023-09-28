@@ -87,30 +87,12 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            using (var sb = ZString.CreateUtf8StringBuilder(true))
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                using (var sb = ZString.CreateUtf8StringBuilder(true))
-                {
-                    sb.AppendFormat(state.Format, state.Arg1);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
-            }
-            else
-            {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                ZString.Utf8Format(writer, state.Format, state.Arg1);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.AppendFormat(state.Format, state.Arg1);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
         }
 
@@ -120,7 +102,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -159,35 +141,17 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            var sb = ZString.CreateUtf8StringBuilder(true);
+            try
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                var sb = ZString.CreateUtf8StringBuilder(true);
-                try
-                {
-                    state.Format.FormatTo(ref sb, state.Arg1);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-                finally
-                {
-                    sb.Dispose();
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                state.Format.FormatTo(ref sb, state.Arg1);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
-            else
+            finally
             {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                state.Format.FormatTo(ref writer, state.Arg1);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.Dispose();
             }
         }
 
@@ -197,7 +161,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -292,30 +256,12 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            using (var sb = ZString.CreateUtf8StringBuilder(true))
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                using (var sb = ZString.CreateUtf8StringBuilder(true))
-                {
-                    sb.AppendFormat(state.Format, state.Arg1, state.Arg2);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
-            }
-            else
-            {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.AppendFormat(state.Format, state.Arg1, state.Arg2);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
         }
 
@@ -325,7 +271,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -364,35 +310,17 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            var sb = ZString.CreateUtf8StringBuilder(true);
+            try
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                var sb = ZString.CreateUtf8StringBuilder(true);
-                try
-                {
-                    state.Format.FormatTo(ref sb, state.Arg1, state.Arg2);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-                finally
-                {
-                    sb.Dispose();
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                state.Format.FormatTo(ref sb, state.Arg1, state.Arg2);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
-            else
+            finally
             {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                state.Format.FormatTo(ref writer, state.Arg1, state.Arg2);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.Dispose();
             }
         }
 
@@ -402,7 +330,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -501,30 +429,12 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            using (var sb = ZString.CreateUtf8StringBuilder(true))
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                using (var sb = ZString.CreateUtf8StringBuilder(true))
-                {
-                    sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
-            }
-            else
-            {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
         }
 
@@ -534,7 +444,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -573,35 +483,17 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            var sb = ZString.CreateUtf8StringBuilder(true);
+            try
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                var sb = ZString.CreateUtf8StringBuilder(true);
-                try
-                {
-                    state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-                finally
-                {
-                    sb.Dispose();
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
-            else
+            finally
             {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.Dispose();
             }
         }
 
@@ -611,7 +503,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -714,30 +606,12 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            using (var sb = ZString.CreateUtf8StringBuilder(true))
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                using (var sb = ZString.CreateUtf8StringBuilder(true))
-                {
-                    sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
-            }
-            else
-            {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
         }
 
@@ -747,7 +621,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -786,35 +660,17 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            var sb = ZString.CreateUtf8StringBuilder(true);
+            try
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                var sb = ZString.CreateUtf8StringBuilder(true);
-                try
-                {
-                    state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-                finally
-                {
-                    sb.Dispose();
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
-            else
+            finally
             {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.Dispose();
             }
         }
 
@@ -824,7 +680,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -931,30 +787,12 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            using (var sb = ZString.CreateUtf8StringBuilder(true))
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                using (var sb = ZString.CreateUtf8StringBuilder(true))
-                {
-                    sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
-            }
-            else
-            {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
         }
 
@@ -964,7 +802,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -1003,35 +841,17 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            var sb = ZString.CreateUtf8StringBuilder(true);
+            try
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                var sb = ZString.CreateUtf8StringBuilder(true);
-                try
-                {
-                    state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-                finally
-                {
-                    sb.Dispose();
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
-            else
+            finally
             {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.Dispose();
             }
         }
 
@@ -1041,7 +861,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -1152,30 +972,12 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            using (var sb = ZString.CreateUtf8StringBuilder(true))
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                using (var sb = ZString.CreateUtf8StringBuilder(true))
-                {
-                    sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
-            }
-            else
-            {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
         }
 
@@ -1185,7 +987,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -1224,35 +1026,17 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            var sb = ZString.CreateUtf8StringBuilder(true);
+            try
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                var sb = ZString.CreateUtf8StringBuilder(true);
-                try
-                {
-                    state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-                finally
-                {
-                    sb.Dispose();
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
-            else
+            finally
             {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.Dispose();
             }
         }
 
@@ -1262,7 +1046,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -1377,30 +1161,12 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            using (var sb = ZString.CreateUtf8StringBuilder(true))
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                using (var sb = ZString.CreateUtf8StringBuilder(true))
-                {
-                    sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
-            }
-            else
-            {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
         }
 
@@ -1410,7 +1176,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -1449,35 +1215,17 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            var sb = ZString.CreateUtf8StringBuilder(true);
+            try
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                var sb = ZString.CreateUtf8StringBuilder(true);
-                try
-                {
-                    state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-                finally
-                {
-                    sb.Dispose();
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
-            else
+            finally
             {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.Dispose();
             }
         }
 
@@ -1487,7 +1235,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -1606,30 +1354,12 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            using (var sb = ZString.CreateUtf8StringBuilder(true))
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                using (var sb = ZString.CreateUtf8StringBuilder(true))
-                {
-                    sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
-            }
-            else
-            {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
         }
 
@@ -1639,7 +1369,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -1678,35 +1408,17 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            var sb = ZString.CreateUtf8StringBuilder(true);
+            try
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                var sb = ZString.CreateUtf8StringBuilder(true);
-                try
-                {
-                    state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-                finally
-                {
-                    sb.Dispose();
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
-            else
+            finally
             {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.Dispose();
             }
         }
 
@@ -1716,7 +1428,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -1839,30 +1551,12 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            using (var sb = ZString.CreateUtf8StringBuilder(true))
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                using (var sb = ZString.CreateUtf8StringBuilder(true))
-                {
-                    sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
-            }
-            else
-            {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
         }
 
@@ -1872,7 +1566,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -1911,35 +1605,17 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            var sb = ZString.CreateUtf8StringBuilder(true);
+            try
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                var sb = ZString.CreateUtf8StringBuilder(true);
-                try
-                {
-                    state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-                finally
-                {
-                    sb.Dispose();
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
-            else
+            finally
             {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.Dispose();
             }
         }
 
@@ -1949,7 +1625,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -2076,30 +1752,12 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            using (var sb = ZString.CreateUtf8StringBuilder(true))
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                using (var sb = ZString.CreateUtf8StringBuilder(true))
-                {
-                    sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
-            }
-            else
-            {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
         }
 
@@ -2109,7 +1767,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -2148,35 +1806,17 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            var sb = ZString.CreateUtf8StringBuilder(true);
+            try
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                var sb = ZString.CreateUtf8StringBuilder(true);
-                try
-                {
-                    state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-                finally
-                {
-                    sb.Dispose();
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
-            else
+            finally
             {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.Dispose();
             }
         }
 
@@ -2186,7 +1826,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -2317,30 +1957,12 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            using (var sb = ZString.CreateUtf8StringBuilder(true))
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                using (var sb = ZString.CreateUtf8StringBuilder(true))
-                {
-                    sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
-            }
-            else
-            {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
         }
 
@@ -2350,7 +1972,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -2389,35 +2011,17 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            var sb = ZString.CreateUtf8StringBuilder(true);
+            try
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                var sb = ZString.CreateUtf8StringBuilder(true);
-                try
-                {
-                    state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-                finally
-                {
-                    sb.Dispose();
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
-            else
+            finally
             {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.Dispose();
             }
         }
 
@@ -2427,7 +2031,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -2562,30 +2166,12 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            using (var sb = ZString.CreateUtf8StringBuilder(true))
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                using (var sb = ZString.CreateUtf8StringBuilder(true))
-                {
-                    sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
-            }
-            else
-            {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
         }
 
@@ -2595,7 +2181,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -2634,35 +2220,17 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            var sb = ZString.CreateUtf8StringBuilder(true);
+            try
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                var sb = ZString.CreateUtf8StringBuilder(true);
-                try
-                {
-                    state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-                finally
-                {
-                    sb.Dispose();
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
-            else
+            finally
             {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.Dispose();
             }
         }
 
@@ -2672,7 +2240,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -2811,30 +2379,12 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            using (var sb = ZString.CreateUtf8StringBuilder(true))
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                using (var sb = ZString.CreateUtf8StringBuilder(true))
-                {
-                    sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
-            }
-            else
-            {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
         }
 
@@ -2844,7 +2394,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -2883,35 +2433,17 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            var sb = ZString.CreateUtf8StringBuilder(true);
+            try
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                var sb = ZString.CreateUtf8StringBuilder(true);
-                try
-                {
-                    state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-                finally
-                {
-                    sb.Dispose();
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
-            else
+            finally
             {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.Dispose();
             }
         }
 
@@ -2921,7 +2453,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -3064,30 +2596,12 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            using (var sb = ZString.CreateUtf8StringBuilder(true))
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                using (var sb = ZString.CreateUtf8StringBuilder(true))
-                {
-                    sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13, state.Arg14);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
-            }
-            else
-            {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                ZString.Utf8Format(writer, state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13, state.Arg14);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.AppendFormat(state.Format, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13, state.Arg14);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
         }
 
@@ -3097,7 +2611,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -3136,35 +2650,17 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            var sb = ZString.CreateUtf8StringBuilder(true);
+            try
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                var sb = ZString.CreateUtf8StringBuilder(true);
-                try
-                {
-                    state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13, state.Arg14);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-                finally
-                {
-                    sb.Dispose();
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                state.Format.FormatTo(ref sb, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13, state.Arg14);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
-            else
+            finally
             {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                state.Format.FormatTo(ref writer, state.Arg1, state.Arg2, state.Arg3, state.Arg4, state.Arg5, state.Arg6, state.Arg7, state.Arg8, state.Arg9, state.Arg10, state.Arg11, state.Arg12, state.Arg13, state.Arg14);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.Dispose();
             }
         }
 
@@ -3174,7 +2670,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))

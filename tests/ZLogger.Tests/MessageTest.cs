@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
+using ZLogger.Formatters;
 
 namespace ZLogger.Tests
 {
@@ -15,12 +16,14 @@ namespace ZLogger.Tests
     {
         public Queue<string> EntryMessages = new Queue<string>();
         readonly ZLoggerOptions options;
+        readonly IZLoggerFormatter formatter;
 
         public string Dequeue() => EntryMessages.Dequeue();
 
         public TestProcessor(ZLoggerOptions options)
         {
             this.options = options;
+            formatter = options.CreateFormatter();
         }
 
         public ValueTask DisposeAsync()
@@ -30,7 +33,7 @@ namespace ZLogger.Tests
 
         public void Post(IZLoggerEntry log)
         {
-            EntryMessages.Enqueue(log.FormatToString(options, null));
+            EntryMessages.Enqueue(log.FormatToString(formatter));
         }
     }
 
@@ -40,10 +43,11 @@ namespace ZLogger.Tests
         [Fact]
         public void OverloadCheck()
         {
-            var options = new ZLoggerOptions()
+            var options = new ZLoggerOptions();
+            options.UsePlainTextFormatter(plainText =>
             {
-                ExceptionFormatter = (writer, ex) => { }
-            };
+                plainText.ExceptionFormatter = (writer, ex) => { };
+            });
 
             var processsor = new TestProcessor(options);
 
@@ -154,12 +158,13 @@ namespace ZLogger.Tests
         [Fact]
         public void TextOptions()
         {
-            var options = new ZLoggerOptions()
+            var options = new ZLoggerOptions();
+            options.UsePlainTextFormatter(formatter =>
             {
-                PrefixFormatter = (writer, info) => ZString.Utf8Format(writer, "[Pre:{0}]", info.LogLevel),
-                SuffixFormatter = (writer, info) => ZString.Utf8Format(writer, "[Suf:{0}]", info.CategoryName),
-                ExceptionFormatter = (writer, ex) => ZString.Utf8Format(writer, "{0}", ex.Message)
-            };
+                formatter.PrefixFormatter = (writer, info) => ZString.Utf8Format(writer, "[Pre:{0}]", info.LogLevel);
+                formatter.SuffixFormatter = (writer, info) => ZString.Utf8Format(writer, "[Suf:{0}]", info.CategoryName);
+                formatter.ExceptionFormatter = (writer, ex) => ZString.Utf8Format(writer, "{0}", ex.Message);
+            });
             var processsor = new TestProcessor(options);
 
             var loggerFactory = LoggerFactory.Create(x =>
@@ -198,18 +203,20 @@ namespace ZLogger.Tests
                 {
                     var hashProp = JsonEncodedText.Encode("Hash");
 
-                    option.EnableStructuredLogging = true;
-                    option.StructuredLoggingFormatter = (writer, info) =>
+                    option.UseJsonFormatter(formatter =>
                     {
-                        // Use default and add custom metadata
-                        info.WriteToJsonWriter(writer);
-                        writer.WriteString(hashProp, sourceCodeHash);
-                    };
+                        formatter.MetadataFormatter = (writer, info) =>
+                        {
+                            // Use default and add custom metadata
+                            SystemTextJsonZLoggerFormatter.DefaultMetadataFormatter(writer, info);
+                            writer.WriteString(hashProp, sourceCodeHash);
+                        };
+                    });
                 });
             });
             var logger = loggerFactory.CreateLogger("test");
 
-            logger.ZLogDebugWithPayload(new { tako = 100, yaki = "‚ ‚¢‚¤‚¦‚¨" }, "FooBar{0} NanoNano{1}", 100, 200);
+            logger.ZLogDebugWithPayload(new { tako = 100, yaki = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" }, "FooBar{0} NanoNano{1}", 100, 200);
 
             loggerFactory.Dispose();
 
@@ -221,7 +228,7 @@ namespace ZLogger.Tests
             doc.GetProperty("Message").GetString().Should().Be("FooBar100 NanoNano200");
             var payload = doc.GetProperty("Payload");
             payload.GetProperty("tako").GetInt32().Should().Be(100);
-            payload.GetProperty("yaki").GetString().Should().Be("‚ ‚¢‚¤‚¦‚¨");
+            payload.GetProperty("yaki").GetString().Should().Be("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
 
             doc.GetProperty("Hash").GetString().Should().Be(sourceCodeHash);
             doc.GetProperty("LogLevel").GetString().Should().Be("Debug");

@@ -208,38 +208,40 @@ namespace MyApp
 
                     logging.AddZLoggerConsole(options =>
                     {
-                        options.EnableStructuredLogging = false;
                         //options.FlushRate = TimeSpan.FromSeconds(5);
 
 #if DEBUG
-                        // \u001b[31m => Red(ANSI Escape Code)
-                        // \u001b[0m => Reset
-                        // \u001b[38;5;***m => 256 Colors(08 is Gray)
-                        options.PrefixFormatter = (writer, info) =>
+                        options.UsePlainTextFormatter(plainText =>
                         {
-                            if (info.LogLevel == LogLevel.Error)
+                            // \u001b[31m => Red(ANSI Escape Code)
+                            // \u001b[0m => Reset
+                            // \u001b[38;5;***m => 256 Colors(08 is Gray)
+                            plainText.PrefixFormatter = (writer, info) =>
                             {
-                                ZString.Utf8Format(writer, "\u001b[31m[{0}]", info.LogLevel);
-                            }
-                            else
-                            {
-                                if (!info.CategoryName.StartsWith("MyApp")) // your application namespace.
+                                if (info.LogLevel == LogLevel.Error)
                                 {
-                                    ZString.Utf8Format(writer, "\u001b[38;5;08m[{0}]", info.LogLevel);
+                                    ZString.Utf8Format(writer, "\u001b[31m[{0}]", info.LogLevel);
                                 }
                                 else
                                 {
-                                    ZString.Utf8Format(writer, "[{0}]", info.LogLevel);
+                                    if (!info.CategoryName.StartsWith("MyApp")) // your application namespace.
+                                    {
+                                        ZString.Utf8Format(writer, "\u001b[38;5;08m[{0}]", info.LogLevel);
+                                    }
+                                    else
+                                    {
+                                        ZString.Utf8Format(writer, "[{0}]", info.LogLevel);
+                                    }
                                 }
-                            }
-                        };
-                        options.SuffixFormatter = (writer, info) =>
-                        {
-                            if (info.LogLevel == LogLevel.Error || !info.CategoryName.StartsWith("MyApp"))
+                            };
+                            plainText.SuffixFormatter = (writer, info) =>
                             {
-                                ZString.Utf8Format(writer, "\u001b[0m", "");
-                            }
-                        };
+                                if (info.LogLevel == LogLevel.Error || !info.CategoryName.StartsWith("MyApp"))
+                                {
+                                    ZString.Utf8Format(writer, "\u001b[0m", "");
+                                }
+                            };
+                        });
 #endif
 
                     }, configureEnableAnsiEscapeCode: true);
@@ -351,7 +353,7 @@ namespace MyApp
 
 
 
-            //new 
+            //new
 
             //logger.ZLogDebug(new Exception("かきくけこ"), new { 名前 = "あいうえお" }, "さしすせそ{0}", "なにぬねの");
             //logger.ZLogInformation("さしすせそ{0}", "なにぬねの");

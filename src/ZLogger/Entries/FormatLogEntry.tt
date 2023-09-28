@@ -119,30 +119,12 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            using (var sb = ZString.CreateUtf8StringBuilder(true))
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                using (var sb = ZString.CreateUtf8StringBuilder(true))
-                {
-                    sb.AppendFormat(state.Format, <#= CreateStateParameterNames(i) #>);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
-            }
-            else
-            {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                ZString.Utf8Format(writer, state.Format, <#= CreateStateParameterNames(i) #>);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.AppendFormat(state.Format, <#= CreateStateParameterNames(i) #>);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
         }
 
@@ -152,7 +134,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
@@ -191,35 +173,17 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            var sb = ZString.CreateUtf8StringBuilder(true);
+            try
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                var sb = ZString.CreateUtf8StringBuilder(true);
-                try
-                {
-                    state.Format.FormatTo(ref sb, <#= CreateStateParameterNames(i) #>);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-                finally
-                {
-                    sb.Dispose();
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
+                state.Format.FormatTo(ref sb, <#= CreateStateParameterNames(i) #>);
+                formatter.FormatLogEntry(writer, this, state.Payload, sb.AsSpan());
             }
-            else
+            finally
             {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-                state.Format.FormatTo(ref writer, <#= CreateStateParameterNames(i) #>);
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.Dispose();
             }
         }
 
@@ -229,7 +193,7 @@ namespace ZLogger.Entries
             LogInfo = default!;
             cache.Enqueue(this);
         }
-        
+
         public void SwitchCasePayload<TPayload1>(System.Action<IZLoggerEntry, TPayload1, object?> payloadCallback, object? state)
         {
             if (typeof(TPayload1) == typeof(TPayload))
