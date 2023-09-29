@@ -1,18 +1,9 @@
-﻿using System.Collections;
-using ZLogger;
-using System.Collections.Generic;
-using NUnit.Framework;
-using UnityEngine;
-using UnityEngine.TestTools;
+﻿using NUnit.Framework;
 using Microsoft.Extensions.Logging;
-using ZLogger.Providers;
 using Microsoft.Extensions.Options;
-using ZLogger.Entries;
 using Cysharp.Text;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using System.Reflection;
-using System;
+using ZLogger;
+using ZLogger.Providers;
 
 namespace Tests
 {
@@ -70,7 +61,10 @@ namespace Tests
                 builder.AddFilter<ZLoggerUnityLoggerProvider>("OldTestScript", LogLevel.Debug);
                 builder.AddZLoggerUnityDebug(x =>
                 {
-                    x.PrefixFormatter = (buf, info) => ZString.Utf8Format(buf, "[{0}][{1}]", info.LogLevel, info.Timestamp.LocalDateTime);
+                    x.UsePlainTextFormatter(formatter =>
+                    {
+                        formatter.PrefixFormatter = (buf, info) => ZString.Utf8Format(buf, "[{0}][{1}]", info.LogLevel, info.Timestamp.LocalDateTime);
+                    });
                 });
             });
 
@@ -93,11 +87,17 @@ namespace Tests
 
                 builder.AddZLoggerUnityDebug(x =>
                 {
-                    x.PrefixFormatter = (buf, info) => ZString.Utf8Format(buf, "UNI [{0}][{1}]", info.LogLevel, info.Timestamp.LocalDateTime);
+                    x.UsePlainTextFormatter(f =>
+                    {
+                        f.PrefixFormatter = (buf, info) => ZString.Utf8Format(buf, "UNI [{0}][{1}]", info.LogLevel, info.Timestamp.LocalDateTime);
+                    });
                 });
                 builder.AddZLoggerFile("test_il2cpp.log", x =>
                 {
-                    x.PrefixFormatter = (buf, info) => ZString.Utf8Format(buf, "FIL [{0}][{1}]", info.LogLevel, info.Timestamp.LocalDateTime);
+                    x.UsePlainTextFormatter(f =>
+                    {
+                        f.PrefixFormatter = (buf, info) => ZString.Utf8Format(buf, "FIL [{0}][{1}]", info.LogLevel, info.Timestamp.LocalDateTime);
+                    });
                 });
             });
 

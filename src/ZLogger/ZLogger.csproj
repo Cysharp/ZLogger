@@ -81,7 +81,7 @@
 		<DestinationRoot>$(MSBuildProjectDirectory)\..\ZLogger.Unity\Assets\Scripts\ZLogger\</DestinationRoot>
 	</PropertyGroup>
 	<ItemGroup>
-		<TargetFiles1 Include="$(MSBuildProjectDirectory)\**\*.cs" Exclude="**\bin\**\*.*;**\obj\**\*.*;_InternalVisibleTo.cs" />
+		<TargetFiles1 Include="$(MSBuildProjectDirectory)\**\*.cs" Exclude="**\bin\**\*.*;**\obj\**\*.*;_InternalVisibleTo.cs;$(MSBuildProjectDirectory)\Formatters\SystemTextJsonZLoggerFormatter.cs" />
 	</ItemGroup>
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'net6.0'">
 		<Copy SourceFiles="@(TargetFiles1)" DestinationFiles="$(DestinationRoot)\%(RecursiveDir)%(Filename)%(Extension)" SkipUnchangedFiles="true" />

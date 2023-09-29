@@ -34,10 +34,12 @@ namespace ZLogger.Providers
     public class UnityDebugLogProcessor : IAsyncLogProcessor
     {
         readonly ZLoggerOptions options;
+        readonly IZLoggerFormatter formatter;
 
         public UnityDebugLogProcessor(ZLoggerOptions options)
         {
             this.options = options;
+            formatter = options.CreateFormatter();
         }
 
         public ValueTask DisposeAsync()
@@ -49,7 +51,7 @@ namespace ZLogger.Providers
         {
             try
             {
-                var msg = log.FormatToString(options, null);
+                var msg = log.FormatToString(formatter);
                 switch (log.LogInfo.LogLevel)
                 {
                     case LogLevel.Trace:
