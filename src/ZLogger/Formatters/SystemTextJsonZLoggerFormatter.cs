@@ -120,6 +120,7 @@ namespace ZLogger.Formatters
             // Write Exception
             if (info.Exception is { } ex)
             {
+                jsonWriter.WritePropertyName(ExceptionText);
                 WriteException(jsonWriter, ex);
             }
         }

@@ -37,7 +37,6 @@ namespace ZLogger.Tests
         }
     }
 
-
     public class MessageTest
     {
         [Fact]

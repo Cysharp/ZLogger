@@ -1,13 +1,13 @@
-﻿using NUnit.Framework;
+﻿using Cysharp.Text;
+using NUnit.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Cysharp.Text;
 using ZLogger;
 using ZLogger.Providers;
 
 namespace Tests
 {
-    public class NewTestScript
+    public class LoggerProviderTest
     {
         [Test]
         public void SimpleLogging()
@@ -33,14 +33,14 @@ namespace Tests
             logger.ZLogDebug("foo{0} bar{1}", 100, 200);
         }
 
-        static ILogger<NewTestScript> CreaterLogger()
+        static ILogger<LoggerProviderTest> CreaterLogger()
         {
             var factory = UnityLoggerFactory.Create(builder =>
             {
                 builder.AddZLoggerUnityDebug();
             });
 
-            var mylogger = factory.CreateLogger<NewTestScript>();
+            var mylogger = factory.CreateLogger<LoggerProviderTest>();
             return mylogger;
         }
 
@@ -68,7 +68,7 @@ namespace Tests
                 });
             });
 
-            var newLogger = factory.CreateLogger<NewTestScript>();
+            var newLogger = factory.CreateLogger<LoggerProviderTest>();
             var oldLogger = factory.CreateLogger("OldTestScript");
 
             newLogger.ZLogInformation("NEW OK INFO");
@@ -101,7 +101,7 @@ namespace Tests
                 });
             });
 
-            var newLogger = factory.CreateLogger<NewTestScript>();
+            var newLogger = factory.CreateLogger<LoggerProviderTest>();
             newLogger.ZLogInformation("NEW OK INFO");
             newLogger.ZLogDebug("NEW OK DEBUG");
         }
