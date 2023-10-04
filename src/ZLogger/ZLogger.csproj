@@ -8,19 +8,8 @@
 		<NoWarn>1701;1702;1591;1573</NoWarn>
 
 		<!-- NuGet Packaging -->
-		<PackageVersion>$(Version)</PackageVersion>
-		<Company>Cysharp</Company>
-		<Authors>Cysharp</Authors>
-		<Copyright>© Cysharp, Inc.</Copyright>
 		<PackageTags>logging;</PackageTags>
 		<Description>Zero Allocation Text/Strcutured Logger for .NET Core, built on top of a Microsoft.Extensions.Logging.</Description>
-		<PackageProjectUrl>https://github.com/Cysharp/ZLogger</PackageProjectUrl>
-		<RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
-		<RepositoryType>git</RepositoryType>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageIcon>Icon.png</PackageIcon>
-		<SignAssembly>true</SignAssembly>
-		<AssemblyOriginatorKeyFile>../../opensource.snk</AssemblyOriginatorKeyFile>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -83,7 +72,7 @@
 	<ItemGroup>
 		<TargetFiles1 Include="$(MSBuildProjectDirectory)\**\*.cs" Exclude="**\bin\**\*.*;**\obj\**\*.*;_InternalVisibleTo.cs;$(MSBuildProjectDirectory)\Formatters\SystemTextJsonZLoggerFormatter.cs" />
 	</ItemGroup>
-	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'net6.0'">
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'net7.0'">
 		<Copy SourceFiles="@(TargetFiles1)" DestinationFiles="$(DestinationRoot)\%(RecursiveDir)%(Filename)%(Extension)" SkipUnchangedFiles="true" />
 
 		<!-- After copy, remove nullable reference -->
