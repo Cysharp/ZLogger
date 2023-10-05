@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers;
 using ZLogger.Formatters;
 
 namespace ZLogger
@@ -9,12 +8,7 @@ namespace ZLogger
         public Action<LogInfo, Exception>? InternalErrorLogger { get; set; }
         public TimeSpan? FlushRate { get; set; }
 
-        Func<IZLoggerFormatter> formatterFactory;
-
-        public ZLoggerOptions()
-        {
-            UsePlainTextFormatter();
-        }
+        Func<IZLoggerFormatter> formatterFactory = DefaultFormatterFactory;
 
         public IZLoggerFormatter CreateFormatter() => formatterFactory.Invoke();
 
@@ -40,7 +34,7 @@ namespace ZLogger
             return this;
         }
 
-        static IZLoggerFormatter DefaultFormatterFactory(IBufferWriter<byte> writer)
+        static IZLoggerFormatter DefaultFormatterFactory()
         {
             return new PlainTextZLoggerFormatter();
         }

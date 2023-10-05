@@ -7,7 +7,7 @@ namespace ZLogger.MessagePack
 {
     public static class ZLoggerOptionsMessagePackExtensions
     {
-        public static ZLoggerOptions UseMessagePackFormatter(this ZLoggerOptions options, Action<MessagePackZLoggerFormatter> messagePackConfigure = null)
+        public static ZLoggerOptions UseMessagePackFormatter(this ZLoggerOptions options, Action<MessagePackZLoggerFormatter>? messagePackConfigure = null)
         {
             return options.UseFormatter(() =>
             {
@@ -107,7 +107,7 @@ namespace ZLogger.MessagePack
             messagePackWriter.Flush();
         }
 
-        static void WriteException(ref MessagePackWriter messagePackWriter, Exception ex)
+        static void WriteException(ref MessagePackWriter messagePackWriter, Exception? ex)
         {
             if (ex == null)
             {
