@@ -87,7 +87,8 @@ namespace ZLogger.MessagePack
             messagePackWriter.Write(entry.LogInfo.EventId.Name);
 
             messagePackWriter.WriteRaw(TimestampKey);
-            messagePackWriter.Write(entry.LogInfo.Timestamp.UtcDateTime);
+            MessagePackSerializerOptions.Resolver.GetFormatterWithVerify<DateTime>()
+                .Serialize(ref messagePackWriter, entry.LogInfo.Timestamp.UtcDateTime, MessagePackSerializerOptions);
 
             messagePackWriter.Write(MessagePropertyName);
             messagePackWriter.WriteString(utf8Message);
