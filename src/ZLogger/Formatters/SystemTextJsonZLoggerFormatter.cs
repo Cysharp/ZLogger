@@ -10,7 +10,7 @@ namespace ZLogger.Formatters
 {
     public static class ZLoggerOptionsSystemTextJsonExtensions
     {
-        public static ZLoggerOptions UseJsonFormatter(this ZLoggerOptions options, Action<SystemTextJsonZLoggerFormatter> jsonConfigure = null)
+        public static ZLoggerOptions UseJsonFormatter(this ZLoggerOptions options, Action<SystemTextJsonZLoggerFormatter>? jsonConfigure = null)
         {
             return options.UseFormatter(() =>
             {
@@ -54,23 +54,17 @@ namespace ZLogger.Formatters
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
 
-        Utf8JsonWriter jsonWriter;
+        Utf8JsonWriter? jsonWriter;
 
         public void FormatLogEntry<TEntry, TPayload>(
             IBufferWriter<byte> writer,
             TEntry entry,
-            TPayload payload,
+            TPayload? payload,
             ReadOnlySpan<byte> utf8Message)
             where TEntry : IZLoggerEntry
         {
-            if (jsonWriter == null)
-            {
-                jsonWriter = new Utf8JsonWriter(writer);
-            }
-            else
-            {
-                jsonWriter.Reset(writer);
-            }
+            jsonWriter?.Reset(writer);
+            jsonWriter ??= new Utf8JsonWriter(writer);
 
             jsonWriter.WriteStartObject();
             MetadataFormatter.Invoke(jsonWriter, entry.LogInfo);
@@ -125,7 +119,7 @@ namespace ZLogger.Formatters
             }
         }
 
-        public static void WriteException(Utf8JsonWriter jsonWriter, Exception ex)
+        public static void WriteException(Utf8JsonWriter jsonWriter, Exception? ex)
         {
             if (ex == null)
             {

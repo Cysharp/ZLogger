@@ -43,7 +43,7 @@ namespace ZLogger.Entries
                 try
                 {
                     var bytesWritten = Encoding.UTF8.GetBytes(str, 0, str.Length, buffer, 0);
-                    formatter.FormatLogEntry(writer, this, (string)null, buffer.AsSpan(0, bytesWritten));
+                    formatter.FormatLogEntry(writer, this, (string?)null, buffer.AsSpan(0, bytesWritten));
                 }
                 finally
                 {

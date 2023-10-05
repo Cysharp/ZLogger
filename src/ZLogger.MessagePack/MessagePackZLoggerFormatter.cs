@@ -64,15 +64,13 @@ namespace ZLogger.MessagePack
         public void FormatLogEntry<TEntry, TPayload>(
             IBufferWriter<byte> writer,
             TEntry entry,
-            TPayload payload,
+            TPayload? payload,
             ReadOnlySpan<byte> utf8Message)
             where TEntry : IZLoggerEntry
         {
             var messagePackWriter = new MessagePackWriter(writer);
-            var hasPayload = payload != null;
-            var hasException = entry.LogInfo.Exception != null;
 
-            messagePackWriter.WriteMapHeader(6 + (hasException ? 1 : 0) + (hasPayload ? 1 : 0));
+            messagePackWriter.WriteMapHeader(6 + (entry.LogInfo.Exception != null ? 1 : 0) + (payload != null ? 1 : 0));
 
             messagePackWriter.WriteRaw(CategoryNameKey);
             messagePackWriter.Write(entry.LogInfo.CategoryName);
@@ -93,12 +91,12 @@ namespace ZLogger.MessagePack
             messagePackWriter.Write(MessagePropertyName);
             messagePackWriter.WriteString(utf8Message);
 
-            if (hasException)
+            if (entry.LogInfo.Exception is { } ex)
             {
                 messagePackWriter.WriteRaw(ExceptionKey);
-                WriteException(ref messagePackWriter, entry.LogInfo.Exception);
+                WriteException(ref messagePackWriter, ex);
             }
-            if (hasPayload)
+            if (payload is { })
             {
                 messagePackWriter.Write(PayloadPropertyName);
                 MessagePackSerializerOptions.Resolver.GetFormatterWithVerify<TPayload>()
