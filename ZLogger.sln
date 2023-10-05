@@ -21,11 +21,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{231AACB5
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommandTools", "tools\CommandTools\CommandTools.csproj", "{DCF2A056-C3E9-4302-92CC-F4D88AF4CBF0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZLogger.MessagePack", "src\ZLogger.Mesagepack\ZLogger.MessagePack\ZLogger.MessagePack.csproj", "{A2243ECE-9B2C-4D15-865D-471A5FC9E0DE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZLogger.MessagePack", "src\ZLogger.MessagePack\ZLogger.MessagePack.csproj", "{A2243ECE-9B2C-4D15-865D-471A5FC9E0DE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZLogger.MessagePack.Tests", "tests\ZLogger.MessagePack.Tests\ZLogger.MessagePack.Tests.csproj", "{35FFEF10-C4B9-4E6C-B00F-BC32AB0F81C4}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZLogger.MessagePack", "src\ZLogger.MessagePack\ZLogger.MessagePack.csproj", "{C6417F70-4232-46E1-BFF0-2D899E010939}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
