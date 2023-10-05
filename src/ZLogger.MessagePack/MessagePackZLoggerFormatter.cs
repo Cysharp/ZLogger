@@ -57,7 +57,7 @@ namespace ZLogger.MessagePack
         // "None"
         static readonly byte[] None = { 0b10100000 | 4, 78, 111, 110, 101 };
 
-        public MessagePackSerializerOptions MessagePackSerializerOptions { get; set; } = MessagePackSerializerOptions.Standard;
+        public MessagePackSerializerOptions MessagePackSerializerOptions { get; set; } = MessagePackSerializer.DefaultOptions;
         public string MessagePropertyName { get; set; } = "Message";
         public string PayloadPropertyName { get; set; } = "Payload";
 
