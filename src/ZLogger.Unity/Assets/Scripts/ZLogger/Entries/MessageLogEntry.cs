@@ -63,7 +63,7 @@ namespace ZLogger.Entries
             using (var sb = ZString.CreateUtf8StringBuilder(true))
             {
                 sb.Append(state.Message);
-                formatter.FormatLogEntry(writer,this, (string)null, sb.AsSpan());
+                formatter.FormatLogEntry(writer, this, (string?)null, sb.AsSpan());
             }
         }
 

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;netstandard2.1;net6.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;</TargetFrameworks>
 		<Nullable>enable</Nullable>
 		<LangVersion>9.0</LangVersion>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -72,7 +72,7 @@
 	<ItemGroup>
 		<TargetFiles1 Include="$(MSBuildProjectDirectory)\**\*.cs" Exclude="**\bin\**\*.*;**\obj\**\*.*;_InternalVisibleTo.cs;$(MSBuildProjectDirectory)\Formatters\SystemTextJsonZLoggerFormatter.cs" />
 	</ItemGroup>
-	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'net7.0'">
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'net6.0'">
 		<Copy SourceFiles="@(TargetFiles1)" DestinationFiles="$(DestinationRoot)\%(RecursiveDir)%(Filename)%(Extension)" SkipUnchangedFiles="true" />
 
 		<!-- After copy, remove nullable reference -->

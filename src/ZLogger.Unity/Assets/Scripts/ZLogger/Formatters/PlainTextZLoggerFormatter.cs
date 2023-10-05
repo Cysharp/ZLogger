@@ -16,7 +16,7 @@ namespace ZLogger.Formatters
         public void FormatLogEntry<TEntry, TPayload>(
             IBufferWriter<byte> writer,
             TEntry entry,
-            TPayload payload,
+            TPayload? payload,
             ReadOnlySpan<byte> utf8Message)
             where TEntry : IZLoggerEntry
         {
