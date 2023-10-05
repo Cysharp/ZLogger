@@ -215,7 +215,7 @@ namespace ZLogger.Tests
             });
             var logger = loggerFactory.CreateLogger("test");
 
-            logger.ZLogDebugWithPayload(new { tako = 100, yaki = "����������" }, "FooBar{0} NanoNano{1}", 100, 200);
+            logger.ZLogDebugWithPayload(new { tako = 100, yaki = "あいうえお" }, "FooBar{0} NanoNano{1}", 100, 200);
 
             loggerFactory.Dispose();
 
@@ -227,7 +227,7 @@ namespace ZLogger.Tests
             doc.GetProperty("Message").GetString().Should().Be("FooBar100 NanoNano200");
             var payload = doc.GetProperty("Payload");
             payload.GetProperty("tako").GetInt32().Should().Be(100);
-            payload.GetProperty("yaki").GetString().Should().Be("����������");
+            payload.GetProperty("yaki").GetString().Should().Be("あいうえお");
 
             doc.GetProperty("Hash").GetString().Should().Be(sourceCodeHash);
             doc.GetProperty("LogLevel").GetString().Should().Be("Debug");
