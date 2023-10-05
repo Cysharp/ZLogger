@@ -621,7 +621,53 @@ You can change this behavior by setting the MessagePackSerializerOptions and cha
 
 ### Custom formatter
 
-TODO:
+Alternatively, you can implement the `IZLoggerFormatter` yourself to completely customize the formatting results.
+
+```csharp
+public class MyCustomJsonZLoggerFormatter : IZLoggerFormatter
+{
+    Utf8JsonWriter? jsonWriter;
+
+     /// <summary>
+     /// Defines the final format of each log entry.
+     /// </summary>
+     /// <param name="writer">Write a utf8 byte sequence to this buffer.</param>
+     /// <param name="entry">Logged entry</param>
+     /// <param name="payload">Logged payload</param>
+     /// <param name="utf8Message">Logged message already rendered into a single string.</param>
+    public void FormatLogEntry<TEntry, TPayload>(
+        IBufferWriter<byte> writer,
+        TEntry entry,
+        TPayload payload,
+        ReadOnlySpan<byte> utf8Message)
+        where TEntry : IZLoggerEntry
+    {
+        jsonWriter?.Reset(writer);
+        jsonWriter ??= new Utf8JsonWriter(writer);
+
+        jsonWriter.WriteStartObject();
+
+        // ...
+        // Write JSON using jsonWriter and arguments.
+        jsonWriter.WriteString("Message", utf8Message);
+        jsonWriter.WriteString("Timestamp", entry.LogInfo.Timestamp);
+        jsonWriter.WritePropertyName(PayloadPropertyName);
+        JsonSerializer.Serialize(jsonWriter, payload);
+        // ...
+
+        jsonWriter.WriteEndObject();
+        jsonWriter.Flush();
+    }
+}
+
+logging.AddZLoggerConsole(options =>
+{
+    options.UseFormatter(() =>
+    {
+        return new MyCustomJsonZLoggerFormatter();
+    });
+});
+```
 
 Microsoft.CodeAnalysis.BannedApiAnalyzers
 ---
