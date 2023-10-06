@@ -7,6 +7,7 @@ namespace ZLogger
     public interface IZLoggerEntry
     {
         LogInfo LogInfo { get; }
+        LogScopeState? ScopeState { get; }
         void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter);
         void SwitchCasePayload<TPayload>(Action<IZLoggerEntry, TPayload, object?> payloadCallback, object? state);
         object? GetPayload();

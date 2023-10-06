@@ -1,17 +1,16 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
 using System.IO;
 
 namespace ZLogger.Providers
 {
-
     [ProviderAlias("ZLoggerStream")]
-    public class ZLoggerStreamLoggerProvider : ILoggerProvider
+    public class ZLoggerStreamLoggerProvider : ILoggerProvider, ISupportExternalScope
     {
         internal const string DefaultOptionName = "ZLoggerStream.Default";
 
-        AsyncStreamLineMessageWriter streamWriter;
+        readonly AsyncStreamLineMessageWriter streamWriter;
+        IExternalScopeProvider? scopeProvider;
 
         public ZLoggerStreamLoggerProvider(Stream stream, IOptionsMonitor<ZLoggerOptions> options)
             : this(stream, DefaultOptionName, options)
@@ -25,12 +24,20 @@ namespace ZLogger.Providers
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new AsyncProcessZLogger(categoryName, streamWriter);
+            return new AsyncProcessZLogger(categoryName, streamWriter)
+            {
+                ScopeProvider = scopeProvider
+            };
         }
 
         public void Dispose()
         {
             streamWriter.DisposeAsync().AsTask().Wait();
+        }
+
+        public void SetScopeProvider(IExternalScopeProvider scopeProvider)
+        {
+            this.scopeProvider = scopeProvider;
         }
     }
 }

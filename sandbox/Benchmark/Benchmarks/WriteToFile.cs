@@ -31,8 +31,6 @@ namespace Benchmark.Benchmarks
             var serviceProvider = serviceCollection.BuildServiceProvider();
             ZLogger = serviceProvider.GetService<ILoggerProvider>();
             ZLoggerLogger = ZLogger.CreateLogger("temp");
-
-
         }
 
         [Benchmark]
@@ -65,7 +63,7 @@ namespace Benchmark.Benchmarks
             Arg1 = arg1;
         }
 
-        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo, LogScopeState? scopeState)
         {
             return null;
         }

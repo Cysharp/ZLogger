@@ -1,19 +1,16 @@
+using System.IO;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Threading;
 
 namespace ZLogger.Providers
 {
     [ProviderAlias("ZLoggerFile")]
-    public class ZLoggerFileLoggerProvider : ILoggerProvider
+    public class ZLoggerFileLoggerProvider : ILoggerProvider, ISupportExternalScope
     {
         internal const string DefaultOptionName = "ZLoggerFile.Default";
 
-        AsyncStreamLineMessageWriter streamWriter;
+        readonly AsyncStreamLineMessageWriter streamWriter;
+        IExternalScopeProvider? scopeProvider;
 
         public ZLoggerFileLoggerProvider(string filePath, IOptionsMonitor<ZLoggerOptions> options)
             : this(filePath, DefaultOptionName, options)
@@ -37,12 +34,20 @@ namespace ZLogger.Providers
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new AsyncProcessZLogger(categoryName, streamWriter);
+            return new AsyncProcessZLogger(categoryName, streamWriter)
+            {
+                ScopeProvider = scopeProvider
+            };
         }
 
         public void Dispose()
         {
             streamWriter.DisposeAsync().AsTask().Wait();
+        }
+
+        public void SetScopeProvider(IExternalScopeProvider scopeProvider)
+        {
+            this.scopeProvider = scopeProvider;
         }
     }
 }

@@ -2,6 +2,6 @@
 {
     public interface IZLoggerState
     {
-        IZLoggerEntry CreateLogEntry(LogInfo logInfo);
+        IZLoggerEntry CreateLogEntry(LogInfo logInfo, LogScopeState? scopeState);
     }
 }

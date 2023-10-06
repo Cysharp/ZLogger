@@ -1,12 +1,12 @@
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace ZLogger.Providers
 {
     [ProviderAlias("ZLoggerLogProcessor")]
-    public class ZLoggerLogProcessorLoggerProvider : ILoggerProvider
+    public class ZLoggerLogProcessorLoggerProvider : ILoggerProvider, ISupportExternalScope
     {
-        IAsyncLogProcessor processor;
+        readonly IAsyncLogProcessor processor;
+        IExternalScopeProvider? scopeProvider;
 
         public ZLoggerLogProcessorLoggerProvider(IAsyncLogProcessor processor)
         {
@@ -15,12 +15,20 @@ namespace ZLogger.Providers
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new AsyncProcessZLogger(categoryName, processor);
+            return new AsyncProcessZLogger(categoryName, processor)
+            {
+                ScopeProvider = scopeProvider
+            };
         }
 
         public void Dispose()
         {
             processor.DisposeAsync().AsTask().Wait();
+        }
+
+        public void SetScopeProvider(IExternalScopeProvider scopeProvider)
+        {
+            this.scopeProvider = scopeProvider;
         }
     }
 }
