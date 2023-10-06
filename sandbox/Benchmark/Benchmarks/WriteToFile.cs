@@ -31,8 +31,6 @@ namespace Benchmark.Benchmarks
             var serviceProvider = serviceCollection.BuildServiceProvider();
             ZLogger = serviceProvider.GetService<ILoggerProvider>();
             ZLoggerLogger = ZLogger.CreateLogger("temp");
-
-
         }
 
         [Benchmark]
