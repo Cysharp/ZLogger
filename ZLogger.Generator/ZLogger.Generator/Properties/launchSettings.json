@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ZLogger.Generator": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\..\\sandbox\\GeneratorSandbox\\GeneratorSandbox.csproj"
+    }
+  }
+}
