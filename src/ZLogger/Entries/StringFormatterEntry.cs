@@ -7,8 +7,7 @@ namespace ZLogger.Entries
 {
     public class StringFormatterEntry<TState> : IZLoggerEntry
     {
-        static readonly ConcurrentQueue<StringFormatterEntry<TState>> cache = new ConcurrentQueue<StringFormatterEntry<TState>>();
-        static readonly byte[] newLineBytes = Encoding.UTF8.GetBytes(Environment.NewLine);
+        static readonly ConcurrentQueue<StringFormatterEntry<TState>> cache = new();
 
 #pragma warning disable CS8618
         TState state;
@@ -16,10 +15,11 @@ namespace ZLogger.Entries
         Func<TState, Exception?, string> formatter;
 
         public LogInfo LogInfo { get; private set; }
+        public LogScopeState? ScopeState { get; private set; }
 
 #pragma warning restore CS8618
 
-        public static StringFormatterEntry<TState> Create(LogInfo info, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        public static StringFormatterEntry<TState> Create(LogInfo info, TState state, LogScopeState? scopeState, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             if (!cache.TryDequeue(out var entry))
             {
@@ -30,6 +30,7 @@ namespace ZLogger.Entries
             entry.state = state;
             entry.exception = exception;
             entry.formatter = formatter;
+            entry.ScopeState = scopeState;
 
             return entry;
         }
@@ -67,6 +68,9 @@ namespace ZLogger.Entries
             this.LogInfo = default!;
             this.exception = default!;
             this.formatter = default!;
+            
+            ScopeState?.Return();
+            ScopeState = null;
         }
     }
 }

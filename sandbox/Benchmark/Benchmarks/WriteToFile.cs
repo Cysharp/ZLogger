@@ -65,7 +65,7 @@ namespace Benchmark.Benchmarks
             Arg1 = arg1;
         }
 
-        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo, LogScopeState? scopeState)
         {
             return null;
         }

@@ -2,7 +2,6 @@
 #pragma warning disable CS8618
 
 using Cysharp.Text;
-using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
@@ -12,8 +11,6 @@ namespace ZLogger.Entries
 {
     public struct MessageLogState<TPayload> : IZLoggerState
     {
-        public static readonly Func<MessageLogState<TPayload>, LogInfo, IZLoggerEntry> Factory = factory;
-
         public readonly TPayload Payload;
         public readonly string Message;
 
@@ -23,30 +20,22 @@ namespace ZLogger.Entries
             Message = message;
         }
 
-        static IZLoggerEntry factory(MessageLogState<TPayload> self, LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo, LogScopeState? scopeState)
         {
-            return self.CreateLogEntry(logInfo);
-        }
-
-        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
-        {
-            return MessageLogEntry<TPayload>.Create(logInfo, this);
+            return MessageLogEntry<TPayload>.Create(logInfo, this, scopeState);
         }
     }
 
     public class MessageLogEntry<TPayload> : IZLoggerEntry
     {
-        static readonly ConcurrentQueue<MessageLogEntry<TPayload>> cache = new ConcurrentQueue<MessageLogEntry<TPayload>>();
+        static readonly ConcurrentQueue<MessageLogEntry<TPayload>> cache = new();
 
         MessageLogState<TPayload> state;
 
         public LogInfo LogInfo { get; private set; }
+        public LogScopeState? ScopeState { get; private set; }
 
-        MessageLogEntry()
-        {
-        }
-
-        public static MessageLogEntry<TPayload> Create(in LogInfo logInfo, in MessageLogState<TPayload> state)
+        public static MessageLogEntry<TPayload> Create(in LogInfo logInfo, in MessageLogState<TPayload> state, LogScopeState? scopeState)
         {
             if (!cache.TryDequeue(out var result))
             {
@@ -55,6 +44,7 @@ namespace ZLogger.Entries
 
             result.LogInfo = logInfo;
             result.state = state;
+            result.ScopeState = scopeState;
             return result;
         }
 
@@ -71,6 +61,8 @@ namespace ZLogger.Entries
         {
             state = default;
             LogInfo = default!;
+            ScopeState?.Return();
+            ScopeState = default;
             cache.Enqueue(this);
         }
 

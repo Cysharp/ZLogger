@@ -1,14 +1,13 @@
 using Microsoft.Extensions.Logging;
 using System;
-using System.Linq.Expressions;
 using ZLogger.Entries;
 
 namespace ZLogger
 {
     public class AsyncProcessZLogger : ILogger
     {
-        readonly Func<string, Exception?, string> ReturnStringStateFormatter = (state, _) => state;
-
+        public IExternalScopeProvider? ScopeProvider { get; set; } 
+        
         readonly string categoryName;
         readonly IAsyncLogProcessor logProcessor;
 
@@ -20,45 +19,21 @@ namespace ZLogger
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            var factory = CreateLogEntry<TState>.factory;
-            if (factory != null)
-            {
-                var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
-                var entry = factory.Invoke(state, info);
-                logProcessor.Post(entry);
-            }
-            else
-            {
-                var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
-                if (StateTypeDetector<TState>.IsInternalFormattedLogValues || state == null)
-                {
-                    // null state automatically converted to FormattedLogValues struct.
-                    logProcessor.Post(StringFormatterEntry<TState>.Create(info, state, exception, formatter));
-                }
-                else
-                {
-                    // sometimes state has context(like HttpContext), it require to format in scope.
-                    var message = formatter(state, exception);
-                    logProcessor.Post(StringFormatterEntry<string>.Create(info, message, exception, ReturnStringStateFormatter));
-                }
-            }
-        }
+            var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
+            
+            var scopeState = ScopeProvider != null
+                ? LogScopeState.Create(ScopeProvider)
+                : null;
+            
+            var entry = CreateLogEntry<TState>.factory?.Invoke(state, info, scopeState) ?? 
+                        StringFormatterEntry<TState>.Create(info, state, scopeState, exception, formatter);
 
-
-        static class StateTypeDetector<TState>
-        {
-            public static readonly bool IsInternalFormattedLogValues;
-
-            static StateTypeDetector()
-            {
-                IsInternalFormattedLogValues = typeof(TState).FullName == "Microsoft.Extensions.Logging.FormattedLogValues";
-            }
+            logProcessor.Post(entry);
         }
 
         public IDisposable BeginScope<TState>(TState state)
         {
-            // currently scope is not supported...
-            return NullDisposable.Instance;
+            return ScopeProvider?.Push(state) ?? NullDisposable.Instance;
         }
 
         public bool IsEnabled(LogLevel logLevel)
@@ -68,12 +43,7 @@ namespace ZLogger
 
         class NullDisposable : IDisposable
         {
-            public static IDisposable Instance = new NullDisposable();
-
-            NullDisposable()
-            {
-
-            }
+            public static readonly IDisposable Instance = new NullDisposable();
 
             public void Dispose()
             {
@@ -85,7 +55,7 @@ namespace ZLogger
         static class CreateLogEntry<T>
         // where T:IZLoggerState
         {
-            public static readonly Func<T, LogInfo, IZLoggerEntry>? factory;
+            public static readonly Func<T, LogInfo, LogScopeState?, IZLoggerEntry>? factory;
 
             static CreateLogEntry()
             {
@@ -98,7 +68,7 @@ namespace ZLogger
 
                         if (factoryField != null)
                         {
-                            factory = factoryField.GetValue(null) as Func<T, LogInfo, IZLoggerEntry>;
+                            factory = factoryField.GetValue(null) as Func<T, LogInfo, LogScopeState?, IZLoggerEntry>;
                         }
                     }
                     catch (Exception ex)

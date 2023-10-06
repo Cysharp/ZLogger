@@ -47,7 +47,7 @@ namespace ZLogger.Formatters
         public JsonEncodedText PayloadPropertyName { get; set; } = JsonEncodedText.Encode("Payload");
         public Action<Utf8JsonWriter, LogInfo> MetadataFormatter { get; set; } = DefaultMetadataFormatter;
 
-        public JsonSerializerOptions JsonSerializerOptions { get; set; } = new JsonSerializerOptions
+        public JsonSerializerOptions JsonSerializerOptions { get; set; } = new()
         {
             WriteIndented = false,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -74,6 +74,27 @@ namespace ZLogger.Formatters
             {
                 jsonWriter.WritePropertyName(PayloadPropertyName);
                 JsonSerializer.Serialize(jsonWriter, payload, JsonSerializerOptions);
+            }
+
+            if (entry.ScopeState is { IsEmpty: false } scopeState)
+            {
+                for (var i = 0; i < scopeState.Properties.Count; i++)
+                {
+                    var x = scopeState.Properties[i];
+                    // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
+                    if (x.Key == "{OriginalFormat}")
+                        continue;
+                    
+                    jsonWriter.WritePropertyName(x.Key);
+                    if (x.Value is { } value)
+                    {
+                        JsonSerializer.Serialize(jsonWriter, value, JsonSerializerOptions);
+                    }
+                    else
+                    {
+                        jsonWriter.WriteNullValue();
+                    }
+                }
             }
 
             jsonWriter.WriteEndObject();
