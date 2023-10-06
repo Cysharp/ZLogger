@@ -27,15 +27,18 @@ ZLogger is built directly on top of `Microsoft.Extensions.Logging`. By not havin
   - [LogProcessor](#logprocessor)
 - [Multiple Providers](#multiple-providers)
 - [Preparing Message Format](#preparing-message-format)
-- [Format and DateTime Handling](#format-and-datetime-handling)
 - [Options](#options)
-  - [Common](#common)
-  - [Options for Text Logging](#options-for-text-logging)
-  - [Options for Structured Logging](#options-for-structured-logging)
-- [Console Coloring](#console-coloring)
+- [Formatters](#formatters)
+  - [`PlainTextZLoggerFormatter`](#plaintextzloggerformatter)
+    - [Format and DateTime Handling](#format-and-datetime-handling)
+    - [Console Coloring](#console-coloring)
+  - [`SystemTextJsonZLoggerFormatter`](#systemtextjsonzloggerformatter)
+  - [`MessagePackZLoggerFormatter`](#messagepackzloggerformatter)
+  - [Custom formatter](#custom-formatter)
 - [Microsoft.CodeAnalysis.BannedApiAnalyzers](#microsoftcodeanalysisbannedapianalyzers)
 - [Global LoggerFactory](#global-loggerfactory)
 - [Unity](#unity)
+  - [`UnityJsonUtilityZLoggerFormatter`](#unityjsonutilityzloggerformatter)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -72,7 +75,7 @@ Host.CreateDefaultBuilder()
         // Enable Structured Logging
         logging.AddZLoggerConsole(options =>
         {
-            options.EnableStructuredLogging = true;
+            options.UseJsonFormatter();
         });
     })
 ```
@@ -149,7 +152,7 @@ ZLogger natively supports StructuredLogging and uses System.Text.Json.JsonSerial
 // To setup, `EnableStructuredLogging = true`.
 logging.AddZLoggerConsole(options =>
 {
-    options.EnableStructuredLogging = true;
+    options.UseJsonFormatter();
 });
 
 // In default, output JSON with log information(categoryName, level, timestamp, exception), message and payload(if exists).
@@ -163,7 +166,7 @@ logger.ZLogInformationWithPayload(new UserRegisteredLog { Id = id, Name = userNa
 
 Write log by JSON, supports extra information(category-name, log-level, timestamp and custom metadatas) + message, info + message + custom payload.
 
-To details, see [Options for Structured Logging](#options-for-structured-logging) section.
+To details, see [Formatters](#formatters) section.
 
 Filters
 ---
@@ -175,13 +178,13 @@ Output Providers
 ---
 ZLogger has the following providers by default.
 
-|Type|Alias|Builder Extension
+|Type|Alias|Builder Extension|
 |-|-|-|
-|ZLoggerConsoleLoggerProvider|ZLoggerConsole|AddZLoggerConsole
-|ZLoggerFileLoggerProvider|ZLoggerFile|AddZLoggerFile
-|ZLoggerRollingFileLoggerProvider|ZLoggerRollingFile|AddZLoggerRollingFile
-|ZLoggerStreamLoggerProvider|ZLoggerStream|AddZLoggerStream
-|ZLoggerLogProcessorLoggerProvider|ZLoggerLogProcessor|AddZLoggerLogProcessor
+|ZLoggerConsoleLoggerProvider|ZLoggerConsole|AddZLoggerConsole|
+|ZLoggerFileLoggerProvider|ZLoggerFile|AddZLoggerFile|
+|ZLoggerRollingFileLoggerProvider|ZLoggerRollingFile|AddZLoggerRollingFile|
+|ZLoggerStreamLoggerProvider|ZLoggerStream|AddZLoggerStream|
+|ZLoggerLogProcessorLoggerProvider|ZLoggerLogProcessor|AddZLoggerLogProcessor|
 
 Type is used in `AddFilter<T>`, Alias is used when configuring filters from Option, and Builder Extensions is used in `ConfigureLogging`.
 
@@ -380,27 +383,28 @@ public class UserModel
 }
 ```
 
-Format and DateTime Handling
----
-ZLogger's format string internaly using ZString's format under it uses dotnet [Utf8Formatter.TryFormat](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.text.utf8formatter.tryformat). There format string is not same as standard format. It uses [StandardFormat](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.standardformat), combinate of symbol char and precision. Supported format string symbol can find in Utf8Formatter.TryFormat document(For example Int32 supports `G`, `D`, `N`, `X` and Boolean supports `G`, `I`). Precision(zero padding) can pass after symbol like `D2`. For example `logger.ZDebug("{0:D2}:{1:D2}:{2:D2}", hour, minute, second)`.
-
-[TryFormat(DateTime)](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.text.utf8formatter.tryformat?view=netcore-3.1#System_Buffers_Text_Utf8Formatter_TryFormat_System_DateTime_System_Span_System_Byte__System_Int32__System_Buffers_StandardFormat_)(also DateTimeOffset) and [TryFormat(TimeSpan)](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.text.utf8formatter.tryformat?view=netcore-3.1#System_Buffers_Text_Utf8Formatter_TryFormat_System_TimeSpan_System_Span_System_Byte__System_Int32__System_Buffers_StandardFormat_) symbol is too restricted than standard string format. If you want to use custom format, deconstruct there `Day`, `Hour`, etc.
-
 Options
 ---
 `ZLoggerOptions` can be configured with `Action<ZLoggerOptions> configure` when adding to `ILoggingBuilder`. The options applied to StructuredLogging(`EnableStructuredLogging = true`) are different from those applied to TextLogging. The default is TextLogging(`EnableStructuredLogging = false`).
 
-### Common
-
-* `bool EnableStructuredLogging`
 * `Action<LogInfo, Exception>? InternalErrorLogger`
 * `TimeSpan? FlushRate`
 
-InternalErrorLogger is an delegate of when exception occured in log writing process(such as serialization error). Default is `Console.WriteLine(exception)`.
+`InternalErrorLogger` is an delegate of when exception occured in log writing process(such as serialization error). Default is `Console.WriteLine(exception)`.
 
 `FlushRate` is flush rate of buffer write. Default is null that flush immediately when thread is free, it is recommended option for performance.
 
-### Options for Text Logging
+Formatters
+---
+
+ZLogger switches the log output format for each provider. 
+You can set the formatter by the ZLoggerOptions.UseFormatter* method.
+Built-in formatters include the following
+
+### `PlainTextZLoggerFormatter`
+
+Provide to format log entry as plain text. (Default)
+The following configuration are available.
 
 * `Action<IBufferWriter<byte>, LogInfo>? PrefixFormatter`
 * `Action<IBufferWriter<byte>, LogInfo>? SuffixFormatter`
@@ -411,11 +415,14 @@ For performance reason, we do not use string so use the `IBufferWriter<byte>` in
 ```csharp
 logging.AddZLoggerConsole(options =>
 {
-    options.PrefixFormatter = (writer, info) => ZString.Utf8Format(writer, "[{0}][{1}]", info.LogLevel, info.Timestamp.DateTime.ToLocalTime());
-
-    // Tips: use PrepareUtf8 to achive better performance.
-    var prefixFormat = ZString.PrepareUtf8<LogLevel, DateTime>("[{0}][{1}]");
-    options.PrefixFormatter = (writer, info) => prefixFormat.FormatTo(ref writer, info.LogLevel, info.Timestamp.DateTime.ToLocalTime());
+    options.UsePlainTextFormatter(formatter => 
+    {
+        formatter.PrefixFormatter = (writer, info) => ZString.Utf8Format(writer, "[{0}][{1}]", info.LogLevel, info.Timestamp.DateTime.ToLocalTime());
+        
+        // Tips: use PrepareUtf8 to achive better performance.
+        var prefixFormat = ZString.PrepareUtf8<LogLevel, DateTime>("[{0}][{1}]");
+        options.PrefixFormatter = (writer, info) => prefixFormat.FormatTo(ref writer, info.LogLevel, info.Timestamp.DateTime.ToLocalTime());
+    });
 });
 
 // output:
@@ -423,7 +430,6 @@ logging.AddZLoggerConsole(options =>
 logger.ZLogInformation("fooooo!");
 ```
 
-Note: formatting DateTime, see [Format and DateTime Handling](#format-and-datetime-handling) section.
 
 LogInfo has these informations.
 
@@ -444,9 +450,69 @@ public readonly struct LogInfo
 
 `ExceptionFormatter` is called when `LogInfo.Exception` is not null. Default is `\n + exception`.
 
-### Options for Structured Logging
+#### Format and DateTime Handling
 
-* `Action<Utf8JsonWriter, LogInfo> StructuredLoggingFormatter`
+PlainTextZLoggerFormatter's format string internally using ZString's format under it uses dotnet [Utf8Formatter.TryFormat](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.text.utf8formatter.tryformat). There format string is not same as standard format. It uses [StandardFormat](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.standardformat), combinate of symbol char and precision. Supported format string symbol can find in Utf8Formatter.TryFormat document(For example Int32 supports `G`, `D`, `N`, `X` and Boolean supports `G`, `I`). Precision(zero padding) can pass after symbol like `D2`. For example `logger.ZDebug("{0:D2}:{1:D2}:{2:D2}", hour, minute, second)`.
+
+[TryFormat(DateTime)](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.text.utf8formatter.tryformat?view=netcore-3.1#System_Buffers_Text_Utf8Formatter_TryFormat_System_DateTime_System_Span_System_Byte__System_Int32__System_Buffers_StandardFormat_)(also DateTimeOffset) and [TryFormat(TimeSpan)](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.text.utf8formatter.tryformat?view=netcore-3.1#System_Buffers_Text_Utf8Formatter_TryFormat_System_TimeSpan_System_Span_System_Byte__System_Int32__System_Buffers_StandardFormat_) symbol is too restricted than standard string format. If you want to use custom format, deconstruct there `Day`, `Hour`, etc.
+
+
+#### Console Coloring
+
+For performance reason, in default, ZLogger does not colorize in Console(using `System.Console.ForegroundColor = ConsoleColor...` causes poor performance). However, colorization can be useful in debugging. In order to colorize without degrading performance, the [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code) can be used in `PrefixFormatter` and `SuffixFormatter`.
+
+The following example shows the error in red and the framework log in gray.
+
+![image](https://user-images.githubusercontent.com/46207/126967082-66af362b-dd87-4ae7-833b-aad229054142.png)
+
+```csharp
+logging.AddZLoggerConsole(options =>
+{
+#if DEBUG
+    // \u001b[31m => Red(ANSI Escape Code)
+    // \u001b[0m => Reset
+    // \u001b[38;5;***m => 256 Colors(08 is Gray)
+    options.UsePlainTextFormatter(formatter =>
+    {
+        formatter.PrefixFormatter = (writer, info) =>
+        {
+            if (info.LogLevel == LogLevel.Error)
+            {
+                ZString.Utf8Format(writer, "\u001b[31m[{0}]", info.LogLevel);
+            }
+            else
+            {
+                if (!info.CategoryName.StartsWith("MyApp")) // your application namespace.
+                {
+                    ZString.Utf8Format(writer, "\u001b[38;5;08m[{0}]", info.LogLevel);
+                }
+                else
+                {
+                    ZString.Utf8Format(writer, "[{0}]", info.LogLevel);
+                }
+            }
+        };
+        formatter.SuffixFormatter = (writer, info) =>
+        {
+            if (info.LogLevel == LogLevel.Error || !info.CategoryName.StartsWith("MyApp"))
+            {
+                ZString.Utf8Format(writer, "\u001b[0m", "");
+            }
+        };
+    });
+#endif
+
+}, configureEnableAnsiEscapeCode: true); // configureEnableAnsiEscapeCode
+```
+
+`configureEnableAnsiEscapeCode: true` is important option for Windows(default is false). Visual Studio Debug Console, other 3rd party terminals, linux terminals are enabled ANSI escape code but default command prompt and powershell are not. If `configureEnableAnsiEscapeCode: true` then configure console option on execution and enable virtual terminal processing(enable ANSI escape code).
+
+### `SystemTextJsonZLoggerFormatter`
+
+Provide JSON format using `System.Text.Json`.
+The following configuration are available.
+
+* `Action<Utf8JsonWriter, LogInfo> MetadataFormatter`
 * `JsonEncodedText MessagePropertyName`
 * `JsonEncodedText PayloadPropertyName`
 * `JsonSerializerOptions JsonSerializerOptions`
@@ -456,7 +522,7 @@ The StructuredLoggingFormatter is called when `EnableStructuredLogging = true`. 
 ```csharp
 logging.AddZLoggerConsole(options =>
 {
-    options.EnableStructuredLogging = true;
+    options.UseJsonFormatter();
 });
 
 // {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":null}
@@ -474,25 +540,26 @@ public struct UserRegisteredLog
 }
 ```
 
-Write as JSON in the order StructuredLoggingFormatter -> Message -> Payload. The property names "Message" and "Payload" may be changed by "MessagePropertyName" and "PayloadPropertyName".
+Write as JSON in the order MetadataFormatter -> Message -> Payload. The property names "Message" and "Payload" may be changed by "MessagePropertyName" and "PayloadPropertyName".
 
-`ZLog...WithPayload` methods are only meaningful for StructuredLogging. When `EnableStructuredLogging = true`, payload is serialized to JSON by `System.Text.Json.JsonSerializer`. (`ZLogger` does not support [Message Templates](https://messagetemplates.org/), if you want to output a payload, you must pass an object/struct.)
+`ZLog...WithPayload` methods are only meaningful for StructuredLogging. When `UseJsonFormatter()`, payload is serialized to JSON by `System.Text.Json.JsonSerializer`. (`ZLogger` does not support [Message Templates](https://messagetemplates.org/), if you want to output a payload, you must pass an object/struct.)
 
-If you want to add additional information to the JSON, modify the StructuredLoggingFormatter as follows, for example
+If you want to add additional information to the JSON, modify the MetadataFormatter as follows, for example
 
 ```csharp
 logging.AddZLoggerConsole(options =>
 {
-    options.EnableStructuredLogging = true;
-
-    var gitHashName = JsonEncodedText.Encode("GitHash");
-    var gitHashValue = JsonEncodedText.Encode(gitHash);
-
-    options.StructuredLoggingFormatter = (writer, info) =>
+    options.UseJsonFormatter(formatter => 
     {
-        writer.WriteString(gitHashName, gitHashValue);
-        info.WriteToJsonWriter(writer);
-    };
+        var gitHashName = JsonEncodedText.Encode("GitHash");
+        var gitHashValue = JsonEncodedText.Encode(gitHash);
+    
+        formatter.MetadataFormatter = (writer, info) =>
+        {
+            writer.WriteString(gitHashName, gitHashValue);
+            formatter.DefaultMetadataFormatter(writer, info);
+        };
+    });
 });
 
 // {"GitHash":"XXXX","CategoryName":...,"Message":"...","Payload":...}
@@ -510,52 +577,97 @@ new JsonSerializerOptions
 }
 ```
 
-Console Coloring
----
-For performance reason, in default, ZLogger does not colorize in Console(using `System.Console.ForegroundColor = ConsoleColor...` causes poor performance). However, colorization can be useful in debugging. In order to colorize without degrading performance, the [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code) can be used in `PrefixFormatter` and `SuffixFormatter`.
+### `MessagePackZLoggerFormatter`
 
-The following example shows the error in red and the framework log in gray.
+`ZLogger.MessagePack` package can be installed to format log entry with [MessagePack-CSharp](https://github.com/MessagePack-CSharp/MessagePack-CSharp) binary format.
 
-![image](https://user-images.githubusercontent.com/46207/126967082-66af362b-dd87-4ae7-833b-aad229054142.png)
+The following configuration are available.
+* `MessagePackSerializerOptions MessagePackSerializerOptions`
+
+You can change the serialization behavior of the payload by changing the `MessagePackSerializerOptions`. If you want to set up a custom messagepack formatter, set it here. By default, `MessagePackSerializer.DefaultOptions` is used
 
 ```csharp
 logging.AddZLoggerConsole(options =>
 {
-#if DEBUG
-    // \u001b[31m => Red(ANSI Escape Code)
-    // \u001b[0m => Reset
-    // \u001b[38;5;***m => 256 Colors(08 is Gray)
-    options.PrefixFormatter = (writer, info) =>
+    options.UseMessagePackFormatter(formatter => 
     {
-        if (info.LogLevel == LogLevel.Error)
+        formatter.MessagePackSerializerOptions
         {
-            ZString.Utf8Format(writer, "\u001b[31m[{0}]", info.LogLevel);
-        }
-        else
-        {
-            if (!info.CategoryName.StartsWith("MyApp")) // your application namespace.
-            {
-                ZString.Utf8Format(writer, "\u001b[38;5;08m[{0}]", info.LogLevel);
-            }
-            else
-            {
-                ZString.Utf8Format(writer, "[{0}]", info.LogLevel);
-            }
-        }
-    };
-    options.SuffixFormatter = (writer, info) =>
-    {
-        if (info.LogLevel == LogLevel.Error || !info.CategoryName.StartsWith("MyApp"))
-        {
-            ZString.Utf8Format(writer, "\u001b[0m", "");
-        }
-    };
-#endif
+            writer.WriteString(gitHashName, gitHashValue);
+            formatter.DefaultMetadataFormatter(writer, info);
+        };
+    });
+});
 
-}, configureEnableAnsiEscapeCode: true); // configureEnableAnsiEscapeCode
+// Outputs a messagepack with strings as keys, such as the following values:
+// {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":...,"Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":null}
+logger.ZLogInformation("Registered User: Id = {0}, UserName = {1}", id, userName);
+
+// {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":...,"Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":{"Id":10,"Name":"Mike"}}
+logger.ZLogInformationWithPayload(new UserRegisteredLog { Id = id, Name = userName }, "Registered User: Id = {0}, UserName = {1}", id, userName);
+
+// Payload must be able to be formatted with MessagePack like this:
+[MessagePackObject(keyAsPropertyName: true)]
+public struct UserRegisteredLog
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+}
 ```
 
-`configureEnableAnsiEscapeCode: true` is important option for Windows(default is false). Visual Studio Debug Console, other 3rd party terminals, linux terminals are enabled ANSI escape code but default command prompt and powershell are not. If `configureEnableAnsiEscapeCode: true` then configure console option on execution and enable virtual terminal processing(enable ANSI escape code).
+Note:
+Timestamp is formatted by default with used message pack [timestamp-extension-type](https://github.com/msgpack/msgpack/blob/master/spec.md#timestamp-extension-type).
+You can change this behavior by setting the MessagePackSerializerOptions and changing the DateTime type formatter.
+
+### Custom formatter
+
+Alternatively, you can implement the `IZLoggerFormatter` yourself to completely customize the formatting results.
+
+```csharp
+public class MyCustomJsonZLoggerFormatter : IZLoggerFormatter
+{
+    Utf8JsonWriter? jsonWriter;
+
+     /// <summary>
+     /// Defines the final format of each log entry.
+     /// </summary>
+     /// <param name="writer">Write a utf8 byte sequence to this buffer.</param>
+     /// <param name="entry">Logged entry</param>
+     /// <param name="payload">Logged payload</param>
+     /// <param name="utf8Message">Logged message already rendered into a single string.</param>
+    public void FormatLogEntry<TEntry, TPayload>(
+        IBufferWriter<byte> writer,
+        TEntry entry,
+        TPayload payload,
+        ReadOnlySpan<byte> utf8Message)
+        where TEntry : IZLoggerEntry
+    {
+        jsonWriter?.Reset(writer);
+        jsonWriter ??= new Utf8JsonWriter(writer);
+
+        jsonWriter.WriteStartObject();
+
+        // ...
+        // Write JSON using jsonWriter and arguments.
+        jsonWriter.WriteString("Message", utf8Message);
+        jsonWriter.WriteString("Timestamp", entry.LogInfo.Timestamp);
+        jsonWriter.WritePropertyName(PayloadPropertyName);
+        JsonSerializer.Serialize(jsonWriter, payload);
+        // ...
+
+        jsonWriter.WriteEndObject();
+        jsonWriter.Flush();
+    }
+}
+
+logging.AddZLoggerConsole(options =>
+{
+    options.UseFormatter(() =>
+    {
+        return new MyCustomJsonZLoggerFormatter();
+    });
+});
+```
 
 Microsoft.CodeAnalysis.BannedApiAnalyzers
 ---
@@ -695,7 +807,37 @@ The advantages of using ZLogger include more log levels, filtering, automatic ca
 
 You can also use `ZLoggerFileLoggerProvider`, `ZLoggerRollingFileLoggerProvider` to write out logs to files, which can be useful if you want to output as a PC application(Steam, VR, etc...). You can also use `ZLoggerStreamLoggerProvider` or `ZLoggerLogProcessorProvider` as an extension point for your own log output.
 
-> Limitation: Currently ZLogger for Unity does not support structured logging so you can not set `EnableStructuredLogging = true`.
+Limitation: 
+Currently, ZLogger for Unity can only specify `PlainTextZLoggerFormatter` and `UnityJsonUtilityZLoggerFormatter`.
+If you want more flexibility in formatting, see the Custom formatter section.
+
+### `UnityJsonUtilityZLoggerFormatter`
+
+```csharp
+loggerFactory = UnityLoggerFactory.Create(builder =>
+{
+    builder.AddZLoggerUnityDebug(options => 
+    {
+        options.UseUnityJsonUtilityFormatter();
+    });
+});
+
+// {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":null}
+logger.ZLogInformation("Registered User: Id = {0}, UserName = {1}", id, userName);
+
+// {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":{"Id":10,"Name":"Mike"}}
+logger.ZLogInformationWithPayload(new UserRegisteredLog { Id = id, Name = userName }, "Registered User: Id = {0}, UserName = {1}", id, userName);
+
+// Payload must be able to be formatted with JsonUtility.
+// The target fields are those that are `[Serializable]`, public fields, or fields with `[SerializeField]` attached.
+[Serializable]
+public struct UserRegisteredLog
+{
+    public int Id;
+    public string Name;
+}
+
+```
 
 License
 ---

@@ -1,22 +1,13 @@
-﻿using System.Collections;
-using ZLogger;
-using System.Collections.Generic;
+﻿using Cysharp.Text;
 using NUnit.Framework;
-using UnityEngine;
-using UnityEngine.TestTools;
 using Microsoft.Extensions.Logging;
-using ZLogger.Providers;
 using Microsoft.Extensions.Options;
-using ZLogger.Entries;
-using Cysharp.Text;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using System.Reflection;
-using System;
+using ZLogger;
+using ZLogger.Providers;
 
 namespace Tests
 {
-    public class NewTestScript
+    public class LoggerProviderTest
     {
         [Test]
         public void SimpleLogging()
@@ -42,14 +33,14 @@ namespace Tests
             logger.ZLogDebug("foo{0} bar{1}", 100, 200);
         }
 
-        static ILogger<NewTestScript> CreaterLogger()
+        static ILogger<LoggerProviderTest> CreaterLogger()
         {
             var factory = UnityLoggerFactory.Create(builder =>
             {
                 builder.AddZLoggerUnityDebug();
             });
 
-            var mylogger = factory.CreateLogger<NewTestScript>();
+            var mylogger = factory.CreateLogger<LoggerProviderTest>();
             return mylogger;
         }
 
@@ -70,11 +61,14 @@ namespace Tests
                 builder.AddFilter<ZLoggerUnityLoggerProvider>("OldTestScript", LogLevel.Debug);
                 builder.AddZLoggerUnityDebug(x =>
                 {
-                    x.PrefixFormatter = (buf, info) => ZString.Utf8Format(buf, "[{0}][{1}]", info.LogLevel, info.Timestamp.LocalDateTime);
+                    x.UsePlainTextFormatter(formatter =>
+                    {
+                        formatter.PrefixFormatter = (buf, info) => ZString.Utf8Format(buf, "[{0}][{1}]", info.LogLevel, info.Timestamp.LocalDateTime);
+                    });
                 });
             });
 
-            var newLogger = factory.CreateLogger<NewTestScript>();
+            var newLogger = factory.CreateLogger<LoggerProviderTest>();
             var oldLogger = factory.CreateLogger("OldTestScript");
 
             newLogger.ZLogInformation("NEW OK INFO");
@@ -93,15 +87,21 @@ namespace Tests
 
                 builder.AddZLoggerUnityDebug(x =>
                 {
-                    x.PrefixFormatter = (buf, info) => ZString.Utf8Format(buf, "UNI [{0}][{1}]", info.LogLevel, info.Timestamp.LocalDateTime);
+                    x.UsePlainTextFormatter(f =>
+                    {
+                        f.PrefixFormatter = (buf, info) => ZString.Utf8Format(buf, "UNI [{0}][{1}]", info.LogLevel, info.Timestamp.LocalDateTime);
+                    });
                 });
                 builder.AddZLoggerFile("test_il2cpp.log", x =>
                 {
-                    x.PrefixFormatter = (buf, info) => ZString.Utf8Format(buf, "FIL [{0}][{1}]", info.LogLevel, info.Timestamp.LocalDateTime);
+                    x.UsePlainTextFormatter(f =>
+                    {
+                        f.PrefixFormatter = (buf, info) => ZString.Utf8Format(buf, "FIL [{0}][{1}]", info.LogLevel, info.Timestamp.LocalDateTime);
+                    });
                 });
             });
 
-            var newLogger = factory.CreateLogger<NewTestScript>();
+            var newLogger = factory.CreateLogger<LoggerProviderTest>();
             newLogger.ZLogInformation("NEW OK INFO");
             newLogger.ZLogDebug("NEW OK DEBUG");
         }

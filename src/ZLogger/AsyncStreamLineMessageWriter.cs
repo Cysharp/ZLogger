@@ -86,6 +86,7 @@ namespace ZLogger
         async Task WriteLoop()
         {
             var writer = new StreamBufferWriter(stream);
+            var formatter = options.CreateFormatter();
             var reader = channel.Reader;
             var sw = Stopwatch.StartNew();
             try
@@ -98,30 +99,8 @@ namespace ZLogger
                         while (reader.TryRead(out var value))
                         {
                             info = value.LogInfo;
-
-                            if (options.EnableStructuredLogging)
-                            {
-                                var jsonWriter = options.GetThreadStaticUtf8JsonWriter(writer);
-                                try
-                                {
-                                    jsonWriter.WriteStartObject();
-
-                                    value.FormatUtf8(writer, options, jsonWriter);
-                                    value.Return();
-
-                                    jsonWriter.WriteEndObject();
-                                    jsonWriter.Flush();
-                                }
-                                finally
-                                {
-                                    jsonWriter.Reset();
-                                }
-                            }
-                            else
-                            {
-                                value.FormatUtf8(writer, options, null);
-                                value.Return();
-                            }
+                            value.FormatUtf8(writer, formatter);
+                            value.Return();
 
                             AppendLine(writer);
                         }

@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEngine.Scripting;
 using ZLogger.Providers;
 
 namespace ZLogger
@@ -63,6 +64,7 @@ namespace ZLogger
         }
 
         // for IL2CPP.
+        [Preserve]
         static void TypeHint()
         {
             _ = new LoggerFactory(default(IEnumerable<ILoggerProvider>), default(LoggerFilterOptions));

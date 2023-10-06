@@ -1,14 +1,13 @@
 using Cysharp.Text;
 using System;
 using System.Buffers;
-using System.Text.Json;
 
 namespace ZLogger
 {
     public interface IZLoggerEntry
     {
         LogInfo LogInfo { get; }
-        void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter);
+        void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter);
         void SwitchCasePayload<TPayload>(Action<IZLoggerEntry, TPayload, object?> payloadCallback, object? state);
         object? GetPayload();
         void Return();
@@ -16,12 +15,12 @@ namespace ZLogger
 
     public static class ZLoggerEntryExtensions
     {
-        public static string FormatToString(this IZLoggerEntry entry, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public static string FormatToString(this IZLoggerEntry entry, IZLoggerFormatter formatter)
         {
             var boxedBuilder = (IBufferWriter<byte>)ZString.CreateUtf8StringBuilder();
             try
             {
-                entry.FormatUtf8(boxedBuilder, options, jsonWriter);
+                entry.FormatUtf8(boxedBuilder, formatter);
                 return boxedBuilder.ToString()!;
             }
             finally

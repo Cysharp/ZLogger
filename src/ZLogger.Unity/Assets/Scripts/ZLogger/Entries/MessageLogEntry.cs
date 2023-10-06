@@ -7,9 +7,6 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Text.Json;
 
 namespace ZLogger.Entries
 {
@@ -61,41 +58,12 @@ namespace ZLogger.Entries
             return result;
         }
 
-        public void FormatUtf8(IBufferWriter<byte> writer, ZLoggerOptions options, Utf8JsonWriter? jsonWriter)
+        public void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter)
         {
-            if (options.EnableStructuredLogging && jsonWriter != null)
+            using (var sb = ZString.CreateUtf8StringBuilder(true))
             {
-                options.StructuredLoggingFormatter.Invoke(jsonWriter, this.LogInfo);
-
-                using (var sb = ZString.CreateUtf8StringBuilder(true))
-                {
-                    sb.Append(state.Message);
-                    jsonWriter.WriteString(options.MessagePropertyName, sb.AsSpan());
-                }
-
-                jsonWriter.WritePropertyName(options.PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, state.Payload, options.JsonSerializerOptions);
-            }
-            else
-            {
-                options.PrefixFormatter?.Invoke(writer, this.LogInfo);
-
-                var str = state.Message;
-                if (str != null)
-                {
-                    var memory = writer.GetMemory(Encoding.UTF8.GetMaxByteCount(str.Length));
-                    if (MemoryMarshal.TryGetArray<byte>(memory, out var segment) && segment.Array != null)
-                    {
-                        var written1 = Encoding.UTF8.GetBytes(str, 0, str.Length, segment.Array, segment.Offset);
-                        writer.Advance(written1);
-                    }
-                }
-
-                options.SuffixFormatter?.Invoke(writer, this.LogInfo);
-                if (this.LogInfo.Exception != null)
-                {
-                    options.ExceptionFormatter(writer, this.LogInfo.Exception);
-                }
+                sb.Append(state.Message);
+                formatter.FormatLogEntry(writer, this, (string?)null, sb.AsSpan());
             }
         }
 
