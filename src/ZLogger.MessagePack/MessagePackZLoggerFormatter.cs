@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Buffers;
 using MessagePack;
 using Microsoft.Extensions.Logging;
@@ -73,7 +74,7 @@ namespace ZLogger.MessagePack
             messagePackWriter.WriteMapHeader(6 + 
                                              (entry.LogInfo.Exception != null ? 1 : 0) + 
                                              (payload != null ? 1 : 0) +
-                                             (entry.ScopeState?.Properties.Count ?? 0));
+                                             (entry.ScopeState?.Properties.Count(x => x.Key != "{OriginalFormat}") ?? 0));
 
             messagePackWriter.WriteRaw(CategoryNameKey);
             messagePackWriter.Write(entry.LogInfo.CategoryName);
