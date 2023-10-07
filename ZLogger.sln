@@ -25,9 +25,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZLogger.MessagePack", "src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZLogger.MessagePack.Tests", "tests\ZLogger.MessagePack.Tests\ZLogger.MessagePack.Tests.csproj", "{35FFEF10-C4B9-4E6C-B00F-BC32AB0F81C4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZLogger.Generator", "ZLogger.Generator\ZLogger.Generator\ZLogger.Generator.csproj", "{2F75085C-9DFE-495F-8D11-F6AFFED22FA5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZLogger.Generator", "ZLogger.Generator\ZLogger.Generator\ZLogger.Generator.csproj", "{2F75085C-9DFE-495F-8D11-F6AFFED22FA5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeneratorSandbox", "sandbox\GeneratorSandbox\GeneratorSandbox.csproj", "{18D196D4-6582-4903-BF82-BEF3014C0B3F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GeneratorSandbox", "sandbox\GeneratorSandbox\GeneratorSandbox.csproj", "{18D196D4-6582-4903-BF82-BEF3014C0B3F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZLogger.Generator.Tests", "tests\ZLogger.Generator.Tests\ZLogger.Generator.Tests.csproj", "{837A506E-4119-4E7C-B708-5056889A6D5F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,6 +73,10 @@ Global
 		{18D196D4-6582-4903-BF82-BEF3014C0B3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{18D196D4-6582-4903-BF82-BEF3014C0B3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{18D196D4-6582-4903-BF82-BEF3014C0B3F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{837A506E-4119-4E7C-B708-5056889A6D5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{837A506E-4119-4E7C-B708-5056889A6D5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{837A506E-4119-4E7C-B708-5056889A6D5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{837A506E-4119-4E7C-B708-5056889A6D5F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -85,6 +91,7 @@ Global
 		{35FFEF10-C4B9-4E6C-B00F-BC32AB0F81C4} = {BA8EAC7A-0D94-4EE2-A8F5-3998D73E3325}
 		{2F75085C-9DFE-495F-8D11-F6AFFED22FA5} = {108EBE73-8E8B-4BC8-ACBB-FB97D2B64B2E}
 		{18D196D4-6582-4903-BF82-BEF3014C0B3F} = {87C57843-6AA8-462F-B383-0E756D1E389C}
+		{837A506E-4119-4E7C-B708-5056889A6D5F} = {BA8EAC7A-0D94-4EE2-A8F5-3998D73E3325}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D6093B62-9CF6-4344-8924-80BF89EEB4BA}

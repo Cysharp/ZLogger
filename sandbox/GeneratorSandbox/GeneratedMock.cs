@@ -1,4 +1,7 @@
-﻿using MessagePack;
+﻿using Cysharp.Text;
+using MessagePack;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualBasic;
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
@@ -7,25 +10,58 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using ZLogger;
+using ZLogger.Internal;
 
 namespace GeneratorSandbox;
 
 
-public interface IStructuredKeyValueWriter<T>
+public interface IStructuredKeyValueWriter
 {
     void WriteKey(ReadOnlySpan<byte> key);
     void WriteValue<T>(T value);
 }
 
 
-readonly struct CouldNotOpenSocketState
+public interface IZLoggerFormattable
 {
-    const int ParameterCount = 2;
+    int ParameterCount { get; }
+    string ToString();
+    void ToString(IBufferWriter<byte> writer);
+    void WriteJsonMessageString(Utf8JsonWriter writer);
+    void WriteJsonParameterKeyValues(Utf8JsonWriter writer);
+    ReadOnlySpan<byte> GetParameterKey(int index);
+    object GetParameterValue(int index);
+    T GetParameterValue<T>(int index);
+    Type GetParameterType(int index);
+}
+
+public static class Log22
+{
+    // [ZLoggerMessage(Information, "Could not open socket to {hostName} {ipAddress}.")]
+    public static void CouldNotOpenSocket(this ILogger<FooBarBaz> logger, string hostName, int ipAddress)
+    {
+        if (!logger.IsEnabled(LogLevel.Information)) return;
+        logger.Log(LogLevel.Information, -1, new CouldNotOpenSocketState(hostName, ipAddress), null, (state, ex) => state.ToString());
+    }
+
+    public static void CouldNotOpenSocket2(this ILogger<FooBarBaz> logger, string hostName, int ipAddress, Exception exception)
+    {
+        if (!logger.IsEnabled(LogLevel.Information)) return;
+        logger.Log(LogLevel.Information, -1, new CouldNotOpenSocketState(hostName, ipAddress), exception, (state, ex) => state.ToString());
+    }
+}
+
+file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
+{
+    const int Count = 2;
+    static readonly JsonEncodedText jsonParameter1 = JsonEncodedText.Encode("hostName");
+    static readonly JsonEncodedText jsonParameter2 = JsonEncodedText.Encode("ipAddress");
 
     readonly string hostName;
     readonly int ipAddress;
-
 
     public CouldNotOpenSocketState(string hostName, int ipAddress)
     {
@@ -33,13 +69,15 @@ readonly struct CouldNotOpenSocketState
         this.ipAddress = ipAddress;
     }
 
+    public int ParameterCount => Count;
+
     public void ToString(IBufferWriter<byte> writer)
     {
         var chunk1 = "Could not open socket to "u8;
         var chunk2 = " "u8;
         var chunk3 = "."u8;
 
-        var dest = writer.GetSpan(chunk1.Length + chunk2.Length + chunk3.Length + Util.GuessedParameterByteCount(ParameterCount - 1) + Util.GetStringMaxByteCount(hostName));
+        var dest = writer.GetSpan(chunk1.Length + chunk2.Length + chunk3.Length + Util.GuessedParameterByteCount(Count - 1) + Util.GetStringMaxByteCount(hostName));
         var count = 0;
 
         Util.WriteValue(writer, chunk1, ref dest, ref count);
@@ -54,29 +92,64 @@ readonly struct CouldNotOpenSocketState
         }
     }
 
-    public override string ToString()
+    public override string ToString() => $"Could not open socket to {hostName} {ipAddress}.";
+
+    public void WriteJsonMessageString(Utf8JsonWriter writer)
     {
-        return $"Could not open socket to {hostName} {ipAddress}.";
+        var bufferWriter = CodeGeneratorUtil.GetThreadStaticArrayBufferWriter();
+        ToString(bufferWriter);
+        writer.WriteString(CodeGeneratorUtil.JsonEncodedMessage, bufferWriter.WrittenSpan);
     }
 
+    public void WriteJsonParameterKeyValues(Utf8JsonWriter writer)
+    {
+        writer.WriteString(jsonParameter1, hostName);
+        writer.WriteNumber(jsonParameter2, ipAddress);
+    }
 
+    public ReadOnlySpan<byte> GetParameterKey(int index)
+    {
+        switch (index)
+        {
+            case 0: return "hostName"u8;
+            case 1: return "ipAddress"u8;
+        }
+        CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+        return default;
+    }
 
-    //public void WriteKeyValue<T>(T writer)
-    //{
-    //    writer.WriteKey("hostName"u8);
-    //    writer.WriteValue(hostName);
-    //    writer.WriteKey("ipAddress"u8);
-    //    writer.WriteValue(ipAddress);
-    //}
+    public object GetParameterValue(int index)
+    {
+        switch (index)
+        {
+            case 0: return hostName;
+            case 1: return ipAddress;
+        }
+        CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+        return null!;
+    }
 
+    public T GetParameterValue<T>(int index)
+    {
+        switch (index)
+        {
+            case 0: return Unsafe.As<string, T>(ref Unsafe.AsRef(hostName));
+            case 1: return Unsafe.As<int, T>(ref Unsafe.AsRef(ipAddress));
+        }
+        CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+        return default!;
+    }
 
-    //public void WriteKeyValue(ref MessagePackWriter writer)
-    //{
-    //    writer.WriteKey("hostName"u8);
-    //    writer.WriteValue(hostName);
-    //    writer.WriteKey("ipAddress"u8);
-    //    writer.WriteValue(ipAddress);
-    //}
+    public Type GetParameterType(int index)
+    {
+        switch (index)
+        {
+            case 0: return typeof(string);
+            case 1: return typeof(int);
+        }
+        CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+        return default!;
+    }
 }
 
 file static class Util
