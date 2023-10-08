@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System.Buffers;
 using System.Reflection.Emit;
 using System.Text;
+using System.Text.Json;
 using ZLogger;
 
 using static Microsoft.Extensions.Logging.LogLevel;
@@ -27,11 +28,18 @@ ILogger log;
 public static partial class Log
 {
     [LoggerMessage(
+        EventId = 2,
+        Level = LogLevel.Critical,
+        Message = "Could not open socket to {list}.")]
+    public static partial void TestTest(this ILogger logger, LogLevel levels, int[] list, string hostName, Exception ex);
+
+    [LoggerMessage(
         EventId = 0,
         EventName = "Z",
         Level = LogLevel.Critical,
         Message = "Could not open socket to {ipAddress,100}.")]
     public static partial void CouldNotOpenSocket(this ILogger<FooBarBaz> logger, string hostName, int ipAddress, Exception ex);
+
 
 
 
@@ -41,6 +49,8 @@ public static partial class Log
         Level = LogLevel.Critical,
         Message = "Could not open socket to {hostName} {ipAddress} {hogemoge}.")]
     public static partial void CouldNotOpenSocket(this ILogger<FooBarBaz> logger, string hostName, int ipAddress, int hogemoge);
+
+
 }
 
 public static partial class Log2
@@ -77,6 +87,9 @@ public struct MessagePackStructuredKeyValueWriter
 {
     public MessagePackStructuredKeyValueWriter()
     {
+        //ILogger logger;
+        //logger.Log(
+        
         // writer = new MessagePackWriter();
     }
 

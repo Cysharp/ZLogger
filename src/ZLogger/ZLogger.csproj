@@ -74,6 +74,7 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <TargetFiles1 Remove="Internal\CodeGeneratorUtil.cs" />
+	  <TargetFiles1 Remove="IZLoggerFormattable.cs" />
 	  <TargetFiles1 Remove="ZLoggerMessageAttribtue.cs" />
 	</ItemGroup>
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'net6.0'">

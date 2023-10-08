@@ -24,6 +24,8 @@
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="../../Icon.png" Pack="true" PackagePath="/" />
+		<None Include="ZLoggerGenerator.Emitter.cs" />
+		<None Include="ZLoggerGenerator.Parser.cs" />
 
 		<!-- https://learn.microsoft.com/en-us/visualstudio/extensibility/roslyn-version-support?view=vs-2022 -->
 		<!-- require to support SyntaxValueProvider.ForAttributeWithMetadataName(Roslyn 4.3.1, VS2022 17.3 -->
