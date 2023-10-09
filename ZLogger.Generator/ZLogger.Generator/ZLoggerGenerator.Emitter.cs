@@ -81,6 +81,16 @@ public partial class ZLoggerGenerator
 {{constructorBody}}
         }
 
+        static {{stateTypeName}}()
+        {
+            LogEntryFactory<{{stateTypeName}}>.Create = CreateEntry;
+        }
+
+        static IZLoggerEntry CreateEntry(in LogInfo logInfo, in {{stateTypeName}} state)
+        {
+            return ZLoggerEntry<{{stateTypeName}}>.Create(logInfo, state);
+        }
+
 """);
 
             EmitIZLoggerFormattableMethods(method);
@@ -90,17 +100,19 @@ public partial class ZLoggerGenerator
 
         void EmitIZLoggerFormattableMethods(LogMethodDeclaration method)
         {
+            var stateTypeName = $"{method.TargetMethod.Name}State";
             var methodParameters = method.MethodParameters.Where(x => x.IsParameter).ToArray();
             var messageSegmentWithIndex = method.MessageSegments.Select((segment, index) => (segment, index)).ToArray();
 
             //int ParameterCount { get; }
-            sb.AppendLine("        public int ParameterCount => _parameterCount;");
-            sb.AppendLine();
-
+            //bool IsSupportStructuredLogging { get; }
             //string ToString();
-            sb.AppendLine($"        public override string ToString() => $\"{string.Concat(method.MessageSegments.Select(x => x.ToString()))}\";");
-            sb.AppendLine();
+            sb.AppendLine($$"""
+        public int ParameterCount => _parameterCount;");
+        public bool IsSupportStructuredLogging => true;
+        public override string ToString() => \"{{string.Concat(method.MessageSegments.Select(x => x.ToString()))}}\";"
 
+""");
             //void ToString(IBufferWriter<byte> writer);
             {
                 var chunks = messageSegmentWithIndex

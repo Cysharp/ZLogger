@@ -12,7 +12,7 @@ namespace GeneratorSandbox;
 public static class Log22
 {
     // [ZLoggerMessage(Information, "Could not open socket to {hostName} {ipAddress}.")]
-    public static void CouldNotOpenSocket(this ILogger<FooBarBaz> logger, string hostName,  int ipAddress)
+    public static void CouldNotOpenSocket(this ILogger<FooBarBaz> logger, string hostName, int ipAddress)
     {
         if (!logger.IsEnabled(LogLevel.Information)) return;
         logger.Log(LogLevel.Information, -1, new CouldNotOpenSocketState(hostName, ipAddress), null, (state, ex) => state.ToString());
@@ -32,10 +32,6 @@ public static class Log22
 
 }
 
-
-
-
-
 file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
 {
     const int Count = 2;
@@ -51,7 +47,19 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
         this.ipAddress = ipAddress;
     }
 
+    static CouldNotOpenSocketState()
+    {
+        LogEntryFactory<CouldNotOpenSocketState>.Create = CreateEntry;
+    }
+
+    static IZLoggerEntry2 CreateEntry(in LogInfo logInfo, in CouldNotOpenSocketState state)
+    {
+        return ZLoggerEntry<CouldNotOpenSocketState>.Create(logInfo, state);
+    }
+
     public int ParameterCount => Count;
+
+    public bool IsSupportStructuredLogging => throw new NotImplementedException();
 
     public void ToString(IBufferWriter<byte> writer)
     {

@@ -82,7 +82,12 @@ namespace ZLogger.Internal
                 dest = writer.GetSpan(max);
             }
 
+            // TODO:support standard 2.1
+#if NETSTANDARD2_0
+            var written = 0;
+#else
             var written = Encoding.UTF8.GetBytes(src, dest);
+#endif
             dest = dest.Slice(written);
             destWritten += written;
         }

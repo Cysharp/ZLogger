@@ -4,26 +4,54 @@ using MessagePack;
 using Microsoft.Extensions.Logging;
 using System.Buffers;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using ZLogger;
 
-using static Microsoft.Extensions.Logging.LogLevel;
-
-Console.WriteLine("Hello, World!");
 
 
-var writer = new MessagePackWriter();
+var i = 100;
+Log($"hogemoge{i}");
 
 
 
+static void Log(LogInterpolatedStringHandler format)
+{
+    
 
-// var writer2 = new StructuredKeyValueWriter();
+}
 
-ILogger log;
+[InterpolatedStringHandler]
+public ref struct LogInterpolatedStringHandler
+{
+    // Storage for the built-up string
+    StringBuilder builder;
 
+    public LogInterpolatedStringHandler(int literalLength, int formattedCount)
+    {
+        builder = new StringBuilder(literalLength);
+        Console.WriteLine($"\tliteral length: {literalLength}, formattedCount: {formattedCount}");
+    }
 
+    public void AppendLiteral(string s)
+    {
+        Console.WriteLine($"\tAppendLiteral called: {{{s}}}");
 
+        builder.Append(s);
+        Console.WriteLine($"\tAppended the literal string");
+    }
+
+    public void AppendFormatted<T>(T t)
+    {
+        Console.WriteLine($"\tAppendFormatted called: {{{t}}} is of type {typeof(T)}");
+
+        builder.Append(t?.ToString());
+        Console.WriteLine($"\tAppended the formatted object");
+    }
+
+    internal string GetFormattedText() => builder.ToString();
+}
 
 public static partial class Log
 {
@@ -51,6 +79,9 @@ public static partial class Log
     public static partial void CouldNotOpenSocket(this ILogger<FooBarBaz> logger, string hostName, int ipAddress, int hogemoge);
 
 
+
+
+
 }
 
 public static partial class Log2
@@ -73,7 +104,7 @@ public static partial class Log2
 
 public static partial class LogZ
 {
-    [ZLoggerMessage(Information, "Could not open socket to {hostName} {ipAddress}.")]
+    [ZLoggerMessage(LogLevel.Information, "Could not open socket to {hostName} {ipAddress}.")]
     public static partial void CouldNotOpenSocket(this ILogger<FooBarBaz> logger, string hostName, int ipAddress);
 }
 
@@ -89,7 +120,7 @@ public struct MessagePackStructuredKeyValueWriter
     {
         //ILogger logger;
         //logger.Log(
-        
+
         // writer = new MessagePackWriter();
     }
 
