@@ -21,6 +21,7 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="6.0.0" />
 		<PackageReference Include="System.Text.Json" Version="6.0.6" />
 		<PackageReference Include="System.Threading.Channels" Version="6.0.0" />
+		<PackageReference Include="Utf8StringInterpolation" Version="1.0.0" />
 		<PackageReference Include="ZString" Version="2.5.0" />
 	</ItemGroup>
 
@@ -29,10 +30,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="Entries\FormatLogEntry.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>FormatLogEntry.cs</LastGenOutput>
-		</None>
 		<None Update="ZLoggerExtensions.tt">
 			<Generator>TextTemplatingFileGenerator</Generator>
 			<LastGenOutput>ZLoggerExtensions.cs</LastGenOutput>
@@ -40,11 +37,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Compile Update="Entries\FormatLogEntry.cs">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>FormatLogEntry.tt</DependentUpon>
-		</Compile>
 		<Compile Update="ZLoggerExtensions.cs">
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>

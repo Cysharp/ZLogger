@@ -52,9 +52,9 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
         LogEntryFactory<CouldNotOpenSocketState>.Create = CreateEntry;
     }
 
-    static IZLoggerEntry2 CreateEntry(in LogInfo logInfo, in CouldNotOpenSocketState state)
+    static IZLoggerEntry CreateEntry(in LogInfo logInfo, in CouldNotOpenSocketState state)
     {
-        return ZLoggerEntry<CouldNotOpenSocketState>.Create(logInfo, state);
+        return IzLoggerEntry<CouldNotOpenSocketState>.Create(logInfo, state);
     }
 
     public int ParameterCount => Count;

@@ -429,25 +429,5 @@ namespace MyApp
         public string? Foo { get; set; }
         public string? Bar { get; set; }
     }
-
-    public class Processor : IAsyncLogProcessor
-    {
-        public ValueTask DisposeAsync()
-        {
-            return default;
-        }
-
-        public void Post(IZLoggerEntry log)
-        {
-            //var takoyaki = log.GetPayloadAs<Takoyaki2>();
-
-            log.SwitchCasePayload<Takoyaki>((entry, obj, state) =>
-            {
-
-                // Console.WriteLine(obj.Bar);
-            }, null);
-
-        }
-    }
-
 }
+
