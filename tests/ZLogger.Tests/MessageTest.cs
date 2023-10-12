@@ -1,10 +1,10 @@
-using Cysharp.Text;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using Utf8StringInterpolation;
 using Xunit;
 using ZLogger.Formatters;
 
@@ -86,9 +86,9 @@ namespace ZLogger.Tests
             var options = new ZLoggerOptions();
             options.UsePlainTextFormatter(formatter =>
             {
-                formatter.PrefixFormatter = (writer, info) => ZString.Utf8Format(writer, "[Pre:{0}]", info.LogLevel);
-                formatter.SuffixFormatter = (writer, info) => ZString.Utf8Format(writer, "[Suf:{0}]", info.CategoryName);
-                formatter.ExceptionFormatter = (writer, ex) => ZString.Utf8Format(writer, "{0}", ex.Message);
+                formatter.PrefixFormatter = (writer, info) => Utf8String.Format(writer, $"[Pre:{info.LogLevel}]");
+                formatter.SuffixFormatter = (writer, info) => Utf8String.Format(writer, $"[Suf:{info.LogLevel}]");
+                formatter.ExceptionFormatter = (writer, ex) => Utf8String.Format(writer, $"{ex.Message}");
             });
             var processsor = new TestProcessor(options);
 
@@ -146,6 +146,8 @@ namespace ZLogger.Tests
             var x = 100;
             var y = 200;
             logger.ZLogDebug($"FooBar{x} NanoNano{y}");
+            
+            logger.LogInformation("");
 
             loggerFactory.Dispose();
 

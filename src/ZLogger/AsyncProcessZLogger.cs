@@ -21,7 +21,7 @@ namespace ZLogger
             where TState : IZLoggerFormattable
         {
             var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
-            var entry = IzLoggerEntry<TState>.Create(info, state);
+            var entry = ZLoggerEntry<TState>.Create(info, state);
             logProcessor.Post(entry);
         }
 
@@ -42,7 +42,7 @@ namespace ZLogger
             else
             {
                 var stringFormatterState = new StringFormatterLogState<TState>(state, exception, formatter);
-                IzLoggerEntry<StringFormatterLogState<TState>>.Create(info, stringFormatterState);
+                ZLoggerEntry<StringFormatterLogState<TState>>.Create(info, stringFormatterState);
             }
         }
 

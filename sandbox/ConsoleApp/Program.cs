@@ -4,25 +4,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
 using System;
-using Cysharp.Text;
-using System.Threading;
-using System.Text.Json;
-using System.Text.Encodings.Web;
-using System.Text.Unicode;
-using System.Buffers;
-using System.Text;
 using Microsoft.Extensions.DependencyInjection;
-using ZLogger.Providers;
-using ConsoleAppFramework.Logging;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Collections;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Logging.Configuration;
-using System.Reflection;
 using System.Threading.Channels;
-using System.Net.Sockets;
+using Utf8StringInterpolation;
 
 namespace MyApp
 {
@@ -200,17 +184,17 @@ namespace MyApp
                             {
                                 if (info.LogLevel == LogLevel.Error)
                                 {
-                                    ZString.Utf8Format(writer, "\u001b[31m[{0}]", info.LogLevel);
+                                    Utf8String.Format(writer, $"\u001b[31m[{info.LogLevel}]");
                                 }
                                 else
                                 {
                                     if (!info.CategoryName.StartsWith("MyApp")) // your application namespace.
                                     {
-                                        ZString.Utf8Format(writer, "\u001b[38;5;08m[{0}]", info.LogLevel);
+                                        Utf8String.Format(writer, $"\u001b[38;5;08m[{info.LogLevel}]");
                                     }
                                     else
                                     {
-                                        ZString.Utf8Format(writer, "[{0}]", info.LogLevel);
+                                        Utf8String.Format(writer, $"[{info.LogLevel}]");
                                     }
                                 }
                             };
@@ -218,7 +202,7 @@ namespace MyApp
                             {
                                 if (info.LogLevel == LogLevel.Error || !info.CategoryName.StartsWith("MyApp"))
                                 {
-                                    ZString.Utf8Format(writer, "\u001b[0m", "");
+                                    Utf8String.Format(writer, $"\u001b[0m");
                                 }
                             };
                         });

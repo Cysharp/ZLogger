@@ -1,45 +1,86 @@
 using System;
 using System.Buffers;
+using System.Collections.Generic;
+using System.Text;
 using System.Text.Json;
 
 namespace ZLogger.Entries
 {
     public struct StringFormatterLogState<TState> : IZLoggerFormattable
     {
-        public int ParameterCount => 0;
-        public bool IsSupportStructuredLogging => false;
-        
-        readonly TState state;
-        readonly Func<TState, Exception?, string> formatter;
-        readonly Exception? exception;
+        public int ParameterCount => originalStateParameters?.Count ?? 0;
 
-        public StringFormatterLogState(TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        readonly TState originalState;
+        readonly Exception? exception;
+        readonly Func<TState, Exception?, string> formatter;
+        readonly IReadOnlyList<KeyValuePair<string, object?>>? originalStateParameters;
+
+        public StringFormatterLogState(TState originalState, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            this.state = state;
+            this.originalState = originalState;
             this.exception = exception;
             this.formatter = formatter;
+            
+            // In most case, TState is `Microsoft.Extensions.Logging.FormattedLogValues`.
+            // TODO: can avoid boxing ?
+            if (originalState is IReadOnlyList<KeyValuePair<string, object?>> x)
+            {
+                originalStateParameters = x;
+            }
+            else
+            {
+                originalStateParameters = null;
+            }
         }
 
-        public override string ToString() => formatter(state, exception);
+        public override string ToString() => formatter(originalState, exception);
 
         public void ToString(IBufferWriter<byte> writer)
         {
-            
+            var str = ToString();
+            var buffer = writer.GetSpan(Encoding.UTF8.GetMaxByteCount(str.Length));
+            var bytesWritten = Encoding.UTF8.GetBytes(str.AsSpan(), buffer);
+            writer.Advance(bytesWritten);
         }
 
-        public void WriteJsonMessage(Utf8JsonWriter writer)
+        public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions)
         {
-            throw new NotImplementedException();
+            if (originalStateParameters == null) return;
+
+            for (var i = 0; i < originalStateParameters.Count; i++)
+            {
+                var x = originalStateParameters[i];
+                jsonWriter.WritePropertyName(x.Key);
+                if (x.Value == null)
+                {
+                    jsonWriter.WriteNullValue();
+                }
+                else
+                {
+                    var valueType = GetParameterType(i);
+                    JsonSerializer.Serialize(jsonWriter, x.Value, valueType, jsonSerializerOptions); // TODO: more optimize ?
+                }
+            }
         }
-        
-        public void WriteJsonParameterKeyValues(Utf8JsonWriter writer)
+
+        public ReadOnlySpan<byte> GetParameterKey(int index)
         {
-            throw new NotImplementedException();
+            if (originalStateParameters != null)
+            {
+                throw new NotImplementedException();
+                // return originalStateParameters[index].Key;
+            }
+            throw new IndexOutOfRangeException(nameof(index));
         }
 
-        public ReadOnlySpan<byte> GetParameterKey(int index) => throw new NotImplementedException();
-
-        public object? GetParameterValue(int index) => throw new NotImplementedException();
+        public object? GetParameterValue(int index)
+        {
+            if (originalStateParameters != null)
+            {
+                return originalStateParameters[index].Value;
+            }
+            throw new IndexOutOfRangeException(nameof(index));
+        }
 
         public T? GetParameterValue<T>(int index) => throw new NotImplementedException();
 

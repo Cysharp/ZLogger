@@ -158,20 +158,10 @@ public partial class ZLoggerGenerator
 
 """);
             }
-            //void WriteJsonMessage(Utf8JsonWriter writer);
-            sb.AppendLine("""
-        public void WriteJsonMessage(Utf8JsonWriter writer)
-        {
-            var bufferWriter = CodeGeneratorUtil.GetThreadStaticArrayBufferWriter();
-            ToString(bufferWriter);
-            writer.WriteString(CodeGeneratorUtil.JsonEncodedMessage, bufferWriter.WrittenSpan);
-        }
 
-""");
-
-            //void WriteJsonParameterKeyValues(Utf8JsonWriter writer);
+            //void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions);
             sb.AppendLine($$"""
-        public void WriteJsonParameterKeyValues(Utf8JsonWriter writer)
+        public void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions)
         {
 {{ForEachLine("            ", methodParameters, x => x.ConvertJsonWriteMethod())}}
         }

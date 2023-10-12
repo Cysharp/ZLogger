@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Unicode;
 using Microsoft.Extensions.Logging;
+using ZLogger.Internal;
 
 namespace ZLogger.Formatters
 {
@@ -44,7 +45,6 @@ namespace ZLogger.Formatters
         static readonly JsonEncodedText None = JsonEncodedText.Encode(nameof(LogLevel.None));
 
         public JsonEncodedText MessagePropertyName { get; set; } = JsonEncodedText.Encode("Message");
-        public JsonEncodedText PayloadPropertyName { get; set; } = JsonEncodedText.Encode("Payload");
         public Action<Utf8JsonWriter, LogInfo> MetadataFormatter { get; set; } = DefaultMetadataFormatter;
 
         public JsonSerializerOptions JsonSerializerOptions { get; set; } = new()
@@ -64,263 +64,13 @@ namespace ZLogger.Formatters
             jsonWriter.WriteStartObject();
             
             MetadataFormatter.Invoke(jsonWriter, entry.LogInfo);
-            jsonWriter.WritePropertyName(MessagePropertyName);
-            entry.WriteJsonMessage(jsonWriter);
+
+            var bufferWriter = ArrayBufferWriterPool.GetThreadStaticInstance();
+            entry.ToString(bufferWriter);
+            jsonWriter.WriteString(MessagePropertyName, bufferWriter.WrittenSpan);
             
+            entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions);
             throw new NotImplementedException();
-        }
-
-        public void FormatLogEntry<TEntry, TPayload>(
-            IBufferWriter<byte> writer,
-            TEntry entry,
-            TPayload? payload,
-            ReadOnlySpan<byte> utf8Message)
-            where TEntry : IZLoggerEntry
-        {
-            jsonWriter?.Reset(writer);
-            jsonWriter ??= new Utf8JsonWriter(writer);
-
-            jsonWriter.WriteStartObject();
-            MetadataFormatter.Invoke(jsonWriter, entry.LogInfo);
-            jsonWriter.WriteString(MessagePropertyName, utf8Message);
-
-            if (entry.IsSupportStructuredLogging)
-            {
-                for (var i = 0; i < entry.ParameterCount; i++)
-                {
-                    var key = entry.GetParameterKey(i);
-                    var valueType = entry.GetParameterType(i);
-                    if (valueType == typeof(string))
-                    {
-                        jsonWriter.WriteString(key, entry.GetParameterValue<string>(i));
-                    }
-                    else if (valueType == typeof(bool))
-                    {
-                        jsonWriter.WriteBoolean(key, entry.GetParameterValue<bool>(i));
-                    }
-                    else if (valueType == typeof(bool?))
-                    {
-                        var nullableValue = entry.GetParameterValue<bool?>(i);
-                        if (nullableValue.HasValue)
-                        {
-                            jsonWriter.WriteBoolean(key, nullableValue.Value);
-                        }
-                        else
-                        {
-                            jsonWriter.WriteNull(key);
-                        }
-                    }
-                    else if (valueType == typeof(byte))
-                    {
-                        jsonWriter.WriteNumber(key, entry.GetParameterValue<byte>(i));
-                    }
-                    else if (valueType == typeof(byte?))
-                    {
-                        var nullableValue = entry.GetParameterValue<byte?>(i);
-                        if (nullableValue.HasValue)
-                        {
-                            jsonWriter.WriteNumber(key, nullableValue.Value);
-                        }
-                        else
-                        {
-                            jsonWriter.WriteNull(key);
-                        }
-                    }
-                    else if (valueType == typeof(Int16))
-                    {
-                        jsonWriter.WriteNumber(key, entry.GetParameterValue<Int16>(i));
-                    }
-                    else if (valueType == typeof(Int16?))
-                    {
-                        var nullableValue = entry.GetParameterValue<Int16?>(i);
-                        if (nullableValue.HasValue)
-                        {
-                            jsonWriter.WriteNumber(key, nullableValue.Value);
-                        }
-                        else
-                        {
-                            jsonWriter.WriteNull(key);
-                        }
-                    }
-                    else if (valueType == typeof(UInt16))
-                    {
-                        jsonWriter.WriteNumber(key, entry.GetParameterValue<UInt16>(i));
-                    }
-                    else if (valueType == typeof(UInt16?))
-                    {
-                        var nullableValue = entry.GetParameterValue<UInt16?>(i);
-                        if (nullableValue.HasValue)
-                        {
-                            jsonWriter.WriteNumber(key, nullableValue.Value);
-                        }
-                        else
-                        {
-                            jsonWriter.WriteNull(key);
-                        }
-                    }
-                    else if (valueType == typeof(Int32))
-                    {
-                        jsonWriter.WriteNumber(key, entry.GetParameterValue<Int32>(i));
-                    }
-                    else if (valueType == typeof(Int32?))
-                    {
-                        var nullableValue = entry.GetParameterValue<Int32?>(i);
-                        if (nullableValue.HasValue)
-                        {
-                            jsonWriter.WriteNumber(key, nullableValue.Value);
-                        }
-                        else
-                        {
-                            jsonWriter.WriteNull(key);
-                        }
-                    }
-                    else if (valueType == typeof(UInt32))
-                    {
-                        jsonWriter.WriteNumber(key, entry.GetParameterValue<UInt32>(i));
-                    }
-                    else if (valueType == typeof(UInt32?))
-                    {
-                        var nullableValue = entry.GetParameterValue<UInt32?>(i);
-                        if (nullableValue.HasValue)
-                        {
-                            jsonWriter.WriteNumber(key, nullableValue.Value);
-                        }
-                        else
-                        {
-                            jsonWriter.WriteNull(key);
-                        }
-                    }
-                    else if (valueType == typeof(Int64))
-                    {
-                        jsonWriter.WriteNumber(key, entry.GetParameterValue<Int64>(i));
-                    }
-                    else if (valueType == typeof(Int64?))
-                    {
-                        var nullableValue = entry.GetParameterValue<Int64?>(i);
-                        if (nullableValue.HasValue)
-                        {
-                            jsonWriter.WriteNumber(key, nullableValue.Value);
-                        }
-                        else
-                        {
-                            jsonWriter.WriteNull(key);
-                        }
-                    }
-                    else if (valueType == typeof(UInt64))
-                    {
-                        jsonWriter.WriteNumber(key, entry.GetParameterValue<UInt64>(i));
-                    }
-                    else if (valueType == typeof(UInt16?))
-                    {
-                        var nullableValue = entry.GetParameterValue<UInt16?>(i);
-                        if (nullableValue.HasValue)
-                        {
-                            jsonWriter.WriteNumber(key, nullableValue.Value);
-                        }
-                        else
-                        {
-                            jsonWriter.WriteNull(key);
-                        }
-                    }
-                    else if (valueType == typeof(float))
-                    {
-                        jsonWriter.WriteNumber(key, entry.GetParameterValue<float>(i));
-                    }
-                    else if (valueType == typeof(float?))
-                    {
-                        var nullableValue = entry.GetParameterValue<float?>(i);
-                        if (nullableValue.HasValue)
-                        {
-                            jsonWriter.WriteNumber(key, nullableValue.Value);
-                        }
-                        else
-                        {
-                            jsonWriter.WriteNull(key);
-                        }
-                    }
-                    else if (valueType == typeof(double))
-                    {
-                        jsonWriter.WriteNumber(key, entry.GetParameterValue<double>(i));
-                    }
-                    else if (valueType == typeof(double?))
-                    {
-                        var nullableValue = entry.GetParameterValue<double?>(i);
-                        if (nullableValue.HasValue)
-                        {
-                            jsonWriter.WriteNumber(key, nullableValue.Value);
-                        }
-                        else
-                        {
-                            jsonWriter.WriteNull(key);
-                        }
-                    }
-                    else if (valueType == typeof(decimal))
-                    {
-                        jsonWriter.WriteNumber(key, entry.GetParameterValue<decimal>(i));
-                    }
-                    else if (valueType == typeof(decimal?))
-                    {
-                        var nullableValue = entry.GetParameterValue<decimal?>(i);
-                        if (nullableValue.HasValue)
-                        {
-                            jsonWriter.WriteNumber(key, nullableValue.Value);
-                        }
-                        else
-                        {
-                            jsonWriter.WriteNull(key);
-                        }
-                    }
-                    else if (valueType == typeof(DateTime))
-                    {
-                        var value = entry.GetParameterValue<DateTime>(i);
-                        JsonSerializer.Serialize(jsonWriter, value, JsonSerializerOptions);
-                    }
-                    else if (valueType == typeof(DateTime?))
-                    {
-                        var value = entry.GetParameterValue<DateTime?>(i);
-                        JsonSerializer.Serialize(jsonWriter, value, JsonSerializerOptions);
-                    }
-                    else if (valueType == typeof(DateTimeOffset))
-                    {
-                        var value = entry.GetParameterValue<DateTimeOffset>(i);
-                        JsonSerializer.Serialize(jsonWriter, value, JsonSerializerOptions);
-                    }
-                    else if (valueType == typeof(DateTimeOffset?))
-                    {
-                        var value = entry.GetParameterValue<DateTimeOffset?>(i);
-                        JsonSerializer.Serialize(jsonWriter, value, JsonSerializerOptions);
-                    }
-                    else
-                    {
-                        var boxedValue = entry.GetParameterValue(i);
-                        JsonSerializer.Serialize(jsonWriter, boxedValue, JsonSerializerOptions);
-                    }
-                }
-            }
-
-            // if (entry.ScopeState is { IsEmpty: false } scopeState)
-            // {
-            //     for (var i = 0; i < scopeState.Properties.Count; i++)
-            //     {
-            //         var x = scopeState.Properties[i];
-            //         // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
-            //         if (x.Key == "{OriginalFormat}")
-            //             continue;
-            //         
-            //         jsonWriter.WritePropertyName(x.Key);
-            //         if (x.Value is { } value)
-            //         {
-            //             JsonSerializer.Serialize(jsonWriter, value, JsonSerializerOptions);
-            //         }
-            //         else
-            //         {
-            //             jsonWriter.WriteNullValue();
-            //         }
-            //     }
-            // }
-
-            jsonWriter.WriteEndObject();
-            jsonWriter.Flush();
         }
 
         static JsonEncodedText LogLevelToEncodedText(LogLevel logLevel)

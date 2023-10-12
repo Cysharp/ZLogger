@@ -101,7 +101,7 @@ namespace ZLogger.Internal
                 writer = bufferWriter = new ArrayBufferWriter<byte>();
             }
 #if NET8_0_OR_GREATER
-        writer.ResetWrittenCount();
+            writer.ResetWrittenCount();
 #else
             writer.Clear();
 #endif

@@ -54,12 +54,10 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
 
     static IZLoggerEntry CreateEntry(in LogInfo logInfo, in CouldNotOpenSocketState state)
     {
-        return IzLoggerEntry<CouldNotOpenSocketState>.Create(logInfo, state);
+        return ZLoggerEntry<CouldNotOpenSocketState>.Create(logInfo, state);
     }
 
     public int ParameterCount => Count;
-
-    public bool IsSupportStructuredLogging => throw new NotImplementedException();
 
     public void ToString(IBufferWriter<byte> writer)
     {
@@ -104,17 +102,10 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
 
     public override string ToString() => $"Could not open socket to {hostName} {ipAddress}.";
 
-    public void WriteJsonMessage(Utf8JsonWriter writer)
+    public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions)
     {
-        var bufferWriter = CodeGeneratorUtil.GetThreadStaticArrayBufferWriter();
-        ToString(bufferWriter);
-        writer.WriteString(CodeGeneratorUtil.JsonEncodedMessage, bufferWriter.WrittenSpan);
-    }
-
-    public void WriteJsonParameterKeyValues(Utf8JsonWriter writer)
-    {
-        writer.WriteString(jsonParameter1, hostName);
-        writer.WriteNumber(jsonParameter2, ipAddress);
+        jsonWriter.WriteString(jsonParameter1, hostName);
+        jsonWriter.WriteNumber(jsonParameter2, ipAddress);
     }
 
     public ReadOnlySpan<byte> GetParameterKey(int index)

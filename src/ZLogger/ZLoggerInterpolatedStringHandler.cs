@@ -9,25 +9,24 @@ using ZLogger.Internal;
 
 namespace ZLogger
 {
-    public struct InterpolatedStringState : IZLoggerFormattable, IDisposable
+    public readonly struct InterpolatedStringLogState : IZLoggerFormattable, IDisposable
     {
-        static InterpolatedStringState()
+        static InterpolatedStringLogState()
         {
-            LogEntryFactory<InterpolatedStringState>.Create = CreateEntry;
+            LogEntryFactory<InterpolatedStringLogState>.Create = CreateEntry;
         }
 
-        static IZLoggerEntry CreateEntry(in LogInfo logInfo, in InterpolatedStringState state)
+        static IZLoggerEntry CreateEntry(in LogInfo logInfo, in InterpolatedStringLogState logState)
         {
-            return IzLoggerEntry<InterpolatedStringState>.Create(logInfo, state);
+            return ZLoggerEntry<InterpolatedStringLogState>.Create(logInfo, logState);
         }
 
         public int ParameterCount => arguments.Length;
-        public bool IsSupportStructuredLogging => true;
         
         readonly KeyValuePair<string, object?>[] arguments; // TODO: avoid boxing!
         readonly ArrayBufferWriter<byte> buffer;
 
-        public InterpolatedStringState(KeyValuePair<string, object?>[] arguments, ArrayBufferWriter<byte> buffer)
+        public InterpolatedStringLogState(KeyValuePair<string, object?>[] arguments, ArrayBufferWriter<byte> buffer)
         {
             this.arguments = arguments;
             this.buffer = buffer;
@@ -51,18 +50,27 @@ namespace ZLogger
             writer.Advance(written.Length);
         }
 
-        public void WriteJsonMessage(Utf8JsonWriter writer)
+        public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions)
         {
-            throw new NotImplementedException();
-        }
-
-        public void WriteJsonParameterKeyValues(Utf8JsonWriter writer)
-        {
-            throw new NotImplementedException();
+            for (var i = 0; i < arguments.Length; i++)
+            {
+                var x = arguments[i];
+                jsonWriter.WritePropertyName(x.Key);
+                if (x.Value == null)
+                {
+                    jsonWriter.WriteNullValue();
+                }
+                else
+                {
+                    var valueType = GetParameterType(i);
+                    JsonSerializer.Serialize(jsonWriter, x.Value, valueType, jsonSerializerOptions); // TODO: more optimize ?
+                }
+            }
         }
 
         public ReadOnlySpan<byte> GetParameterKey(int index)
         {
+            // return arguments[index].Key;
             throw new NotImplementedException();
         }
 
@@ -109,6 +117,7 @@ namespace ZLogger
             arguments[i++] = new KeyValuePair<string, object?>(argumentName ?? $"Arg{i}", value);
         }
 
-        public InterpolatedStringState GetState() => new(arguments, buffer);
+        public InterpolatedStringLogState GetState() => new(arguments, buffer);
     }    
 }
+

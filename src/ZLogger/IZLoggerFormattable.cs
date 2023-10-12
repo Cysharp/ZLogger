@@ -10,12 +10,9 @@ namespace ZLogger
         int ParameterCount { get; }
         string ToString();
         void ToString(IBufferWriter<byte> writer);
-        void WriteJsonMessage(Utf8JsonWriter writer);
 
-        // when true, can use GetParameter***, WriteJsonParameterKeyValues.
-        bool IsSupportStructuredLogging { get; }
-
-        void WriteJsonParameterKeyValues(Utf8JsonWriter writer);
+        void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions);
+        
         ReadOnlySpan<byte> GetParameterKey(int index);
         object? GetParameterValue(int index);
         T? GetParameterValue<T>(int index);

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Buffers;
+using System.Text;
 using System.Text.Json;
-using Cysharp.Text;
 using ZLogger.Internal;
 
 namespace ZLogger
@@ -22,24 +22,24 @@ namespace ZLogger
 
     public delegate IZLoggerEntry CreateLogEntry<TState>(in LogInfo info, in TState state);
 
-    public sealed class IzLoggerEntry<TState> : IZLoggerEntry, IObjectPoolNode<IzLoggerEntry<TState>>
+    public sealed class ZLoggerEntry<TState> : IZLoggerEntry, IObjectPoolNode<ZLoggerEntry<TState>>
         where TState : IZLoggerFormattable
     {
-        static readonly ObjectPool<IzLoggerEntry<TState>> cache = new();
+        static readonly ObjectPool<ZLoggerEntry<TState>> cache = new();
 
-        IzLoggerEntry<TState>? next;
-        ref IzLoggerEntry<TState>? IObjectPoolNode<IzLoggerEntry<TState>>.NextNode => ref next;
+        ZLoggerEntry<TState>? next;
+        ref ZLoggerEntry<TState>? IObjectPoolNode<ZLoggerEntry<TState>>.NextNode => ref next;
 
         LogInfo logInfo;
         TState state;
 
-        IzLoggerEntry(in LogInfo logInfo, in TState state)
+        ZLoggerEntry(in LogInfo logInfo, in TState state)
         {
             this.logInfo = logInfo;
             this.state = state;
         }
 
-        public static IzLoggerEntry<TState> Create(in LogInfo logInfo, in TState state)
+        public static ZLoggerEntry<TState> Create(in LogInfo logInfo, in TState state)
         {
             if (cache.TryPop(out var entry))
             {
@@ -48,7 +48,7 @@ namespace ZLogger
             }
             else
             {
-                entry = new IzLoggerEntry<TState>(logInfo, state);
+                entry = new ZLoggerEntry<TState>(logInfo, state);
             }
             return entry;
         }
@@ -56,20 +56,18 @@ namespace ZLogger
         public override string ToString() => state.ToString();
 
         public int ParameterCount => state.ParameterCount;
-        public bool IsSupportStructuredLogging => state.IsSupportStructuredLogging;
         public ReadOnlySpan<byte> GetParameterKey(int index) => state.GetParameterKey(index);
 
         public Type GetParameterType(int index) => state.GetParameterType(index);
 
-        public object GetParameterValue(int index) => state.GetParameterValue(index);
+        public object? GetParameterValue(int index) => state.GetParameterValue(index);
 
-        public T GetParameterValue<T>(int index) => state.GetParameterValue<T>(index);
+        public T? GetParameterValue<T>(int index) => state.GetParameterValue<T>(index);
 
         public void ToString(IBufferWriter<byte> writer) => state.ToString(writer);
 
-        public void WriteJsonMessage(Utf8JsonWriter writer) => state.WriteJsonMessage(writer);
-
-        public void WriteJsonParameterKeyValues(Utf8JsonWriter writer) => state.WriteJsonParameterKeyValues(writer);
+        public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions) 
+            => state.WriteJsonParameterKeyValues(jsonWriter, jsonSerializerOptions);
 
         public LogInfo LogInfo => logInfo;
 
@@ -90,16 +88,9 @@ namespace ZLogger
     {
         public static string FormatToString(this IZLoggerEntry entry, IZLoggerFormatter formatter)
         {
-            var boxedBuilder = (IBufferWriter<byte>)ZString.CreateUtf8StringBuilder();
-            try
-            {
-                entry.FormatUtf8(boxedBuilder, formatter);
-                return boxedBuilder.ToString()!;
-            }
-            finally
-            {
-                ((Utf8ValueStringBuilder)boxedBuilder).Dispose();
-            }
+            var buffer = ArrayBufferWriterPool.GetThreadStaticInstance();
+            formatter.FormatLogEntry(buffer, entry);
+            return Encoding.UTF8.GetString(buffer.WrittenSpan);
         }
     }
 }
