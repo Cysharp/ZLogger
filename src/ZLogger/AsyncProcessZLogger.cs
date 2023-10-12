@@ -40,16 +40,18 @@ namespace ZLogger
 
             // Legacy...
 
-            var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
-            
-            var scopeState = ScopeProvider != null
-                ? LogScopeState.Create(ScopeProvider)
-                : null;
-            
-            var entry = CreateLogEntry<TState>.factory?.Invoke(state, info, scopeState) ?? 
-                        StringFormatterEntry<TState>.Create(info, state, scopeState, exception, formatter);
+            {
+                var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
+                
+                var scopeState = ScopeProvider != null
+                    ? LogScopeState.Create(ScopeProvider)
+                    : null;
+                
+                var entry = CreateLogEntry<TState>.factory?.Invoke(state, info, scopeState) ?? 
+                            StringFormatterEntry<TState>.Create(info, state, scopeState, exception, formatter);
 
-            logProcessor.Post(entry);
+                logProcessor.Post(entry);
+            }
         }
 
 
@@ -93,42 +95,16 @@ namespace ZLogger
             {
                 if (typeof(IZLoggerState).IsAssignableFrom(typeof(T)))
                 {
-                    try
+                    var factoryField = typeof(T).GetField("Factory", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+                    if (factoryField != null)
                     {
-                        var factoryField = typeof(T).GetField("Factory", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-                        LogForUnity(factoryField);
-
-                        if (factoryField != null)
-                        {
-                            factory = factoryField.GetValue(null) as Func<T, LogInfo, LogScopeState?, IZLoggerEntry>;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        LogForUnity(ex);
+                        factory = factoryField.GetValue(null) as Func<T, LogInfo, LogScopeState?, IZLoggerEntry>;
                     }
                 }
                 else
                 {
                     factory = null;
                 }
-            }
-
-            static void LogForUnity(System.Reflection.FieldInfo? fieldInfo)
-            {
-#if UNITY_2018_3_OR_NEWER
-                if(fieldInfo == null)
-                {
-                    UnityEngine.Debug.Log("State.Factory FieldInfo is null.");
-                }
-#endif
-            }
-
-            static void LogForUnity(Exception ex)
-            {
-#if UNITY_2018_3_OR_NEWER
-                UnityEngine.Debug.Log(ex);
-#endif
             }
         }
     }
