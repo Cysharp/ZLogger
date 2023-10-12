@@ -108,9 +108,9 @@ public partial class ZLoggerGenerator
             //bool IsSupportStructuredLogging { get; }
             //string ToString();
             sb.AppendLine($$"""
-        public int ParameterCount => _parameterCount;");
+        public int ParameterCount => _parameterCount;
         public bool IsSupportStructuredLogging => true;
-        public override string ToString() => \"{{string.Concat(method.MessageSegments.Select(x => x.ToString()))}}\";"
+        public override string ToString() => "{{string.Concat(method.MessageSegments.Select(x => x.ToString()))}}";
 
 """);
             //void ToString(IBufferWriter<byte> writer);
@@ -321,6 +321,7 @@ using Microsoft.Extensions.Logging;
 
             var sourceCode = sb.ToString();
             context.AddSource($"{fullType}{fileExtension}", sourceCode);
+            File.WriteAllText($"/Users/s24061/tmp/{fullType}{fileExtension}", sourceCode);
         }
     }
 }

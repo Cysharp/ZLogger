@@ -32,7 +32,9 @@ namespace ZLogger.Tests
         {
             using (logger.BeginScope("({X}, {Y})", 111, null))
             {
-                logger.ZLogInformation("FooBar{0} NanoNano{1}", 333, 444);
+                var x = 333;
+                var y = 444;
+                logger.ZLogInformation($"FooBar{x} NanoNano{y}");
             }
 
             var doc = JsonDocument.Parse(processor.Dequeue()).RootElement;
@@ -46,7 +48,9 @@ namespace ZLogger.Tests
         {
             using (logger.BeginScope(new KeyValuePair<string, object?>("Hoge", "AAA")))
             {
-                logger.ZLogInformation("FooBar{0} NanoNano{1}", 100, 200);
+                var x = 100;
+                var y = 200;
+                logger.ZLogInformation($"FooBar{x} NanoNano{y}");
             }
 
             var doc = JsonDocument.Parse(processor.Dequeue()).RootElement;
@@ -60,7 +64,9 @@ namespace ZLogger.Tests
         {
             using (logger.BeginScope(new TestState { X = 999 }))
             {
-                logger.ZLogInformation("FooBar{0} NanoNano{1}", 100, 200);
+                var x = 100;
+                var y = 200;
+                logger.ZLogInformation($"FooBar{x} NanoNano{y}");
             }
 
             var doc = JsonDocument.Parse(processor.Dequeue()).RootElement;
@@ -75,11 +81,11 @@ namespace ZLogger.Tests
         {
             using (logger.BeginScope("X={X}", 111))
             {
-                logger.ZLogInformation("Message 1");
+                logger.ZLogInformation($"Message 1");
 
                 using (logger.BeginScope("Y={Y}", 222))
                 {
-                    logger.ZLogInformation("Message 2");
+                    logger.ZLogInformation($"Message 2");
                 }
             }
 

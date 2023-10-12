@@ -29,7 +29,7 @@ namespace ZLogger.MessagePack.Tests
         public void PlainMessage()
         {
             var now = DateTime.UtcNow;
-            logger.ZLogInformation(new EventId(1, "HOGE"), "AAA {0} BBB {1}", 111, "Hello");
+            logger.ZLogInformation(new EventId(1, "HOGE"), $"AAA {111} BBB {"Hello"}");
             
             var msgpack = processor.Dequeue();
             ((string)msgpack["CategoryName"]).Should().Be("test");
@@ -52,7 +52,8 @@ namespace ZLogger.MessagePack.Tests
             }
             catch (Exception ex)
             {
-                logger.ZLogError(new EventId(1, "NG"), ex, "DAMEDA {0}", 111);                
+                var x = 100;
+                logger.ZLogError(new EventId(1, "NG"), ex, $"DAMEDA {x}");                
             }
         
             var msgpack = processor.Dequeue();
@@ -80,7 +81,8 @@ namespace ZLogger.MessagePack.Tests
             }
             catch (Exception ex)
             {
-                logger.ZLogError(new EventId(1, "NG"), ex, "DAMEDA {0}", 111);                
+                var x = 111;
+                logger.ZLogError(new EventId(1, "NG"), ex, $"DAMEDA {x}");                
             }
         
             var msgpack = processor.Dequeue();
@@ -102,7 +104,8 @@ namespace ZLogger.MessagePack.Tests
         public void WithPayload()
         {
             var now = DateTime.UtcNow;
-            logger.ZLogInformationWithPayload(new EventId(1, "HOGE"), new TestPayload { X = 999}, "UMU {0}", 111);
+            var payload = new TestPayload { X = 999 };
+            logger.ZLogInformation(new EventId(1, "HOGE"), $"UMU {payload}");
         
             var msgpack = processor.Dequeue();
             ((string)msgpack["CategoryName"]).Should().Be("test");

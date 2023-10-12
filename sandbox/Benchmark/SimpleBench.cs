@@ -77,7 +77,7 @@ namespace Benchmark
 
             protected override void WriteLog(Microsoft.Extensions.Logging.ILogger logger, int x, int y, int z)
             {
-                logger.ZLogInformation("x:{0} y:{1} z:{2}", x, y, z);
+                logger.ZLogInformation($"x:{x} y:{y} z:{z}");
             }
 
             protected override void Stop()

@@ -89,7 +89,7 @@ namespace MyApp
 
         public void Foo(int x)
         {
-            logger.ZLogDebug("do do do: {0}", x);
+            logger.ZLogDebug($"do do do: {x}");
         }
     }
 
@@ -149,26 +149,6 @@ namespace MyApp
     {
         public int Id { get; set; }
         public string Name { get; set; }
-    }
-
-    public class UserModel
-    {
-        static readonly Action<ILogger, UserRegisteredLog, int, string, Exception?> registerdUser = ZLoggerMessage.Define<UserRegisteredLog, int, string>(LogLevel.Information, new EventId(9, "RegisteredUser"), "Registered User: Id = {0}, UserName = {1}");
-
-        readonly ILogger<UserModel> logger;
-
-        public UserModel(ILogger<UserModel> logger)
-        {
-            this.logger = logger;
-        }
-
-        public void RegisterUser(int id, string name)
-        {
-            // ...do anything
-
-            // use defined delegate instead of ZLog.
-            registerdUser(logger, new UserRegisteredLog { Id = id, Name = name }, id, name, null);
-        }
     }
 
     class Program : ConsoleAppBase
@@ -287,11 +267,11 @@ namespace MyApp
 
             logger.LogInformation("started");
 
-            logger.ZLogInformation("{abc=1}");
+            var x = 1;
+            logger.ZLogInformation($"abc{1}");
 
-            logger.ZLog(LogLevel.Information, "{a}");
-
-            logger.ZLogWithPayload(LogLevel.Debug, new { a = 1 }, "{b}");
+            var a = "a";
+            logger.ZLog(LogLevel.Information, $"{a}");
 
             // new HoGeMoge().Foo();
 
@@ -311,9 +291,7 @@ namespace MyApp
             var id = 10;
             var userName = "Mike";
 
-            logger.ZLogInformation("Registered User: Id = {0}, UserName = {1}", id, userName);
-
-            logger.ZLogInformationWithPayload(new UserRegisteredLog { Id = id, Name = userName }, "Registered User: Id = {0}, UserName = {1}", id, userName);
+            logger.ZLogInformation($"Registered User: Id = {id}, UserName = {userName}");
 
 
             return;
