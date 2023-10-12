@@ -6,11 +6,12 @@ using System.Text;
 namespace ZLogger.Providers
 {
     [ProviderAlias("ZLoggerConsole")]
-    public class ZLoggerConsoleLoggerProvider : ILoggerProvider
+    public class ZLoggerConsoleLoggerProvider : ILoggerProvider, ISupportExternalScope
     {
         internal const string DefaultOptionName = "ZLoggerConsole.Default";
 
-        AsyncStreamLineMessageWriter streamWriter;
+        readonly AsyncStreamLineMessageWriter streamWriter;
+        IExternalScopeProvider? scopeProvider; 
 
         public ZLoggerConsoleLoggerProvider(IOptionsMonitor<ZLoggerOptions> options)
             : this(true, null, options)
@@ -36,12 +37,20 @@ namespace ZLogger.Providers
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new AsyncProcessZLogger(categoryName, streamWriter);
+            return new AsyncProcessZLogger(categoryName, streamWriter)
+            {
+                ScopeProvider = scopeProvider
+            };
         }
 
         public void Dispose()
         {
             streamWriter.DisposeAsync().AsTask().Wait();
+        }
+
+        public void SetScopeProvider(IExternalScopeProvider scopeProvider)
+        {
+            this.scopeProvider = scopeProvider;
         }
     }
 }

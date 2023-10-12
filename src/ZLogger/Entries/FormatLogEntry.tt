@@ -36,7 +36,7 @@ namespace ZLogger.Entries
 <# for(var i = 1; i <= 14; i++) { #>
     public struct FormatLogState<TPayload, <#= CreateTypeArgument(i) #>> : IZLoggerState
     {
-        public static readonly Func<FormatLogState<TPayload, <#= CreateTypeArgument(i) #>>, LogInfo, IZLoggerEntry> Factory = factory;
+        public static readonly Func<FormatLogState<TPayload, <#= CreateTypeArgument(i) #>>, LogInfo, LogScopeState?, IZLoggerEntry> Factory = factory;
 
         public readonly TPayload Payload;
         public readonly string Format;
@@ -53,20 +53,20 @@ namespace ZLogger.Entries
 <# } #>
         }
 
-        static IZLoggerEntry factory(FormatLogState<TPayload, <#= CreateTypeArgument(i) #>> self, LogInfo logInfo)
+        static IZLoggerEntry factory(FormatLogState<TPayload, <#= CreateTypeArgument(i) #>> self, LogInfo logInfo, LogScopeState? scopeState)
         {
-            return self.CreateLogEntry(logInfo);
+            return self.CreateLogEntry(logInfo, scopeState);
         }
 
-        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo, LogScopeState? scopeState)
         {
-            return FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>.Create(logInfo, this);
+            return FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>.Create(logInfo, this, scopeState);
         }
     }
 
     public struct PreparedFormatLogState<TPayload, <#= CreateTypeArgument(i) #>> : IZLoggerState
     {
-        public static readonly Func<PreparedFormatLogState<TPayload, <#= CreateTypeArgument(i) #>>, LogInfo, IZLoggerEntry> Factory = factory;
+        public static readonly Func<PreparedFormatLogState<TPayload, <#= CreateTypeArgument(i) #>>, LogInfo, LogScopeState?, IZLoggerEntry> Factory = factory;
 
         public readonly TPayload Payload;
         public readonly Utf8PreparedFormat<<#= CreateTypeArgument(i) #>> Format;
@@ -83,30 +83,27 @@ namespace ZLogger.Entries
 <# } #>
         }
 
-        static IZLoggerEntry factory(PreparedFormatLogState<TPayload, <#= CreateTypeArgument(i) #>> self, LogInfo logInfo)
+        static IZLoggerEntry factory(PreparedFormatLogState<TPayload, <#= CreateTypeArgument(i) #>> self, LogInfo logInfo, LogScopeState? scopeState)
         {
-            return self.CreateLogEntry(logInfo);
+            return self.CreateLogEntry(logInfo, scopeState);
         }
 
-        public IZLoggerEntry CreateLogEntry(LogInfo logInfo)
+        public IZLoggerEntry CreateLogEntry(LogInfo logInfo, LogScopeState? scopeState)
         {
-            return PreparedFormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>.Create(logInfo, this);
+            return PreparedFormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>.Create(logInfo, this, scopeState);
         }
     }
 
     public class FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>> : IZLoggerEntry
     {
-        static readonly ConcurrentQueue<FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>> cache = new ConcurrentQueue<FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>>();
+        static readonly ConcurrentQueue<FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>> cache = new();
 
         FormatLogState<TPayload, <#= CreateTypeArgument(i) #>> state;
 
         public LogInfo LogInfo { get; private set; }
+        public LogScopeState? ScopeState { get; private set; }
 
-        FormatLogEntry()
-        {
-        }
-
-        public static FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>> Create(in LogInfo logInfo, in FormatLogState<TPayload, <#= CreateTypeArgument(i) #>> state)
+        public static FormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>> Create(in LogInfo logInfo, in FormatLogState<TPayload, <#= CreateTypeArgument(i) #>> state, LogScopeState? scopeState)
         {
             if (!cache.TryDequeue(out var result))
             {
@@ -115,6 +112,7 @@ namespace ZLogger.Entries
 
             result.LogInfo = logInfo;
             result.state = state;
+            result.ScopeState = scopeState;
             return result;
         }
 
@@ -131,6 +129,8 @@ namespace ZLogger.Entries
         {
             state = default;
             LogInfo = default!;
+            ScopeState?.Return();
+            ScopeState = default;
             cache.Enqueue(this);
         }
 
@@ -150,17 +150,14 @@ namespace ZLogger.Entries
 
     public class PreparedFormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>> : IZLoggerEntry
     {
-        static readonly ConcurrentQueue<PreparedFormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>> cache = new ConcurrentQueue<PreparedFormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>>();
+        static readonly ConcurrentQueue<PreparedFormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>>> cache = new();
 
         PreparedFormatLogState<TPayload, <#= CreateTypeArgument(i) #>> state;
 
         public LogInfo LogInfo { get; private set; }
+        public LogScopeState? ScopeState { get; private set; }
 
-        PreparedFormatLogEntry()
-        {
-        }
-
-        public static PreparedFormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>> Create(in LogInfo logInfo, in PreparedFormatLogState<TPayload, <#= CreateTypeArgument(i) #>> state)
+        public static PreparedFormatLogEntry<TPayload, <#= CreateTypeArgument(i) #>> Create(in LogInfo logInfo, in PreparedFormatLogState<TPayload, <#= CreateTypeArgument(i) #>> state, LogScopeState? scopeState)
         {
             if (!cache.TryDequeue(out var result))
             {
@@ -169,6 +166,7 @@ namespace ZLogger.Entries
 
             result.LogInfo = logInfo;
             result.state = state;
+            result.ScopeState = scopeState;
             return result;
         }
 
@@ -190,6 +188,8 @@ namespace ZLogger.Entries
         {
             state = default;
             LogInfo = default!;
+            ScopeState?.Return();
+            ScopeState = default;
             cache.Enqueue(this);
         }
 

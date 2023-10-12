@@ -2,41 +2,14 @@ using Cysharp.Text;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Xunit;
 using ZLogger.Formatters;
 
 namespace ZLogger.Tests
 {
-    public class TestProcessor : IAsyncLogProcessor
-    {
-        public Queue<string> EntryMessages = new Queue<string>();
-        readonly ZLoggerOptions options;
-        readonly IZLoggerFormatter formatter;
-
-        public string Dequeue() => EntryMessages.Dequeue();
-
-        public TestProcessor(ZLoggerOptions options)
-        {
-            this.options = options;
-            formatter = options.CreateFormatter();
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            return default;
-        }
-
-        public void Post(IZLoggerEntry log)
-        {
-            EntryMessages.Enqueue(log.FormatToString(formatter));
-        }
-    }
-
     public class MessageTest
     {
         [Fact]

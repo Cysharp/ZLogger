@@ -29,7 +29,7 @@ namespace ZLogger.Formatters
                 ExceptionFormatter(writer, ex);
             }
         }
-
+        
         static void DefaultExceptionLoggingFormatter(IBufferWriter<byte> writer, Exception exception)
         {
             // \n + exception
