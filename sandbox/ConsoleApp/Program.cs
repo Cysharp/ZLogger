@@ -4,25 +4,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
 using System;
-using Cysharp.Text;
-using System.Threading;
-using System.Text.Json;
-using System.Text.Encodings.Web;
-using System.Text.Unicode;
-using System.Buffers;
-using System.Text;
 using Microsoft.Extensions.DependencyInjection;
-using ZLogger.Providers;
-using ConsoleAppFramework.Logging;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Collections;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Logging.Configuration;
-using System.Reflection;
 using System.Threading.Channels;
-using System.Net.Sockets;
+using Utf8StringInterpolation;
 
 namespace MyApp
 {
@@ -89,7 +73,7 @@ namespace MyApp
 
         public void Foo(int x)
         {
-            logger.ZLogDebug("do do do: {0}", x);
+            logger.ZLogDebug($"do do do: {x}");
         }
     }
 
@@ -151,26 +135,6 @@ namespace MyApp
         public string Name { get; set; }
     }
 
-    public class UserModel
-    {
-        static readonly Action<ILogger, UserRegisteredLog, int, string, Exception?> registerdUser = ZLoggerMessage.Define<UserRegisteredLog, int, string>(LogLevel.Information, new EventId(9, "RegisteredUser"), "Registered User: Id = {0}, UserName = {1}");
-
-        readonly ILogger<UserModel> logger;
-
-        public UserModel(ILogger<UserModel> logger)
-        {
-            this.logger = logger;
-        }
-
-        public void RegisterUser(int id, string name)
-        {
-            // ...do anything
-
-            // use defined delegate instead of ZLog.
-            registerdUser(logger, new UserRegisteredLog { Id = id, Name = name }, id, name, null);
-        }
-    }
-
     class Program : ConsoleAppBase
     {
         static async Task Loop(ChannelReader<int> reader)
@@ -220,17 +184,17 @@ namespace MyApp
                             {
                                 if (info.LogLevel == LogLevel.Error)
                                 {
-                                    ZString.Utf8Format(writer, "\u001b[31m[{0}]", info.LogLevel);
+                                    Utf8String.Format(writer, $"\u001b[31m[{info.LogLevel}]");
                                 }
                                 else
                                 {
                                     if (!info.CategoryName.StartsWith("MyApp")) // your application namespace.
                                     {
-                                        ZString.Utf8Format(writer, "\u001b[38;5;08m[{0}]", info.LogLevel);
+                                        Utf8String.Format(writer, $"\u001b[38;5;08m[{info.LogLevel}]");
                                     }
                                     else
                                     {
-                                        ZString.Utf8Format(writer, "[{0}]", info.LogLevel);
+                                        Utf8String.Format(writer, $"[{info.LogLevel}]");
                                     }
                                 }
                             };
@@ -238,7 +202,7 @@ namespace MyApp
                             {
                                 if (info.LogLevel == LogLevel.Error || !info.CategoryName.StartsWith("MyApp"))
                                 {
-                                    ZString.Utf8Format(writer, "\u001b[0m", "");
+                                    Utf8String.Format(writer, $"\u001b[0m");
                                 }
                             };
                         });
@@ -287,11 +251,11 @@ namespace MyApp
 
             logger.LogInformation("started");
 
-            logger.ZLogInformation("{abc=1}");
+            var x = 1;
+            logger.ZLogInformation($"abc{1}");
 
-            logger.ZLog(LogLevel.Information, "{a}");
-
-            logger.ZLogWithPayload(LogLevel.Debug, new { a = 1 }, "{b}");
+            var a = "a";
+            logger.ZLog(LogLevel.Information, $"{a}");
 
             // new HoGeMoge().Foo();
 
@@ -311,9 +275,7 @@ namespace MyApp
             var id = 10;
             var userName = "Mike";
 
-            logger.ZLogInformation("Registered User: Id = {0}, UserName = {1}", id, userName);
-
-            logger.ZLogInformationWithPayload(new UserRegisteredLog { Id = id, Name = userName }, "Registered User: Id = {0}, UserName = {1}", id, userName);
+            logger.ZLogInformation($"Registered User: Id = {id}, UserName = {userName}");
 
 
             return;
@@ -451,25 +413,5 @@ namespace MyApp
         public string? Foo { get; set; }
         public string? Bar { get; set; }
     }
-
-    public class Processor : IAsyncLogProcessor
-    {
-        public ValueTask DisposeAsync()
-        {
-            return default;
-        }
-
-        public void Post(IZLoggerEntry log)
-        {
-            //var takoyaki = log.GetPayloadAs<Takoyaki2>();
-
-            log.SwitchCasePayload<Takoyaki>((entry, obj, state) =>
-            {
-
-                // Console.WriteLine(obj.Bar);
-            }, null);
-
-        }
-    }
-
 }
+

@@ -52,14 +52,13 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
         LogEntryFactory<CouldNotOpenSocketState>.Create = CreateEntry;
     }
 
-    static IZLoggerEntry2 CreateEntry(in LogInfo logInfo, in CouldNotOpenSocketState state)
+    static IZLoggerEntry CreateEntry(in LogInfo logInfo, in CouldNotOpenSocketState state)
     {
         return ZLoggerEntry<CouldNotOpenSocketState>.Create(logInfo, state);
     }
 
     public int ParameterCount => Count;
-
-    public bool IsSupportStructuredLogging => throw new NotImplementedException();
+    public bool IsSupportUtf8ParameterKey => true;
 
     public void ToString(IBufferWriter<byte> writer)
     {
@@ -104,17 +103,10 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
 
     public override string ToString() => $"Could not open socket to {hostName} {ipAddress}.";
 
-    public void WriteJsonMessage(Utf8JsonWriter writer)
+    public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions)
     {
-        var bufferWriter = CodeGeneratorUtil.GetThreadStaticArrayBufferWriter();
-        ToString(bufferWriter);
-        writer.WriteString(CodeGeneratorUtil.JsonEncodedMessage, bufferWriter.WrittenSpan);
-    }
-
-    public void WriteJsonParameterKeyValues(Utf8JsonWriter writer)
-    {
-        writer.WriteString(jsonParameter1, hostName);
-        writer.WriteNumber(jsonParameter2, ipAddress);
+        jsonWriter.WriteString(jsonParameter1, hostName);
+        jsonWriter.WriteNumber(jsonParameter2, ipAddress);
     }
 
     public ReadOnlySpan<byte> GetParameterKey(int index)
@@ -126,6 +118,17 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
         }
         CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
         return default;
+    }
+
+    public string GetParameterKeyAsString(int index)
+    {
+        switch (index)
+        {
+            case 0: return "hostName";
+            case 1: return "ipAddress";
+        }
+        CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+        return default!;
     }
 
     public object GetParameterValue(int index)

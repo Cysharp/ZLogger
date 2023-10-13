@@ -12,16 +12,11 @@ namespace ZLogger.Formatters
         public Action<IBufferWriter<byte>, Exception> ExceptionFormatter { get; set; } = DefaultExceptionLoggingFormatter;
 
         static byte[] newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
-
-        public void FormatLogEntry<TEntry, TPayload>(
-            IBufferWriter<byte> writer,
-            TEntry entry,
-            TPayload? payload,
-            ReadOnlySpan<byte> utf8Message)
-            where TEntry : IZLoggerEntry
+        
+        public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
         {
             PrefixFormatter?.Invoke(writer, entry.LogInfo);
-            Write(writer, utf8Message);
+            entry.ToString(writer);
             SuffixFormatter?.Invoke(writer, entry.LogInfo);
 
             if (entry.LogInfo.Exception is { } ex)

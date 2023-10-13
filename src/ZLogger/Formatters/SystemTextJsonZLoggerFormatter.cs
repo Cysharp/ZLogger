@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Unicode;
 using Microsoft.Extensions.Logging;
+using ZLogger.Internal;
 
 namespace ZLogger.Formatters
 {
@@ -44,7 +45,6 @@ namespace ZLogger.Formatters
         static readonly JsonEncodedText None = JsonEncodedText.Encode(nameof(LogLevel.None));
 
         public JsonEncodedText MessagePropertyName { get; set; } = JsonEncodedText.Encode("Message");
-        public JsonEncodedText PayloadPropertyName { get; set; } = JsonEncodedText.Encode("Payload");
         public Action<Utf8JsonWriter, LogInfo> MetadataFormatter { get; set; } = DefaultMetadataFormatter;
 
         public JsonSerializerOptions JsonSerializerOptions { get; set; } = new()
@@ -55,27 +55,22 @@ namespace ZLogger.Formatters
         };
 
         Utf8JsonWriter? jsonWriter;
-
-        public void FormatLogEntry<TEntry, TPayload>(
-            IBufferWriter<byte> writer,
-            TEntry entry,
-            TPayload? payload,
-            ReadOnlySpan<byte> utf8Message)
-            where TEntry : IZLoggerEntry
+        
+        public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
         {
             jsonWriter?.Reset(writer);
             jsonWriter ??= new Utf8JsonWriter(writer);
 
             jsonWriter.WriteStartObject();
+            
             MetadataFormatter.Invoke(jsonWriter, entry.LogInfo);
-            jsonWriter.WriteString(MessagePropertyName, utf8Message);
 
-            if (payload != null)
-            {
-                jsonWriter.WritePropertyName(PayloadPropertyName);
-                JsonSerializer.Serialize(jsonWriter, payload, JsonSerializerOptions);
-            }
-
+            var bufferWriter = ArrayBufferWriterPool.GetThreadStaticInstance();
+            entry.ToString(bufferWriter);
+            jsonWriter.WriteString(MessagePropertyName, bufferWriter.WrittenSpan);
+            
+            entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions);
+            
             if (entry.ScopeState is { IsEmpty: false } scopeState)
             {
                 for (var i = 0; i < scopeState.Properties.Count; i++)

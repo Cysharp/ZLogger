@@ -108,9 +108,9 @@ public partial class ZLoggerGenerator
             //bool IsSupportStructuredLogging { get; }
             //string ToString();
             sb.AppendLine($$"""
-        public int ParameterCount => _parameterCount;");
-        public bool IsSupportStructuredLogging => true;
-        public override string ToString() => \"{{string.Concat(method.MessageSegments.Select(x => x.ToString()))}}\";"
+        public int ParameterCount => _parameterCount;
+        public bool IsSupportUtf8ParameterKey => true;
+        public override string ToString() => "{{string.Concat(method.MessageSegments.Select(x => x.ToString()))}}";
 
 """);
             //void ToString(IBufferWriter<byte> writer);
@@ -158,20 +158,10 @@ public partial class ZLoggerGenerator
 
 """);
             }
-            //void WriteJsonMessage(Utf8JsonWriter writer);
-            sb.AppendLine("""
-        public void WriteJsonMessage(Utf8JsonWriter writer)
-        {
-            var bufferWriter = CodeGeneratorUtil.GetThreadStaticArrayBufferWriter();
-            ToString(bufferWriter);
-            writer.WriteString(CodeGeneratorUtil.JsonEncodedMessage, bufferWriter.WrittenSpan);
-        }
 
-""");
-
-            //void WriteJsonParameterKeyValues(Utf8JsonWriter writer);
+            //void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions);
             sb.AppendLine($$"""
-        public void WriteJsonParameterKeyValues(Utf8JsonWriter writer)
+        public void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions)
         {
 {{ForEachLine("            ", methodParameters, x => x.ConvertJsonWriteMethod())}}
         }
@@ -187,6 +177,16 @@ public partial class ZLoggerGenerator
             switch (index)
             {
 {{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return \"{x.LinkedMessageSegment.NameParameter}\"u8;")}}
+            }
+            CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+            return default!;
+        }
+
+        public string GetParameterKeyAsString(int index)
+        {
+            switch (index)
+            {
+{{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return \"{x.LinkedMessageSegment.NameParameter}\";")}}
             }
             CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
             return default!;

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;</TargetFrameworks>
+		<TargetFrameworks>net6.0;</TargetFrameworks>
 		<Nullable>enable</Nullable>
 		<LangVersion>9.0</LangVersion>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -21,7 +21,7 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="6.0.0" />
 		<PackageReference Include="System.Text.Json" Version="6.0.6" />
 		<PackageReference Include="System.Threading.Channels" Version="6.0.0" />
-		<PackageReference Include="ZString" Version="2.5.0" />
+		<PackageReference Include="Utf8StringInterpolation" Version="1.0.0" />
 	</ItemGroup>
 
 	<ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
@@ -29,14 +29,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="Entries\FormatLogEntry.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>FormatLogEntry.cs</LastGenOutput>
-		</None>
-		<None Update="ZLoggerMessage.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>ZLoggerMessage.cs</LastGenOutput>
-		</None>
 		<None Update="ZLoggerExtensions.tt">
 			<Generator>TextTemplatingFileGenerator</Generator>
 			<LastGenOutput>ZLoggerExtensions.cs</LastGenOutput>
@@ -44,20 +36,25 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Compile Update="Entries\FormatLogEntry.cs">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>FormatLogEntry.tt</DependentUpon>
-		</Compile>
-		<Compile Update="ZLoggerMessage.cs">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>ZLoggerMessage.tt</DependentUpon>
-		</Compile>
 		<Compile Update="ZLoggerExtensions.cs">
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
 			<DependentUpon>ZLoggerExtensions.tt</DependentUpon>
+		</Compile>
+		<Compile Update="ZLoggerExtensions.cs">
+		  <AutoGen>True</AutoGen>
+		  <DesignTime>True</DesignTime>
+		  <DependentUpon>ZLoggerExtensions.tt</DependentUpon>
+		</Compile>
+		<Compile Update="ZLoggerExtensions.cs">
+		  <AutoGen>True</AutoGen>
+		  <DesignTime>True</DesignTime>
+		  <DependentUpon>ZLoggerExtensions.tt</DependentUpon>
+		</Compile>
+		<Compile Update="ZLoggerExtensions.cs">
+		  <AutoGen>True</AutoGen>
+		  <DesignTime>True</DesignTime>
+		  <DependentUpon>ZLoggerExtensions.tt</DependentUpon>
 		</Compile>
 	</ItemGroup>
 

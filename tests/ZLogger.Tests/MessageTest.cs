@@ -1,10 +1,10 @@
-using Cysharp.Text;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using Utf8StringInterpolation;
 using Xunit;
 using ZLogger.Formatters;
 
@@ -30,100 +30,53 @@ namespace ZLogger.Tests
             });
             var logger = loggerFactory.CreateLogger("test");
 
-            logger.ZLogDebug("foo");
+            logger.ZLogDebug($"foo");
             processsor.EntryMessages.Dequeue().Should().Be("foo");
 
-            logger.ZLogDebug(new EventId(10), "foo");
+            logger.ZLogDebug(new EventId(10), $"foo");
             processsor.EntryMessages.Dequeue().Should().Be("foo");
 
-            logger.ZLogDebug(new Exception(), "foo");
+            logger.ZLogDebug(new Exception(), $"foo");
             processsor.EntryMessages.Dequeue().Should().Be("foo");
 
-            logger.ZLogDebug(new EventId(10), new Exception(), "foo");
+            logger.ZLogDebug(new EventId(10), new Exception(), $"foo");
             processsor.EntryMessages.Dequeue().Should().Be("foo");
 
-            logger.ZLogDebug("foo {0}", "bar");
+            var bar = "bar";
+            logger.ZLogDebug($"foo {bar}");
             processsor.EntryMessages.Dequeue().Should().Be("foo bar");
 
-            logger.ZLogDebug(new EventId(10), "foo {0}", "bar");
+            logger.ZLogDebug(new EventId(10), $"foo {bar}");
             processsor.EntryMessages.Dequeue().Should().Be("foo bar");
 
-            logger.ZLogDebug(new Exception(), "foo {0}", "bar");
+            logger.ZLogDebug(new Exception(), $"foo {bar}");
             processsor.EntryMessages.Dequeue().Should().Be("foo bar");
 
-            logger.ZLogDebug(new EventId(10), new Exception(), "foo {0}", "bar");
+            logger.ZLogDebug(new EventId(10), new Exception(), $"foo {bar}");
             processsor.EntryMessages.Dequeue().Should().Be("foo bar");
 
-            logger.ZLogDebugWithPayload(new { Foo = 999 }, "foo");
+            logger.ZLog(LogLevel.Debug, $"foo");
             processsor.EntryMessages.Dequeue().Should().Be("foo");
 
-            logger.ZLogDebugWithPayload(new EventId(10), new { Foo = 999 }, "foo");
+            logger.ZLog(LogLevel.Debug, new EventId(10), $"foo");
             processsor.EntryMessages.Dequeue().Should().Be("foo");
 
-            logger.ZLogDebugWithPayload(new Exception(), new { Foo = 999 }, "foo");
+            logger.ZLog(LogLevel.Debug, new Exception(), $"foo");
             processsor.EntryMessages.Dequeue().Should().Be("foo");
 
-            logger.ZLogDebugWithPayload(new EventId(10), new Exception(), new { Foo = 999 }, "foo");
+            logger.ZLog(LogLevel.Debug, new EventId(10), new Exception(), $"foo");
             processsor.EntryMessages.Dequeue().Should().Be("foo");
 
-            logger.ZLogDebugWithPayload(new { Foo = 999 }, "foo {0}", "bar");
+            logger.ZLog(LogLevel.Debug, $"foo {bar}");
             processsor.EntryMessages.Dequeue().Should().Be("foo bar");
 
-            logger.ZLogDebugWithPayload(new EventId(10), new { Foo = 999 }, "foo {0}", "bar");
+            logger.ZLog(LogLevel.Debug, new EventId(10), $"foo {bar}");
             processsor.EntryMessages.Dequeue().Should().Be("foo bar");
 
-            logger.ZLogDebugWithPayload(new Exception(), new { Foo = 999 }, "foo {0}", "bar");
+            logger.ZLog(LogLevel.Debug, new Exception(), $"foo {bar}");
             processsor.EntryMessages.Dequeue().Should().Be("foo bar");
 
-            logger.ZLogDebugWithPayload(new EventId(10), new Exception(), new { Foo = 999 }, "foo {0}", "bar");
-            processsor.EntryMessages.Dequeue().Should().Be("foo bar");
-
-            logger.ZLog(LogLevel.Debug, "foo");
-            processsor.EntryMessages.Dequeue().Should().Be("foo");
-
-            logger.ZLog(LogLevel.Debug, new EventId(10), "foo");
-            processsor.EntryMessages.Dequeue().Should().Be("foo");
-
-            logger.ZLog(LogLevel.Debug, new Exception(), "foo");
-            processsor.EntryMessages.Dequeue().Should().Be("foo");
-
-            logger.ZLog(LogLevel.Debug, new EventId(10), new Exception(), "foo");
-            processsor.EntryMessages.Dequeue().Should().Be("foo");
-
-            logger.ZLog(LogLevel.Debug, "foo {0}", "bar");
-            processsor.EntryMessages.Dequeue().Should().Be("foo bar");
-
-            logger.ZLog(LogLevel.Debug, new EventId(10), "foo {0}", "bar");
-            processsor.EntryMessages.Dequeue().Should().Be("foo bar");
-
-            logger.ZLog(LogLevel.Debug, new Exception(), "foo {0}", "bar");
-            processsor.EntryMessages.Dequeue().Should().Be("foo bar");
-
-            logger.ZLog(LogLevel.Debug, new EventId(10), new Exception(), "foo {0}", "bar");
-            processsor.EntryMessages.Dequeue().Should().Be("foo bar");
-
-            logger.ZLogWithPayload(LogLevel.Debug, new { Foo = 999 }, "foo");
-            processsor.EntryMessages.Dequeue().Should().Be("foo");
-
-            logger.ZLogWithPayload(LogLevel.Debug, new EventId(10), new { Foo = 999 }, "foo");
-            processsor.EntryMessages.Dequeue().Should().Be("foo");
-
-            logger.ZLogWithPayload(LogLevel.Debug, new Exception(), new { Foo = 999 }, "foo");
-            processsor.EntryMessages.Dequeue().Should().Be("foo");
-
-            logger.ZLogWithPayload(LogLevel.Debug, new EventId(10), new Exception(), new { Foo = 999 }, "foo");
-            processsor.EntryMessages.Dequeue().Should().Be("foo");
-
-            logger.ZLogWithPayload(LogLevel.Debug, new { Foo = 999 }, "foo {0}", "bar");
-            processsor.EntryMessages.Dequeue().Should().Be("foo bar");
-
-            logger.ZLogWithPayload(LogLevel.Debug, new EventId(10), new { Foo = 999 }, "foo {0}", "bar");
-            processsor.EntryMessages.Dequeue().Should().Be("foo bar");
-
-            logger.ZLogWithPayload(LogLevel.Debug, new Exception(), new { Foo = 999 }, "foo {0}", "bar");
-            processsor.EntryMessages.Dequeue().Should().Be("foo bar");
-
-            logger.ZLogWithPayload(LogLevel.Debug, new EventId(10), new Exception(), new { Foo = 999 }, "foo {0}", "bar");
+            logger.ZLog(LogLevel.Debug, new EventId(10), new Exception(), $"foo {bar}");
             processsor.EntryMessages.Dequeue().Should().Be("foo bar");
         }
 
@@ -133,9 +86,9 @@ namespace ZLogger.Tests
             var options = new ZLoggerOptions();
             options.UsePlainTextFormatter(formatter =>
             {
-                formatter.PrefixFormatter = (writer, info) => ZString.Utf8Format(writer, "[Pre:{0}]", info.LogLevel);
-                formatter.SuffixFormatter = (writer, info) => ZString.Utf8Format(writer, "[Suf:{0}]", info.CategoryName);
-                formatter.ExceptionFormatter = (writer, ex) => ZString.Utf8Format(writer, "{0}", ex.Message);
+                formatter.PrefixFormatter = (writer, info) => Utf8String.Format(writer, $"[Pre:{info.LogLevel}]");
+                formatter.SuffixFormatter = (writer, info) => Utf8String.Format(writer, $"[Suf:{info.CategoryName}]");
+                formatter.ExceptionFormatter = (writer, ex) => Utf8String.Format(writer, $"{ex.Message}");
             });
             var processsor = new TestProcessor(options);
 
@@ -146,11 +99,13 @@ namespace ZLogger.Tests
             });
             var logger = loggerFactory.CreateLogger("test");
 
-            logger.ZLogDebug("FooBar{0}-NanoNano{1}", 100, 200);
+            var x = 100;
+            var y = 200;
+            logger.ZLogDebug($"FooBar{x}-NanoNano{y}");
             processsor.Dequeue().Should().Be("[Pre:Debug]FooBar100-NanoNano200[Suf:test]");
 
-            logger.ZLogInformation("FooBar{0}-NanoNano{1}", 100, 300);
-            processsor.Dequeue().Should().Be("[Pre:Information]FooBar100-NanoNano300[Suf:test]");
+            logger.ZLogInformation($"FooBar{x}-NanoNano{y}");
+            processsor.Dequeue().Should().Be("[Pre:Information]FooBar100-NanoNano200[Suf:test]");
 
             // fallback case
             logger.LogDebug("FooBar{0}-NanoNano{1}", 100, 200);
@@ -188,7 +143,11 @@ namespace ZLogger.Tests
             });
             var logger = loggerFactory.CreateLogger("test");
 
-            logger.ZLogDebugWithPayload(new { tako = 100, yaki = "あいうえお" }, "FooBar{0} NanoNano{1}", 100, 200);
+            var tako = 100;
+            var yaki = "あいうえお";
+            logger.ZLogDebug($"FooBar{tako} NanoNano{yaki}");
+            
+            logger.LogInformation("");
 
             loggerFactory.Dispose();
 
@@ -197,10 +156,9 @@ namespace ZLogger.Tests
 
             var doc = JsonDocument.Parse(json).RootElement;
 
-            doc.GetProperty("Message").GetString().Should().Be("FooBar100 NanoNano200");
-            var payload = doc.GetProperty("Payload");
-            payload.GetProperty("tako").GetInt32().Should().Be(100);
-            payload.GetProperty("yaki").GetString().Should().Be("あいうえお");
+            doc.GetProperty("Message").GetString().Should().Be("FooBar100 NanoNanoあいうえお");
+            doc.GetProperty("tako").GetInt32().Should().Be(100);
+            doc.GetProperty("yaki").GetString().Should().Be("あいうえお");
 
             doc.GetProperty("Hash").GetString().Should().Be(sourceCodeHash);
             doc.GetProperty("LogLevel").GetString().Should().Be("Debug");

@@ -42,7 +42,10 @@ namespace Benchmark.Benchmarks
         [Benchmark]
         public void ZFile()
         {
-            ZLoggerLogger.ZLogInformation("foo{0} bar{1} nazo{2}", 10, 20, 30);
+            var x = 10;
+            var y = 20;
+            var z = 30;
+            ZLoggerLogger.ZLogInformation($"foo{x} bar{y} nazo{z}");
         }
 
 

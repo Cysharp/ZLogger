@@ -30,7 +30,9 @@ namespace ZLogger.MessagePack.Tests
         {
             using (logger.BeginScope("({X}, {Y})", 111, null))
             {
-                logger.ZLogInformation("FooBar{0} NanoNano{1}", 333, 444);
+                var a = 333;
+                var b = 444;
+                logger.ZLogInformation($"FooBar{a} NanoNano{b}");
             }
 
             var msgpack = processor.Dequeue();
@@ -45,7 +47,9 @@ namespace ZLogger.MessagePack.Tests
         {
             using (logger.BeginScope(new KeyValuePair<string, object?>("Hoge", "AAA")))
             {
-                logger.ZLogInformation("FooBar{0} NanoNano{1}", 100, 200);
+                var a = 100;
+                var b = 200;
+                logger.ZLogInformation($"FooBar{a} NanoNano{b}");
             }
 
             var msgpack = processor.Dequeue();
@@ -58,12 +62,14 @@ namespace ZLogger.MessagePack.Tests
         {
             using (logger.BeginScope(new TestPayload { X = 999 }))
             {
-                logger.ZLogInformation("FooBar{0} NanoNano{1}", 100, 200);
+                var a = 100;
+                var b = 200;
+                logger.ZLogInformation($"FooBar{a} NanoNano{b}");
             }
 
             var msgpack = processor.Dequeue();
             ((string)msgpack["Message"]).Should().Be("FooBar100 NanoNano200");
-            ((int)msgpack["Scope"]["X"]).Should().Be(999);
+            ((int)msgpack["Scope"]["x"]).Should().Be(999);
         }
         
         [Fact]
@@ -71,11 +77,11 @@ namespace ZLogger.MessagePack.Tests
         {
             using (logger.BeginScope("A={A}", 100))
             {
-                logger.ZLogInformation("Message 1");
+                logger.ZLogInformation($"Message 1");
 
                 using (logger.BeginScope("B={B}", 200))
                 {
-                    logger.ZLogInformation("Message 2");
+                    logger.ZLogInformation($"Message 2");
                 }
             }
 
