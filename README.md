@@ -2,9 +2,9 @@ ZLogger
 ===
 [![GitHub Actions](https://github.com/Cysharp/ZLogger/workflows/Build-Debug/badge.svg)](https://github.com/Cysharp/ZLogger/actions) [![Releases](https://img.shields.io/github/release/Cysharp/ZLogger.svg)](https://github.com/Cysharp/ZLogger/releases)
 
-**Z**ero Allocation Text/Structured **Logger** for .NET Core and Unity, built on top of a Microsoft.Extensions.Logging.
+**Z**ero Allocation Text/Structured **Logger** for .NET and Unity, built on top of a Microsoft.Extensions.Logging.
 
-Logging to standard output is very important, especially in the age of containerization(described in [The Twelve Factor App - Logs](https://12factor.net/logs) saids should write to stdout), but traditionally its performance has been very slow, however anyone no concerned about it. It also supports both text logs and structured logs, which are important in cloud log management.
+Logging to standard output is very important, especially in the age of containerization(described in [The Twelve Factor App - Logs](https://12factor.net/logs) says should write to stdout), but traditionally its performance has been very slow, however anyone no concerned about it. It also supports both text logs and structured logs, which are important in cloud log management.
 
 ![image](https://user-images.githubusercontent.com/46207/78019524-d4238480-738a-11ea-88ac-00caa8bc5228.png)
 
@@ -102,7 +102,7 @@ public class MyClass
 }
 ```
 
-The setup and get the logger follows [Microsoft.Extensions.Logging](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/). However, writing logs uses `ZLog`, `ZLogDebug`, `ZLogException`, etc. with a prefix of **Z**. 
+The setup and get the logger follows [Microsoft.Extensions.Logging](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/). However, writing logs uses `ZLog`, `ZLogInformation`, `ZLogError`, etc. with a prefix of **Z**. 
 
 All logging methods are completely similar as [Microsoft.Extensions.Logging.LoggerExtensions](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.loggerextensions), but it has **Z** prefix and has many generics overload to avoid allocation of boxing.
 
@@ -120,7 +120,10 @@ public static void ZLogDebug<T1>(this ILogger logger, EventId eventId, Exception
 public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15, T16 arg16);
 ```
 
-If you want to replace an existing .NET Core logger, you can setup the builder.AddZLogger and simply replace LogDebug -> ZLogDebug. If you want to check and prohibit standard log methods, see the [Microsoft.CodeAnalysis.BannedApiAnalyzers](#microsoftcodeanalysisbannedapianalyzers) section. If you want to use the logger without DI, see the [Global LoggerFactory](#global-loggerfactory) section.
+Of course, default logger methods such as `Log`, `LogInformation`, `LogError` ets are also supported.  When used, ZLogger also pools buffers for strings and states as much as possible.
+However, the `ZLog*` method families are better because they skip overhead of variable length arguments and string generation.
+
+If you want to replace an existing .NET logger, you can setup the builder.AddZLogger and simply replace LogDebug -> ZLogDebug. If you want to check and prohibit standard log methods, see the [Microsoft.CodeAnalysis.BannedApiAnalyzers](#microsoftcodeanalysisbannedapianalyzers) section. If you want to use the logger without DI, see the [Global LoggerFactory](#global-loggerfactory) section.
 
 If you want to use without .NET Generic Host(for simple use, for unit testing, etc.), create the logger factory and store to static/singleton field to it.
 
