@@ -9,6 +9,7 @@ namespace ZLogger.Providers
     {
         internal const string DefaultOptionName = "ZLoggerFile.Default";
 
+        readonly ZLoggerOptions options;
         readonly AsyncStreamLineMessageWriter streamWriter;
         IExternalScopeProvider? scopeProvider;
 
@@ -25,19 +26,21 @@ namespace ZLogger.Providers
                 di.Create();
             }
 
-            var opt = options.Get(optionName ?? DefaultOptionName);
+            this.options = options.Get(optionName ?? DefaultOptionName);
 
             // useAsync:false, use sync(in thread) processor, don't use FileStream buffer(use buffer size = 1).
             var stream = new FileStream(filePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 1, false);
-            this.streamWriter = new AsyncStreamLineMessageWriter(stream, opt);
+            this.streamWriter = new AsyncStreamLineMessageWriter(stream, this.options);
         }
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new AsyncProcessZLogger(categoryName, streamWriter)
+            var logger = new AsyncProcessZLogger(categoryName, streamWriter);
+            if (options.IncludeScopes)
             {
-                ScopeProvider = scopeProvider
-            };
+                logger.ScopeProvider = scopeProvider;
+            }
+            return logger;
         }
 
         public void Dispose()

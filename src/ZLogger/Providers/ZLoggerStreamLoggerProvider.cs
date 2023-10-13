@@ -9,6 +9,7 @@ namespace ZLogger.Providers
     {
         internal const string DefaultOptionName = "ZLoggerStream.Default";
 
+        readonly ZLoggerOptions options;
         readonly AsyncStreamLineMessageWriter streamWriter;
         IExternalScopeProvider? scopeProvider;
 
@@ -19,15 +20,18 @@ namespace ZLogger.Providers
 
         public ZLoggerStreamLoggerProvider(Stream stream, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
         {
-            this.streamWriter = new AsyncStreamLineMessageWriter(stream, options.Get(optionName ?? DefaultOptionName));
+            this.options = options.Get(optionName ?? DefaultOptionName);
+            this.streamWriter = new AsyncStreamLineMessageWriter(stream, this.options);
         }
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new AsyncProcessZLogger(categoryName, streamWriter)
+            var logger = new AsyncProcessZLogger(categoryName, streamWriter);
+            if (options.IncludeScopes)
             {
-                ScopeProvider = scopeProvider
-            };
+                logger.ScopeProvider = scopeProvider;
+            }
+            return logger;
         }
 
         public void Dispose()

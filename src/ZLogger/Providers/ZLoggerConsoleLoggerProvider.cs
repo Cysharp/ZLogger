@@ -10,6 +10,7 @@ namespace ZLogger.Providers
     {
         internal const string DefaultOptionName = "ZLoggerConsole.Default";
 
+        readonly ZLoggerOptions options;
         readonly AsyncStreamLineMessageWriter streamWriter;
         IExternalScopeProvider? scopeProvider; 
 
@@ -30,17 +31,19 @@ namespace ZLogger.Providers
                 Console.OutputEncoding = new UTF8Encoding(false);
             }
 
-            var opt = options.Get(optionName ?? DefaultOptionName);
+            this.options = options.Get(optionName ?? DefaultOptionName);
             var stream = outputToErrorStream ? Console.OpenStandardError() : Console.OpenStandardOutput();
-            this.streamWriter = new AsyncStreamLineMessageWriter(stream, opt);
+            this.streamWriter = new AsyncStreamLineMessageWriter(stream, this.options);
         }
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new AsyncProcessZLogger(categoryName, streamWriter)
+            var logger = new AsyncProcessZLogger(categoryName, streamWriter);
+            if (options.IncludeScopes)
             {
-                ScopeProvider = scopeProvider
-            };
+                logger.ScopeProvider = scopeProvider;
+            }
+            return logger;
         }
 
         public void Dispose()

@@ -7,6 +7,7 @@ namespace ZLogger
     {
         public Action<LogInfo, Exception>? InternalErrorLogger { get; set; }
         public TimeSpan? FlushRate { get; set; }
+        public bool IncludeScopes { get; set; }
 
         Func<IZLoggerFormatter> formatterFactory = DefaultFormatterFactory;
 
