@@ -22,7 +22,8 @@ namespace ZLogger
         
         public static void ZLog(this ILogger logger, LogLevel logLevel, EventId eventId, Exception? exception, ref ZLoggerInterpolatedStringHandler message)
         {
-            logger.Log(logLevel, eventId, message.GetState(), exception, (state, ex) => state.ToString());
+            using var state = message.GetState();
+            logger.Log(logLevel, eventId, state, exception, (state, ex) => state.ToString());
         }
 
         public static void ZLogTrace(this ILogger logger, ref ZLoggerInterpolatedStringHandler message)

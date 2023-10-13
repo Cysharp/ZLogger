@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
-using ZLogger.Entries;
+using ZLogger.LogStates;
 
 namespace ZLogger
 {
@@ -17,14 +17,6 @@ namespace ZLogger
             this.logProcessor = logProcessor;
         }
 
-        public void ZLog<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-            where TState : IZLoggerFormattable
-        {
-            var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
-            var entry = ZLoggerEntry<TState>.Create(info, state);
-            logProcessor.Post(entry);
-        }
-
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
@@ -36,6 +28,11 @@ namespace ZLogger
             var factory = LogEntryFactory<TState>.Create;
             if (factory != null)
             {
+                // After the `Log()` call, the state's resources are released, so a copy is needed to delay the write.
+                if (LogEntryFactory<TState>.CloneState != null)
+                {
+                    state = LogEntryFactory<TState>.CloneState(state);
+                }
                 var entry = factory.Invoke(info, state);
                 entry.ScopeState = scopeState;
                 logProcessor.Post(entry);
