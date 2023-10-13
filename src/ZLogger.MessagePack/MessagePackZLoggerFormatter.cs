@@ -100,8 +100,16 @@ namespace ZLogger.MessagePack
 
             for (var i = 0; i < entry.ParameterCount; i++)
             {
-                var key = entry.GetParameterKey(i);
-                messagePackWriter.Write(key);
+                if (entry.IsSupportUtf8ParameterKey)
+                {
+                    var key = entry.GetParameterKey(i);
+                    messagePackWriter.Write(key);
+                }
+                else
+                {
+                    var key = entry.GetParameterKeyAsString(i);
+                    messagePackWriter.Write(key);
+                }
                 
                 var valueType = entry.GetParameterType(i);
                 if (valueType == typeof(string))

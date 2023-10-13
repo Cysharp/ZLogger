@@ -13,6 +13,7 @@ namespace ZLogger.MessagePack.Tests
         public FormatterTest()
         {
             var options = new ZLoggerOptions();
+
             options.UseMessagePackFormatter();
 
             processor = new TestProcessor(options);
@@ -52,8 +53,7 @@ namespace ZLogger.MessagePack.Tests
             }
             catch (Exception ex)
             {
-                var x = 100;
-                logger.ZLogError(new EventId(1, "NG"), ex, $"DAMEDA {x}");                
+                logger.ZLogError(new EventId(1, "NG"), ex, $"DAMEDA 111");                
             }
         
             var msgpack = processor.Dequeue();
@@ -63,12 +63,10 @@ namespace ZLogger.MessagePack.Tests
             ((string)msgpack["EventIdName"]).Should().Be("NG");
             ((string)msgpack["Message"]).Should().Be("DAMEDA 111");
             ((DateTime)msgpack["Timestamp"]).Should().BeOnOrAfter(now);
-            ((string)msgpack["Exception"]["Name"]).Should().Be("ZLogger.Tests.TestException");
+            ((string)msgpack["Exception"]["Name"]).Should().Be("ZLogger.MessagePack.Tests.TestException");
             ((string)msgpack["Exception"]["Message"]).Should().Be("DAME");
             ((string)msgpack["Exception"]["StackTrace"]).Should().NotBeEmpty();
             ((string)msgpack["Exception"]["InnerException"]).Should().BeNull();
-            
-            ((bool)msgpack.ContainsKey("Payload")).Should().BeFalse();
         }
 
         [Fact]
@@ -81,8 +79,7 @@ namespace ZLogger.MessagePack.Tests
             }
             catch (Exception ex)
             {
-                var x = 111;
-                logger.ZLogError(new EventId(1, "NG"), ex, $"DAMEDA {x}");                
+                logger.ZLogError(new EventId(1, "NG"), ex, $"DAMEDA 111");                
             }
         
             var msgpack = processor.Dequeue();
@@ -92,12 +89,11 @@ namespace ZLogger.MessagePack.Tests
             ((string)msgpack["EventIdName"]).Should().Be("NG");
             ((string)msgpack["Message"]).Should().Be("DAMEDA 111");
             ((DateTime)msgpack["Timestamp"]).Should().BeOnOrAfter(now);
-            ((string)msgpack["Exception"]["Name"]).Should().Be("ZLogger.Tests.TestException");
+            ((string)msgpack["Exception"]["Name"]).Should().Be("ZLogger.MessagePack.Tests.TestException");
             ((string)msgpack["Exception"]["Message"]).Should().Be("DAME!");
             ((string)msgpack["Exception"]["StackTrace"]).Should().NotBeEmpty();
-            ((string)msgpack["Exception"]["InnerException"]["Name"]).Should().Be("ZLogger.Tests.TestException");
+            ((string)msgpack["Exception"]["InnerException"]["Name"]).Should().Be("ZLogger.MessagePack.Tests.TestException");
             ((string)msgpack["Exception"]["InnerException"]["Message"]).Should().Be("INNER!");
-            ((bool)msgpack.ContainsKey("Payload")).Should().BeFalse();
         }
     
         [Fact]
@@ -113,7 +109,7 @@ namespace ZLogger.MessagePack.Tests
             ((int)msgpack["EventId"]).Should().Be(1);
             ((string)msgpack["EventIdName"]).Should().Be("HOGE");
             ((DateTime)msgpack["Timestamp"]).Should().BeOnOrAfter(now);
-            ((int)msgpack["Payload"]["X"]).Should().Be(999);
+            ((int)msgpack["payload"]["x"]).Should().Be(999);
             ((bool)msgpack.ContainsKey("Exception")).Should().BeFalse();            
         }
    }

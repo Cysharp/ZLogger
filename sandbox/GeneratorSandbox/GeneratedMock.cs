@@ -58,6 +58,7 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
     }
 
     public int ParameterCount => Count;
+    public bool IsSupportUtf8ParameterKey => true;
 
     public void ToString(IBufferWriter<byte> writer)
     {
@@ -117,6 +118,17 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
         }
         CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
         return default;
+    }
+
+    public string GetParameterKeyAsString(int index)
+    {
+        switch (index)
+        {
+            case 0: return "hostName";
+            case 1: return "ipAddress";
+        }
+        CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+        return default!;
     }
 
     public object GetParameterValue(int index)

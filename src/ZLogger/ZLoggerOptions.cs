@@ -10,7 +10,7 @@ namespace ZLogger
 
         Func<IZLoggerFormatter> formatterFactory = DefaultFormatterFactory;
 
-        public IZLoggerFormatter CreateFormatter() => throw new NotImplementedException();
+        public IZLoggerFormatter CreateFormatter() => formatterFactory.Invoke();
 
         public ZLoggerOptions UseFormatter(Func<IZLoggerFormatter> formatterFactory)
         {

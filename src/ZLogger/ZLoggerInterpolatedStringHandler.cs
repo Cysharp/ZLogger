@@ -22,7 +22,8 @@ namespace ZLogger
         }
 
         public int ParameterCount => arguments.Length;
-        
+        public bool IsSupportUtf8ParameterKey => false;
+
         readonly KeyValuePair<string, object?>[] arguments; // TODO: avoid boxing!
         readonly ArrayBufferWriter<byte> buffer;
 
@@ -32,6 +33,7 @@ namespace ZLogger
             this.buffer = buffer;
         }
 
+        // TODO: There is no timing to dispose of the state struct!
         public void Dispose()
         {
             ArrayBufferWriterPool.Return(buffer);
@@ -54,24 +56,28 @@ namespace ZLogger
         {
             for (var i = 0; i < arguments.Length; i++)
             {
-                var x = arguments[i];
-                jsonWriter.WritePropertyName(x.Key);
-                if (x.Value == null)
+                var (key, value) = arguments[i];
+                jsonWriter.WritePropertyName(key);
+                if (value == null)
                 {
                     jsonWriter.WriteNullValue();
                 }
                 else
                 {
                     var valueType = GetParameterType(i);
-                    JsonSerializer.Serialize(jsonWriter, x.Value, valueType, jsonSerializerOptions); // TODO: more optimize ?
+                    JsonSerializer.Serialize(jsonWriter, value, valueType, jsonSerializerOptions); // TODO: more optimize ?
                 }
             }
         }
 
         public ReadOnlySpan<byte> GetParameterKey(int index)
         {
-            // return arguments[index].Key;
-            throw new NotImplementedException();
+            throw new NotSupportedException();
+        }
+
+        public string GetParameterKeyAsString(int index)
+        {
+            return arguments[index].Key;
         }
 
         public object? GetParameterValue(int index)
@@ -117,7 +123,10 @@ namespace ZLogger
             arguments[i++] = new KeyValuePair<string, object?>(argumentName ?? $"Arg{i}", value);
         }
 
-        public InterpolatedStringLogState GetState() => new(arguments, buffer);
+        public InterpolatedStringLogState GetState()
+        {
+            utf8StringWriter.Flush();
+            return new InterpolatedStringLogState(arguments, buffer);
+        }
     }    
 }
-

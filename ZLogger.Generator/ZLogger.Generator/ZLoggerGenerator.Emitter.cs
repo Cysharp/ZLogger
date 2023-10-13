@@ -109,7 +109,7 @@ public partial class ZLoggerGenerator
             //string ToString();
             sb.AppendLine($$"""
         public int ParameterCount => _parameterCount;
-        public bool IsSupportStructuredLogging => true;
+        public bool IsSupportUtf8ParameterKey => true;
         public override string ToString() => "{{string.Concat(method.MessageSegments.Select(x => x.ToString()))}}";
 
 """);
@@ -177,6 +177,16 @@ public partial class ZLoggerGenerator
             switch (index)
             {
 {{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return \"{x.LinkedMessageSegment.NameParameter}\"u8;")}}
+            }
+            CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+            return default!;
+        }
+
+        public string GetParameterKeyAsString(int index)
+        {
+            switch (index)
+            {
+{{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return \"{x.LinkedMessageSegment.NameParameter}\";")}}
             }
             CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
             return default!;

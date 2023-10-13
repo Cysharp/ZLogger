@@ -87,7 +87,7 @@ namespace ZLogger.Tests
             options.UsePlainTextFormatter(formatter =>
             {
                 formatter.PrefixFormatter = (writer, info) => Utf8String.Format(writer, $"[Pre:{info.LogLevel}]");
-                formatter.SuffixFormatter = (writer, info) => Utf8String.Format(writer, $"[Suf:{info.LogLevel}]");
+                formatter.SuffixFormatter = (writer, info) => Utf8String.Format(writer, $"[Suf:{info.CategoryName}]");
                 formatter.ExceptionFormatter = (writer, ex) => Utf8String.Format(writer, $"{ex.Message}");
             });
             var processsor = new TestProcessor(options);
@@ -143,9 +143,9 @@ namespace ZLogger.Tests
             });
             var logger = loggerFactory.CreateLogger("test");
 
-            var x = 100;
-            var y = 200;
-            logger.ZLogDebug($"FooBar{x} NanoNano{y}");
+            var tako = 100;
+            var yaki = "あいうえお";
+            logger.ZLogDebug($"FooBar{tako} NanoNano{yaki}");
             
             logger.LogInformation("");
 
@@ -156,10 +156,9 @@ namespace ZLogger.Tests
 
             var doc = JsonDocument.Parse(json).RootElement;
 
-            doc.GetProperty("Message").GetString().Should().Be("FooBar100 NanoNano200");
-            var payload = doc.GetProperty("Payload");
-            payload.GetProperty("tako").GetInt32().Should().Be(100);
-            payload.GetProperty("yaki").GetString().Should().Be("あいうえお");
+            doc.GetProperty("Message").GetString().Should().Be("FooBar100 NanoNanoあいうえお");
+            doc.GetProperty("tako").GetInt32().Should().Be(100);
+            doc.GetProperty("yaki").GetString().Should().Be("あいうえお");
 
             doc.GetProperty("Hash").GetString().Should().Be(sourceCodeHash);
             doc.GetProperty("LogLevel").GetString().Should().Be("Debug");

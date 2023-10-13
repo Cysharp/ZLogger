@@ -39,10 +39,12 @@ namespace ZLogger
                 var entry = factory.Invoke(info, state);
                 logProcessor.Post(entry);
             }
+            // Standard `Log` method used
             else
             {
                 var stringFormatterState = new StringFormatterLogState<TState>(state, exception, formatter);
-                ZLoggerEntry<StringFormatterLogState<TState>>.Create(info, stringFormatterState);
+                var entry = ZLoggerEntry<StringFormatterLogState<TState>>.Create(info, stringFormatterState);
+                logProcessor.Post(entry);
             }
         }
 

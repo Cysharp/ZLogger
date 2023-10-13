@@ -9,6 +9,7 @@ namespace ZLogger.Entries
     public struct StringFormatterLogState<TState> : IZLoggerFormattable
     {
         public int ParameterCount => originalStateParameters?.Count ?? 0;
+        public bool IsSupportUtf8ParameterKey => false;
 
         readonly TState originalState;
         readonly Exception? exception;
@@ -65,10 +66,14 @@ namespace ZLogger.Entries
 
         public ReadOnlySpan<byte> GetParameterKey(int index)
         {
+            throw new NotSupportedException();
+        }
+
+        public string GetParameterKeyAsString(int index)
+        {
             if (originalStateParameters != null)
             {
-                throw new NotImplementedException();
-                // return originalStateParameters[index].Key;
+                return originalStateParameters[index].Key;
             }
             throw new IndexOutOfRangeException(nameof(index));
         }
@@ -82,8 +87,22 @@ namespace ZLogger.Entries
             throw new IndexOutOfRangeException(nameof(index));
         }
 
-        public T? GetParameterValue<T>(int index) => throw new NotImplementedException();
+        public T? GetParameterValue<T>(int index)
+        {
+            if (originalStateParameters != null)
+            {
+                return (T?)originalStateParameters[index].Value;
+            }
+            throw new IndexOutOfRangeException(nameof(index));
+        }
 
-        public Type GetParameterType(int index) => throw new NotImplementedException();
+        public Type GetParameterType(int index)
+        {
+            if (originalStateParameters != null)
+            {
+                return originalStateParameters[index].Value?.GetType() ?? typeof(string);
+            }
+            throw new IndexOutOfRangeException(nameof(index));
+        }
     }
 }

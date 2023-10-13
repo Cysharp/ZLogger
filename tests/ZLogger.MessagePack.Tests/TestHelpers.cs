@@ -7,9 +7,10 @@ using MessagePack.Resolvers;
 
 namespace ZLogger.MessagePack.Tests
 {
-    [MessagePackObject(keyAsPropertyName: true)]
+    [MessagePackObject]
     public class TestPayload
     {
+        [Key("x")]
         public int X { get; set; }
     }
     
