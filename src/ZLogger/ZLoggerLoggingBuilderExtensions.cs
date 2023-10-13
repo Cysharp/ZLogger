@@ -93,9 +93,24 @@ namespace ZLogger
         public static ILoggingBuilder AddZLoggerLogProcessor(this ILoggingBuilder builder, IAsyncLogProcessor logProcessor)
         {
             builder.AddConfiguration();
-            builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerLogProcessorLoggerProvider>(x => new ZLoggerLogProcessorLoggerProvider(logProcessor)));
+            builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerLogProcessorLoggerProvider>(x => new ZLoggerLogProcessorLoggerProvider(logProcessor, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
             LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerLogProcessorLoggerProvider>(builder.Services);
 
+            return builder;
+        }
+        
+        public static ILoggingBuilder AddZLoggerLogProcessor(this ILoggingBuilder builder, IAsyncLogProcessor logProcessor, Action<ZLoggerOptions> configure)
+        {
+            return AddZLoggerLogProcessor(builder, logProcessor, ZLoggerLogProcessorLoggerProvider.DefaultOptionName, configure);
+        }
+        
+        public static ILoggingBuilder AddZLoggerLogProcessor(this ILoggingBuilder builder, IAsyncLogProcessor logProcessor, string optionName, Action<ZLoggerOptions> configure)
+        {
+            builder.AddConfiguration();
+            builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerLogProcessorLoggerProvider>(x => new ZLoggerLogProcessorLoggerProvider(logProcessor, optionName, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
+            LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerLogProcessorLoggerProvider>(builder.Services);
+
+            builder.Services.AddOptions<ZLoggerOptions>(optionName).Configure(configure);
             return builder;
         }
 

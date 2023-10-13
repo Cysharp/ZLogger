@@ -1,24 +1,36 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace ZLogger.Providers
 {
     [ProviderAlias("ZLoggerLogProcessor")]
     public class ZLoggerLogProcessorLoggerProvider : ILoggerProvider, ISupportExternalScope
     {
+        internal const string DefaultOptionName = "ZLoggerFile.Default";
+        
+        readonly ZLoggerOptions options;
         readonly IAsyncLogProcessor processor;
         IExternalScopeProvider? scopeProvider;
 
-        public ZLoggerLogProcessorLoggerProvider(IAsyncLogProcessor processor)
+        public ZLoggerLogProcessorLoggerProvider(IAsyncLogProcessor processor, IOptionsMonitor<ZLoggerOptions> options)
+            : this(processor, DefaultOptionName, options)
+        {
+        }
+
+        public ZLoggerLogProcessorLoggerProvider(IAsyncLogProcessor processor, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
         {
             this.processor = processor;
+            this.options = options.Get(optionName ?? DefaultOptionName);
         }
 
         public ILogger CreateLogger(string categoryName)
         {
-            return new AsyncProcessZLogger(categoryName, processor)
+            var logger = new AsyncProcessZLogger(categoryName, processor);
+            if (options.IncludeScopes)
             {
-                ScopeProvider = scopeProvider
-            };
+                logger.ScopeProvider = scopeProvider;
+            }
+            return logger;
         }
 
         public void Dispose()

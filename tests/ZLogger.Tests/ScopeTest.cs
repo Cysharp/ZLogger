@@ -14,7 +14,10 @@ namespace ZLogger.Tests
 
         public ScopeTest()
         {
-            var options = new ZLoggerOptions();
+            var options = new ZLoggerOptions
+            {
+                IncludeScopes = true
+            };
             options.UseJsonFormatter();
             
             processor = new TestProcessor(options);
@@ -22,7 +25,10 @@ namespace ZLogger.Tests
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processor);
+                x.AddZLoggerLogProcessor(processor, options =>
+                {
+                    options.IncludeScopes = true;
+                });
             });
             logger = loggerFactory.CreateLogger("test");
         }
