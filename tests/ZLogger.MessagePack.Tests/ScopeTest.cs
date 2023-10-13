@@ -69,7 +69,7 @@ namespace ZLogger.MessagePack.Tests
 
             var msgpack = processor.Dequeue();
             ((string)msgpack["Message"]).Should().Be("FooBar100 NanoNano200");
-            ((int)msgpack["Scope"]["X"]).Should().Be(999);
+            ((int)msgpack["Scope"]["x"]).Should().Be(999);
         }
         
         [Fact]

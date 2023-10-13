@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Buffers;
 using MessagePack;
 using Microsoft.Extensions.Logging;
@@ -67,9 +68,23 @@ namespace ZLogger.MessagePack
         {
             var messagePackWriter = new MessagePackWriter(writer);
 
-            messagePackWriter.WriteMapHeader(6 + entry.ParameterCount +
-                                             (entry.LogInfo.Exception != null ? 1 : 0));
-                                             // (entry.ScopeState?.Properties.Count(x => x.Key != "{OriginalFormat}") ?? 0));
+            var propCount = 6 + entry.ParameterCount;
+            
+            if (entry.LogInfo.Exception != null) 
+                propCount++;
+
+            if (entry.ScopeState != null)
+            {
+                for (var i = 0; i < entry.ScopeState.Properties.Count; i++)
+                {
+                    if (entry.ScopeState.Properties[i].Key != "{OriginalFormat}")
+                    {
+                        propCount++;
+                    }
+                }
+            }
+
+            messagePackWriter.WriteMapHeader(propCount);
 
             messagePackWriter.WriteRaw(CategoryNameKey);
             messagePackWriter.Write(entry.LogInfo.CategoryName);
@@ -303,28 +318,27 @@ namespace ZLogger.MessagePack
                 }
             }
             
-            // TODO: scopes
-            // if (entry.ScopeState is { IsEmpty: false } scopeState)
-            // {
-            //     for (var i = 0; i < scopeState.Properties.Count; i++)
-            //     {
-            //         var x = scopeState.Properties[i];
-            //         // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
-            //         if (x.Key == "{OriginalFormat}")
-            //             continue;
-            //         
-            //         messagePackWriter.Write(x.Key);
-            //         if (x.Value is { } value)
-            //         {
-            //             MessagePackSerializer.Serialize(value.GetType(), ref messagePackWriter, value,
-            //                 MessagePackSerializerOptions);
-            //         }
-            //         else
-            //         {
-            //             messagePackWriter.WriteNil();
-            //         }
-            //     }
-            // }
+            if (entry.ScopeState != null)
+            {
+                for (var i = 0; i < entry.ScopeState.Properties.Count; i++)
+                {
+                    var (key, value) = entry.ScopeState.Properties[i];
+                    // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
+                    if (key == "{OriginalFormat}")
+                        continue;
+                    
+                    messagePackWriter.Write(key);
+                    if (value == null)
+                    {
+                        messagePackWriter.WriteNil();
+                    }
+                    else
+                    {
+                        MessagePackSerializer.Serialize(value.GetType(), ref messagePackWriter, value,
+                            MessagePackSerializerOptions);
+                    }
+                }
+            }
             messagePackWriter.Flush();
         }
 

@@ -29,14 +29,15 @@ namespace ZLogger
         {
             var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
                            
-            // var scopeState = ScopeProvider != null
-            //     ? LogScopeState.Create(ScopeProvider)
-            //     : null;
+            var scopeState = ScopeProvider != null
+                ? LogScopeState.Create(ScopeProvider)
+                : null;
             
             var factory = LogEntryFactory<TState>.Create;
             if (factory != null)
             {
                 var entry = factory.Invoke(info, state);
+                entry.ScopeState = scopeState;
                 logProcessor.Post(entry);
             }
             // Standard `Log` method used
@@ -44,6 +45,7 @@ namespace ZLogger
             {
                 var stringFormatterState = new StringFormatterLogState<TState>(state, exception, formatter);
                 var entry = ZLoggerEntry<StringFormatterLogState<TState>>.Create(info, stringFormatterState);
+                entry.ScopeState = scopeState;
                 logProcessor.Post(entry);
             }
         }

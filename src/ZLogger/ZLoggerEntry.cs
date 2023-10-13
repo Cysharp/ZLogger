@@ -10,6 +10,7 @@ namespace ZLogger
     public interface IZLoggerEntry : IZLoggerFormattable
     {
         LogInfo LogInfo { get; }
+        LogScopeState? ScopeState { get; set; }
         void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter); // TODO: 2 -> 1
         void Return();
     }
@@ -26,6 +27,8 @@ namespace ZLogger
         where TState : IZLoggerFormattable
     {
         static readonly ObjectPool<ZLoggerEntry<TState>> cache = new();
+        
+        public LogScopeState? ScopeState { get; set; }
 
         ZLoggerEntry<TState>? next;
         ref ZLoggerEntry<TState>? IObjectPoolNode<ZLoggerEntry<TState>>.NextNode => ref next;
@@ -83,6 +86,8 @@ namespace ZLogger
         {
             state = default!;
             logInfo = default!;
+            ScopeState?.Return();
+            ScopeState = default;
             cache.TryPush(this);
         }
     }
@@ -91,9 +96,16 @@ namespace ZLogger
     {
         public static string FormatToString(this IZLoggerEntry entry, IZLoggerFormatter formatter)
         {
-            var buffer = ArrayBufferWriterPool.GetThreadStaticInstance();
-            formatter.FormatLogEntry(buffer, entry);
-            return Encoding.UTF8.GetString(buffer.WrittenSpan);
+            var buffer = ArrayBufferWriterPool.Rent();
+            try
+            {
+                formatter.FormatLogEntry(buffer, entry);
+                return Encoding.UTF8.GetString(buffer.WrittenSpan);
+            }
+            finally
+            {
+                ArrayBufferWriterPool.Return(buffer);
+            }
         }
     }
 }

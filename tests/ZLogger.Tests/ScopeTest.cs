@@ -69,7 +69,8 @@ namespace ZLogger.Tests
                 logger.ZLogInformation($"FooBar{x} NanoNano{y}");
             }
 
-            var doc = JsonDocument.Parse(processor.Dequeue()).RootElement;
+            var json = processor.Dequeue();
+            var doc = JsonDocument.Parse(json).RootElement;
             doc.GetProperty("Message").GetString().Should().Be("FooBar100 NanoNano200");
             
             var scope = doc.GetProperty("Scope");

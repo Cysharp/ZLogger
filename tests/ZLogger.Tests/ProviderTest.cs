@@ -15,7 +15,6 @@ namespace ZLogger.Tests
         {
             const string Path = "ZLoggerTest.log";
             if (File.Exists(Path)) File.Delete(Path);
-
             {
                 var loggerFactory = LoggerFactory.Create(x =>
                 {

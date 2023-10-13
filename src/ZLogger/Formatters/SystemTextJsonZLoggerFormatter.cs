@@ -71,27 +71,26 @@ namespace ZLogger.Formatters
             
             entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions);
             
-            // TODO: write scopes
-            // if (entry.ScopeState is { IsEmpty: false } scopeState)
-            // {
-            //     for (var i = 0; i < scopeState.Properties.Count; i++)
-            //     {
-            //         var x = scopeState.Properties[i];
-            //         // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
-            //         if (x.Key == "{OriginalFormat}")
-            //             continue;
-            //         
-            //         jsonWriter.WritePropertyName(x.Key);
-            //         if (x.Value is { } value)
-            //         {
-            //             JsonSerializer.Serialize(jsonWriter, value, JsonSerializerOptions);
-            //         }
-            //         else
-            //         {
-            //             jsonWriter.WriteNullValue();
-            //         }
-            //     }
-            // }
+            if (entry.ScopeState is { IsEmpty: false } scopeState)
+            {
+                for (var i = 0; i < scopeState.Properties.Count; i++)
+                {
+                    var x = scopeState.Properties[i];
+                    // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
+                    if (x.Key == "{OriginalFormat}")
+                        continue;
+                    
+                    jsonWriter.WritePropertyName(x.Key);
+                    if (x.Value is { } value)
+                    {
+                        JsonSerializer.Serialize(jsonWriter, value, JsonSerializerOptions);
+                    }
+                    else
+                    {
+                        jsonWriter.WriteNullValue();
+                    }
+                }
+            }
 
             jsonWriter.WriteEndObject();
             jsonWriter.Flush();
