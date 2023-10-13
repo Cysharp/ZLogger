@@ -19,9 +19,11 @@ namespace ZLogger
     public static class LogEntryFactory<T>
     {
         public static CreateLogEntry<T>? Create; // Register from each state static constructor
+        public static CloneState<T>? CloneState;
     }
 
     public delegate IZLoggerEntry CreateLogEntry<TState>(in LogInfo info, in TState state);
+    public delegate TState CloneState<TState>(in TState state);
 
     public sealed class ZLoggerEntry<TState> : IZLoggerEntry, IObjectPoolNode<ZLoggerEntry<TState>>
         where TState : IZLoggerFormattable

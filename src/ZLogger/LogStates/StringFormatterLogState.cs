@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 
-namespace ZLogger.Entries
+namespace ZLogger.LogStates
 {
     public struct StringFormatterLogState<TState> : IZLoggerFormattable
     {
