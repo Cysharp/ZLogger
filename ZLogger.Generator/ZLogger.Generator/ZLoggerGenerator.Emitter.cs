@@ -321,7 +321,6 @@ using Microsoft.Extensions.Logging;
 
             var sourceCode = sb.ToString();
             context.AddSource($"{fullType}{fileExtension}", sourceCode);
-            File.WriteAllText($"/Users/s24061/tmp/{fullType}{fileExtension}", sourceCode);
         }
     }
 }
