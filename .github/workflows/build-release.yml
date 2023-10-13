@@ -17,13 +17,6 @@ env:
   DRY_RUN: ${{ github.event.inputs.dry-run }}
 
 jobs:
-  update-packagejson:
-    uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
-    with:
-      file-path: ./src/ZLogger.Unity/Assets/Scripts/ZLogger/package.json
-      tag: ${{ github.event.inputs.tag }}
-      dry-run: ${{ fromJson(github.event.inputs.dry-run) }}
-
   build-dotnet:
     needs: [update-packagejson]
     runs-on: ubuntu-latest
@@ -36,7 +29,6 @@ jobs:
       - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
         with:
           dotnet-version: |
-            3.1.x
             6.0.x
       # build CommandTools first (use dotnet run command in ZLogger.csproj)
       - run: dotnet build -c Release ./tools/CommandTools/CommandTools.csproj
@@ -48,42 +40,6 @@ jobs:
         with:
           name: nuget
           path: ./publish/
-
-  build-unity:
-    needs: [update-packagejson]
-    strategy:
-      matrix:
-        unity: ["2021.3.11f1"]
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: ${{ needs.update-packagejson.outputs.sha }}
-      # Execute scripts: Export Package
-      # /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath . -executeMethod PackageExporter.Export
-      - name: Build Unity (.unitypacakge)
-        uses: Cysharp/Actions/.github/actions/unity-builder@main
-        env:
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
-          UNITY_PACKAGE_VERSION: ${{ env.GIT_TAG }}
-        with:
-          projectPath: src/ZLogger.Unity
-          unityVersion: ${{ matrix.unity }}
-          targetPlatform: StandaloneLinux64
-          buildMethod: PackageExporter.Export
-
-      - uses: Cysharp/Actions/.github/actions/check-metas@main # check meta files
-        with:
-          directory: src/ZLogger.Unity
-
-      # Store artifacts.
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ZLogger.Unity.${{ env.GIT_TAG }}.unitypackage
-          path: ./src/ZLogger.Unity/ZLogger.Unity.${{ env.GIT_TAG }}.unitypackage
 
   create-release:
     if: github.event.inputs.dry-run == 'false'
