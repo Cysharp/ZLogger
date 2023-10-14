@@ -7,7 +7,7 @@ using ZLogger.Internal;
 
 namespace ZLogger.LogStates
 {
-    public readonly struct InterpolatedStringLogState : IZLoggerFormattable, IDisposable
+    public readonly struct InterpolatedStringLogState : IZLoggerFormattable
     {
         static InterpolatedStringLogState()
         {
@@ -19,15 +19,12 @@ namespace ZLogger.LogStates
         {
             return ZLoggerEntry<InterpolatedStringLogState>.Create(logInfo, logState);
         }
-        
+
         static InterpolatedStringLogState CloneState(in InterpolatedStringLogState state)
         {
             var newParameters = ArrayPool<KeyValuePair<string, object?>>.Shared.Rent(state.ParameterCount);
-            for (var i = 0; i < state.ParameterCount; i++)
-            {
-                newParameters[i] = state.parameters[i];
-            }
-            
+            state.parameters.AsSpan(0, state.ParameterCount).CopyTo(newParameters.AsSpan());
+
             var newBuffer = ArrayBufferWriterPool.Rent();
             state.buffer.WrittenSpan.CopyTo(newBuffer.GetSpan(state.buffer.WrittenCount));
             newBuffer.Advance(state.buffer.WrittenCount);
@@ -59,7 +56,7 @@ namespace ZLogger.LogStates
         {
             return Encoding.UTF8.GetString(buffer.WrittenSpan);
         }
-        
+
         public void ToString(IBufferWriter<byte> writer)
         {
             var written = buffer.WrittenSpan;

@@ -21,7 +21,7 @@ namespace ZLogger.LogStates
             this.originalState = originalState;
             this.exception = exception;
             this.formatter = formatter;
-            
+
             // In most case, TState is `Microsoft.Extensions.Logging.FormattedLogValues`.
             // TODO: can avoid boxing ?
             if (originalState is IReadOnlyList<KeyValuePair<string, object?>> x)
@@ -103,6 +103,10 @@ namespace ZLogger.LogStates
                 return originalStateParameters[index].Value?.GetType() ?? typeof(string);
             }
             throw new IndexOutOfRangeException(nameof(index));
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

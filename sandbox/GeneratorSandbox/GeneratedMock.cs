@@ -163,5 +163,9 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
         CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
         return default!;
     }
+
+    public void Dispose()
+    {
+    }
 }
 

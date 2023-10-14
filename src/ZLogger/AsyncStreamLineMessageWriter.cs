@@ -100,7 +100,7 @@ namespace ZLogger
                         {
                             info = value.LogInfo;
                             value.FormatUtf8(writer, formatter);
-                            value.Return();
+                            value.Dispose();
 
                             AppendLine(writer);
                         }

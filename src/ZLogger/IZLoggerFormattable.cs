@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace ZLogger
 {
     // Implement for log state.
-    public interface IZLoggerFormattable
+    public interface IZLoggerFormattable : IDisposable
     {
         int ParameterCount { get; }
         bool IsSupportUtf8ParameterKey { get; }
@@ -13,7 +13,7 @@ namespace ZLogger
         void ToString(IBufferWriter<byte> writer);
 
         void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions);
-        
+
         ReadOnlySpan<byte> GetParameterKey(int index);
         string GetParameterKeyAsString(int index);
         object? GetParameterValue(int index);

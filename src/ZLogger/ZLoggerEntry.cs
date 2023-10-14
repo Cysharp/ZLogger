@@ -12,10 +12,9 @@ namespace ZLogger
         LogInfo LogInfo { get; }
         LogScopeState? ScopeState { get; set; }
         void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter); // TODO: 2 -> 1
-        void Return();
     }
 
-    // Create LogEntry from struct state without T constraints 
+    // Create LogEntry from struct state without T constraints
     public static class LogEntryFactory<T>
     {
         public static CreateLogEntry<T>? Create; // Register from each state static constructor
@@ -29,7 +28,7 @@ namespace ZLogger
         where TState : IZLoggerFormattable
     {
         static readonly ObjectPool<ZLoggerEntry<TState>> cache = new();
-        
+
         public LogScopeState? ScopeState { get; set; }
 
         ZLoggerEntry<TState>? next;
@@ -62,7 +61,7 @@ namespace ZLogger
 
         public int ParameterCount => state.ParameterCount;
         public bool IsSupportUtf8ParameterKey => state.IsSupportUtf8ParameterKey;
-        
+
         public ReadOnlySpan<byte> GetParameterKey(int index) => state.GetParameterKey(index);
         public string GetParameterKeyAsString(int index) => state.GetParameterKeyAsString(index);
 
@@ -74,7 +73,7 @@ namespace ZLogger
 
         public void ToString(IBufferWriter<byte> writer) => state.ToString(writer);
 
-        public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions) 
+        public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions)
             => state.WriteJsonParameterKeyValues(jsonWriter, jsonSerializerOptions);
 
         public LogInfo LogInfo => logInfo;
@@ -84,8 +83,9 @@ namespace ZLogger
             formatter.FormatLogEntry(writer, this);
         }
 
-        public void Return()
+        public void Dispose()
         {
+            state.Dispose();
             state = default!;
             logInfo = default!;
             ScopeState?.Return();
@@ -93,7 +93,7 @@ namespace ZLogger
             cache.TryPush(this);
         }
     }
-    
+
     public static class ZLoggerEntryExtensions
     {
         public static string FormatToString(this IZLoggerEntry entry, IZLoggerFormatter formatter)

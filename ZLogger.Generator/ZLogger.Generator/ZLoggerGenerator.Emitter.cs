@@ -222,6 +222,10 @@ public partial class ZLoggerGenerator
             return default!;
         }
 
+        public void Dispose()
+        {
+        }
+
 """);
         }
 
