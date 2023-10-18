@@ -7,53 +7,56 @@
 <#
     var logLevels = new[] { "Trace", "Debug", "Information", "Warning", "Error", "Critical" };
 #>
-using System;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 
 namespace ZLogger
 {
     public static partial class ZLoggerExtensions
     {
-        public static void ZLog(this ILogger logger, LogLevel logLevel, ref ZLoggerInterpolatedStringHandler message)
+        public static void ZLog(this ILogger logger, LogLevel logLevel, [InterpolatedStringHandlerArgument("logger", "logLevel")]ref ZLoggerInterpolatedStringHandler message)
         {
             ZLog(logger, logLevel, default, null, ref message);
         }
         
-        public static void ZLog(this ILogger logger, LogLevel logLevel, EventId eventId, ref ZLoggerInterpolatedStringHandler message)
+        public static void ZLog(this ILogger logger, LogLevel logLevel, EventId eventId, [InterpolatedStringHandlerArgument("logger", "logLevel")]ref ZLoggerInterpolatedStringHandler message)
         {
             ZLog(logger, logLevel, eventId, null, ref message);
         }
         
-        public static void ZLog(this ILogger logger, LogLevel logLevel, Exception? exception, ref ZLoggerInterpolatedStringHandler message)
+        public static void ZLog(this ILogger logger, LogLevel logLevel, Exception? exception, [InterpolatedStringHandlerArgument("logger", "logLevel")]ref ZLoggerInterpolatedStringHandler message)
         {
             ZLog(logger, logLevel, default, exception, ref message);
         }
         
-        public static void ZLog(this ILogger logger, LogLevel logLevel, EventId eventId, Exception? exception, ref ZLoggerInterpolatedStringHandler message)
+        public static void ZLog(this ILogger logger, LogLevel logLevel, EventId eventId, Exception? exception, [InterpolatedStringHandlerArgument("logger", "logLevel")]ref ZLoggerInterpolatedStringHandler message)
         {
-            using var state = message.GetState();
-            logger.Log(logLevel, eventId, state, exception, (state, ex) => state.ToString());
+            if (message.IsLoggerEnabled)
+            {
+                using var state = message.GetStateAndClear();
+                logger.Log(logLevel, eventId, state, exception, static (state, ex) => state.ToString());
+            }
         }
 <# foreach(var logLevel in logLevels) { #>
 
-        public static void ZLog<#= logLevel #>(this ILogger logger, ref ZLoggerInterpolatedStringHandler message)
+        public static void ZLog<#= logLevel #>(this ILogger logger, ref ZLogger<#= logLevel #>InterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.<#= logLevel #>, default, null, ref message);
+            ZLog(logger, LogLevel.<#= logLevel #>, default, null, ref message.innerHandler);
         } 
 
-        public static void ZLog<#= logLevel #>(this ILogger logger, EventId eventId, ref ZLoggerInterpolatedStringHandler message)
+        public static void ZLog<#= logLevel #>(this ILogger logger, EventId eventId, ref ZLogger<#= logLevel #>InterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.<#= logLevel #>, eventId, null, ref message);
+            ZLog(logger, LogLevel.<#= logLevel #>, eventId, null, ref message.innerHandler);
         } 
 
-        public static void ZLog<#= logLevel #>(this ILogger logger, Exception? exception, ref ZLoggerInterpolatedStringHandler message)
+        public static void ZLog<#= logLevel #>(this ILogger logger, Exception? exception, ref ZLogger<#= logLevel #>InterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.<#= logLevel #>, default, exception, ref message);
+            ZLog(logger, LogLevel.<#= logLevel #>, default, exception, ref message.innerHandler);
         } 
 
-        public static void ZLog<#= logLevel #>(this ILogger logger, EventId eventId, Exception? exception, ref ZLoggerInterpolatedStringHandler message)
+        public static void ZLog<#= logLevel #>(this ILogger logger, EventId eventId, Exception? exception, ref ZLogger<#= logLevel #>InterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.<#= logLevel #>, eventId, exception, ref message);
+            ZLog(logger, LogLevel.<#= logLevel #>, eventId, exception, ref message.innerHandler);
         }
 <# } #>
     }

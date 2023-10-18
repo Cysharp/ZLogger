@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
@@ -23,6 +24,8 @@ namespace ZLogger
         [ThreadStatic]
         static List<string?>? literalPool;
 
+        public bool IsLoggerEnabled { get; }
+
         // fields
         int literalLength;
         int parametersLength;
@@ -33,8 +36,17 @@ namespace ZLogger
         /// <summary>
         /// DO NOT ALLOW DIRECT USE.
         /// </summary>
-        public ZLoggerInterpolatedStringHandler(int literalLength, int formattedCount) // TODO: Use: bool outValue
+        public ZLoggerInterpolatedStringHandler(int literalLength, int formattedCount, LogLevel logLevel, ILogger logger, out bool enabled)
         {
+            enabled = logger.IsEnabled(logLevel);
+            if (!enabled)
+            {
+                IsLoggerEnabled = false;
+                this.literals = default!;
+                this.parameters = default!;
+                return;
+            }
+
             var boxStorage = boxStoragePool;
             if (boxStorage == null)
             {
@@ -58,6 +70,7 @@ namespace ZLogger
             this.box = new MagicalBox(boxStorage);
             this.parameters = parameters;
             this.literals = literals;
+            this.IsLoggerEnabled = true;
         }
 
         public void AppendLiteral(string s)
