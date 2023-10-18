@@ -1,7 +1,6 @@
-﻿using System;
-using System.Buffers;
+﻿using System.Buffers;
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using Utf8StringInterpolation;
 
@@ -36,6 +35,9 @@ internal unsafe struct MagicalBox
             return false;
         }
 
+        // NOTE: use in ZLoggerInterpolatedStringHandler, alwayus called TryWrite before Read operations so make Read operation in write.
+        ReaderCache<T>.Register();
+
         Unsafe.WriteUnaligned(ref storage[written], value);
         offset = written;
         written += Unsafe.SizeOf<T>();
@@ -67,20 +69,12 @@ internal unsafe struct MagicalBox
 
     public object? Read(Type type, int offset)
     {
-        // TODO: return boxed.
-        throw new NotImplementedException();
+        return ReaderCache.GetReadMethod(type)?.Invoke(this, offset);
     }
 
     public bool TryReadTo(Type type, int offset, int alignment, string? format, ref Utf8StringWriter<IBufferWriter<byte>> handler)
     {
         if (offset < 0) return false;
-        // if (storage.Length < offset + Unsafe.SizeOf<T>())
-
-
-        //if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
-        //{
-        //    return false;
-        //}
 
         // TODO: many types...?
         if (type == typeof(int))
@@ -95,11 +89,6 @@ internal unsafe struct MagicalBox
     {
         if (offset < 0) return false;
 
-        //if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
-        //{
-        //    return false;
-        //}
-
         if (type == typeof(int))
         {
             handler.AppendFormatted(Read<int>(offset), alignment, format);
@@ -112,7 +101,7 @@ internal unsafe struct MagicalBox
         if (offset < 0) return false;
 
 
-        
+
 
         if (type == typeof(int))
         {
@@ -126,5 +115,37 @@ internal unsafe struct MagicalBox
     static void ThrowArgumentOutOfRangeException()
     {
         throw new ArgumentOutOfRangeException();
+    }
+
+    static class ReaderCache
+    {
+        internal static readonly ConcurrentDictionary<Type, Func<MagicalBox, int, object?>?> cache = new ConcurrentDictionary<Type, Func<MagicalBox, int, object?>?>();
+
+        public static Func<MagicalBox, int, object?>? GetReadMethod(Type type)
+        {
+            return cache.GetValueOrDefault(type);
+        }
+    }
+
+    static class ReaderCache<T>
+    {
+        static ReaderCache()
+        {
+            if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+            {
+                ReaderCache.cache.TryAdd(typeof(T), null);
+                return;
+            }
+
+            ReaderCache.cache.TryAdd(typeof(T), static (box, offset) =>
+            {
+                return box.Read<T>(offset);
+            });
+        }
+
+        public static void Register()
+        {
+            // do nothing(call cctor)
+        }
     }
 }
