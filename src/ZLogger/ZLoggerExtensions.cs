@@ -22,7 +22,7 @@ namespace ZLogger
         
         public static void ZLog(this ILogger logger, LogLevel logLevel, EventId eventId, Exception? exception, ref ZLoggerInterpolatedStringHandler message)
         {
-            using var state = message.GetState();
+            using var state = message.GetStateAndClear();
             logger.Log(logLevel, eventId, state, exception, (state, ex) => state.ToString());
         }
 

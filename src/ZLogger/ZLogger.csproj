@@ -3,13 +3,15 @@
 	<PropertyGroup>
 		<TargetFrameworks>net6.0;</TargetFrameworks>
 		<Nullable>enable</Nullable>
-		<LangVersion>9.0</LangVersion>
+		<LangVersion>11.0</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<NoWarn>1701;1702;1591;1573</NoWarn>
 
 		<!-- NuGet Packaging -->
 		<PackageTags>logging;</PackageTags>
 		<Description>Zero Allocation Text/Strcutured Logger for .NET Core, built on top of a Microsoft.Extensions.Logging.</Description>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -42,19 +44,19 @@
 			<DependentUpon>ZLoggerExtensions.tt</DependentUpon>
 		</Compile>
 		<Compile Update="ZLoggerExtensions.cs">
-		  <AutoGen>True</AutoGen>
-		  <DesignTime>True</DesignTime>
-		  <DependentUpon>ZLoggerExtensions.tt</DependentUpon>
+			<AutoGen>True</AutoGen>
+			<DesignTime>True</DesignTime>
+			<DependentUpon>ZLoggerExtensions.tt</DependentUpon>
 		</Compile>
 		<Compile Update="ZLoggerExtensions.cs">
-		  <AutoGen>True</AutoGen>
-		  <DesignTime>True</DesignTime>
-		  <DependentUpon>ZLoggerExtensions.tt</DependentUpon>
+			<AutoGen>True</AutoGen>
+			<DesignTime>True</DesignTime>
+			<DependentUpon>ZLoggerExtensions.tt</DependentUpon>
 		</Compile>
 		<Compile Update="ZLoggerExtensions.cs">
-		  <AutoGen>True</AutoGen>
-		  <DesignTime>True</DesignTime>
-		  <DependentUpon>ZLoggerExtensions.tt</DependentUpon>
+			<AutoGen>True</AutoGen>
+			<DesignTime>True</DesignTime>
+			<DependentUpon>ZLoggerExtensions.tt</DependentUpon>
 		</Compile>
 	</ItemGroup>
 

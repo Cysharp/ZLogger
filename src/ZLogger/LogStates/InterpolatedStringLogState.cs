@@ -1,81 +1,87 @@
 using System;
 using System.Buffers;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 using System.Text.Json;
 using ZLogger.Internal;
 
 namespace ZLogger.LogStates
 {
-    public readonly struct InterpolatedStringLogState : IZLoggerFormattable, IDisposable
+    internal struct InterpolatedStringLogState : IZLoggerFormattable, IDisposable
     {
-        public IZLoggerEntry CreateEntry(LogInfo info)
-        {
-            // If state has cached value, require clone.
-            var newParameters = ArrayPool<KeyValuePair<string, object?>>.Shared.Rent(this.ParameterCount);
-            for (var i = 0; i < this.ParameterCount; i++)
-            {
-                newParameters[i] = this.parameters[i];
-            }
-
-            var newBuffer = ArrayBufferWriterPool.Rent();
-            this.buffer.WrittenSpan.CopyTo(newBuffer.GetSpan(this.buffer.WrittenCount));
-            newBuffer.Advance(this.buffer.WrittenCount);
-
-            var newState = new InterpolatedStringLogState(newParameters, this.ParameterCount, newBuffer);
-
-            // Create Entry with cloned state
-            return ZLoggerEntry<InterpolatedStringLogState>.Create(info, newState);
-        }
-
         public int ParameterCount { get; }
 
         public bool IsSupportUtf8ParameterKey => false;
 
-        readonly KeyValuePair<string, object?>[] parameters; // pooled
-        readonly ArrayBufferWriter<byte> buffer; // pooled
+        // pooling values.
+        byte[] magicalBoxStorage;
+        InterpolatedStringParameter[] parameters;
 
-        public InterpolatedStringLogState(KeyValuePair<string, object?>[] parameters, int parameterCount, ArrayBufferWriter<byte> buffer)
+        readonly MessageSequence messageSequence;
+        readonly MagicalBox magicalBox;
+
+        public InterpolatedStringLogState(MessageSequence messageSequence, MagicalBox magicalBox, ReadOnlySpan<InterpolatedStringParameter> parameters)
         {
-            this.parameters = parameters;
-            this.buffer = buffer;
-            ParameterCount = parameterCount;
+            // need clone.
+            this.magicalBoxStorage = ArrayPool<byte>.Shared.Rent(magicalBox.Written);
+            magicalBox.AsSpan().CopyTo(magicalBoxStorage);
+
+            this.parameters = ArrayPool<InterpolatedStringParameter>.Shared.Rent(parameters.Length);
+            parameters.CopyTo(this.parameters);
+
+            this.messageSequence = messageSequence;
+            this.magicalBox = new MagicalBox(magicalBoxStorage);
+        }
+
+        public IZLoggerEntry CreateEntry(LogInfo info)
+        {
+            // state needs clone.
+            var newState = new InterpolatedStringLogState(messageSequence, this.magicalBox, this.parameters);
+
+            // Create Entry with cloned state(state will dispose when entry was disposed)
+            return ZLoggerEntry<InterpolatedStringLogState>.Create(info, newState);
         }
 
         public void Dispose()
         {
-            ArrayPool<KeyValuePair<string, object?>>.Shared.Return(parameters);
-            ArrayBufferWriterPool.Return(buffer);
+            if (magicalBoxStorage != null)
+            {
+                ArrayPool<byte>.Shared.Return(magicalBoxStorage);
+                ArrayPool<InterpolatedStringParameter>.Shared.Return(parameters);
+
+                magicalBoxStorage = null!;
+                parameters = null!;
+            }
         }
 
         public override string ToString()
         {
-            return Encoding.UTF8.GetString(buffer.WrittenSpan);
+            return messageSequence.ToString(magicalBox, parameters);
         }
 
         public void ToString(IBufferWriter<byte> writer)
         {
-            var written = buffer.WrittenSpan;
-            var dest = writer.GetSpan(written.Length);
-            written.CopyTo(dest);
-            writer.Advance(written.Length);
+            messageSequence.ToString(writer, magicalBox, parameters);
         }
 
         public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions)
         {
             for (var i = 0; i < ParameterCount; i++)
             {
-                var (key, value) = parameters[i];
-                jsonWriter.WritePropertyName(key);
-                if (value == null)
+                ref var p = ref parameters[i];
+                if (magicalBox.TryReadTo(p.Type, p.BoxOffset, p.Name, jsonWriter))
                 {
-                    jsonWriter.WriteNullValue();
+                    continue;
+                }
+
+                jsonWriter.WritePropertyName(p.Name);
+
+                var value = magicalBox.Read(p.Type, p.BoxOffset);
+                if (value != null)
+                {
+                    JsonSerializer.Serialize(jsonWriter, value, p.Type, jsonSerializerOptions);
                 }
                 else
                 {
-                    var valueType = GetParameterType(i);
-                    JsonSerializer.Serialize(jsonWriter, value, valueType, jsonSerializerOptions); // TODO: more optimize ?
+                    JsonSerializer.Serialize(jsonWriter, p.BoxedValue, p.Type, jsonSerializerOptions);
                 }
             }
         }
@@ -87,22 +93,34 @@ namespace ZLogger.LogStates
 
         public string GetParameterKeyAsString(int index)
         {
-            return parameters[index].Key;
+            return parameters[index].Name;
         }
 
         public object? GetParameterValue(int index)
         {
-            return parameters[index].Value;
+            ref var p = ref parameters[index];
+            var value = magicalBox.Read(p.Type, p.BoxOffset);
+            if (value != null) return value;
+
+            return p.BoxedValue;
         }
 
         public T? GetParameterValue<T>(int index)
         {
-            return (T?)parameters[index].Value;
+            ref var p = ref parameters[index];
+            if (magicalBox.TryRead<T>(p.BoxOffset, out var value))
+            {
+                return value;
+            }
+            else
+            {
+                return (T?)p.BoxedValue;
+            }
         }
 
         public Type GetParameterType(int index)
         {
-            return parameters[index].Value?.GetType() ?? typeof(string);
+            return parameters[index].Type;
         }
     }
 }

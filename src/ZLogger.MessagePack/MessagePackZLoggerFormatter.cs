@@ -311,7 +311,7 @@ namespace ZLogger.MessagePack
                     var value = entry.GetParameterValue<DateTimeOffset?>(i);
                     MessagePackSerializer.Serialize(valueType, ref messagePackWriter, value, MessagePackSerializerOptions);
                 }
-                else
+                else // TODO: GUID?
                 {
                     var boxedValue = entry.GetParameterValue(i);
                     MessagePackSerializer.Serialize(valueType, ref messagePackWriter, boxedValue, MessagePackSerializerOptions);

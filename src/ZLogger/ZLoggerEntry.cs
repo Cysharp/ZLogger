@@ -81,6 +81,11 @@ namespace ZLogger
 
         public void Return()
         {
+            if (state is IDisposable)
+            {
+                ((IDisposable)state).Dispose();
+            }
+
             state = default!;
             logInfo = default!;
             ScopeState?.Return();
