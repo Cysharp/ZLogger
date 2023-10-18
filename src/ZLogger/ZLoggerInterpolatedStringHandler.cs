@@ -36,7 +36,7 @@ namespace ZLogger
         /// <summary>
         /// DO NOT ALLOW DIRECT USE.
         /// </summary>
-        public ZLoggerInterpolatedStringHandler(int literalLength, int formattedCount, LogLevel logLevel, ILogger logger, out bool enabled)
+        public ZLoggerInterpolatedStringHandler(int literalLength, int formattedCount, ILogger logger, LogLevel logLevel, out bool enabled)
         {
             enabled = logger.IsEnabled(logLevel);
             if (!enabled)
@@ -91,6 +91,22 @@ namespace ZLogger
 
             var parameter = new InterpolatedStringParameter(typeof(T), argumentName ?? "", alignment, format, offset, (offset == -1) ? (object?)value : null);
             parameters.Add(parameter);
+        }
+
+        public void AppendFormatted<T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+            where T : struct
+        {
+            // Nullable, check and unwrap here.
+            if (value != null)
+            {
+                AppendFormatted<T>(value.Value, alignment, format, argumentName);
+            }
+            else
+            {
+                literals.Add(null);
+                var parameter = new InterpolatedStringParameter(typeof(Nullable<T>), argumentName ?? "", alignment, format, -1, null);
+                parameters.Add(parameter);
+            }
         }
 
         internal InterpolatedStringLogState GetStateAndClear()
@@ -159,7 +175,7 @@ namespace ZLogger
 
         public void ToString(IBufferWriter<byte> writer, MagicalBox box, Span<InterpolatedStringParameter> parameters)
         {
-            var stringWriter = new Utf8StringWriter<IBufferWriter<byte>>(literalLength, parametersLength);
+            var stringWriter = new Utf8StringWriter<IBufferWriter<byte>>(literalLength, parametersLength, writer);
 
             var parameterIndex = 0;
             foreach (var item in segments)

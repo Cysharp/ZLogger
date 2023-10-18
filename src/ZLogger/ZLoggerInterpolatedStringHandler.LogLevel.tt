@@ -21,7 +21,7 @@ public ref struct ZLogger<#= logLevel #>InterpolatedStringHandler
 
     public ZLogger<#= logLevel #>InterpolatedStringHandler(int literalLength, int formattedCount, ILogger logger, out bool enabled)
     {
-        this.innerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, LogLevel.<#= logLevel #>, logger, out enabled);
+        this.innerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, logger, LogLevel.<#= logLevel #>, out enabled);
     }
     public void AppendLiteral(string s)
     {

@@ -28,7 +28,7 @@ namespace ZLogger.LogStates
             parameters.CopyTo(this.parameters);
 
             this.messageSequence = messageSequence;
-            this.magicalBox = new MagicalBox(magicalBoxStorage);
+            this.magicalBox = new MagicalBox(magicalBoxStorage, magicalBox.Written);
         }
 
         public IZLoggerEntry CreateEntry(LogInfo info)

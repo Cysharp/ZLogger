@@ -11,7 +11,7 @@ public ref struct ZLoggerTraceInterpolatedStringHandler
 
     public ZLoggerTraceInterpolatedStringHandler(int literalLength, int formattedCount, ILogger logger, out bool enabled)
     {
-        this.innerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, LogLevel.Trace, logger, out enabled);
+        this.innerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, logger, LogLevel.Trace, out enabled);
     }
     public void AppendLiteral(string s)
     {
@@ -31,7 +31,7 @@ public ref struct ZLoggerDebugInterpolatedStringHandler
 
     public ZLoggerDebugInterpolatedStringHandler(int literalLength, int formattedCount, ILogger logger, out bool enabled)
     {
-        this.innerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, LogLevel.Debug, logger, out enabled);
+        this.innerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, logger, LogLevel.Debug, out enabled);
     }
     public void AppendLiteral(string s)
     {
@@ -51,7 +51,7 @@ public ref struct ZLoggerInformationInterpolatedStringHandler
 
     public ZLoggerInformationInterpolatedStringHandler(int literalLength, int formattedCount, ILogger logger, out bool enabled)
     {
-        this.innerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, LogLevel.Information, logger, out enabled);
+        this.innerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, logger, LogLevel.Information, out enabled);
     }
     public void AppendLiteral(string s)
     {
@@ -71,7 +71,7 @@ public ref struct ZLoggerWarningInterpolatedStringHandler
 
     public ZLoggerWarningInterpolatedStringHandler(int literalLength, int formattedCount, ILogger logger, out bool enabled)
     {
-        this.innerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, LogLevel.Warning, logger, out enabled);
+        this.innerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, logger, LogLevel.Warning, out enabled);
     }
     public void AppendLiteral(string s)
     {
@@ -91,7 +91,7 @@ public ref struct ZLoggerErrorInterpolatedStringHandler
 
     public ZLoggerErrorInterpolatedStringHandler(int literalLength, int formattedCount, ILogger logger, out bool enabled)
     {
-        this.innerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, LogLevel.Error, logger, out enabled);
+        this.innerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, logger, LogLevel.Error, out enabled);
     }
     public void AppendLiteral(string s)
     {
@@ -111,7 +111,7 @@ public ref struct ZLoggerCriticalInterpolatedStringHandler
 
     public ZLoggerCriticalInterpolatedStringHandler(int literalLength, int formattedCount, ILogger logger, out bool enabled)
     {
-        this.innerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, LogLevel.Critical, logger, out enabled);
+        this.innerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, logger, LogLevel.Critical, out enabled);
     }
     public void AppendLiteral(string s)
     {

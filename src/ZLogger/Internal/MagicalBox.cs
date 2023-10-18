@@ -1,12 +1,13 @@
 ﻿using System.Buffers;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using Utf8StringInterpolation;
 
 namespace ZLogger.Internal;
 
-internal unsafe struct MagicalBox
+internal unsafe partial struct MagicalBox
 {
     byte[] storage;
     int written;
@@ -14,6 +15,12 @@ internal unsafe struct MagicalBox
     public MagicalBox(byte[] storage)
     {
         this.storage = storage;
+    }
+
+    public MagicalBox(byte[] storage, int written)
+    {
+        this.storage = storage;
+        this.written = written;
     }
 
     public int Written => written;
@@ -69,17 +76,107 @@ internal unsafe struct MagicalBox
 
     public object? Read(Type type, int offset)
     {
+        if (offset < 0) return null;
         return ReaderCache.GetReadMethod(type)?.Invoke(this, offset);
+    }
+
+    public ReadOnlySpan<byte> ReadRawEnumValue(Type type, int offset)
+    {
+        var (_, size, _) = ReaderCache.GetEnumDictionaryAndValueSize(type);
+        return MemoryMarshal.CreateReadOnlySpan(ref storage[offset], size);
     }
 
     public bool TryReadTo(Type type, int offset, int alignment, string? format, ref Utf8StringWriter<IBufferWriter<byte>> handler)
     {
         if (offset < 0) return false;
 
-        // TODO: many types...?
-        if (type == typeof(int))
+        var code = Type.GetTypeCode(type);
+        switch (code)
         {
-            handler.AppendFormatted(Read<int>(offset), alignment, format);
+            case TypeCode.Boolean:
+                handler.AppendFormatted(Read<Boolean>(offset), alignment, format);
+                return true;
+            case TypeCode.Char:
+                handler.AppendFormatted(Read<Char>(offset), alignment, format);
+                return true;
+            case TypeCode.SByte:
+                handler.AppendFormatted(Read<SByte>(offset), alignment, format);
+                return true;
+            case TypeCode.Byte:
+                handler.AppendFormatted(Read<Byte>(offset), alignment, format);
+                return true;
+            case TypeCode.Int16:
+                handler.AppendFormatted(Read<Int16>(offset), alignment, format);
+                return true;
+            case TypeCode.UInt16:
+                handler.AppendFormatted(Read<UInt16>(offset), alignment, format);
+                return true;
+            case TypeCode.Int32:
+                handler.AppendFormatted(Read<Int32>(offset), alignment, format);
+                return true;
+            case TypeCode.UInt32:
+                handler.AppendFormatted(Read<UInt32>(offset), alignment, format);
+                return true;
+            case TypeCode.Int64:
+                handler.AppendFormatted(Read<Int64>(offset), alignment, format);
+                return true;
+            case TypeCode.UInt64:
+                handler.AppendFormatted(Read<UInt64>(offset), alignment, format);
+                return true;
+            case TypeCode.Single:
+                handler.AppendFormatted(Read<Single>(offset), alignment, format);
+                return true;
+            case TypeCode.Double:
+                handler.AppendFormatted(Read<Double>(offset), alignment, format);
+                return true;
+            case TypeCode.Decimal:
+                handler.AppendFormatted(Read<Decimal>(offset), alignment, format);
+                return true;
+            case TypeCode.DateTime:
+                handler.AppendFormatted(Read<DateTime>(offset), alignment, format);
+                return true;
+            default:
+                break;
+        }
+
+        if (type.IsEnum)
+        {
+            var (dict, size, converter) = ReaderCache.GetEnumDictionaryAndValueSize(type);
+            var rawValue = MemoryMarshal.CreateReadOnlySpan(ref storage[offset], size);
+            var name = dict.GetUtf8Name(rawValue);
+            if (name == null)
+            {
+                handler.AppendLiteral(converter(name));
+            }
+            else
+            {
+                handler.AppendUtf8(name);
+            }
+        }
+
+        if (type == typeof(Guid))
+        {
+            handler.AppendFormatted(Read<Guid>(offset), alignment, format);
+        }
+        else if (type == typeof(DateTime))
+        {
+            handler.AppendFormatted(Read<DateTime>(offset), alignment, format);
+        }
+        else if (type == typeof(DateTimeOffset))
+        {
+            handler.AppendFormatted(Read<DateTimeOffset>(offset), alignment, format);
+        }
+        else if (type == typeof(TimeSpan))
+        {
+            handler.AppendFormatted(Read<TimeSpan>(offset), alignment, format);
+        }
+        else if (type == typeof(TimeOnly))
+        {
+            handler.AppendFormatted(Read<TimeOnly>(offset), alignment, format);
+        }
+        else if (type == typeof(DateOnly))
+        {
+            handler.AppendFormatted(Read<DateOnly>(offset), alignment, format);
         }
 
         return true;
@@ -89,10 +186,95 @@ internal unsafe struct MagicalBox
     {
         if (offset < 0) return false;
 
-        if (type == typeof(int))
+        var code = Type.GetTypeCode(type);
+        switch (code)
         {
-            handler.AppendFormatted(Read<int>(offset), alignment, format);
+            case TypeCode.Boolean:
+                handler.AppendFormatted(Read<Boolean>(offset), alignment, format);
+                return true;
+            case TypeCode.Char:
+                handler.AppendFormatted(Read<Char>(offset), alignment, format);
+                return true;
+            case TypeCode.SByte:
+                handler.AppendFormatted(Read<SByte>(offset), alignment, format);
+                return true;
+            case TypeCode.Byte:
+                handler.AppendFormatted(Read<Byte>(offset), alignment, format);
+                return true;
+            case TypeCode.Int16:
+                handler.AppendFormatted(Read<Int16>(offset), alignment, format);
+                return true;
+            case TypeCode.UInt16:
+                handler.AppendFormatted(Read<UInt16>(offset), alignment, format);
+                return true;
+            case TypeCode.Int32:
+                handler.AppendFormatted(Read<Int32>(offset), alignment, format);
+                return true;
+            case TypeCode.UInt32:
+                handler.AppendFormatted(Read<UInt32>(offset), alignment, format);
+                return true;
+            case TypeCode.Int64:
+                handler.AppendFormatted(Read<Int64>(offset), alignment, format);
+                return true;
+            case TypeCode.UInt64:
+                handler.AppendFormatted(Read<UInt64>(offset), alignment, format);
+                return true;
+            case TypeCode.Single:
+                handler.AppendFormatted(Read<Single>(offset), alignment, format);
+                return true;
+            case TypeCode.Double:
+                handler.AppendFormatted(Read<Double>(offset), alignment, format);
+                return true;
+            case TypeCode.Decimal:
+                handler.AppendFormatted(Read<Decimal>(offset), alignment, format);
+                return true;
+            case TypeCode.DateTime:
+                handler.AppendFormatted(Read<DateTime>(offset), alignment, format);
+                return true;
+            default:
+                break;
         }
+
+        if (type.IsEnum)
+        {
+            var (dict, size, converter) = ReaderCache.GetEnumDictionaryAndValueSize(type);
+            var rawValue = MemoryMarshal.CreateReadOnlySpan(ref storage[offset], size);
+            var name = dict.GetStringName(rawValue);
+            if (name == null)
+            {
+                handler.AppendLiteral(converter(rawValue));
+            }
+            else
+            {
+                handler.AppendLiteral(name);
+            }
+        }
+
+        if (type == typeof(Guid))
+        {
+            handler.AppendFormatted(Read<Guid>(offset), alignment, format);
+        }
+        else if (type == typeof(DateTime))
+        {
+            handler.AppendFormatted(Read<DateTime>(offset), alignment, format);
+        }
+        else if (type == typeof(DateTimeOffset))
+        {
+            handler.AppendFormatted(Read<DateTimeOffset>(offset), alignment, format);
+        }
+        else if (type == typeof(TimeSpan))
+        {
+            handler.AppendFormatted(Read<TimeSpan>(offset), alignment, format);
+        }
+        else if (type == typeof(TimeOnly))
+        {
+            handler.AppendFormatted(Read<TimeOnly>(offset), alignment, format);
+        }
+        else if (type == typeof(DateOnly))
+        {
+            handler.AppendFormatted(Read<DateOnly>(offset), alignment, format);
+        }
+
         return true;
     }
 
@@ -100,15 +282,86 @@ internal unsafe struct MagicalBox
     {
         if (offset < 0) return false;
 
-
-
-
-        if (type == typeof(int))
+        var code = Type.GetTypeCode(type);
+        switch (code)
         {
-            //jsonWriter.WriteNumberValue(
-
-            //handler.AppendFormatted(Read<int>(offset), alignment, format);
+            case TypeCode.Boolean:
+                jsonWriter.WriteBoolean(propertyName, Read<Boolean>(offset));
+                return true;
+            case TypeCode.Char:
+                var c = Read<char>(offset);
+                Span<char> cs = stackalloc char[1];
+                cs[0] = c;
+                jsonWriter.WriteString(propertyName, cs);
+                break;
+            case TypeCode.SByte:
+                jsonWriter.WriteNumber(propertyName, Read<SByte>(offset));
+                return true;
+            case TypeCode.Byte:
+                jsonWriter.WriteNumber(propertyName, Read<Byte>(offset));
+                return true;
+            case TypeCode.Int16:
+                jsonWriter.WriteNumber(propertyName, Read<Int16>(offset));
+                return true;
+            case TypeCode.UInt16:
+                jsonWriter.WriteNumber(propertyName, Read<UInt16>(offset));
+                return true;
+            case TypeCode.Int32:
+                jsonWriter.WriteNumber(propertyName, Read<Int32>(offset));
+                return true;
+            case TypeCode.UInt32:
+                jsonWriter.WriteNumber(propertyName, Read<UInt32>(offset));
+                return true;
+            case TypeCode.Int64:
+                jsonWriter.WriteNumber(propertyName, Read<Int64>(offset));
+                return true;
+            case TypeCode.UInt64:
+                jsonWriter.WriteNumber(propertyName, Read<UInt64>(offset));
+                return true;
+            case TypeCode.Single:
+                jsonWriter.WriteNumber(propertyName, Read<Single>(offset));
+                return true;
+            case TypeCode.Double:
+                jsonWriter.WriteNumber(propertyName, Read<Double>(offset));
+                return true;
+            case TypeCode.Decimal:
+                jsonWriter.WriteNumber(propertyName, Read<Decimal>(offset));
+                return true;
+            case TypeCode.DateTime:
+                jsonWriter.WriteString(propertyName, Read<DateTime>(offset));
+                return true;
+            default:
+                break;
         }
+
+        if (type.IsEnum)
+        {
+            var (dict, size, converter) = ReaderCache.GetEnumDictionaryAndValueSize(type);
+            var rawValue = MemoryMarshal.CreateReadOnlySpan(ref storage[offset], size);
+            var name = dict.GetJsonEncodedName(rawValue);
+            if (name == null)
+            {
+                jsonWriter.WriteString(propertyName, converter(rawValue));
+            }
+            else
+            {
+                jsonWriter.WriteString(propertyName, name.Value);
+            }
+        }
+
+        if (type == typeof(Guid))
+        {
+            jsonWriter.WriteString(propertyName, Read<Guid>(offset));
+        }
+        else if (type == typeof(DateTime))
+        {
+            jsonWriter.WriteString(propertyName, Read<DateTime>(offset));
+        }
+        else if (type == typeof(DateTimeOffset))
+        {
+            jsonWriter.WriteString(propertyName, Read<DateTimeOffset>(offset));
+        }
+
         return true;
     }
 
@@ -117,13 +370,23 @@ internal unsafe struct MagicalBox
         throw new ArgumentOutOfRangeException();
     }
 
+    delegate string RawEnumValueToString(ReadOnlySpan<byte> rawEnumValue);
+
     static class ReaderCache
     {
-        internal static readonly ConcurrentDictionary<Type, Func<MagicalBox, int, object?>?> cache = new ConcurrentDictionary<Type, Func<MagicalBox, int, object?>?>();
+        internal static readonly ConcurrentDictionary<Type, Func<MagicalBox, int, object?>?> readCache = new();
+        internal static readonly ConcurrentDictionary<Type, (EnumDictionary, int, RawEnumValueToString)> enumCache = new();
+
+        // Enum
 
         public static Func<MagicalBox, int, object?>? GetReadMethod(Type type)
         {
-            return cache.GetValueOrDefault(type);
+            return readCache.TryGetValue(type, out var value) ? value : null;
+        }
+
+        public static (EnumDictionary, int, RawEnumValueToString) GetEnumDictionaryAndValueSize(Type type)
+        {
+            return enumCache.TryGetValue(type, out var value) ? value : default!;
         }
     }
 
@@ -133,14 +396,24 @@ internal unsafe struct MagicalBox
         {
             if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
             {
-                ReaderCache.cache.TryAdd(typeof(T), null);
+                ReaderCache.readCache.TryAdd(typeof(T), null);
                 return;
             }
 
-            ReaderCache.cache.TryAdd(typeof(T), static (box, offset) =>
+            ReaderCache.readCache.TryAdd(typeof(T), static (box, offset) =>
             {
                 return box.Read<T>(offset);
             });
+
+            if (typeof(T).IsEnum)
+            {
+                RawEnumValueToString converter = static x =>
+                {
+                    var v = Unsafe.ReadUnaligned<T>(ref MemoryMarshal.GetReference(x));
+                    return v?.ToString() ?? "";
+                };
+                ReaderCache.enumCache.TryAdd(typeof(T), (EnumDictionary.Create<T>(), Unsafe.SizeOf<T>(), converter));
+            }
         }
 
         public static void Register()
