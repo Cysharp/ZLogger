@@ -1,5 +1,6 @@
 using System;
 using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
@@ -9,30 +10,23 @@ namespace ZLogger.LogStates
 {
     public readonly struct InterpolatedStringLogState : IZLoggerFormattable, IDisposable
     {
-        static InterpolatedStringLogState()
+        public IZLoggerEntry CreateEntry(LogInfo info)
         {
-            LogEntryFactory<InterpolatedStringLogState>.Create = CreateEntry;
-            LogEntryFactory<InterpolatedStringLogState>.CloneState = CloneState;
-        }
-
-        static IZLoggerEntry CreateEntry(in LogInfo logInfo, in InterpolatedStringLogState logState)
-        {
-            return ZLoggerEntry<InterpolatedStringLogState>.Create(logInfo, logState);
-        }
-        
-        static InterpolatedStringLogState CloneState(in InterpolatedStringLogState state)
-        {
-            var newParameters = ArrayPool<KeyValuePair<string, object?>>.Shared.Rent(state.ParameterCount);
-            for (var i = 0; i < state.ParameterCount; i++)
+            // If state has cached value, require clone.
+            var newParameters = ArrayPool<KeyValuePair<string, object?>>.Shared.Rent(this.ParameterCount);
+            for (var i = 0; i < this.ParameterCount; i++)
             {
-                newParameters[i] = state.parameters[i];
+                newParameters[i] = this.parameters[i];
             }
-            
-            var newBuffer = ArrayBufferWriterPool.Rent();
-            state.buffer.WrittenSpan.CopyTo(newBuffer.GetSpan(state.buffer.WrittenCount));
-            newBuffer.Advance(state.buffer.WrittenCount);
 
-            return new InterpolatedStringLogState(newParameters, state.ParameterCount, newBuffer);
+            var newBuffer = ArrayBufferWriterPool.Rent();
+            this.buffer.WrittenSpan.CopyTo(newBuffer.GetSpan(this.buffer.WrittenCount));
+            newBuffer.Advance(this.buffer.WrittenCount);
+
+            var newState = new InterpolatedStringLogState(newParameters, this.ParameterCount, newBuffer);
+
+            // Create Entry with cloned state
+            return ZLoggerEntry<InterpolatedStringLogState>.Create(info, newState);
         }
 
         public int ParameterCount { get; }
@@ -59,7 +53,7 @@ namespace ZLogger.LogStates
         {
             return Encoding.UTF8.GetString(buffer.WrittenSpan);
         }
-        
+
         public void ToString(IBufferWriter<byte> writer)
         {
             var written = buffer.WrittenSpan;

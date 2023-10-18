@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace ZLogger.LogStates
 {
-    public struct StringFormatterLogState<TState> : IZLoggerFormattable
+    internal struct StringFormatterLogState<TState> : IZLoggerFormattable
     {
         public int ParameterCount => originalStateParameters?.Count ?? 0;
         public bool IsSupportUtf8ParameterKey => false;
@@ -21,7 +21,7 @@ namespace ZLogger.LogStates
             this.originalState = originalState;
             this.exception = exception;
             this.formatter = formatter;
-            
+
             // In most case, TState is `Microsoft.Extensions.Logging.FormattedLogValues`.
             // TODO: can avoid boxing ?
             if (originalState is IReadOnlyList<KeyValuePair<string, object?>> x)
@@ -32,6 +32,12 @@ namespace ZLogger.LogStates
             {
                 originalStateParameters = null;
             }
+        }
+
+        public IZLoggerEntry CreateEntry(LogInfo info)
+        {
+            // no need clone state.
+            return ZLoggerEntry<StringFormatterLogState<TState>>.Create(info, this);
         }
 
         public override string ToString() => formatter(originalState, exception);

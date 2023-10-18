@@ -6,8 +6,8 @@ namespace ZLogger
 {
     public sealed class AsyncProcessZLogger : ILogger
     {
-        public IExternalScopeProvider? ScopeProvider { get; set; } 
-        
+        public IExternalScopeProvider? ScopeProvider { get; set; }
+
         readonly string categoryName;
         readonly IAsyncLogProcessor logProcessor;
 
@@ -20,31 +20,17 @@ namespace ZLogger
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
-                           
+
             var scopeState = ScopeProvider != null
                 ? LogScopeState.Create(ScopeProvider)
                 : null;
-            
-            var factory = LogEntryFactory<TState>.Create;
-            if (factory != null)
-            {
-                // After the `Log()` call, the state's resources are released, so a copy is needed to delay the write.
-                if (LogEntryFactory<TState>.CloneState != null)
-                {
-                    state = LogEntryFactory<TState>.CloneState(state);
-                }
-                var entry = factory.Invoke(info, state);
-                entry.ScopeState = scopeState;
-                logProcessor.Post(entry);
-            }
-            // Standard `Log` method used
-            else
-            {
-                var stringFormatterState = new StringFormatterLogState<TState>(state, exception, formatter);
-                var entry = ZLoggerEntry<StringFormatterLogState<TState>>.Create(info, stringFormatterState);
-                entry.ScopeState = scopeState;
-                logProcessor.Post(entry);
-            }
+
+            var entry = state is IZLoggerFormattable
+                ? ((IZLoggerFormattable)state).CreateEntry(info) // constrained call avoiding boxing for value types
+                : new StringFormatterLogState<TState>(state, exception, formatter).CreateEntry(info); // standard `log`
+
+            entry.ScopeState = scopeState;
+            logProcessor.Post(entry);
         }
 
         public IDisposable BeginScope<TState>(TState state)

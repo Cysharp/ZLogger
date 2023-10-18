@@ -49,7 +49,7 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
 
     static CouldNotOpenSocketState()
     {
-        LogEntryFactory<CouldNotOpenSocketState>.Create = CreateEntry;
+        // LogEntryFactory<CouldNotOpenSocketState>.Create = CreateEntry;
     }
 
     static IZLoggerEntry CreateEntry(in LogInfo logInfo, in CouldNotOpenSocketState state)
@@ -162,6 +162,11 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
         }
         CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
         return default!;
+    }
+
+    public IZLoggerEntry CreateEntry(LogInfo info)
+    {
+        throw new NotImplementedException();
     }
 }
 

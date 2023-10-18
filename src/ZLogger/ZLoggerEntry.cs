@@ -12,24 +12,18 @@ namespace ZLogger
         LogInfo LogInfo { get; }
         LogScopeState? ScopeState { get; set; }
         void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter); // TODO: 2 -> 1
+    }
+
+    public interface IReturnableZLoggerEntry : IZLoggerEntry
+    {
         void Return();
     }
 
-    // Create LogEntry from struct state without T constraints 
-    public static class LogEntryFactory<T>
-    {
-        public static CreateLogEntry<T>? Create; // Register from each state static constructor
-        public static CloneState<T>? CloneState;
-    }
-
-    public delegate IZLoggerEntry CreateLogEntry<TState>(in LogInfo info, in TState state);
-    public delegate TState CloneState<TState>(in TState state);
-
-    public sealed class ZLoggerEntry<TState> : IZLoggerEntry, IObjectPoolNode<ZLoggerEntry<TState>>
+    public sealed class ZLoggerEntry<TState> : IReturnableZLoggerEntry, IObjectPoolNode<ZLoggerEntry<TState>>
         where TState : IZLoggerFormattable
     {
         static readonly ObjectPool<ZLoggerEntry<TState>> cache = new();
-        
+
         public LogScopeState? ScopeState { get; set; }
 
         ZLoggerEntry<TState>? next;
@@ -60,9 +54,10 @@ namespace ZLogger
 
         public override string ToString() => state.ToString();
 
+        public IZLoggerEntry CreateEntry(LogInfo info) => state.CreateEntry(info);
         public int ParameterCount => state.ParameterCount;
         public bool IsSupportUtf8ParameterKey => state.IsSupportUtf8ParameterKey;
-        
+
         public ReadOnlySpan<byte> GetParameterKey(int index) => state.GetParameterKey(index);
         public string GetParameterKeyAsString(int index) => state.GetParameterKeyAsString(index);
 
@@ -74,7 +69,7 @@ namespace ZLogger
 
         public void ToString(IBufferWriter<byte> writer) => state.ToString(writer);
 
-        public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions) 
+        public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions)
             => state.WriteJsonParameterKeyValues(jsonWriter, jsonSerializerOptions);
 
         public LogInfo LogInfo => logInfo;
@@ -93,7 +88,8 @@ namespace ZLogger
             cache.TryPush(this);
         }
     }
-    
+
+    // TODO:remove?
     public static class ZLoggerEntryExtensions
     {
         public static string FormatToString(this IZLoggerEntry entry, IZLoggerFormatter formatter)

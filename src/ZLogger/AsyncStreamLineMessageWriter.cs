@@ -100,8 +100,7 @@ namespace ZLogger
                         {
                             info = value.LogInfo;
                             value.FormatUtf8(writer, formatter);
-                            value.Return();
-
+                            (value as IReturnableZLoggerEntry)?.Return();
                             AppendLine(writer);
                         }
                         info = default;

@@ -251,7 +251,7 @@ namespace MyApp
 
             logger.LogInformation("started");
 
-            var x = 1;
+            // var x = 1;
             logger.ZLogInformation($"abc{1}");
 
             var a = "a";
