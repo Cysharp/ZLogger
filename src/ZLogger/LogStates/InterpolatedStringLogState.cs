@@ -73,7 +73,7 @@ namespace ZLogger.LogStates
                     continue;
                 }
 
-                jsonWriter.WritePropertyName(p.Name);
+                jsonWriter.WritePropertyName(p.GetParameterizeName());
 
                 var value = magicalBox.Read(p.Type, p.BoxOffset);
                 if (value != null)

@@ -319,5 +319,17 @@ namespace ZLogger
             BoxOffset = boxOffset;
             BoxedValue = boxedValue;
         }
+
+        public ReadOnlySpan<char> GetParameterizeName()
+        {
+            var lastDotPos = Name.LastIndexOf('.');
+            var lastOpenParenthesisPos = Name.LastIndexOf('(');
+
+            var start = lastDotPos >= 0 ? lastDotPos + 1 : 0;
+            var last = lastOpenParenthesisPos >= 0 ? lastOpenParenthesisPos - 1 : Name.Length - 1;
+            var count = last - start + 1;
+            
+            return Name.AsSpan(start, count);
+        }
     }
 }
