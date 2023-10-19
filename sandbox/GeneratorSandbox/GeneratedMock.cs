@@ -93,7 +93,7 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
         return default!;
     }
 
-    public string GetParameterKeyAsString(int index)
+    public ReadOnlySpan<char> GetParameterKeyAsString(int index)
     {
         switch (index)
         {
