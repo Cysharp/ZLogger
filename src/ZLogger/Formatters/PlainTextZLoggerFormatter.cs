@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Text;
+using ZLogger.Internal;
 
 namespace ZLogger.Formatters
 {
@@ -10,10 +11,9 @@ namespace ZLogger.Formatters
         public Action<IBufferWriter<byte>, LogInfo>? PrefixFormatter { get; set; }
         public Action<IBufferWriter<byte>, LogInfo>? SuffixFormatter { get; set; }
         public Action<IBufferWriter<byte>, Exception> ExceptionFormatter { get; set; } = DefaultExceptionLoggingFormatter;
-
-        static byte[] newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
         
-        public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
+        public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry, bool withLineBreak = true) 
+            where TEntry : IZLoggerEntry
         {
             PrefixFormatter?.Invoke(writer, entry.LogInfo);
             entry.ToString(writer);
@@ -22,6 +22,11 @@ namespace ZLogger.Formatters
             if (entry.LogInfo.Exception is { } ex)
             {
                 ExceptionFormatter(writer, ex);
+            }
+
+            if (withLineBreak)
+            {
+                BufferWriterUtils.WriteNewLine(writer);
             }
         }
         

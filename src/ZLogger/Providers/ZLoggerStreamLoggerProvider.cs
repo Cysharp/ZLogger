@@ -10,7 +10,7 @@ namespace ZLogger.Providers
         internal const string DefaultOptionName = "ZLoggerStream.Default";
 
         readonly ZLoggerOptions options;
-        readonly AsyncStreamLineMessageWriter streamWriter;
+        readonly AsyncStreamMessageWriter streamWriter;
         IExternalScopeProvider? scopeProvider;
 
         public ZLoggerStreamLoggerProvider(Stream stream, IOptionsMonitor<ZLoggerOptions> options)
@@ -21,7 +21,7 @@ namespace ZLogger.Providers
         public ZLoggerStreamLoggerProvider(Stream stream, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
         {
             this.options = options.Get(optionName ?? DefaultOptionName);
-            this.streamWriter = new AsyncStreamLineMessageWriter(stream, this.options);
+            this.streamWriter = new AsyncStreamMessageWriter(stream, this.options);
         }
 
         public ILogger CreateLogger(string categoryName)

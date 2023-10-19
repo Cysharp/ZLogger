@@ -64,7 +64,8 @@ namespace ZLogger.MessagePack
         public MessagePackSerializerOptions MessagePackSerializerOptions { get; set; } = MessagePackSerializer.DefaultOptions;
         public string MessagePropertyName { get; set; } = "Message";
         
-        public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
+        public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry, bool withLineBreak = true) 
+            where TEntry : IZLoggerEntry
         {
             var messagePackWriter = new MessagePackWriter(writer);
 

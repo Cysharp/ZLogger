@@ -56,7 +56,8 @@ namespace ZLogger.Formatters
 
         Utf8JsonWriter? jsonWriter;
         
-        public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
+        public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry, bool withLineBreak = true) 
+            where TEntry : IZLoggerEntry
         {
             jsonWriter?.Reset(writer);
             jsonWriter ??= new Utf8JsonWriter(writer);
@@ -94,6 +95,11 @@ namespace ZLogger.Formatters
 
             jsonWriter.WriteEndObject();
             jsonWriter.Flush();
+
+            if (withLineBreak)
+            {
+                BufferWriterUtils.WriteNewLine(writer);
+            }
         }
 
         static JsonEncodedText LogLevelToEncodedText(LogLevel logLevel)

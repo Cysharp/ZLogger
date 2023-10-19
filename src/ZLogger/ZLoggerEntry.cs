@@ -1,5 +1,4 @@
-﻿using System;
-using System.Buffers;
+﻿using System.Buffers;
 using System.Text;
 using System.Text.Json;
 using ZLogger.Internal;
@@ -102,7 +101,7 @@ namespace ZLogger
             var buffer = ArrayBufferWriterPool.Rent();
             try
             {
-                formatter.FormatLogEntry(buffer, entry);
+                formatter.FormatLogEntry(buffer, entry, withLineBreak: false);
                 return Encoding.UTF8.GetString(buffer.WrittenSpan);
             }
             finally

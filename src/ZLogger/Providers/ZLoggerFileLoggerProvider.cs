@@ -10,7 +10,7 @@ namespace ZLogger.Providers
         internal const string DefaultOptionName = "ZLoggerFile.Default";
 
         readonly ZLoggerOptions options;
-        readonly AsyncStreamLineMessageWriter streamWriter;
+        readonly AsyncStreamMessageWriter streamWriter;
         IExternalScopeProvider? scopeProvider;
 
         public ZLoggerFileLoggerProvider(string filePath, IOptionsMonitor<ZLoggerOptions> options)
@@ -30,7 +30,7 @@ namespace ZLogger.Providers
 
             // useAsync:false, use sync(in thread) processor, don't use FileStream buffer(use buffer size = 1).
             var stream = new FileStream(filePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 1, false);
-            this.streamWriter = new AsyncStreamLineMessageWriter(stream, this.options);
+            this.streamWriter = new AsyncStreamMessageWriter(stream, this.options);
         }
 
         public ILogger CreateLogger(string categoryName)

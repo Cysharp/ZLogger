@@ -1,4 +1,3 @@
-using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 
@@ -9,7 +8,7 @@ namespace ZLogger.Internal
         [ThreadStatic]
         static ArrayBufferWriter<byte>? bufferWriter;
 
-        static ConcurrentQueue<ArrayBufferWriter<byte>> cache = new();
+        static readonly ConcurrentQueue<ArrayBufferWriter<byte>> cache = new();
 
         public static ArrayBufferWriter<byte> GetThreadStaticInstance()
         {
