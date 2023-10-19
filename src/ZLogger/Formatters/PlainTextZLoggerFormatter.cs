@@ -1,4 +1,3 @@
-using System;
 using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -11,7 +10,7 @@ namespace ZLogger.Formatters
         public Action<IBufferWriter<byte>, LogInfo>? SuffixFormatter { get; set; }
         public Action<IBufferWriter<byte>, Exception> ExceptionFormatter { get; set; } = DefaultExceptionLoggingFormatter;
 
-        static byte[] newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
+        public bool LineBreakSeparated => true;
         
         public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
         {

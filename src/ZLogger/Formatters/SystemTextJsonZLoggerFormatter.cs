@@ -44,6 +44,8 @@ namespace ZLogger.Formatters
         static readonly JsonEncodedText Critical = JsonEncodedText.Encode(nameof(LogLevel.Critical));
         static readonly JsonEncodedText None = JsonEncodedText.Encode(nameof(LogLevel.None));
 
+        public bool LineBreakSeparated => true;
+        
         public JsonEncodedText MessagePropertyName { get; set; } = JsonEncodedText.Encode("Message");
         public Action<Utf8JsonWriter, LogInfo> MetadataFormatter { get; set; } = DefaultMetadataFormatter;
 
@@ -55,7 +57,7 @@ namespace ZLogger.Formatters
         };
 
         Utf8JsonWriter? jsonWriter;
-        
+
         public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
         {
             jsonWriter?.Reset(writer);
