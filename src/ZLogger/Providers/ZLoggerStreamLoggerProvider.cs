@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.IO;
 
 namespace ZLogger.Providers
 {
@@ -21,7 +20,7 @@ namespace ZLogger.Providers
         public ZLoggerStreamLoggerProvider(Stream stream, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
         {
             this.options = options.Get(optionName ?? DefaultOptionName);
-            this.streamWriter = new AsyncStreamLineMessageWriter(stream, this.options);
+            this.streamWriter = new AsyncStreamLineMessageWriter(stream, null, this.options);
         }
 
         public ILogger CreateLogger(string categoryName)

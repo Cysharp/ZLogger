@@ -1,11 +1,7 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
+﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 
 namespace ZLogger
 {
@@ -17,12 +13,13 @@ namespace ZLogger
         readonly byte newLine2;
 
         readonly Stream stream;
+        readonly Stream? errorStream;
         readonly Channel<IZLoggerEntry> channel;
         readonly Task writeLoop;
         readonly ZLoggerOptions options;
         readonly CancellationTokenSource cancellationTokenSource;
 
-        public AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options)
+        public AsyncStreamLineMessageWriter(Stream stream, Stream? errorStream, ZLoggerOptions options)
         {
             this.newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
             this.cancellationTokenSource = new CancellationTokenSource();
@@ -43,6 +40,7 @@ namespace ZLogger
 
             this.options = options;
             this.stream = stream;
+            this.errorStream = errorStream;
             this.channel = Channel.CreateUnbounded<IZLoggerEntry>(new UnboundedChannelOptions
             {
                 AllowSynchronousContinuations = false, // always should be in async loop.
@@ -86,6 +84,7 @@ namespace ZLogger
         async Task WriteLoop()
         {
             var writer = new StreamBufferWriter(stream);
+            var errorWriter = errorStream != null ? new StreamBufferWriter(errorStream) : null;
             var formatter = options.CreateFormatter();
             var reader = channel.Reader;
             var sw = Stopwatch.StartNew();
@@ -99,9 +98,11 @@ namespace ZLogger
                         while (reader.TryRead(out var value))
                         {
                             info = value.LogInfo;
-                            value.FormatUtf8(writer, formatter);
-                            (value as IReturnableZLoggerEntry)?.Return();
-                            AppendLine(writer);
+                            var currentWriter = errorWriter != null && info.LogLevel >= options.LogToErrorThreshold
+                                ? errorWriter
+                                : writer;
+                            value.FormatUtf8(currentWriter, formatter);
+                            AppendLine(currentWriter);
                         }
                         info = default;
 
@@ -166,6 +167,7 @@ namespace ZLogger
             finally
             {
                 this.stream.Dispose();
+                this.errorStream?.Dispose();
             }
         }
     }

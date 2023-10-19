@@ -157,7 +157,6 @@ namespace MyApp
         {
             Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Development");
 
-
             var host = Host.CreateDefaultBuilder()
                 .ConfigureServices(x =>
                 {
@@ -174,6 +173,7 @@ namespace MyApp
                     {
                         //options.FlushRate = TimeSpan.FromSeconds(5);
 
+                        options.LogToErrorThreshold = LogLevel.Error;
 #if DEBUG
                         options.UsePlainTextFormatter(plainText =>
                         {
