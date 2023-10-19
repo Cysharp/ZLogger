@@ -10,7 +10,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="Icon.png" Pack="true" PackagePath="/" />
+        <None Include="..\ZLogger\Icon.png" Pack="true" PackagePath="/" />
     </ItemGroup>
     
     <ItemGroup>

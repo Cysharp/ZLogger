@@ -111,6 +111,8 @@ namespace ZLogger.MessagePack.Tests
             ((int)msgpack["EventId"]).Should().Be(1);
             ((string)msgpack["EventIdName"]).Should().Be("HOGE");
             ((DateTime)msgpack["Timestamp"]).Should().BeOnOrAfter(now);
+            ((int?)msgpack["x"]).Should().Be(100);
+            ((int?)msgpack["y"]).Should().Be(null);
             ((int)msgpack["payload"]["x"]).Should().Be(999);
             ((int)msgpack["x"]).Should().Be(100);
             ((int)msgpack["y"]).Should().Be(200);
