@@ -1,4 +1,3 @@
-using System;
 using System.Buffers;
 using System.Text.Json;
 using ZLogger.Internal;
@@ -73,7 +72,7 @@ namespace ZLogger.LogStates
                     continue;
                 }
 
-                jsonWriter.WritePropertyName(p.GetParameterizeName());
+                jsonWriter.WritePropertyName(p.GetParameterizeNamePart());
 
                 var value = magicalBox.Read(p.Type, p.BoxOffset);
                 if (value != null)
@@ -92,9 +91,9 @@ namespace ZLogger.LogStates
             throw new NotSupportedException();
         }
 
-        public string GetParameterKeyAsString(int index)
+        public ReadOnlySpan<char> GetParameterKeyAsString(int index)
         {
-            return parameters[index].Name;
+            return parameters[index].GetParameterizeNamePart();
         }
 
         public object? GetParameterValue(int index)

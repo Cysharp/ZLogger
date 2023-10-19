@@ -320,7 +320,7 @@ namespace ZLogger
             BoxedValue = boxedValue;
         }
 
-        public ReadOnlySpan<char> GetParameterizeName()
+        public ReadOnlySpan<char> GetParameterizeNamePart()
         {
             var lastDotPos = Name.LastIndexOf('.');
             var lastOpenParenthesisPos = Name.LastIndexOf('(');
