@@ -358,24 +358,29 @@ namespace ZLogger.MessagePack
             else
             {
                 var key = entry.GetParameterKeyAsString(parameterIndex);
-                if (options.KeyNameMutator is { } mutator)
+                WriteKeyName(ref messagePackWriter, key);
+            }
+        }
+        
+        void WriteKeyName(ref MessagePackWriter messagePackWriter, ReadOnlySpan<char> keyName)
+        {
+            if (options.KeyNameMutator is { } mutator)
+            {
+                var buffer = ArrayPool<char>.Shared.Rent(keyName.Length * 2);
+                try
                 {
-                    var buffer = ArrayPool<char>.Shared.Rent(key.Length * 2);
-                    try
+                    if (mutator.TryMutate(keyName, buffer, out var written))
                     {
-                        if (mutator.TryMutate(key, buffer, out var written))
-                        {
-                            messagePackWriter.Write(buffer.AsSpan(0, written));
-                            return;
-                        }
-                    }
-                    finally
-                    {
-                        ArrayPool<char>.Shared.Return(buffer);
+                        messagePackWriter.Write(buffer.AsSpan(0, written));
+                        return;
                     }
                 }
-                messagePackWriter.Write(key);
+                finally
+                {
+                    ArrayPool<char>.Shared.Return(buffer);
+                }
             }
+            messagePackWriter.Write(keyName);
         }
 
         static void WriteException(ref MessagePackWriter messagePackWriter, Exception? ex)

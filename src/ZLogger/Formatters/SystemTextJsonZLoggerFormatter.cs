@@ -85,8 +85,9 @@ namespace ZLogger.Formatters
                     // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
                     if (x.Key == "{OriginalFormat}")
                         continue;
+
+                    WriteKeyName(x.Key);
                     
-                    jsonWriter.WritePropertyName(x.Key);
                     if (x.Value is { } value)
                     {
                         JsonSerializer.Serialize(jsonWriter, value, JsonSerializerOptions);
@@ -100,6 +101,20 @@ namespace ZLogger.Formatters
 
             jsonWriter.WriteEndObject();
             jsonWriter.Flush();
+        }
+
+        void WriteKeyName(ReadOnlySpan<char> keyName)
+        {
+            if (options.KeyNameMutator is { } mutator)
+            {
+                Span<char> buffer = stackalloc char[keyName.Length * 2]; 
+                if (mutator.TryMutate(keyName, buffer, out var written))
+                {
+                    jsonWriter!.WritePropertyName(buffer[..written]);
+                    return;
+                }
+            }
+            jsonWriter!.WritePropertyName(keyName);
         }
 
         static JsonEncodedText LogLevelToEncodedText(LogLevel logLevel)
