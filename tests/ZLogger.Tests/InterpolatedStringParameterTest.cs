@@ -24,23 +24,27 @@ namespace ZLogger.Tests
         [Fact]
         public void GetParameterizeName_WithStringLiteral()
         {
-            var result1 = CallerArgumentExpressionParser.GetParameterizedName("Hoge.Moge(\"aaa.aaa(\"\"aaa\"\")\")");
+            var result1 = CallerArgumentExpressionParser.GetParameterizedName("""Hoge.Moge("aaa.aaa(\"123\")")""");
             result1.ToString().Should().Be("Moge");
+            
+            var result2 = CallerArgumentExpressionParser.GetParameterizedName("""Hoge.Moge("aaa.aaa(\"123\")").Fuga("bbb")""");
+            result2.ToString().Should().Be("Fuga");
         }
         
         [Fact]
         public void GetLastPropertyName_WithVerbatimStringLiteral()
         {
-            var result1 = CallerArgumentExpressionParser.GetParameterizedName("Hoge.Moge(@\"aaa.aaa(\\\"aaa\\\")\")");
+            var result1 = CallerArgumentExpressionParser.GetParameterizedName("""Hoge.Moge(@"aaa.aaa(""123"")")""");
             result1.ToString().Should().Be("Moge");
+            
+            var result2 = CallerArgumentExpressionParser.GetParameterizedName("""Hoge.Moge(@"aaa.aaa(""123"")").Fuga("bbb")""");
+            result2.ToString().Should().Be("Fuga");
         }
         
         [Fact]
         public void GetLastPropertyName_WithRawStringLiteral()
         {
-            var result1 = CallerArgumentExpressionParser.GetParameterizedName(""""
-Hoge.Moge("""aaa...""bbb(((()))""..ccc""")
-"""");
+            var result1 = CallerArgumentExpressionParser.GetParameterizedName(""""Hoge.Moge("""aaa...""bbb(((()))""..ccc""")"""");
             result1.ToString().Should().Be("Moge");
             
             var result2 = CallerArgumentExpressionParser.GetParameterizedName("""""
