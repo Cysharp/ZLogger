@@ -126,17 +126,7 @@ namespace ZLogger.MessagePack.Tests
             };
 
             options.UseMessagePackFormatter();
-
-            processor = new TestProcessor(options);
-
-            var loggerFactory = LoggerFactory.Create(x =>
-            {
-                x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processor);
-            });
-            logger = loggerFactory.CreateLogger("test");
-
-
+            
             var XyzAbc = 100;
             var fOo = 200;
             logger.ZLogInformation($"AAA {XyzAbc} {fOo}");
@@ -147,6 +137,37 @@ namespace ZLogger.MessagePack.Tests
             ((string)msgpack["Message"]).Should().Be("AAA 100 200");
             ((int)msgpack["xyzAbc"]).Should().Be(100);
             ((int)msgpack["fOo"]).Should().Be(200);
+        }
+
+        [Fact]
+        public void ExcludeLogInfoProperties()
+        {
+            var options = new ZLoggerOptions
+            {
+                IncludeProperties = LogInfoProperties.LogLevel | 
+                                    LogInfoProperties.Timestamp |
+                                    LogInfoProperties.EventIdValue
+            }.UseMessagePackFormatter();
+
+            processor = new TestProcessor(options);
+
+            var loggerFactory = LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Debug);
+                x.AddZLoggerLogProcessor(processor);
+            });
+            logger = loggerFactory.CreateLogger("test");
+                
+            var now = DateTime.UtcNow;
+            logger.ZLogInformation(new EventId(1, "TEST"), $"HELLO!");
+        
+            var msgpack = processor.Dequeue();
+            ((string)msgpack["LogLevel"]).Should().Be("Information");
+            ((int)msgpack["EventId"]).Should().Be(1);
+            ((DateTime)msgpack["Timestamp"]).Should().BeOnOrAfter(now);
+            ((bool)msgpack.ContainsKey("Exception")).Should().BeFalse();
+            ((bool)msgpack.ContainsKey("CategoryName")).Should().BeFalse();
+            ((bool)msgpack.ContainsKey("EventIdName")).Should().BeFalse();
         }
    }
 }

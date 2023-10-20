@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Numerics;
 using MessagePack;
 using Microsoft.Extensions.Logging;
 
@@ -73,9 +74,8 @@ namespace ZLogger.MessagePack
         public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
         {
             var messagePackWriter = new MessagePackWriter(writer);
-
-            var propCount = 6 + entry.ParameterCount;
             
+            var propCount = BitOperations.PopCount((uint)options.IncludeProperties) + entry.ParameterCount;
             if (entry.LogInfo.Exception != null) 
                 propCount++;
 
@@ -92,21 +92,32 @@ namespace ZLogger.MessagePack
 
             messagePackWriter.WriteMapHeader(propCount);
 
-            messagePackWriter.WriteRaw(CategoryNameKey);
-            messagePackWriter.Write(entry.LogInfo.CategoryName);
-
-            messagePackWriter.WriteRaw(LogLevelKey);
-            messagePackWriter.WriteRaw(EncodedLogLevel(entry.LogInfo.LogLevel));
-
-            messagePackWriter.WriteRaw(EventIdKey);
-            messagePackWriter.WriteInt32(entry.LogInfo.EventId.Id);
-
-            messagePackWriter.WriteRaw(EventIdNameKey);
-            messagePackWriter.Write(entry.LogInfo.EventId.Name);
-
-            messagePackWriter.WriteRaw(TimestampKey);
-            MessagePackSerializerOptions.Resolver.GetFormatterWithVerify<DateTime>()
-                .Serialize(ref messagePackWriter, entry.LogInfo.Timestamp.UtcDateTime, MessagePackSerializerOptions);
+            if ((options.IncludeProperties & LogInfoProperties.CategoryName) != 0)
+            {
+                messagePackWriter.WriteRaw(CategoryNameKey);
+                messagePackWriter.Write(entry.LogInfo.CategoryName);
+            }
+            if ((options.IncludeProperties & LogInfoProperties.LogLevel) != 0)
+            {
+                messagePackWriter.WriteRaw(LogLevelKey);
+                messagePackWriter.WriteRaw(EncodedLogLevel(entry.LogInfo.LogLevel));
+            }
+            if ((options.IncludeProperties & LogInfoProperties.EventIdValue) != 0)
+            {
+                messagePackWriter.WriteRaw(EventIdKey);
+                messagePackWriter.WriteInt32(entry.LogInfo.EventId.Id);
+            }
+            if ((options.IncludeProperties & LogInfoProperties.EventIdName) != 0)
+            {
+                messagePackWriter.WriteRaw(EventIdNameKey);
+                messagePackWriter.Write(entry.LogInfo.EventId.Name);
+            }
+            if ((options.IncludeProperties & LogInfoProperties.Timestamp) != 0)
+            {
+                messagePackWriter.WriteRaw(TimestampKey);
+                MessagePackSerializerOptions.Resolver.GetFormatterWithVerify<DateTime>()
+                    .Serialize(ref messagePackWriter, entry.LogInfo.Timestamp.UtcDateTime, MessagePackSerializerOptions);
+            }
             
             messagePackWriter.Write(MessagePropertyName);
             var buffer = GetThreadStaticBufferWriter();
