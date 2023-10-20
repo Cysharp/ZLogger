@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Buffers;
 using MessagePack;
 using Microsoft.Extensions.Logging;
