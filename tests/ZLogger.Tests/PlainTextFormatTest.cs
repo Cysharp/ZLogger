@@ -2,6 +2,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using System;
 using Utf8StringInterpolation;
+using System.Linq;
 
 namespace ZLogger.Tests
 {
@@ -108,6 +109,29 @@ namespace ZLogger.Tests
 
             logger.LogInformation("FooBar{0}-NanoNano{1}", 100, 300);
             processsor.Dequeue().Should().Be("[Pre:Information]FooBar100-NanoNano300[Suf:test]");
+        }
+        
+        [Fact]
+        public void CollectionDestructuring()
+        {
+            var options = new ZLoggerOptions();
+            options.UsePlainTextFormatter();
+            var processor = new TestProcessor(options);
+
+            var loggerFactory = LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Debug);
+                x.AddZLoggerLogProcessor(processor);
+            });
+            var logger = loggerFactory.CreateLogger("test");
+
+            var array = new[] { 111, 222, 333 };
+            var enumerable = new[] { "a", "i", "u", "e" }.Where(_ => true);
+            
+            logger.ZLogDebug($"array: {array} enumerable: {enumerable}");
+
+            var message = processor.Dequeue();
+            message.Should().Be("array: 111, 222, 333 enumerable: a, i, u, e");
         }
     }
 }

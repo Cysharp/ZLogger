@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System.Buffers;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -192,7 +193,39 @@ namespace ZLogger
                     ref var p = ref parameters[parameterIndex++];
                     if (!box.TryReadTo(p.Type, p.BoxOffset, p.Alignment, p.Format, ref stringWriter))
                     {
-                        stringWriter.AppendFormatted(p.BoxedValue, p.Alignment, p.Format);
+                        switch (p.BoxedValue)
+                        {
+                            case IList list:
+                            {
+                                for (var i = 0; i < list.Count; i++)
+                                {
+                                    if (i > 0)
+                                    {
+                                        stringWriter.AppendFormatted(", ");
+                                    }
+                                    stringWriter.AppendFormatted(list[i]);
+                                }
+                                break;
+                            }
+                            case IEnumerable enumerable:
+                            {
+                                var first = true;
+                                foreach (var obj in enumerable)
+                                {
+                                    if (!first)
+                                    {
+                                        stringWriter.AppendFormatted(", ");
+                                    }
+                                    stringWriter.AppendFormatted(obj);
+                                    first = false;
+                                }
+
+                                break;
+                            }
+                            default:
+                                stringWriter.AppendFormatted(p.BoxedValue, p.Alignment, p.Format);
+                                break;
+                        }
                     }
                 }
             }
@@ -215,7 +248,38 @@ namespace ZLogger
                     ref var p = ref parameters[parameterIndex++];
                     if (!box.TryReadTo(p.Type, p.BoxOffset, p.Alignment, p.Format, ref stringHandler))
                     {
-                        stringHandler.AppendFormatted(p.BoxedValue, p.Alignment, p.Format);
+                        switch (p.BoxedValue)
+                        {
+                            case IList list:
+                            {
+                                for (var i = 0; i < list.Count; i++)
+                                {
+                                    if (i > 0)
+                                    {
+                                        stringHandler.AppendFormatted(", ");
+                                    }
+                                    stringHandler.AppendFormatted(list[i]);
+                                }
+                                break;
+                            }
+                            case IEnumerable enumerable:
+                            {
+                                var first = false;
+                                foreach (var obj in enumerable)
+                                {
+                                    if (!first)
+                                    {
+                                        stringHandler.AppendFormatted(", ");
+                                    }
+                                    stringHandler.AppendFormatted(obj);
+                                }
+
+                                break;
+                            }
+                            default:
+                                stringHandler.AppendFormatted(p.BoxedValue, p.Alignment, p.Format);
+                                break;
+                        }
                     }
                 }
             }
