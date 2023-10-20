@@ -81,16 +81,10 @@ public partial class ZLoggerGenerator
 {{constructorBody}}
         }
 
-        static {{stateTypeName}}()
+        public IZLoggerEntry CreateEntry(LogInfo info)
         {
-            LogEntryFactory<{{stateTypeName}}>.Create = CreateEntry;
+            return ZLoggerEntry<{{stateTypeName}}>.Create(info, this);
         }
-
-        static IZLoggerEntry CreateEntry(in LogInfo logInfo, in {{stateTypeName}} state)
-        {
-            return ZLoggerEntry<{{stateTypeName}}>.Create(logInfo, state);
-        }
-
 """);
 
             EmitIZLoggerFormattableMethods(method);
@@ -110,7 +104,7 @@ public partial class ZLoggerGenerator
             sb.AppendLine($$"""
         public int ParameterCount => _parameterCount;
         public bool IsSupportUtf8ParameterKey => true;
-        public override string ToString() => "{{string.Concat(method.MessageSegments.Select(x => x.ToString()))}}";
+        public override string ToString() => $"{{string.Concat(method.MessageSegments.Select(x => x.ToString()))}}";
 
 """);
             //void ToString(IBufferWriter<byte> writer);

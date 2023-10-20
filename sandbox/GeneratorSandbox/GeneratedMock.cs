@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using Utf8StringInterpolation;
 using ZLogger;
 using ZLogger.Internal;
 
@@ -34,9 +35,14 @@ public static class Log22
 
 file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
 {
-    const int Count = 2;
-    static readonly JsonEncodedText jsonParameter1 = JsonEncodedText.Encode("hostName");
-    static readonly JsonEncodedText jsonParameter2 = JsonEncodedText.Encode("ipAddress");
+    const int _parameterCount = 2;
+
+    // TODO:
+    const int _utf8LiteralLength = 33;
+    const int _guessedParameterLength = 2 * 11;
+
+    static readonly JsonEncodedText _jsonParameter_hostName = JsonEncodedText.Encode("hostName");
+    static readonly JsonEncodedText _jsonParameter_ipAddress = JsonEncodedText.Encode("ipAddress");
 
     readonly string hostName;
     readonly int ipAddress;
@@ -47,66 +53,33 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
         this.ipAddress = ipAddress;
     }
 
-    static CouldNotOpenSocketState()
+    public IZLoggerEntry CreateEntry(LogInfo info)
     {
-        // LogEntryFactory<CouldNotOpenSocketState>.Create = CreateEntry;
+        return ZLoggerEntry<CouldNotOpenSocketState>.Create(info, this);
     }
-
-    static IZLoggerEntry CreateEntry(in LogInfo logInfo, in CouldNotOpenSocketState state)
-    {
-        return ZLoggerEntry<CouldNotOpenSocketState>.Create(logInfo, state);
-    }
-
-    public int ParameterCount => Count;
+    public int ParameterCount => _parameterCount;
     public bool IsSupportUtf8ParameterKey => true;
+    public override string ToString() => "Could not open socket to {hostName} {ipAddress}."; // TODO:alignment, format
 
     public void ToString(IBufferWriter<byte> writer)
     {
-        var chunk1 = "Could not open socket to "u8;
-        var chunk2 = " "u8;
-        var chunk3 = "."u8;
+        // chunk0.Length + chunk2.Length + chunk4.Length
 
-        var dest = writer.GetSpan(chunk1.Length + chunk2.Length + chunk3.Length + CodeGeneratorUtil.GuessedParameterByteCount(Count - 1) + CodeGeneratorUtil.GetStringMaxByteCount(hostName));
-        var count = 0;
+        var stringWriter = new Utf8StringWriter<IBufferWriter<byte>>(_utf8LiteralLength, _guessedParameterLength, writer);
 
-        CodeGeneratorUtil.WriteValue(writer, chunk1, ref dest, ref count);
-        CodeGeneratorUtil.WriteValue(writer, hostName, ref dest, ref count);
-        CodeGeneratorUtil.WriteValue(writer, chunk2, ref dest, ref count);
-        CodeGeneratorUtil.WriteValue(writer, ipAddress, ref dest, ref count);
-        CodeGeneratorUtil.WriteValue(writer, chunk3, ref dest, ref count);
+        stringWriter.AppendUtf8("Could not open socket to "u8);
+        stringWriter.AppendFormatted(hostName); // TODO:alignment, format
+        stringWriter.AppendUtf8(" "u8);
+        stringWriter.AppendFormatted(ipAddress);
+        stringWriter.AppendUtf8("."u8);
 
-        if (count != 0)
-        {
-            writer.Advance(count);
-        }
+        stringWriter.Flush();
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static void WriteValues(IBufferWriter<byte> writer, int[] src, ref Span<byte> dest, ref int count)
+    public void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions)
     {
-        if (src == null) return;
-
-        var first = true;
-        foreach (var item in src)
-        {
-            if (first)
-            {
-                first = false;
-            }
-            else
-            {
-                CodeGeneratorUtil.WriteValue(writer, ", "u8, ref dest, ref count);
-            }
-            CodeGeneratorUtil.WriteValue(writer, item, ref dest, ref count);
-        }
-    }
-
-    public override string ToString() => $"Could not open socket to {hostName} {ipAddress}.";
-
-    public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions)
-    {
-        jsonWriter.WriteString(jsonParameter1, hostName);
-        jsonWriter.WriteNumber(jsonParameter2, ipAddress);
+        writer.WriteString(_jsonParameter_hostName, this.hostName);
+        writer.WriteNumber(_jsonParameter_ipAddress, this.ipAddress);
     }
 
     public ReadOnlySpan<byte> GetParameterKey(int index)
@@ -117,7 +90,7 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
             case 1: return "ipAddress"u8;
         }
         CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
-        return default;
+        return default!;
     }
 
     public string GetParameterKeyAsString(int index)
@@ -135,19 +108,19 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
     {
         switch (index)
         {
-            case 0: return hostName;
-            case 1: return ipAddress;
+            case 0: return this.hostName;
+            case 1: return this.ipAddress;
         }
         CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
-        return null!;
+        return default!;
     }
 
     public T GetParameterValue<T>(int index)
     {
         switch (index)
         {
-            case 0: return Unsafe.As<string, T>(ref Unsafe.AsRef(hostName));
-            case 1: return Unsafe.As<int, T>(ref Unsafe.AsRef(ipAddress));
+            case 0: return Unsafe.As<string, T>(ref Unsafe.AsRef(this.hostName));
+            case 1: return Unsafe.As<int, T>(ref Unsafe.AsRef(this.ipAddress));
         }
         CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
         return default!;
@@ -164,9 +137,5 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
         return default!;
     }
 
-    public IZLoggerEntry CreateEntry(LogInfo info)
-    {
-        throw new NotImplementedException();
-    }
 }
 
