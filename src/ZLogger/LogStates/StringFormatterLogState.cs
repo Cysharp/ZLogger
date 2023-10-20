@@ -34,7 +34,6 @@ namespace ZLogger.LogStates
 
         public IZLoggerEntry CreateEntry(LogInfo info)
         {
-            // no need clone state.
             return ZLoggerEntry<StringFormatterLogState<TState>>.Create(info, this);
         }
 
