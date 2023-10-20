@@ -15,7 +15,7 @@ namespace ZLogger.Formatters
         {
             return options.UseFormatter(() =>
             {
-                var formatter = new SystemTextJsonZLoggerFormatter();
+                var formatter = new SystemTextJsonZLoggerFormatter(options);
                 jsonConfigure?.Invoke(formatter);
                 return formatter;
             });
@@ -54,7 +54,13 @@ namespace ZLogger.Formatters
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
 
+        readonly ZLoggerOptions options;
         Utf8JsonWriter? jsonWriter;
+
+        public SystemTextJsonZLoggerFormatter(ZLoggerOptions options)
+        {
+            this.options = options;
+        }
         
         public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
         {
@@ -69,7 +75,7 @@ namespace ZLogger.Formatters
             entry.ToString(bufferWriter);
             jsonWriter.WriteString(MessagePropertyName, bufferWriter.WrittenSpan);
             
-            entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions);
+            entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, options);
             
             if (entry.ScopeState is { IsEmpty: false } scopeState)
             {

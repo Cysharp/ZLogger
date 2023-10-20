@@ -162,13 +162,12 @@ namespace ZLogger
                 var str = literals[i];
                 if (str == null)
                 {
-                    this.segments[i] = new MessageSequenceSegment(null, null!, default);
+                    this.segments[i] = new MessageSequenceSegment(null, null!);
                 }
                 else
                 {
                     var bytes = Encoding.UTF8.GetBytes(str);
-                    var encoded = JsonEncodedText.Encode(bytes);
-                    this.segments[i] = new MessageSequenceSegment(str, bytes, encoded);
+                    this.segments[i] = new MessageSequenceSegment(str, bytes);
                 }
             }
         }
@@ -177,8 +176,7 @@ namespace ZLogger
         {
             var stringWriter = new Utf8StringWriter<IBufferWriter<byte>>(literalLength, parametersLength, writer);
 
-            var parameterIndex = 0;
-            foreach (var item in segments)
+            var parameterIndex = 0; foreach (var item in segments)
             {
                 if (item.IsLiteral)
                 {
@@ -286,13 +284,11 @@ namespace ZLogger
 
         public readonly string Literal;
         public readonly byte[] Utf8Bytes;
-        public readonly JsonEncodedText JsonEncoded;
 
-        public MessageSequenceSegment(string? literal, byte[] utf8Bytes, JsonEncodedText jsonEncoded)
+        public MessageSequenceSegment(string? literal, byte[] utf8Bytes)
         {
             this.Literal = literal!;
             this.Utf8Bytes = utf8Bytes;
-            this.JsonEncoded = jsonEncoded;
         }
 
         public override string ToString()
@@ -320,9 +316,24 @@ namespace ZLogger
             BoxedValue = boxedValue;
         }
 
-        public ReadOnlySpan<char> GetParameterizeNamePart()
+        public ReadOnlySpan<char> ParseKeyName()
         {
             return CallerArgumentExpressionParser.GetParameterizedName(Name);
+        }
+
+        public void WriteJsonKeyName(Utf8JsonWriter jsonWriter, IKeyNameMutator? mutator = null)
+        {
+            var keyName = ParseKeyName();
+            if (mutator != null)
+            {
+                Span<char> buffer = stackalloc char[keyName.Length * 2]; 
+                if (mutator.TryMutate(keyName, buffer, out var written))
+                {
+                    jsonWriter.WritePropertyName(buffer[..written]);
+                    return;
+                }
+            }
+            jsonWriter.WritePropertyName(keyName);
         }
     }
 }

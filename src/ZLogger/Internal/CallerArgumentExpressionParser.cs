@@ -37,7 +37,6 @@ namespace ZLogger.Internal
                                 SkipRawStringLiteral(ref i, quoteCharCount, expressionString);
                                 break;
                         }
-
                         break;
                     case '@':
                         if (i + 1 < expressionString.Length && expressionString[i + 1] == '"')

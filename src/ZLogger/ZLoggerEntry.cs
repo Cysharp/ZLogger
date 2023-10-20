@@ -68,8 +68,8 @@ namespace ZLogger
 
         public void ToString(IBufferWriter<byte> writer) => state.ToString(writer);
 
-        public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions)
-            => state.WriteJsonParameterKeyValues(jsonWriter, jsonSerializerOptions);
+        public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions, ZLoggerOptions options)
+            => state.WriteJsonParameterKeyValues(jsonWriter, jsonSerializerOptions, options);
 
         public LogInfo LogInfo => logInfo;
 

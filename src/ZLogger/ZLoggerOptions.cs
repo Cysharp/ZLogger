@@ -1,5 +1,4 @@
-﻿using System;
-using ZLogger.Formatters;
+﻿using ZLogger.Formatters;
 
 namespace ZLogger
 {
@@ -9,6 +8,7 @@ namespace ZLogger
         
         public TimeSpan? FlushRate { get; set; }
         public bool IncludeScopes { get; set; }
+        public IKeyNameMutator? KeyNameMutator { get; set; }
 
         Func<IZLoggerFormatter> formatterFactory = DefaultFormatterFactory;
 
