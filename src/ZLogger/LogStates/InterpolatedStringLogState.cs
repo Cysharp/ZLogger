@@ -26,6 +26,7 @@ namespace ZLogger.LogStates
 
             this.parameters = ArrayPool<InterpolatedStringParameter>.Shared.Rent(parameters.Length);
             parameters.CopyTo(this.parameters);
+            ParameterCount = parameters.Length;
 
             this.messageSequence = messageSequence;
             this.magicalBox = new MagicalBox(magicalBoxStorage, magicalBox.Written);
@@ -34,7 +35,7 @@ namespace ZLogger.LogStates
         public IZLoggerEntry CreateEntry(LogInfo info)
         {
             // state needs clone.
-            var newState = new InterpolatedStringLogState(messageSequence, this.magicalBox, this.parameters);
+            var newState = new InterpolatedStringLogState(messageSequence, this.magicalBox, this.parameters.AsSpan(0, ParameterCount));
 
             // Create Entry with cloned state(state will dispose when entry was disposed)
             return ZLoggerEntry<InterpolatedStringLogState>.Create(info, newState);
@@ -112,10 +113,7 @@ namespace ZLogger.LogStates
             {
                 return value;
             }
-            else
-            {
-                return (T?)p.BoxedValue;
-            }
+            return (T?)p.BoxedValue;
         }
 
         public Type GetParameterType(int index)
