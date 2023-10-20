@@ -22,6 +22,12 @@ public ref struct ZLoggerTraceInterpolatedStringHandler
     {
         this.innerHandler.AppendFormatted(value, alignment, format, argumentName);
     }
+
+    public void AppendFormatted<T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+        where T : struct
+    {
+        this.innerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
+    }
 }
 
 [InterpolatedStringHandler]
@@ -41,6 +47,12 @@ public ref struct ZLoggerDebugInterpolatedStringHandler
     public void AppendFormatted<T>(T value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
     {
         this.innerHandler.AppendFormatted(value, alignment, format, argumentName);
+    }
+
+    public void AppendFormatted<T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+        where T : struct
+    {
+        this.innerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
     }
 }
 
@@ -62,6 +74,12 @@ public ref struct ZLoggerInformationInterpolatedStringHandler
     {
         this.innerHandler.AppendFormatted(value, alignment, format, argumentName);
     }
+
+    public void AppendFormatted<T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+        where T : struct
+    {
+        this.innerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
+    }
 }
 
 [InterpolatedStringHandler]
@@ -81,6 +99,12 @@ public ref struct ZLoggerWarningInterpolatedStringHandler
     public void AppendFormatted<T>(T value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
     {
         this.innerHandler.AppendFormatted(value, alignment, format, argumentName);
+    }
+
+    public void AppendFormatted<T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+        where T : struct
+    {
+        this.innerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
     }
 }
 
@@ -102,6 +126,12 @@ public ref struct ZLoggerErrorInterpolatedStringHandler
     {
         this.innerHandler.AppendFormatted(value, alignment, format, argumentName);
     }
+
+    public void AppendFormatted<T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+        where T : struct
+    {
+        this.innerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
+    }
 }
 
 [InterpolatedStringHandler]
@@ -121,6 +151,12 @@ public ref struct ZLoggerCriticalInterpolatedStringHandler
     public void AppendFormatted<T>(T value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
     {
         this.innerHandler.AppendFormatted(value, alignment, format, argumentName);
+    }
+
+    public void AppendFormatted<T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+        where T : struct
+    {
+        this.innerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
     }
 }
 

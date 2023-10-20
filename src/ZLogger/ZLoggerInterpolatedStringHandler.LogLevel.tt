@@ -32,6 +32,12 @@ public ref struct ZLogger<#= logLevel #>InterpolatedStringHandler
     {
         this.innerHandler.AppendFormatted(value, alignment, format, argumentName);
     }
+
+    public void AppendFormatted<T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+        where T : struct
+    {
+        this.innerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
+    }
 }
 
 <# } #>
