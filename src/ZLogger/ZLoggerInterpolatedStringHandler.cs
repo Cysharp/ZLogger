@@ -109,9 +109,9 @@ namespace ZLogger
             }
         }
 
-        public void AppendFormatted<T>(ZLoggerNamedParam<T> value, int alignment = 0, string? format = null, string? _ = null)
+        public void AppendFormatted<T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
         {
-            AppendFormatted(value.Value, alignment, format, value.Name);
+            AppendFormatted(namedValue.Item2, alignment, format, namedValue.Item1);
         }
 
         internal InterpolatedStringLogState GetStateAndClear()

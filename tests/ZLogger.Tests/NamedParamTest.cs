@@ -22,7 +22,7 @@ namespace ZLogger.Tests
             });
             var logger = loggerFactory.CreateLogger("test");
 
-            logger.ZLogInformation($"{ZLogger.Param("TAKO", 100)} {ZLogger.Param("YAKI", 200):D5} {ZLogger.Param("T", new DateTime(2023, 12, 31)),15:yyyy-MM-dd}");
+            logger.ZLogInformation($"{("TAKO", 100)} {("YAKI", 200):D5} {("T", new DateTime(2023, 12, 31)),15:yyyy-MM-dd}");
 
             var json = processor.EntryMessages.Dequeue();
             var doc = JsonDocument.Parse(json).RootElement;

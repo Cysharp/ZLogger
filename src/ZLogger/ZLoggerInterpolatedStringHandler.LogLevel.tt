@@ -39,9 +39,9 @@ public ref struct ZLogger<#= logLevel #>InterpolatedStringHandler
         this.innerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
     }
 
-    public void AppendFormatted<T>(ZLoggerNamedParam<T> value, int alignment = 0, string? format = null, string? _ = null)
+    public void AppendFormatted<T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
     {
-        this.innerHandler.AppendFormatted(value, alignment, format);
+        this.innerHandler.AppendFormatted(namedValue, alignment, format);
     }
 }
 

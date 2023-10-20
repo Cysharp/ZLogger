@@ -29,9 +29,9 @@ public ref struct ZLoggerTraceInterpolatedStringHandler
         this.innerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
     }
 
-    public void AppendFormatted<T>(ZLoggerNamedParam<T> value, int alignment = 0, string? format = null, string? _ = null)
+    public void AppendFormatted<T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
     {
-        this.innerHandler.AppendFormatted(value, alignment, format);
+        this.innerHandler.AppendFormatted(namedValue, alignment, format);
     }
 }
 
@@ -60,9 +60,9 @@ public ref struct ZLoggerDebugInterpolatedStringHandler
         this.innerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
     }
 
-    public void AppendFormatted<T>(ZLoggerNamedParam<T> value, int alignment = 0, string? format = null, string? _ = null)
+    public void AppendFormatted<T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
     {
-        this.innerHandler.AppendFormatted(value, alignment, format);
+        this.innerHandler.AppendFormatted(namedValue, alignment, format);
     }
 }
 
@@ -91,9 +91,9 @@ public ref struct ZLoggerInformationInterpolatedStringHandler
         this.innerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
     }
 
-    public void AppendFormatted<T>(ZLoggerNamedParam<T> value, int alignment = 0, string? format = null, string? _ = null)
+    public void AppendFormatted<T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
     {
-        this.innerHandler.AppendFormatted(value, alignment, format);
+        this.innerHandler.AppendFormatted(namedValue, alignment, format);
     }
 }
 
@@ -122,9 +122,9 @@ public ref struct ZLoggerWarningInterpolatedStringHandler
         this.innerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
     }
 
-    public void AppendFormatted<T>(ZLoggerNamedParam<T> value, int alignment = 0, string? format = null, string? _ = null)
+    public void AppendFormatted<T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
     {
-        this.innerHandler.AppendFormatted(value, alignment, format);
+        this.innerHandler.AppendFormatted(namedValue, alignment, format);
     }
 }
 
@@ -153,9 +153,9 @@ public ref struct ZLoggerErrorInterpolatedStringHandler
         this.innerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
     }
 
-    public void AppendFormatted<T>(ZLoggerNamedParam<T> value, int alignment = 0, string? format = null, string? _ = null)
+    public void AppendFormatted<T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
     {
-        this.innerHandler.AppendFormatted(value, alignment, format);
+        this.innerHandler.AppendFormatted(namedValue, alignment, format);
     }
 }
 
@@ -184,9 +184,9 @@ public ref struct ZLoggerCriticalInterpolatedStringHandler
         this.innerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
     }
 
-    public void AppendFormatted<T>(ZLoggerNamedParam<T> value, int alignment = 0, string? format = null, string? _ = null)
+    public void AppendFormatted<T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
     {
-        this.innerHandler.AppendFormatted(value, alignment, format);
+        this.innerHandler.AppendFormatted(namedValue, alignment, format);
     }
 }
 
