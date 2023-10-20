@@ -109,6 +109,11 @@ namespace ZLogger
             }
         }
 
+        public void AppendFormatted<T>(ZLoggerNamedParam<T> value, int alignment = 0, string? format = null, string? _ = null)
+        {
+            AppendFormatted(value.Value, alignment, format, value.Name);
+        }
+
         internal InterpolatedStringLogState GetStateAndClear()
         {
             // MessageSequence is immutable
