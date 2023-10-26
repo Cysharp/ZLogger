@@ -1,4 +1,3 @@
-using System;
 using System.Buffers;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -107,24 +106,37 @@ namespace ZLogger.Formatters
         {
             if (options.KeyNameMutator is { } mutator)
             {
-                for (var i = 0; i < 2; i++)
+                var bufferSize = keyName.Length;
+                while (!TryMutate(keyName, bufferSize))
                 {
-                    if (TryMutate(mutator, keyName, keyName.Length * (i + 1)))
-                    {
-                        return;
-                    }
+                    bufferSize *= 2;
                 }
             }
-            jsonWriter!.WritePropertyName(keyName);
+            else
+            {
+                jsonWriter!.WritePropertyName(keyName);
+            }
             return;
 
-            bool TryMutate(IKeyNameMutator mutator, ReadOnlySpan<char> source, int bufferSize)
+            bool TryMutate(ReadOnlySpan<char> source, int bufferSize)
             {
-                Span<char> buffer = stackalloc char[bufferSize];
-                if (mutator.TryMutate(source, buffer, out var written))
+                if (bufferSize > 256)
                 {
-                    jsonWriter!.WritePropertyName(buffer[..written]);
-                    return true;
+                    var buffer = new char[bufferSize];
+                    if (mutator.TryMutate(source, buffer, out var written))
+                    {
+                        jsonWriter!.WritePropertyName(buffer[..written]);
+                        return true;
+                    }
+                }
+                else
+                {
+                    Span<char> buffer = stackalloc char[bufferSize];
+                    if (mutator.TryMutate(source, buffer, out var written))
+                    {
+                        jsonWriter!.WritePropertyName(buffer[..written]);
+                        return true;
+                    }
                 }
                 return false;
             }

@@ -164,5 +164,38 @@ namespace ZLogger.Tests
             doc.GetProperty("LogLevel").GetString().Should().Be("Debug");
         }
 
+        [Fact]
+        public void KeyNameMutator_Lower()
+        {
+            var options = new ZLoggerOptions
+            {
+                IncludeScopes = true
+            };
+            options.UseJsonFormatter();
+            options.KeyNameMutator = KeyNameMutator.LowercaseInitial; 
+            
+            var processor = new TestProcessor(options);
+
+            using var loggerFactory = LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Debug);
+                x.AddZLoggerLogProcessor(processor, options =>
+                {
+                    options.IncludeScopes = true;
+                });
+            });
+            var logger = loggerFactory.CreateLogger("test");
+
+            var Tako = 100;
+            var Yaki = "あいうえお";
+            logger.ZLogDebug($"tako: {Tako} yaki: {Yaki}");
+
+            var json = processor.Dequeue();
+            var doc = JsonDocument.Parse(json).RootElement;
+
+            doc.GetProperty("Message").GetString().Should().Be("tako: 100 yaki: あいうえお");
+            doc.GetProperty("tako").GetInt32().Should().Be(100);
+            doc.GetProperty("yaki").GetString().Should().Be("あいうえお");
+        }
     }
 }

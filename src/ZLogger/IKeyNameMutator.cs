@@ -15,7 +15,7 @@ namespace ZLogger
     {
         public bool TryMutate(ReadOnlySpan<char> source, scoped Span<char> destination, out int written)
         {
-            if (source.Length >= destination.Length)
+            if (source.Length > destination.Length)
             {
                 written = default;
                 return false;
@@ -41,7 +41,7 @@ namespace ZLogger
     {
         public bool TryMutate(ReadOnlySpan<char> source, scoped Span<char> destination, out int written)
         {
-            if (source.Length >= destination.Length)
+            if (source.Length > destination.Length)
             {
                 written = default;
                 return false;

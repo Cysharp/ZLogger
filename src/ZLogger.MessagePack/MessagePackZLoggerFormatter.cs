@@ -366,21 +366,35 @@ namespace ZLogger.MessagePack
         {
             if (options.KeyNameMutator is { } mutator)
             {
-                var buffer = ArrayPool<char>.Shared.Rent(keyName.Length * 2);
+                var bufferSize = keyName.Length * 2;
+                while (!TryMutate(ref messagePackWriter, keyName, bufferSize))
+                {
+                    bufferSize *= 2;
+                }
+            }
+            else
+            {
+                messagePackWriter.Write(keyName);
+            }
+            return;
+
+            bool TryMutate(ref MessagePackWriter messagePackWriter, ReadOnlySpan<char> source, int bufferSize)
+            {
+                var buffer = ArrayPool<char>.Shared.Rent(bufferSize);
                 try
                 {
-                    if (mutator.TryMutate(keyName, buffer, out var written))
+                    if (mutator.TryMutate(source, buffer, out var written))
                     {
                         messagePackWriter.Write(buffer.AsSpan(0, written));
-                        return;
+                        return true;
                     }
                 }
                 finally
                 {
                     ArrayPool<char>.Shared.Return(buffer);
                 }
+                return false;
             }
-            messagePackWriter.Write(keyName);
         }
 
         static void WriteException(ref MessagePackWriter messagePackWriter, Exception? ex)

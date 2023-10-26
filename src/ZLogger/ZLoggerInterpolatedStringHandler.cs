@@ -324,16 +324,41 @@ namespace ZLogger
         public void WriteJsonKeyName(Utf8JsonWriter jsonWriter, IKeyNameMutator? mutator = null)
         {
             var keyName = ParseKeyName();
-            if (mutator != null)
+            if (mutator == null)
             {
-                Span<char> buffer = stackalloc char[keyName.Length * 2]; 
-                if (mutator.TryMutate(keyName, buffer, out var written))
-                {
-                    jsonWriter.WritePropertyName(buffer[..written]);
-                    return;
-                }
+                jsonWriter.WritePropertyName(keyName);
+                return;
             }
-            jsonWriter.WritePropertyName(keyName);
+
+            var bufferSize = keyName.Length;
+            while (!TryMutate(keyName, bufferSize))
+            {
+                bufferSize *= 2;
+            }
+            return;
+            
+            bool TryMutate(ReadOnlySpan<char> source, int bufferSize)
+            {
+                if (bufferSize > 256)
+                {
+                    var buffer = new char[bufferSize];
+                    if (mutator.TryMutate(source, buffer, out var written))
+                    {
+                        jsonWriter.WritePropertyName(buffer.AsSpan(0, written));
+                        return true;
+                    }
+                }
+                else
+                {
+                    Span<char> buffer = stackalloc char[bufferSize];
+                    if (mutator.TryMutate(source, buffer, out var written))
+                    {
+                        jsonWriter.WritePropertyName(buffer[..written]);
+                        return true;
+                    }
+                }
+                return false;
+            }
         }
     }
 }

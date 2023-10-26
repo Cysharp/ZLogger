@@ -67,12 +67,12 @@ namespace ZLogger.LogStates
             for (var i = 0; i < ParameterCount; i++)
             {
                 ref var p = ref parameters[i];
-                if (magicalBox.TryReadTo(p.Type, p.BoxOffset, p.Name, jsonWriter))
+                p.WriteJsonKeyName(jsonWriter, options.KeyNameMutator);
+                
+                if (magicalBox.TryReadTo(p.Type, p.BoxOffset, jsonWriter))
                 {
                     continue;
                 }
-
-                p.WriteJsonKeyName(jsonWriter, options.KeyNameMutator);
 
                 var value = magicalBox.Read(p.Type, p.BoxOffset);
                 if (value != null)
