@@ -107,14 +107,27 @@ namespace ZLogger.Formatters
         {
             if (options.KeyNameMutator is { } mutator)
             {
-                Span<char> buffer = stackalloc char[keyName.Length * 2]; 
-                if (mutator.TryMutate(keyName, buffer, out var written))
+                for (var i = 0; i < 2; i++)
                 {
-                    jsonWriter!.WritePropertyName(buffer[..written]);
-                    return;
+                    if (TryMutate(mutator, keyName, keyName.Length * (i + 1)))
+                    {
+                        return;
+                    }
                 }
             }
             jsonWriter!.WritePropertyName(keyName);
+            return;
+
+            bool TryMutate(IKeyNameMutator mutator, ReadOnlySpan<char> source, int bufferSize)
+            {
+                Span<char> buffer = stackalloc char[bufferSize];
+                if (mutator.TryMutate(source, buffer, out var written))
+                {
+                    jsonWriter!.WritePropertyName(buffer[..written]);
+                    return true;
+                }
+                return false;
+            }
         }
 
         static JsonEncodedText LogLevelToEncodedText(LogLevel logLevel)

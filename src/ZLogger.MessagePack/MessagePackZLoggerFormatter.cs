@@ -331,8 +331,8 @@ namespace ZLogger.MessagePack
                     // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
                     if (key == "{OriginalFormat}")
                         continue;
-                    
-                    messagePackWriter.Write(key);
+
+                    WriteKeyName(ref messagePackWriter, key);
                     if (value == null)
                     {
                         messagePackWriter.WriteNil();
