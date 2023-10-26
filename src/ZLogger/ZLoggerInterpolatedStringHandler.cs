@@ -193,38 +193,14 @@ namespace ZLogger
                     ref var p = ref parameters[parameterIndex++];
                     if (!box.TryReadTo(p.Type, p.BoxOffset, p.Alignment, p.Format, ref stringWriter))
                     {
-                        switch (p.BoxedValue)
+                        if (p.BoxedValue is IEnumerable enumerable)
                         {
-                            case IList list:
-                            {
-                                for (var i = 0; i < list.Count; i++)
-                                {
-                                    if (i > 0)
-                                    {
-                                        stringWriter.AppendFormatted(", ");
-                                    }
-                                    stringWriter.AppendFormatted(list[i]);
-                                }
-                                break;
-                            }
-                            case IEnumerable enumerable:
-                            {
-                                var first = true;
-                                foreach (var obj in enumerable)
-                                {
-                                    if (!first)
-                                    {
-                                        stringWriter.AppendFormatted(", ");
-                                    }
-                                    stringWriter.AppendFormatted(obj);
-                                    first = false;
-                                }
-
-                                break;
-                            }
-                            default:
-                                stringWriter.AppendFormatted(p.BoxedValue, p.Alignment, p.Format);
-                                break;
+                            var jsonWriter = new Utf8JsonWriter(writer);
+                            JsonSerializer.Serialize(jsonWriter, enumerable);                            
+                        }
+                        else
+                        {
+                            stringWriter.AppendFormatted(p.BoxedValue, p.Alignment, p.Format);
                         }
                     }
                 }
@@ -248,37 +224,14 @@ namespace ZLogger
                     ref var p = ref parameters[parameterIndex++];
                     if (!box.TryReadTo(p.Type, p.BoxOffset, p.Alignment, p.Format, ref stringHandler))
                     {
-                        switch (p.BoxedValue)
+                        if (p.BoxedValue is IEnumerable enumerable)
                         {
-                            case IList list:
-                            {
-                                for (var i = 0; i < list.Count; i++)
-                                {
-                                    if (i > 0)
-                                    {
-                                        stringHandler.AppendFormatted(", ");
-                                    }
-                                    stringHandler.AppendFormatted(list[i]);
-                                }
-                                break;
-                            }
-                            case IEnumerable enumerable:
-                            {
-                                var first = false;
-                                foreach (var obj in enumerable)
-                                {
-                                    if (!first)
-                                    {
-                                        stringHandler.AppendFormatted(", ");
-                                    }
-                                    stringHandler.AppendFormatted(obj);
-                                }
-
-                                break;
-                            }
-                            default:
-                                stringHandler.AppendFormatted(p.BoxedValue, p.Alignment, p.Format);
-                                break;
+                            var jsonString = JsonSerializer.Serialize(enumerable);
+                            stringHandler.AppendFormatted(jsonString);
+                        }
+                        else
+                        {
+                            stringHandler.AppendFormatted(p.BoxedValue, p.Alignment, p.Format);
                         }
                     }
                 }
