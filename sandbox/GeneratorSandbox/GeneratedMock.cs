@@ -76,7 +76,7 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
         stringWriter.Flush();
     }
 
-    public void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions)
+    public void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions, ZLoggerOptions options)
     {
         writer.WriteString(_jsonParameter_hostName, this.hostName);
         writer.WriteNumber(_jsonParameter_ipAddress, this.ipAddress);
