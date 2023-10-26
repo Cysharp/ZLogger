@@ -27,11 +27,11 @@ namespace ZLogger
         public bool IsLoggerEnabled { get; }
 
         // fields
-        int literalLength;
-        int parametersLength;
-        List<string?> literals;
+        readonly int literalLength;
+        readonly int parametersLength;
+        readonly List<string?> literals;
+        readonly List<InterpolatedStringParameter> parameters;
         MagicalBox box;
-        List<InterpolatedStringParameter> parameters;
 
         /// <summary>
         /// DO NOT ALLOW DIRECT USE.
@@ -319,46 +319,6 @@ namespace ZLogger
         public ReadOnlySpan<char> ParseKeyName()
         {
             return CallerArgumentExpressionParser.GetParameterizedName(Name);
-        }
-
-        public void WriteJsonKeyName(Utf8JsonWriter jsonWriter, IKeyNameMutator? mutator = null)
-        {
-            var keyName = ParseKeyName();
-            if (mutator == null)
-            {
-                jsonWriter.WritePropertyName(keyName);
-                return;
-            }
-
-            var bufferSize = keyName.Length;
-            while (!TryMutate(keyName, bufferSize))
-            {
-                bufferSize *= 2;
-            }
-            return;
-            
-            bool TryMutate(ReadOnlySpan<char> source, int bufferSize)
-            {
-                if (bufferSize > 256)
-                {
-                    var buffer = new char[bufferSize];
-                    if (mutator.TryMutate(source, buffer, out var written))
-                    {
-                        jsonWriter.WritePropertyName(buffer.AsSpan(0, written));
-                        return true;
-                    }
-                }
-                else
-                {
-                    Span<char> buffer = stackalloc char[bufferSize];
-                    if (mutator.TryMutate(source, buffer, out var written))
-                    {
-                        jsonWriter.WritePropertyName(buffer[..written]);
-                        return true;
-                    }
-                }
-                return false;
-            }
         }
     }
 }

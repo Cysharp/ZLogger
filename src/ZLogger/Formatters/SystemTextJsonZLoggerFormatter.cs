@@ -85,7 +85,7 @@ namespace ZLogger.Formatters
                     if (x.Key == "{OriginalFormat}")
                         continue;
 
-                    WriteKeyName(x.Key);
+                    WriteMutatedJsonKeyName(x.Key, jsonWriter, options.KeyNameMutator);
                     
                     if (x.Value is { } value)
                     {
@@ -100,46 +100,6 @@ namespace ZLogger.Formatters
 
             jsonWriter.WriteEndObject();
             jsonWriter.Flush();
-        }
-
-        void WriteKeyName(ReadOnlySpan<char> keyName)
-        {
-            if (options.KeyNameMutator is { } mutator)
-            {
-                var bufferSize = keyName.Length;
-                while (!TryMutate(keyName, bufferSize))
-                {
-                    bufferSize *= 2;
-                }
-            }
-            else
-            {
-                jsonWriter!.WritePropertyName(keyName);
-            }
-            return;
-
-            bool TryMutate(ReadOnlySpan<char> source, int bufferSize)
-            {
-                if (bufferSize > 256)
-                {
-                    var buffer = new char[bufferSize];
-                    if (mutator.TryMutate(source, buffer, out var written))
-                    {
-                        jsonWriter!.WritePropertyName(buffer[..written]);
-                        return true;
-                    }
-                }
-                else
-                {
-                    Span<char> buffer = stackalloc char[bufferSize];
-                    if (mutator.TryMutate(source, buffer, out var written))
-                    {
-                        jsonWriter!.WritePropertyName(buffer[..written]);
-                        return true;
-                    }
-                }
-                return false;
-            }
         }
 
         static JsonEncodedText LogLevelToEncodedText(LogLevel logLevel)
@@ -200,6 +160,45 @@ namespace ZLogger.Formatters
                     }
                 }
                 jsonWriter.WriteEndObject();
+            }
+        }
+        
+        public static void WriteMutatedJsonKeyName(ReadOnlySpan<char> keyName, Utf8JsonWriter jsonWriter, IKeyNameMutator? mutator = null)
+        {
+            if (mutator == null)
+            {
+                jsonWriter.WritePropertyName(keyName);
+                return;
+            }
+
+            var bufferSize = keyName.Length;
+            while (!TryMutate(keyName, bufferSize))
+            {
+                bufferSize *= 2;
+            }
+            return;
+            
+            bool TryMutate(ReadOnlySpan<char> source, int bufferSize)
+            {
+                if (bufferSize > 256)
+                {
+                    var buffer = new char[bufferSize];
+                    if (mutator.TryMutate(source, buffer, out var written))
+                    {
+                        jsonWriter.WritePropertyName(buffer.AsSpan(0, written));
+                        return true;
+                    }
+                }
+                else
+                {
+                    Span<char> buffer = stackalloc char[bufferSize];
+                    if (mutator.TryMutate(source, buffer, out var written))
+                    {
+                        jsonWriter.WritePropertyName(buffer[..written]);
+                        return true;
+                    }
+                }
+                return false;
             }
         }
     }

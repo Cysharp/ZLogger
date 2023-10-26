@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Text.Json;
+using ZLogger.Formatters;
 using ZLogger.Internal;
 
 namespace ZLogger.LogStates
@@ -67,7 +68,7 @@ namespace ZLogger.LogStates
             for (var i = 0; i < ParameterCount; i++)
             {
                 ref var p = ref parameters[i];
-                p.WriteJsonKeyName(jsonWriter, options.KeyNameMutator);
+                SystemTextJsonZLoggerFormatter.WriteMutatedJsonKeyName(p.ParseKeyName(), jsonWriter, options.KeyNameMutator);
                 
                 if (magicalBox.TryReadTo(p.Type, p.BoxOffset, jsonWriter))
                 {
