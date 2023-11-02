@@ -30,10 +30,13 @@ public class WriteJsonToFile
     static readonly string NullDevicePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "NUL" : "/dev/null";
 
     readonly ILoggerFactory zloggerFactory;
-    readonly ILoggerFactory serilogMsExtLoggerFactory;
-    readonly ILoggerFactory nLogMsExtLoggerFactory;
     readonly ILogger zlogger;
+    
+    readonly Serilog.Core.Logger serilogLogger;
+    readonly ILoggerFactory serilogMsExtLoggerFactory;
     readonly ILogger serilogMsExtLogger;
+    
+    readonly ILoggerFactory nLogMsExtLoggerFactory;
     readonly ILogger nLogMsExtLogger;
     
     public WriteJsonToFile()
@@ -50,8 +53,8 @@ public class WriteJsonToFile
         
         // Serilog
         
-        var serilogLogger = new LoggerConfiguration()
-            // .WriteTo.Async(a => a.File(new JsonFormatter(), NullDevicePath, buffered: true))
+        serilogLogger = new LoggerConfiguration()
+            .WriteTo.Async(a => a.File(new JsonFormatter(), NullDevicePath, buffered: true))
             .WriteTo.File(NullDevicePath, buffered: true)
             .CreateLogger();
         
@@ -102,7 +105,9 @@ public class WriteJsonToFile
         {
             serilogMsExtLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
         }
-        serilogMsExtLoggerFactory.Dispose(); // wait
+
+        serilogLogger.Dispose(); // wait
+        serilogMsExtLoggerFactory.Dispose();
     }
 
     [Benchmark]
