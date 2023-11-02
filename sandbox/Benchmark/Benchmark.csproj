@@ -21,9 +21,4 @@
     <ItemGroup>
       <ProjectReference Include="..\..\src\ZLogger\ZLogger.csproj" />
     </ItemGroup>
-    <ItemGroup>
-      <None Update="NLog.config">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
 </Project>
