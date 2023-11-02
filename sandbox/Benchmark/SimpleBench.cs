@@ -1,11 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using Serilog.Core;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using ZLogger;
 
 namespace Benchmark
