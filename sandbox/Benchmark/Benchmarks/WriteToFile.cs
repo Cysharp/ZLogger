@@ -47,28 +47,5 @@ namespace Benchmark.Benchmarks
             var z = 30;
             ZLoggerLogger.ZLogInformation($"foo{x} bar{y} nazo{z}");
         }
-
-
-    }
-
-    internal struct FormatLogState<TPayload, T0, T1> : IZLoggerState
-    {
-        public readonly TPayload Payload;
-        public readonly string Format;
-        public readonly T0 Arg0;
-        public readonly T1 Arg1;
-
-        public FormatLogState(TPayload payload, string format, T0 arg0, T1 arg1)
-        {
-            Payload = payload;
-            Format = format;
-            Arg0 = arg0;
-            Arg1 = arg1;
-        }
-
-        public IZLoggerEntry CreateLogEntry(LogInfo logInfo, LogScopeState? scopeState)
-        {
-            return null;
-        }
     }
 }

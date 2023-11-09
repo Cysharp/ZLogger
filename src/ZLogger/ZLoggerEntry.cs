@@ -80,9 +80,9 @@ namespace ZLogger
 
         public void Return()
         {
-            if (state is IDisposable)
+            if (state is IReferenceCountZLoggerFormattable)
             {
-                ((IDisposable)state).Dispose();
+                ((IReferenceCountZLoggerFormattable)state).Release();
             }
 
             state = default!;

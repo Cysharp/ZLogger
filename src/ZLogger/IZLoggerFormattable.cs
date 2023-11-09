@@ -21,4 +21,10 @@ namespace ZLogger
         T? GetParameterValue<T>(int index);
         Type GetParameterType(int index);
     }
+    
+    public interface IReferenceCountZLoggerFormattable : IZLoggerFormattable
+    {
+        void Retain();
+        void Release();
+    }
 }
