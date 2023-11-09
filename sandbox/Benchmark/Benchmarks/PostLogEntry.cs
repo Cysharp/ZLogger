@@ -15,8 +15,12 @@ public class PostLogEntry
     static readonly string NullDevicePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "NUL" : "/dev/null";
     
     ILogger zLogger = default!;
+    ILogger msExtConsoleLogger = default!;
     ILogger serilogMsExtLogger = default!;
     ILogger nLogMsExtLogger = default!;
+
+    Serilog.ILogger serilogLogger = default!;
+    NLog.Logger nLogLogger = default!;
 
     [GlobalSetup]
     public void SetUp()
@@ -30,15 +34,31 @@ public class PostLogEntry
 
         zLogger = zLoggerFactory.CreateLogger<PostLogEntry>();
         
+        // Microsoft.Extensions.Logging.Console
+        
+        System.Console.SetOut(TextWriter.Null);
+        using var msExtLoggerFactory = LoggerFactory.Create(logging =>
+        {
+            logging.AddConsole(options =>
+            {
+                // options.QueueFullMode = ConsoleLoggerQueueFullMode.DropWrite;
+                // options.MaxQueueLength = 1024;
+            });
+        });
+
+        msExtConsoleLogger = msExtLoggerFactory.CreateLogger<Program>();
+        
         // Serilog
         
-        var serilogLogger = new LoggerConfiguration()
+        serilogLogger = new LoggerConfiguration()
             .WriteTo.Async(a => a.TextWriter(TextWriter.Null))
             .CreateLogger();
         
         var serilogMsExtLoggerFactory = LoggerFactory.Create(logging =>
         {
-            logging.AddSerilog(serilogLogger);
+            logging.AddSerilog(new LoggerConfiguration()
+                .WriteTo.Async(a => a.TextWriter(TextWriter.Null))
+                .CreateLogger());
         });
         
         serilogMsExtLogger = serilogMsExtLoggerFactory.CreateLogger<PostLogEntry>();
@@ -53,6 +73,9 @@ public class PostLogEntry
         var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target);
         nLogConfig.AddTarget(asyncTarget);
         nLogConfig.AddRuleForAllLevels(asyncTarget);
+
+        NLog.LogManager.Configuration = nLogConfig;
+        nLogLogger = NLog.LogManager.LogFactory.GetLogger("NLog");
 
         var nLogMsExtLoggerFactory = LoggerFactory.Create(logging =>
         {
@@ -72,14 +95,32 @@ public class PostLogEntry
     }
 
     [Benchmark]
-    public void Serilog_Log()
+    public void MicrosoftExtensionsLoggingConsole_Log()
+    {
+        msExtConsoleLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
+    }
+
+    [Benchmark]
+    public void Serilog_MicrosoftExtensionsLogging_Log()
     {
         serilogMsExtLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
     }
 
     [Benchmark]
-    public void NLog_Log()
+    public void NLog_MicrosoftExtensionsLogging_Log()
     {
         nLogMsExtLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
+    }
+    
+    [Benchmark]
+    public void Serilog_Log()
+    {
+        serilogLogger.Information("x={X} y={Y} z={Z}", 100, 200, 300);
+    }
+    
+    [Benchmark]
+    public void NLog_Log()
+    {
+        nLogLogger.Info("x={X} y={Y} z={Z}", 100, 200, 300);
     }
 }
