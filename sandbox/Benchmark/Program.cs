@@ -1,30 +1,28 @@
 ﻿using System.Reflection;
 using Benchmark.Benchmarks;
-using Benchmark.IOBenchmarks;
 using BenchmarkDotNet.Running;
 using Microsoft.Extensions.Logging;
-using NLog.Extensions.Logging;
-using Serilog;
-using Serilog.Formatting.Json;
+using Utf8StringInterpolation;
 using ZLogger;
-using ZLogger.Formatters;
 
 BenchmarkSwitcher.FromAssembly(Assembly.GetEntryAssembly()!).Run(args);
 
 // var nLogConfig = new NLog.Config.LoggingConfiguration();
-// var target = new NLog.Targets.FileTarget("Null")
+// var target = new NLog.Targets.FileTarget("File")
 // {
-//     FileName = "/dev/null"
+//     FileName = "/Users/s24061/tmp/nlog.log",
+//     Layout = new NLog.Layouts.SimpleLayout("${longdate} [${level}] ${message}")
 // };
 // var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target);
 // nLogConfig.AddTarget(asyncTarget);
 // nLogConfig.AddRuleForAllLevels(asyncTarget);
 //
-// var nLogMsExtLoggerFactory = LoggerFactory.Create(logging =>
+// NLog.LogManager.Configuration = nLogConfig;
+// var nLogLogger = NLog.LogManager.LogFactory.GetLogger("NLog");
+//
+// for (var i = 0; i < 100; i++)
 // {
-//     logging.AddNLog(nLogConfig);
-// });
+//     nLogLogger.Info("i={i}", i);
+// }
 //
-// var nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<PostLogEntry>();
-//
-// nLogMsExtLogger.LogInformation("{X}", 1);
+// NLog.LogManager.Shutdown();

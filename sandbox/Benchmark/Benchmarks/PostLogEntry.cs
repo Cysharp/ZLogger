@@ -1,13 +1,38 @@
+using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging.Console;
 using NLog.Extensions.Logging;
 using Serilog;
 using ZLogger;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Benchmark.Benchmarks;
+
+// file class MsExtConsoleLoggerFormatter : ConsoleFormatter
+// {
+//     public class Options : ConsoleFormatterOptions
+//     {
+//     }
+//
+//     public MsExtConsoleLoggerFormatter() : base("Benchmark")
+//     {
+//     }
+//
+//     public override void Write<TState>(in LogEntry<TState> logEntry, IExternalScopeProvider scopeProvider, TextWriter textWriter)
+//     {
+//         var message = logEntry.Formatter.Invoke(logEntry.State, logEntry.Exception);
+//         var timestamp = DateTime.UtcNow;
+//         textWriter.Write(timestamp);
+//         textWriter.Write(" [");
+//         textWriter.Write(logEntry.LogLevel);
+//         textWriter.Write("] ");
+//         textWriter.WriteLine(message);
+//     }
+// }
 
 [MemoryDiagnoser]
 public class PostLogEntry

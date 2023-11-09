@@ -1,5 +1,4 @@
-﻿using System;
-using ZLogger;
+﻿using ZLogger;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using System.Runtime.InteropServices;
@@ -12,9 +11,9 @@ using Serilog.Formatting.Json;
 using ZLogger.Formatters;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
-namespace Benchmark.IOBenchmarks;
+namespace Benchmark.Benchmarks;
 
-class BenchmarkConfig : ManualConfig
+file class BenchmarkConfig : ManualConfig
 {
     public BenchmarkConfig()
     {
@@ -24,7 +23,7 @@ class BenchmarkConfig : ManualConfig
 }
 
 [Config(typeof(BenchmarkConfig))]
-public class WriteJsonToFile
+public class WriteToFileJson
 {
     const int N = 10_000;
     static readonly string NullDevicePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "NUL" : "/dev/null";
@@ -35,11 +34,12 @@ public class WriteJsonToFile
     readonly Serilog.Core.Logger serilogLogger;
     readonly ILoggerFactory serilogMsExtLoggerFactory;
     readonly ILogger serilogMsExtLogger;
-    
+
+    readonly NLog.Logger nLogLogger;
     readonly ILoggerFactory nLogMsExtLoggerFactory;
     readonly ILogger nLogMsExtLogger;
     
-    public WriteJsonToFile()
+    public WriteToFileJson()
     {
         var zLoggerFactory = LoggerFactory.Create(logging =>
         {
@@ -49,7 +49,7 @@ public class WriteJsonToFile
             });
         });
 
-        zlogger = zLoggerFactory.CreateLogger<WriteJsonToFile>();
+        zlogger = zLoggerFactory.CreateLogger<WriteToFileJson>();
         
         // Serilog
         
@@ -63,7 +63,7 @@ public class WriteJsonToFile
             logging.AddSerilog(serilogLogger);
         });
         
-        serilogMsExtLogger = serilogMsExtLoggerFactory.CreateLogger<WriteJsonToFile>();
+        serilogMsExtLogger = serilogMsExtLoggerFactory.CreateLogger<WriteToFileJson>();
         
         // NLog
 
@@ -76,13 +76,16 @@ public class WriteJsonToFile
         // var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target);
         nLogConfig.AddTarget(target);
         nLogConfig.AddRuleForAllLevels(target);
+        
+        NLog.LogManager.Configuration = nLogConfig;
+        nLogLogger = NLog.LogManager.GetCurrentClassLogger();
 
         nLogMsExtLoggerFactory = LoggerFactory.Create(logging =>
         {
             logging.AddNLog(nLogConfig);
         });
 
-        nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<WriteJsonToFile>();
+        nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<WriteToFileJson>();
     }
 
     [Benchmark]
@@ -99,7 +102,7 @@ public class WriteJsonToFile
     }
 
     [Benchmark]
-    public void Serilog_WriteJsonToFile()
+    public void SerilogMsExt_WriteJsonToFile()
     {
         for (var i = 0; i < N; i++)
         {
@@ -111,7 +114,7 @@ public class WriteJsonToFile
     }
 
     [Benchmark]
-    public void NLog_WriteJsonToFile()
+    public void NLogMsExt_WriteJsonToFile()
     {
         for (var i = 0; i < N; i++)
         {
