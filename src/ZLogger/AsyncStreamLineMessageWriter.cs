@@ -122,6 +122,7 @@ namespace ZLogger
                             }
                         }
                         writer.Flush(); // flush before wait.
+                        errorWriter?.Flush();
 
                         sw.Reset();
                         sw.Start();
@@ -151,6 +152,7 @@ namespace ZLogger
                 try
                 {
                     writer.Flush();
+                    errorWriter?.Flush();
                 }
                 catch { }
             }
