@@ -22,7 +22,7 @@ namespace ZLogger.Providers
         {
             this.options = options.Get(optionName ?? DefaultOptionName);
             var stream = new RollingFileStream(fileNameSelector, timestampPattern, rollSizeKB, this.options);
-            this.streamWriter = new AsyncStreamLineMessageWriter(stream, this.options);
+            this.streamWriter = new AsyncStreamLineMessageWriter(stream, null, this.options);
         }
 
         public ILogger CreateLogger(string categoryName)

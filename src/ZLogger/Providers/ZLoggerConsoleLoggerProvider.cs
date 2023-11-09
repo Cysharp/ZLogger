@@ -20,11 +20,11 @@ namespace ZLogger.Providers
         }
 
         public ZLoggerConsoleLoggerProvider(bool consoleOutputEncodingToUtf8, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
-            : this(consoleOutputEncodingToUtf8, false, optionName, options)
+            : this(consoleOutputEncodingToUtf8, LogLevel.None, optionName, options)
         {
         }
 
-        public ZLoggerConsoleLoggerProvider(bool consoleOutputEncodingToUtf8, bool outputToErrorStream, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
+        public ZLoggerConsoleLoggerProvider(bool consoleOutputEncodingToUtf8, LogLevel logToStandardErrorThreshold, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
         {
             if (consoleOutputEncodingToUtf8)
             {
@@ -32,8 +32,7 @@ namespace ZLogger.Providers
             }
 
             this.options = options.Get(optionName ?? DefaultOptionName);
-            var stream = outputToErrorStream ? Console.OpenStandardError() : Console.OpenStandardOutput();
-            this.streamWriter = new AsyncStreamLineMessageWriter(stream, this.options);
+            this.streamWriter = new AsyncStreamLineMessageWriter(Console.OpenStandardOutput(), Console.OpenStandardError(), this.options);
         }
 
         public ILogger CreateLogger(string categoryName)
