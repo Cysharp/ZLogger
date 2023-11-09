@@ -102,7 +102,7 @@ namespace ZLogger.MessagePack.Tests
             var now = DateTime.UtcNow;
             var payload = new TestPayload { X = 999 };
             var x = 100;
-            var y = 200;
+            int? y = null;
             logger.ZLogInformation(new EventId(1, "HOGE"), $"UMU {payload} {x} {y}");
         
             var msgpack = processor.Dequeue();
@@ -114,8 +114,6 @@ namespace ZLogger.MessagePack.Tests
             ((int?)msgpack["x"]).Should().Be(100);
             ((int?)msgpack["y"]).Should().Be(null);
             ((int)msgpack["payload"]["x"]).Should().Be(999);
-            ((int)msgpack["x"]).Should().Be(100);
-            ((int)msgpack["y"]).Should().Be(200);
             ((bool)msgpack.ContainsKey("Exception")).Should().BeFalse();            
         }
 
