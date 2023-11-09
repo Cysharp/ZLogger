@@ -5,6 +5,7 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
 using Microsoft.Extensions.Logging;
+using NLog;
 using NLog.Extensions.Logging;
 using Serilog;
 using Serilog.Formatting.Display;
@@ -97,7 +98,7 @@ public class WritePlainTextToConsole
 
         var nLogLayout = new NLog.Layouts.SimpleLayout("${longdate} [${level}] ${message}");
         {
-            nLogConfig = new NLog.Config.LoggingConfiguration();
+            nLogConfig = new NLog.Config.LoggingConfiguration(new LogFactory());
             var target = new NLog.Targets.ConsoleTarget("Console")
             {
                 Layout = nLogLayout,
@@ -105,13 +106,14 @@ public class WritePlainTextToConsole
             var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target);
             nLogConfig.AddTarget(asyncTarget);
             nLogConfig.AddRuleForAllLevels(asyncTarget);
+            nLogConfig.LogFactory.Configuration = nLogConfig;
 
             nLogLogger = nLogConfig.LogFactory.GetLogger(nameof(WritePlainTextToConsole));
         }
         {
             nLogMsExtLoggerFactory = LoggerFactory.Create(logging =>
             {
-                nLogConfigForMsExt = new NLog.Config.LoggingConfiguration();
+                nLogConfigForMsExt = new NLog.Config.LoggingConfiguration(new LogFactory());
                 var target2 = new NLog.Targets.ConsoleTarget("ConsoleMsExt")
                 {
                     Layout = nLogLayout
@@ -119,6 +121,7 @@ public class WritePlainTextToConsole
                 var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2);
                 nLogConfigForMsExt.AddTarget(asyncTarget2);
                 nLogConfigForMsExt.AddRuleForAllLevels(asyncTarget2);
+                nLogConfigForMsExt.LogFactory.Configuration = nLogConfigForMsExt;
                 logging.AddNLog(nLogConfigForMsExt);
             });
         }

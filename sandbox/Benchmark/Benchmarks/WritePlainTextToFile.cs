@@ -4,6 +4,7 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
 using Microsoft.Extensions.Logging;
+using NLog;
 using NLog.Extensions.Logging;
 using Serilog;
 using Serilog.Formatting.Display;
@@ -102,7 +103,7 @@ public class WritePlainTextToFile
 
         var nLogLayout = new NLog.Layouts.SimpleLayout("${longdate} [${level}] ${message}");
         {
-            nLogConfig = new NLog.Config.LoggingConfiguration();
+            nLogConfig = new NLog.Config.LoggingConfiguration(new LogFactory());
             var target = new NLog.Targets.FileTarget("File")
             {
                 FileName = GetLogFilePath("nlog.log"),
@@ -112,12 +113,13 @@ public class WritePlainTextToFile
             nLogConfig.AddTarget(asyncTarget);
             nLogConfig.AddRuleForAllLevels(asyncTarget);
 
-            nLogLogger = nLogConfig.LogFactory.GetLogger("NLog");
+            nLogConfig.LogFactory.Configuration = nLogConfig;
+            nLogLogger = nLogConfig.LogFactory.GetLogger(nameof(WritePlainTextToFile));
         }
         {
             nLogMsExtLoggerFactory = LoggerFactory.Create(logging =>
             {
-                nLogConfigForMsExt = new NLog.Config.LoggingConfiguration();
+                nLogConfigForMsExt = new NLog.Config.LoggingConfiguration(new LogFactory());
                 var target2 = new NLog.Targets.FileTarget("FileMsExt")
                 {
                     FileName = GetLogFilePath("nlog_msext.log"),
@@ -126,11 +128,11 @@ public class WritePlainTextToFile
                 var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2);
                 nLogConfigForMsExt.AddTarget(asyncTarget2);
                 nLogConfigForMsExt.AddRuleForAllLevels(asyncTarget2);
+                nLogConfigForMsExt.LogFactory.Configuration = nLogConfigForMsExt;
                 logging.AddNLog(nLogConfigForMsExt);
             });
+            nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<WritePlainTextToFile>();
         }
-
-        nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<WritePlainTextToFile>();
     }
 
     [Benchmark]
@@ -166,7 +168,7 @@ public class WritePlainTextToFile
         }
         serilogLogger.Dispose();
     }
-
+    
     [Benchmark]
     public void NLog_MsExt_PlainTextFile()
     {

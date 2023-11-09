@@ -4,6 +4,7 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
 using Microsoft.Extensions.Logging;
+using NLog;
 using NLog.Extensions.Logging;
 using Serilog;
 using Serilog.Formatting.Json;
@@ -100,7 +101,7 @@ public class WriteJsonToConsole
             }
         };
         {
-            nLogConfig = new NLog.Config.LoggingConfiguration();
+            nLogConfig = new NLog.Config.LoggingConfiguration(new LogFactory());
             var target = new NLog.Targets.ConsoleTarget("Console")
             {
                 Layout = nLogLayout,
@@ -108,13 +109,14 @@ public class WriteJsonToConsole
             var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target);
             nLogConfig.AddTarget(asyncTarget);
             nLogConfig.AddRuleForAllLevels(asyncTarget);
+            nLogConfig.LogFactory.Configuration = nLogConfig;
 
             nLogLogger = nLogConfig.LogFactory.GetLogger(nameof(WriteJsonToConsole));
         }
         {
             nLogMsExtLoggerFactory = LoggerFactory.Create(logging =>
             {
-                nLogConfigForMsExt = new NLog.Config.LoggingConfiguration();
+                nLogConfigForMsExt = new NLog.Config.LoggingConfiguration(new LogFactory());
                 var target2 = new NLog.Targets.ConsoleTarget("ConsoleMsExt")
                 {
                     Layout = nLogLayout
@@ -122,11 +124,11 @@ public class WriteJsonToConsole
                 var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2);
                 nLogConfigForMsExt.AddTarget(asyncTarget2);
                 nLogConfigForMsExt.AddRuleForAllLevels(asyncTarget2);
+                nLogConfigForMsExt.LogFactory.Configuration = nLogConfigForMsExt;
                 logging.AddNLog(nLogConfigForMsExt);
             });
+            nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<WriteJsonToConsole>();
         }
-
-        nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<WriteJsonToConsole>();
     }
 
     [Benchmark]

@@ -4,6 +4,7 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
 using Microsoft.Extensions.Logging;
+using NLog;
 using NLog.Extensions.Logging;
 using Serilog;
 using Serilog.Formatting.Json;
@@ -106,7 +107,7 @@ public class WriteJsonToFile
             }
         };
         {
-            nLogConfig = new NLog.Config.LoggingConfiguration();
+            nLogConfig = new NLog.Config.LoggingConfiguration(new LogFactory());
             var target = new NLog.Targets.FileTarget("File")
             {
                 FileName = GetLogFilePath("nlog.log"),
@@ -115,13 +116,14 @@ public class WriteJsonToFile
             var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target);
             nLogConfig.AddTarget(asyncTarget);
             nLogConfig.AddRuleForAllLevels(asyncTarget);
+            nLogConfig.LogFactory.Configuration = nLogConfig;
 
             nLogLogger = nLogConfig.LogFactory.GetLogger(nameof(WritePlainTextToFile));
         }
         {
             nLogMsExtLoggerFactory = LoggerFactory.Create(logging =>
             {
-                nLogConfigForMsExt = new NLog.Config.LoggingConfiguration();
+                nLogConfigForMsExt = new NLog.Config.LoggingConfiguration(new LogFactory());
                 var target2 = new NLog.Targets.FileTarget("FileMsExt")
                 {
                     FileName = GetLogFilePath("nlog_msext.log"),
@@ -130,6 +132,7 @@ public class WriteJsonToFile
                 var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2);
                 nLogConfigForMsExt.AddTarget(asyncTarget2);
                 nLogConfigForMsExt.AddRuleForAllLevels(asyncTarget2);
+                nLogConfigForMsExt.LogFactory.Configuration = nLogConfigForMsExt;
                 logging.AddNLog(nLogConfigForMsExt);
             });
         }

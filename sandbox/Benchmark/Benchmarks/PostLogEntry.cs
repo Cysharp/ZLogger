@@ -5,6 +5,7 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
 using Microsoft.Extensions.Logging;
+using NLog;
 using NLog.Extensions.Logging;
 using Serilog;
 using ZLogger;
@@ -101,7 +102,7 @@ public class PostLogEntry
         // NLog
 
         {
-            var nLogConfig = new NLog.Config.LoggingConfiguration();
+            var nLogConfig = new NLog.Config.LoggingConfiguration(new LogFactory());
             var target = new NLog.Targets.FileTarget("Null")
             {
                 FileName = NullDevicePath
@@ -109,11 +110,12 @@ public class PostLogEntry
             var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target);
             nLogConfig.AddTarget(asyncTarget);
             nLogConfig.AddRuleForAllLevels(asyncTarget);
+            nLogConfig.LogFactory.Configuration = nLogConfig;
 
             nLogLogger = nLogConfig.LogFactory.GetLogger("NLog");
         }
         {
-            var nLogConfigForMsExt = new NLog.Config.LoggingConfiguration();
+            var nLogConfigForMsExt = new NLog.Config.LoggingConfiguration(new LogFactory());
             var target = new NLog.Targets.FileTarget("Null")
             {
                 FileName = NullDevicePath
@@ -121,6 +123,7 @@ public class PostLogEntry
             var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target);
             nLogConfigForMsExt.AddTarget(asyncTarget);
             nLogConfigForMsExt.AddRuleForAllLevels(asyncTarget);
+            nLogConfigForMsExt.LogFactory.Configuration = nLogConfigForMsExt;
 
             var nLogMsExtLoggerFactory = LoggerFactory.Create(logging =>
             {
