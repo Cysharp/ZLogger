@@ -24,7 +24,7 @@ file class BenchmarkConfig : ManualConfig
 
 [Config(typeof(BenchmarkConfig))]
 [LogWritesPerSecond]
-public class WriteToFilePlainText
+public class WritePlainTextToFile
 {
     const int N = 10_000;
     
@@ -81,7 +81,7 @@ public class WriteToFilePlainText
             });
         });
 
-        zLogger = zLoggerFactory.CreateLogger<WriteToFilePlainText>();
+        zLogger = zLoggerFactory.CreateLogger<WritePlainTextToFile>();
         
         // Serilog
 
@@ -96,7 +96,7 @@ public class WriteToFilePlainText
             .CreateLogger();
         
         serilogMsExtLoggerFactory = LoggerFactory.Create(logging => logging.AddSerilog(serilogLoggerForMsExt));
-        serilogMsExtLogger = serilogMsExtLoggerFactory.CreateLogger<WriteToFilePlainText>();
+        serilogMsExtLogger = serilogMsExtLoggerFactory.CreateLogger<WritePlainTextToFile>();
         
         // NLog
 
@@ -130,7 +130,7 @@ public class WriteToFilePlainText
             });
         }
 
-        nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<WriteToFilePlainText>();
+        nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<WritePlainTextToFile>();
     }
 
     [Benchmark]

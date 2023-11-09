@@ -1,10 +1,7 @@
-using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Logging.Console;
 using NLog.Extensions.Logging;
 using Serilog;
 using ZLogger;
@@ -50,6 +47,8 @@ public class PostLogEntry
     [GlobalSetup]
     public void SetUp()
     {
+        System.Console.SetOut(TextWriter.Null);
+        
         // ZLogger
         
         var zLoggerFactory = LoggerFactory.Create(logging =>
@@ -61,7 +60,6 @@ public class PostLogEntry
         
         // Microsoft.Extensions.Logging.Console
         
-        System.Console.SetOut(TextWriter.Null);
         using var msExtLoggerFactory = LoggerFactory.Create(logging =>
         {
             logging.AddConsole(options =>
@@ -90,24 +88,34 @@ public class PostLogEntry
         
         // NLog
 
-        var nLogConfig = new NLog.Config.LoggingConfiguration();
-        var target = new NLog.Targets.FileTarget("Null")
         {
-            FileName = NullDevicePath
-        };
-        var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target);
-        nLogConfig.AddTarget(asyncTarget);
-        nLogConfig.AddRuleForAllLevels(asyncTarget);
+            var nLogConfig = new NLog.Config.LoggingConfiguration();
+            var target = new NLog.Targets.FileTarget("Null")
+            {
+                FileName = NullDevicePath
+            };
+            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target);
+            nLogConfig.AddTarget(asyncTarget);
+            nLogConfig.AddRuleForAllLevels(asyncTarget);
 
-        NLog.LogManager.Configuration = nLogConfig;
-        nLogLogger = NLog.LogManager.LogFactory.GetLogger("NLog");
-
-        var nLogMsExtLoggerFactory = LoggerFactory.Create(logging =>
+            nLogLogger = nLogConfig.LogFactory.GetLogger("NLog");
+        }
         {
-            logging.AddNLog(nLogConfig);
-        });
+            var nLogConfigForMsExt = new NLog.Config.LoggingConfiguration();
+            var target = new NLog.Targets.FileTarget("Null")
+            {
+                FileName = NullDevicePath
+            };
+            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target);
+            nLogConfigForMsExt.AddTarget(asyncTarget);
+            nLogConfigForMsExt.AddRuleForAllLevels(asyncTarget);
 
-        nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<PostLogEntry>();
+            var nLogMsExtLoggerFactory = LoggerFactory.Create(logging =>
+            {
+                logging.AddNLog(nLogConfigForMsExt);
+            });
+            nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<PostLogEntry>();
+        }
     }
 
     [Benchmark]

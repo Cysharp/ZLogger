@@ -1,4 +1,5 @@
-﻿using System.IO;
+using System;
+using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
@@ -6,9 +7,9 @@ using BenchmarkDotNet.Jobs;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using Serilog;
-using Serilog.Formatting.Json;
+using Serilog.Formatting.Display;
+using Utf8StringInterpolation;
 using ZLogger;
-using ZLogger.Formatters;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Benchmark.Benchmarks;
@@ -24,15 +25,17 @@ file class BenchmarkConfig : ManualConfig
 
 [Config(typeof(BenchmarkConfig))]
 [LogWritesPerSecond]
-public class WriteToFileJson
+public class WritePlainTextToConsole
 {
     const int N = 10_000;
     
     ILogger zLogger = default!;
+    ILogger msExtConsoleLogger = default!;
     ILogger serilogMsExtLogger = default!;
     ILogger nLogMsExtLogger = default!;
 
     ILoggerFactory zLoggerFactory;
+    ILoggerFactory msExtConsoleLoggerFactory;
     ILoggerFactory serilogMsExtLoggerFactory;
     ILoggerFactory nLogMsExtLoggerFactory;
 
@@ -43,88 +46,74 @@ public class WriteToFileJson
     NLog.Config.LoggingConfiguration nLogConfig = default!;
     NLog.Config.LoggingConfiguration nLogConfigForMsExt = default!;
 
-    string tempDir = default!;
-
-    [GlobalSetup]
-    public void SetUpDirectory()
-    {
-        tempDir = Path.Join(Path.GetTempPath(), "zlogger-benchmark");
-        try
-        {
-            Directory.Delete(tempDir, true);
-        }
-        catch (DirectoryNotFoundException)
-        {
-        }
-        catch (FileNotFoundException)
-        {
-        }
-        Directory.CreateDirectory(tempDir);
-    }
-
     [IterationSetup]
     public void SetUpLogger()
     {
+        Console.SetOut(TextWriter.Null);
+        
         // ZLogger
         
         zLoggerFactory = LoggerFactory.Create(logging =>
         {
-            logging.AddZLoggerFile(GetLogFilePath("zlogger.log"), options =>
+            logging.AddZLoggerConsole(options =>
             {
-                options.UseJsonFormatter();
+                options.UsePlainTextFormatter(formatter =>
+                {
+                    formatter.PrefixFormatter = (writer, info) =>
+                    {
+                        Utf8String.Format(writer, $"{info.Timestamp.DateTime} [{info.LogLevel}] ");
+                    };
+                });
             });
         });
 
-        zLogger = zLoggerFactory.CreateLogger<WriteToFilePlainText>();
+        zLogger = zLoggerFactory.CreateLogger<WritePlainTextToConsole>();
+        
+        // Microsoft.Extensions.Logging.Console
+        
+        msExtConsoleLoggerFactory = LoggerFactory.Create(logging =>
+        {
+            logging.AddJsonConsole();
+        });
+        msExtConsoleLogger = msExtConsoleLoggerFactory.CreateLogger<WritePlainTextToConsole>();
+        
         
         // Serilog
 
-        var serilogFormatter = new JsonFormatter(renderMessage: true);
+        var serilogFormatter = new MessageTemplateTextFormatter("{Timestamp} [{Level}] {Message}{NewLine}");
         
         serilogLogger = new Serilog.LoggerConfiguration()
-            .WriteTo.Async(a => a.File(serilogFormatter, GetLogFilePath("serilog.log"), buffered: true))
+            .WriteTo.Async(a => a.Console(serilogFormatter))
             .CreateLogger();
 
         serilogLoggerForMsExt = new Serilog.LoggerConfiguration()
-            .WriteTo.Async(a => a.File(serilogFormatter, GetLogFilePath("serilog_msext.log"), buffered: true))
+            .WriteTo.Async(a => a.Console(serilogFormatter))
             .CreateLogger();
         
         serilogMsExtLoggerFactory = LoggerFactory.Create(logging => logging.AddSerilog(serilogLoggerForMsExt));
-        serilogMsExtLogger = serilogMsExtLoggerFactory.CreateLogger<WriteToFilePlainText>();
+        serilogMsExtLogger = serilogMsExtLoggerFactory.CreateLogger<WritePlainTextToConsole>();
         
         // NLog
 
-        var nLogLayout = new NLog.Layouts.JsonLayout
-        {
-            IncludeEventProperties = true,
-            Attributes =
-            {
-                new NLog.Layouts.JsonAttribute("date", "${longdate}"),
-                new NLog.Layouts.JsonAttribute("level", "${level}"),
-                new NLog.Layouts.JsonAttribute("message", "${message}"),
-                new NLog.Layouts.JsonAttribute("logger", "${logger}"),
-            }
-        };
+        var nLogLayout = new NLog.Layouts.SimpleLayout("${longdate} [${level}] ${message}");
         {
             nLogConfig = new NLog.Config.LoggingConfiguration();
-            var target = new NLog.Targets.FileTarget("File")
+            var target = new NLog.Targets.ConsoleTarget("Console")
             {
-                FileName = GetLogFilePath("nlog.log"),
                 Layout = nLogLayout,
             };
             var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target);
             nLogConfig.AddTarget(asyncTarget);
             nLogConfig.AddRuleForAllLevels(asyncTarget);
 
-            nLogLogger = nLogConfig.LogFactory.GetLogger(nameof(WriteToFilePlainText));
+            nLogLogger = nLogConfig.LogFactory.GetLogger(nameof(WritePlainTextToConsole));
         }
         {
             nLogMsExtLoggerFactory = LoggerFactory.Create(logging =>
             {
                 nLogConfigForMsExt = new NLog.Config.LoggingConfiguration();
-                var target2 = new NLog.Targets.FileTarget("FileMsExt")
+                var target2 = new NLog.Targets.ConsoleTarget("ConsoleMsExt")
                 {
-                    FileName = GetLogFilePath("nlog_msext.log"),
                     Layout = nLogLayout
                 };
                 var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2);
@@ -134,11 +123,11 @@ public class WriteToFileJson
             });
         }
 
-        nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<WriteToFilePlainText>();
+        nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<WritePlainTextToConsole>();
     }
 
     [Benchmark]
-    public void ZLogger_JsonFile()
+    public void ZLogger_PlainTextConsole()
     {
         var x = 100;
         var y = 200;
@@ -149,9 +138,19 @@ public class WriteToFileJson
         }
         zLoggerFactory.Dispose();
     }
-
+    
     [Benchmark]
-    public void Serilog_MsExt_JsonFile()
+    public void MsExtConsole_PlainTextConsole()
+    {
+        for (var i = 0; i < N; i++)
+        {
+            msExtConsoleLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
+        }
+        msExtConsoleLoggerFactory.Dispose();
+    }
+    
+    [Benchmark]
+    public void Serilog_MsExt_PlainTextConsole()
     {
         for (var i = 0; i < N; i++)
         {
@@ -162,7 +161,7 @@ public class WriteToFileJson
     }
 
     [Benchmark]
-    public void Serilog_JsonFile()
+    public void Serilog_PlainTextConsole()
     {
         for (var i = 0; i < N; i++)
         {
@@ -172,7 +171,7 @@ public class WriteToFileJson
     }
 
     [Benchmark]
-    public void NLog_MsExt_JsonFile()
+    public void NLog_MsExt_PlainTextConsole()
     {
         for (var i = 0; i < N; i++)
         {
@@ -182,7 +181,7 @@ public class WriteToFileJson
     }
 
     [Benchmark]
-    public void NLog_JsonFile()
+    public void NLog_PlainTextConsole()
     {
         for (var i = 0; i < N; i++)
         {
@@ -190,6 +189,4 @@ public class WriteToFileJson
         }
         nLogConfig.LogFactory.Shutdown();
     }
-
-    string GetLogFilePath(string filename) => Path.Join(tempDir, filename);
 }
