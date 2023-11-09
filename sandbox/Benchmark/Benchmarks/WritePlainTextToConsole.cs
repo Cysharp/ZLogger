@@ -7,6 +7,7 @@ using BenchmarkDotNet.Jobs;
 using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Extensions.Logging;
+using NLog.Targets.Wrappers;
 using Serilog;
 using Serilog.Formatting.Display;
 using Utf8StringInterpolation;
@@ -29,7 +30,7 @@ file class BenchmarkConfig : ManualConfig
 public class WritePlainTextToConsole
 {
     const int N = 100_000;
-    
+
     ILogger zLogger = default!;
     ILogger msExtConsoleLogger = default!;
     ILogger serilogMsExtLogger = default!;
@@ -42,7 +43,7 @@ public class WritePlainTextToConsole
 
     Serilog.Core.Logger serilogLogger = default!;
     Serilog.Core.Logger serilogLoggerForMsExt = default!;
-    
+
     NLog.Logger nLogLogger = default!;
     NLog.Config.LoggingConfiguration nLogConfig = default!;
     NLog.Config.LoggingConfiguration nLogConfigForMsExt = default!;
@@ -51,9 +52,9 @@ public class WritePlainTextToConsole
     public void SetUpLogger()
     {
         Console.SetOut(TextWriter.Null);
-        
+
         // ZLogger
-        
+
         zLoggerFactory = LoggerFactory.Create(logging =>
         {
             logging.AddZLoggerConsole(options =>
@@ -69,31 +70,31 @@ public class WritePlainTextToConsole
         });
 
         zLogger = zLoggerFactory.CreateLogger<WritePlainTextToConsole>();
-        
+
         // Microsoft.Extensions.Logging.Console
-        
+
         msExtConsoleLoggerFactory = LoggerFactory.Create(logging =>
         {
             logging.AddJsonConsole();
         });
         msExtConsoleLogger = msExtConsoleLoggerFactory.CreateLogger<WritePlainTextToConsole>();
-        
-        
+
+
         // Serilog
 
         var serilogFormatter = new MessageTemplateTextFormatter("{Timestamp} [{Level}] {Message}{NewLine}");
-        
+
         serilogLogger = new Serilog.LoggerConfiguration()
-            .WriteTo.Async(a => a.Console(serilogFormatter))
+            .WriteTo.Async(a => a.Console(serilogFormatter), bufferSize: int.MaxValue)
             .CreateLogger();
 
         serilogLoggerForMsExt = new Serilog.LoggerConfiguration()
-            .WriteTo.Async(a => a.Console(serilogFormatter))
+            .WriteTo.Async(a => a.Console(serilogFormatter), bufferSize: int.MaxValue)
             .CreateLogger();
-        
+
         serilogMsExtLoggerFactory = LoggerFactory.Create(logging => logging.AddSerilog(serilogLoggerForMsExt));
         serilogMsExtLogger = serilogMsExtLoggerFactory.CreateLogger<WritePlainTextToConsole>();
-        
+
         // NLog
 
         var nLogLayout = new NLog.Layouts.SimpleLayout("${longdate} [${level}] ${message}");
@@ -103,7 +104,7 @@ public class WritePlainTextToConsole
             {
                 Layout = nLogLayout,
             };
-            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target);
+            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target, int.MaxValue, AsyncTargetWrapperOverflowAction.Grow);
             nLogConfig.AddTarget(asyncTarget);
             nLogConfig.AddRuleForAllLevels(asyncTarget);
             nLogConfig.LogFactory.Configuration = nLogConfig;
@@ -118,7 +119,7 @@ public class WritePlainTextToConsole
                 {
                     Layout = nLogLayout
                 };
-                var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2);
+                var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2, int.MaxValue, AsyncTargetWrapperOverflowAction.Grow);
                 nLogConfigForMsExt.AddTarget(asyncTarget2);
                 nLogConfigForMsExt.AddRuleForAllLevels(asyncTarget2);
                 nLogConfigForMsExt.LogFactory.Configuration = nLogConfigForMsExt;
@@ -141,7 +142,7 @@ public class WritePlainTextToConsole
         }
         zLoggerFactory.Dispose();
     }
-    
+
     [Benchmark]
     public void MsExtConsole_PlainTextConsole()
     {
@@ -151,7 +152,7 @@ public class WritePlainTextToConsole
         }
         msExtConsoleLoggerFactory.Dispose();
     }
-    
+
     [Benchmark]
     public void Serilog_MsExt_PlainTextConsole()
     {
