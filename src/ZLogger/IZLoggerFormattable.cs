@@ -1,5 +1,4 @@
-﻿using System;
-using System.Buffers;
+﻿using System.Buffers;
 using System.Text.Json;
 
 namespace ZLogger
@@ -21,5 +20,11 @@ namespace ZLogger
         object? GetParameterValue(int index);
         T? GetParameterValue<T>(int index);
         Type GetParameterType(int index);
+    }
+    
+    public interface IReferenceCountZLoggerFormattable : IZLoggerFormattable
+    {
+        void Retain();
+        void Release();
     }
 }

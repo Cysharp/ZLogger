@@ -24,8 +24,15 @@ namespace ZLogger
         {
             if (message.IsLoggerEnabled)
             {
-                using var state = message.GetStateAndClear();
-                logger.Log(logLevel, eventId, state, exception, static (state, ex) => state.ToString());
+                var state = message.GetStateAndClear();
+                try
+                {
+                    logger.Log(logLevel, eventId, state, exception, static (state, ex) => state.ToString());
+                }
+                finally
+                {
+                    state.Release();
+                }
             }
         }
 

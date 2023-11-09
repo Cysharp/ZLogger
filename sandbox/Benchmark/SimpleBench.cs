@@ -96,7 +96,7 @@ namespace Benchmark
 
             protected override void WriteLog(NLog.Logger logger, int x, int y, int z)
             {
-                logger.Info("x:{0} y:{1} z:{2}", x, y, z);
+                logger.Info("x:{X} y:{1} z:{2}", x, y, z);
             }
         }
 
