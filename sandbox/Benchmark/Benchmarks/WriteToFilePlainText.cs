@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
@@ -88,11 +89,11 @@ public class WriteToFilePlainText
         var serilogFormatter = new MessageTemplateTextFormatter("{Timestamp} [{Level}] {Message}{NewLine}");
         
         serilogLogger = new Serilog.LoggerConfiguration()
-            .WriteTo.Async(a => a.File(serilogFormatter, GetLogFilePath("serilog.log")))
+            .WriteTo.Async(a => a.File(serilogFormatter, GetLogFilePath("serilog.log"), buffered: true))
             .CreateLogger();
 
         serilogLoggerForMsExt = new Serilog.LoggerConfiguration()
-            .WriteTo.Async(a => a.File(serilogFormatter, GetLogFilePath("serilog_msext.log")))
+            .WriteTo.Async(a => a.File(serilogFormatter, GetLogFilePath("serilog_msext.log"), buffered: true))
             .CreateLogger();
         
         serilogMsExtLoggerFactory = LoggerFactory.Create(logging => logging.AddSerilog(serilogLoggerForMsExt));
@@ -134,7 +135,7 @@ public class WriteToFilePlainText
     }
 
     [Benchmark]
-    public void ZLogger_Write()
+    public void ZLogger_WriteText()
     {
         var x = 100;
         var y = 200;
@@ -147,7 +148,7 @@ public class WriteToFilePlainText
     }
 
     [Benchmark]
-    public void Serilog_MsExt_Write()
+    public void Serilog_MsExt_WriteText()
     {
         for (var i = 0; i < N; i++)
         {
@@ -158,7 +159,7 @@ public class WriteToFilePlainText
     }
 
     [Benchmark]
-    public void Serilog_Write()
+    public void Serilog_WriteText()
     {
         for (var i = 0; i < N; i++)
         {
@@ -168,7 +169,7 @@ public class WriteToFilePlainText
     }
 
     [Benchmark]
-    public void NLog_MsExt_Write()
+    public void NLog_MsExt_WriteText()
     {
         for (var i = 0; i < N; i++)
         {
@@ -178,7 +179,7 @@ public class WriteToFilePlainText
     }
 
     [Benchmark]
-    public void NLog_Write()
+    public void NLog_WriteText()
     {
         for (var i = 0; i < N; i++)
         {
