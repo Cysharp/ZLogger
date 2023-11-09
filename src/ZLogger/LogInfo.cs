@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
 namespace ZLogger
 {
@@ -19,5 +18,5 @@ namespace ZLogger
             LogLevel = logLevel;
             Exception = exception;
         }
-  }
+    }
 }

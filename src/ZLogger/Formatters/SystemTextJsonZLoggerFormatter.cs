@@ -44,7 +44,7 @@ namespace ZLogger.Formatters
         static readonly JsonEncodedText None = JsonEncodedText.Encode(nameof(LogLevel.None));
 
         public JsonEncodedText MessagePropertyName { get; set; } = JsonEncodedText.Encode("Message");
-        public Action<Utf8JsonWriter, LogInfo> MetadataFormatter { get; set; } = DefaultMetadataFormatter;
+        public Action<Utf8JsonWriter, LogInfo, ZLoggerOptions> MetadataFormatter { get; set; } = DefaultMetadataFormatter;
 
         public JsonSerializerOptions JsonSerializerOptions { get; set; } = new()
         {
@@ -68,7 +68,7 @@ namespace ZLogger.Formatters
 
             jsonWriter.WriteStartObject();
             
-            MetadataFormatter.Invoke(jsonWriter, entry.LogInfo);
+            MetadataFormatter.Invoke(jsonWriter, entry.LogInfo, options);
 
             var bufferWriter = ArrayBufferWriterPool.GetThreadStaticInstance();
             entry.ToString(bufferWriter);
@@ -125,13 +125,28 @@ namespace ZLogger.Formatters
             }
         }
 
-        public static void DefaultMetadataFormatter(Utf8JsonWriter jsonWriter, LogInfo info)
+        public static void DefaultMetadataFormatter(Utf8JsonWriter jsonWriter, LogInfo info, ZLoggerOptions options)
         {
-            jsonWriter.WriteString(CategoryNameText, info.CategoryName);
-            jsonWriter.WriteString(LogLevelText, LogLevelToEncodedText(info.LogLevel));
-            jsonWriter.WriteNumber(EventIdText, info.EventId.Id);
-            jsonWriter.WriteString(EventIdNameText, info.EventId.Name);
-            jsonWriter.WriteString(TimestampText, info.Timestamp);
+            if ((options.IncludeProperties & LogInfoProperties.CategoryName) != 0)
+            {
+                jsonWriter.WriteString(CategoryNameText, info.CategoryName);
+            }
+            if ((options.IncludeProperties & LogInfoProperties.LogLevel) != 0)
+            {
+                jsonWriter.WriteString(LogLevelText, LogLevelToEncodedText(info.LogLevel));
+            }
+            if ((options.IncludeProperties & LogInfoProperties.EventIdValue) != 0)
+            {
+                jsonWriter.WriteNumber(EventIdText, info.EventId.Id);
+            }
+            if ((options.IncludeProperties & LogInfoProperties.EventIdName) != 0)
+            {
+                jsonWriter.WriteString(EventIdNameText, info.EventId.Name);
+            }
+            if ((options.IncludeProperties & LogInfoProperties.Timestamp) != 0)
+            {
+                jsonWriter.WriteString(TimestampText, info.Timestamp);
+            }
 
             // Write Exception
             if (info.Exception is { } ex)
