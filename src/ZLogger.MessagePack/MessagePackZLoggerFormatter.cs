@@ -17,7 +17,7 @@ namespace ZLogger.MessagePack
             });
         }
     }
-
+    
     public class MessagePackZLoggerFormatter : IZLoggerFormatter
     {
         // "CategoryName"
@@ -118,7 +118,7 @@ namespace ZLogger.MessagePack
                 messagePackWriter.WriteRaw(ExceptionKey);
                 WriteException(ref messagePackWriter, ex);
             }
-
+            
             for (var i = 0; i < entry.ParameterCount; i++)
             {
                 if (entry.IsSupportUtf8ParameterKey)
@@ -130,197 +130,8 @@ namespace ZLogger.MessagePack
                 {
                     WriteKeyName(ref messagePackWriter, entry, i);
                 }
-                
-                var valueType = entry.GetParameterType(i);
-                if (valueType == typeof(string))
-                {
-                    messagePackWriter.Write(entry.GetParameterValue<string>(i));
-                }
-                else if (valueType == typeof(bool))
-                {
-                    messagePackWriter.Write(entry.GetParameterValue<bool>(i));
-                }
-                else if (valueType == typeof(bool?))
-                {
-                    var nullableValue = entry.GetParameterValue<bool?>(i);
-                    if (nullableValue.HasValue)
-                    {
-                        messagePackWriter.Write(nullableValue.Value);
-                    }
-                    else
-                    {
-                        messagePackWriter.WriteNil();
-                    }
-                }
-                else if (valueType == typeof(byte))
-                {
-                    messagePackWriter.Write(entry.GetParameterValue<byte>(i));
-                }
-                else if (valueType == typeof(byte?))
-                {
-                    var nullableValue = entry.GetParameterValue<byte?>(i);
-                    if (nullableValue.HasValue)
-                    {
-                        messagePackWriter.Write(nullableValue.Value);
-                    }
-                    else
-                    {
-                        messagePackWriter.WriteNil();
-                    }
-                }
-                else if (valueType == typeof(Int16))
-                {
-                    messagePackWriter.Write(entry.GetParameterValue<Int16>(i));
-                }
-                else if (valueType == typeof(Int16?))
-                {
-                    var nullableValue = entry.GetParameterValue<Int16?>(i);
-                    if (nullableValue.HasValue)
-                    {
-                        messagePackWriter.Write(nullableValue.Value);
-                    }
-                    else
-                    {
-                        messagePackWriter.WriteNil();
-                    }
-                }
-                else if (valueType == typeof(UInt16))
-                {
-                    messagePackWriter.Write(entry.GetParameterValue<UInt16>(i));
-                }
-                else if (valueType == typeof(UInt16?))
-                {
-                    var nullableValue = entry.GetParameterValue<UInt16?>(i);
-                    if (nullableValue.HasValue)
-                    {
-                        messagePackWriter.Write(nullableValue.Value);
-                    }
-                    else
-                    {
-                        messagePackWriter.WriteNil();
-                    }
-                }
-                else if (valueType == typeof(Int32))
-                {
-                    messagePackWriter.Write(entry.GetParameterValue<Int32>(i));
-                }
-                else if (valueType == typeof(Int32?))
-                {
-                    var nullableValue = entry.GetParameterValue<Int32?>(i);
-                    if (nullableValue.HasValue)
-                    {
-                        messagePackWriter.Write(nullableValue.Value);
-                    }
-                    else
-                    {
-                        messagePackWriter.WriteNil();
-                    }
-                }
-                else if (valueType == typeof(UInt32))
-                {
-                    messagePackWriter.Write(entry.GetParameterValue<UInt32>(i));
-                }
-                else if (valueType == typeof(UInt32?))
-                {
-                    var nullableValue = entry.GetParameterValue<UInt32?>(i);
-                    if (nullableValue.HasValue)
-                    {
-                        messagePackWriter.Write(nullableValue.Value);
-                    }
-                    else
-                    {
-                        messagePackWriter.WriteNil();
-                    }
-                }
-                else if (valueType == typeof(Int64))
-                {
-                    messagePackWriter.Write(entry.GetParameterValue<Int64>(i));
-                }
-                else if (valueType == typeof(Int64?))
-                {
-                    var nullableValue = entry.GetParameterValue<Int64?>(i);
-                    if (nullableValue.HasValue)
-                    {
-                        messagePackWriter.Write(nullableValue.Value);
-                    }
-                    else
-                    {
-                        messagePackWriter.WriteNil();
-                    }
-                }
-                else if (valueType == typeof(UInt64))
-                {
-                    messagePackWriter.Write(entry.GetParameterValue<UInt64>(i));
-                }
-                else if (valueType == typeof(UInt16?))
-                {
-                    var nullableValue = entry.GetParameterValue<UInt16?>(i);
-                    if (nullableValue.HasValue)
-                    {
-                        messagePackWriter.Write(nullableValue.Value);
-                    }
-                    else
-                    {
-                        messagePackWriter.WriteNil();
-                    }
-                }
-                else if (valueType == typeof(float))
-                {
-                    messagePackWriter.Write(entry.GetParameterValue<float>(i));
-                }
-                else if (valueType == typeof(float?))
-                {
-                    var nullableValue = entry.GetParameterValue<float?>(i);
-                    if (nullableValue.HasValue)
-                    {
-                        messagePackWriter.Write(nullableValue.Value);
-                    }
-                    else
-                    {
-                        messagePackWriter.WriteNil();
-                    }
-                }
-                else if (valueType == typeof(double))
-                {
-                    messagePackWriter.Write(entry.GetParameterValue<double>(i));
-                }
-                else if (valueType == typeof(double?))
-                {
-                    var nullableValue = entry.GetParameterValue<double?>(i);
-                    if (nullableValue.HasValue)
-                    {
-                        messagePackWriter.Write(nullableValue.Value);
-                    }
-                    else
-                    {
-                        messagePackWriter.WriteNil();
-                    }
-                }
-                else if (valueType == typeof(DateTime))
-                {
-                    var value = entry.GetParameterValue<DateTime>(i);
-                    MessagePackSerializer.Serialize(valueType, ref messagePackWriter, value, MessagePackSerializerOptions);
-                }
-                else if (valueType == typeof(DateTime?))
-                {
-                    var value = entry.GetParameterValue<DateTime?>(i);
-                    MessagePackSerializer.Serialize(valueType, ref messagePackWriter, value, MessagePackSerializerOptions);                    
-                }
-                else if (valueType == typeof(DateTimeOffset))
-                {
-                    var value = entry.GetParameterValue<DateTimeOffset>(i);
-                    MessagePackSerializer.Serialize(valueType, ref messagePackWriter, value, MessagePackSerializerOptions);
-                }
-                else if (valueType == typeof(DateTimeOffset?))
-                {
-                    var value = entry.GetParameterValue<DateTimeOffset?>(i);
-                    MessagePackSerializer.Serialize(valueType, ref messagePackWriter, value, MessagePackSerializerOptions);
-                }
-                else // TODO: GUID, TimeSpan
-                {
-                    var boxedValue = entry.GetParameterValue(i);
-                    MessagePackSerializer.Serialize(valueType, ref messagePackWriter, boxedValue, MessagePackSerializerOptions);
-                }
+
+                WriteParameterValue(ref messagePackWriter, entry, entry.GetParameterType(i), i);
             }
             
             if (entry.ScopeState != null)
@@ -418,6 +229,224 @@ namespace ZLogger.MessagePack
 
             messagePackWriter.WriteRaw(InnerExceptionKey);
             WriteException(ref messagePackWriter, ex.InnerException);
+        }
+
+        void WriteParameterValue<TEntry>(ref MessagePackWriter messagePackWriter, TEntry entry, Type type, int index)
+            where TEntry : IZLoggerEntry
+        {
+            var code = Type.GetTypeCode(type);
+            switch (code)
+            {
+                case TypeCode.Boolean:
+                    messagePackWriter.Write(entry.GetParameterValue<bool>(index));
+                    return;
+                case TypeCode.Char:
+                    messagePackWriter.Write(entry.GetParameterValue<char>(index));
+                    return;
+                case TypeCode.SByte:
+                    messagePackWriter.Write(entry.GetParameterValue<sbyte>(index));
+                    return;
+                case TypeCode.Byte:
+                    messagePackWriter.Write(entry.GetParameterValue<byte>(index));
+                    return;
+                case TypeCode.Int16:
+                    messagePackWriter.Write(entry.GetParameterValue<Int16>(index));
+                    return;
+                case TypeCode.UInt16:
+                    messagePackWriter.Write(entry.GetParameterValue<UInt16>(index));
+                    return;
+                case TypeCode.Int32:
+                    messagePackWriter.Write(entry.GetParameterValue<Int32>(index));
+                    return;
+                case TypeCode.UInt32:
+                    messagePackWriter.Write(entry.GetParameterValue<UInt32>(index));
+                    return;
+                case TypeCode.Int64:
+                    messagePackWriter.Write(entry.GetParameterValue<Int64>(index));
+                    return;
+                case TypeCode.UInt64:
+                    messagePackWriter.Write(entry.GetParameterValue<UInt64>(index));
+                    return;
+                case TypeCode.Single:
+                    messagePackWriter.Write(entry.GetParameterValue<Single>(index));
+                    return;
+                case TypeCode.Double:
+                    messagePackWriter.Write(entry.GetParameterValue<double>(index));
+                    return;
+                case TypeCode.DateTime:
+                    return;
+                case TypeCode.String:
+                    messagePackWriter.Write(entry.GetParameterValue<string>(index));
+                    return;
+            }
+
+            if (type.IsValueType)
+            {
+                if (type == typeof(DateTime))
+                {
+                    var value = entry.GetParameterValue<DateTime>(index);
+                    MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
+                }
+                else if (type == typeof(DateTimeOffset))
+                {
+                    var value = entry.GetParameterValue<DateTimeOffset>(index);
+                    MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
+                }
+                else if (type == typeof(TimeSpan))
+                {
+                    var value = entry.GetParameterValue<TimeSpan>(index);
+                    MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
+                }
+                else if (type == typeof(TimeOnly))
+                {
+                    var value = entry.GetParameterValue<TimeOnly>(index);
+                    MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
+                }
+                else if (type == typeof(DateOnly))
+                {
+                    var value = entry.GetParameterValue<DateOnly>(index);
+                    MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
+                }
+                else if (type == typeof(Guid))
+                {
+                    var value = entry.GetParameterValue<Guid>(index);
+                    MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
+                }
+                else if (Nullable.GetUnderlyingType(type) is { } underlyingType)
+                {
+                    code = Type.GetTypeCode(underlyingType);
+                    switch (code)
+                    {
+                        case TypeCode.Boolean:
+                        {
+                            var nullableValue = entry.GetParameterValue<bool?>(index);
+                            if (nullableValue.HasValue)
+                                messagePackWriter.Write(nullableValue.Value);
+                            else
+                                messagePackWriter.WriteNil();
+                            return;
+                        }
+                        case TypeCode.Char:
+                        {
+                            var nullableValue = entry.GetParameterValue<char?>(index);
+                            if (nullableValue.HasValue)
+                                messagePackWriter.Write(nullableValue.Value);
+                            else
+                                messagePackWriter.WriteNil();
+                            return;
+                        }
+                        case TypeCode.SByte:
+                        {
+                            var nullableValue = entry.GetParameterValue<sbyte?>(index);
+                            if (nullableValue.HasValue)
+                                messagePackWriter.Write(nullableValue.Value);
+                            else
+                                messagePackWriter.WriteNil();
+                            return;
+                        }
+                        case TypeCode.Byte:
+                        {
+                            var nullableValue = entry.GetParameterValue<byte?>(index);
+                            if (nullableValue.HasValue)
+                                messagePackWriter.Write(nullableValue.Value);
+                            else
+                                messagePackWriter.WriteNil();
+                            return;
+                        }
+                        case TypeCode.Int16:
+                        {
+                            var nullableValue = entry.GetParameterValue<Int16?>(index);
+                            if (nullableValue.HasValue)
+                                messagePackWriter.Write(nullableValue.Value);
+                            else
+                                messagePackWriter.WriteNil();
+                            return;
+                        }
+                        case TypeCode.UInt16:
+                        {
+                            var nullableValue = entry.GetParameterValue<UInt16?>(index);
+                            if (nullableValue.HasValue)
+                                messagePackWriter.Write(nullableValue.Value);
+                            else
+                                messagePackWriter.WriteNil();
+                            return;
+                        }
+                        case TypeCode.Int32:
+                        {
+                            var nullableValue = entry.GetParameterValue<Int32?>(index);
+                            if (nullableValue.HasValue)
+                                messagePackWriter.Write(nullableValue.Value);
+                            else
+                                messagePackWriter.WriteNil();
+                            return;
+                        }
+                        case TypeCode.UInt32:
+                        {
+                            var nullableValue = entry.GetParameterValue<UInt32?>(index);
+                            if (nullableValue.HasValue)
+                                messagePackWriter.Write(nullableValue.Value);
+                            else
+                                messagePackWriter.WriteNil();
+                            return;
+                        }
+                        case TypeCode.Int64:
+                        {
+                            var nullableValue = entry.GetParameterValue<Int64?>(index);
+                            if (nullableValue.HasValue)
+                                messagePackWriter.Write(nullableValue.Value);
+                            else
+                                messagePackWriter.WriteNil();
+                            return;
+                        }
+                        case TypeCode.UInt64:
+                        {
+                            var nullableValue = entry.GetParameterValue<UInt64?>(index);
+                            if (nullableValue.HasValue)
+                                messagePackWriter.Write(nullableValue.Value);
+                            else
+                                messagePackWriter.WriteNil();
+                            return;
+                        }
+                        case TypeCode.Single:
+                        {
+                            var nullableValue = entry.GetParameterValue<Single?>(index);
+                            if (nullableValue.HasValue)
+                                messagePackWriter.Write(nullableValue.Value);
+                            else
+                                messagePackWriter.WriteNil();
+                            return;
+                        }
+                        case TypeCode.Double:
+                        {
+                            var nullableValue = entry.GetParameterValue<double?>(index);
+                            if (nullableValue.HasValue)
+                                messagePackWriter.Write(nullableValue.Value);
+                            else
+                                messagePackWriter.WriteNil();
+                            return;
+                        }
+                        case TypeCode.DateTime:
+                        {
+                            var nullableValue = entry.GetParameterValue<DateTime?>(index);
+                            if (nullableValue.HasValue)
+                                messagePackWriter.Write(nullableValue.Value);
+                            else
+                                messagePackWriter.WriteNil();
+                            return;
+                        }
+                    }
+                }
+            }
+            
+            var boxedValue = entry.GetParameterValue(index);
+            if (boxedValue == null)
+            {
+                messagePackWriter.WriteNil();
+            }
+            else
+            {
+                MessagePackSerializer.Serialize(type, ref messagePackWriter, boxedValue, MessagePackSerializerOptions);
+            }
         }
 
         static byte[] EncodedLogLevel(LogLevel logLevel)
