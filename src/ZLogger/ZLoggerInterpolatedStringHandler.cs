@@ -27,11 +27,11 @@ namespace ZLogger
         public bool IsLoggerEnabled { get; }
 
         // fields
-        int literalLength;
-        int parametersLength;
-        List<string?> literals;
+        readonly int literalLength;
+        readonly int parametersLength;
+        readonly List<string?> literals;
+        readonly List<InterpolatedStringParameter> parameters;
         MagicalBox box;
-        List<InterpolatedStringParameter> parameters;
 
         /// <summary>
         /// DO NOT ALLOW DIRECT USE.
@@ -162,13 +162,12 @@ namespace ZLogger
                 var str = literals[i];
                 if (str == null)
                 {
-                    this.segments[i] = new MessageSequenceSegment(null, null!, default);
+                    this.segments[i] = new MessageSequenceSegment(null, null!);
                 }
                 else
                 {
                     var bytes = Encoding.UTF8.GetBytes(str);
-                    var encoded = JsonEncodedText.Encode(bytes);
-                    this.segments[i] = new MessageSequenceSegment(str, bytes, encoded);
+                    this.segments[i] = new MessageSequenceSegment(str, bytes);
                 }
             }
         }
@@ -177,8 +176,7 @@ namespace ZLogger
         {
             var stringWriter = new Utf8StringWriter<IBufferWriter<byte>>(literalLength, parametersLength, writer);
 
-            var parameterIndex = 0;
-            foreach (var item in segments)
+            var parameterIndex = 0; foreach (var item in segments)
             {
                 if (item.IsLiteral)
                 {
@@ -286,13 +284,11 @@ namespace ZLogger
 
         public readonly string Literal;
         public readonly byte[] Utf8Bytes;
-        public readonly JsonEncodedText JsonEncoded;
 
-        public MessageSequenceSegment(string? literal, byte[] utf8Bytes, JsonEncodedText jsonEncoded)
+        public MessageSequenceSegment(string? literal, byte[] utf8Bytes)
         {
             this.Literal = literal!;
             this.Utf8Bytes = utf8Bytes;
-            this.JsonEncoded = jsonEncoded;
         }
 
         public override string ToString()
@@ -318,6 +314,11 @@ namespace ZLogger
             Format = format;
             BoxOffset = boxOffset;
             BoxedValue = boxedValue;
+        }
+
+        public ReadOnlySpan<char> ParseKeyName()
+        {
+            return CallerArgumentExpressionParser.GetParameterizedName(Name);
         }
     }
 }

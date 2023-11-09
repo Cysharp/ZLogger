@@ -278,7 +278,7 @@ internal unsafe partial struct MagicalBox
         return true;
     }
 
-    public bool TryReadTo(Type type, int offset, string propertyName, Utf8JsonWriter jsonWriter)
+    public bool TryReadTo(Type type, int offset, Utf8JsonWriter jsonWriter)
     {
         if (offset < 0) return false;
 
@@ -286,49 +286,49 @@ internal unsafe partial struct MagicalBox
         switch (code)
         {
             case TypeCode.Boolean:
-                jsonWriter.WriteBoolean(propertyName, Read<Boolean>(offset));
+                jsonWriter.WriteBooleanValue(Read<Boolean>(offset));
                 return true;
             case TypeCode.Char:
                 var c = Read<char>(offset);
                 Span<char> cs = stackalloc char[1];
                 cs[0] = c;
-                jsonWriter.WriteString(propertyName, cs);
+                jsonWriter.WriteStringValue(cs);
                 break;
             case TypeCode.SByte:
-                jsonWriter.WriteNumber(propertyName, Read<SByte>(offset));
+                jsonWriter.WriteNumberValue(Read<SByte>(offset));
                 return true;
             case TypeCode.Byte:
-                jsonWriter.WriteNumber(propertyName, Read<Byte>(offset));
+                jsonWriter.WriteNumberValue(Read<Byte>(offset));
                 return true;
             case TypeCode.Int16:
-                jsonWriter.WriteNumber(propertyName, Read<Int16>(offset));
+                jsonWriter.WriteNumberValue(Read<Int16>(offset));
                 return true;
             case TypeCode.UInt16:
-                jsonWriter.WriteNumber(propertyName, Read<UInt16>(offset));
+                jsonWriter.WriteNumberValue(Read<UInt16>(offset));
                 return true;
             case TypeCode.Int32:
-                jsonWriter.WriteNumber(propertyName, Read<Int32>(offset));
+                jsonWriter.WriteNumberValue(Read<Int32>(offset));
                 return true;
             case TypeCode.UInt32:
-                jsonWriter.WriteNumber(propertyName, Read<UInt32>(offset));
+                jsonWriter.WriteNumberValue(Read<UInt32>(offset));
                 return true;
             case TypeCode.Int64:
-                jsonWriter.WriteNumber(propertyName, Read<Int64>(offset));
+                jsonWriter.WriteNumberValue(Read<Int64>(offset));
                 return true;
             case TypeCode.UInt64:
-                jsonWriter.WriteNumber(propertyName, Read<UInt64>(offset));
+                jsonWriter.WriteNumberValue(Read<UInt64>(offset));
                 return true;
             case TypeCode.Single:
-                jsonWriter.WriteNumber(propertyName, Read<Single>(offset));
+                jsonWriter.WriteNumberValue(Read<Single>(offset));
                 return true;
             case TypeCode.Double:
-                jsonWriter.WriteNumber(propertyName, Read<Double>(offset));
+                jsonWriter.WriteNumberValue(Read<Double>(offset));
                 return true;
             case TypeCode.Decimal:
-                jsonWriter.WriteNumber(propertyName, Read<Decimal>(offset));
+                jsonWriter.WriteNumberValue(Read<Decimal>(offset));
                 return true;
             case TypeCode.DateTime:
-                jsonWriter.WriteString(propertyName, Read<DateTime>(offset));
+                jsonWriter.WriteStringValue(Read<DateTime>(offset));
                 return true;
             default:
                 break;
@@ -341,25 +341,25 @@ internal unsafe partial struct MagicalBox
             var name = dict.GetJsonEncodedName(rawValue);
             if (name == null)
             {
-                jsonWriter.WriteString(propertyName, converter(rawValue));
+                jsonWriter.WriteStringValue(converter(rawValue));
             }
             else
             {
-                jsonWriter.WriteString(propertyName, name.Value);
+                jsonWriter.WriteStringValue(name.Value);
             }
         }
 
         if (type == typeof(Guid))
         {
-            jsonWriter.WriteString(propertyName, Read<Guid>(offset));
+            jsonWriter.WriteStringValue(Read<Guid>(offset));
         }
         else if (type == typeof(DateTime))
         {
-            jsonWriter.WriteString(propertyName, Read<DateTime>(offset));
+            jsonWriter.WriteStringValue(Read<DateTime>(offset));
         }
         else if (type == typeof(DateTimeOffset))
         {
-            jsonWriter.WriteString(propertyName, Read<DateTimeOffset>(offset));
+            jsonWriter.WriteStringValue(Read<DateTimeOffset>(offset));
         }
 
         return true;

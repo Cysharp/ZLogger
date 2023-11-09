@@ -85,6 +85,7 @@ public partial class ZLoggerGenerator
         {
             return ZLoggerEntry<{{stateTypeName}}>.Create(info, this);
         }
+        
 """);
 
             EmitIZLoggerFormattableMethods(method);
@@ -155,7 +156,7 @@ public partial class ZLoggerGenerator
 
             //void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions);
             sb.AppendLine($$"""
-        public void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions)
+        public void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions, ZLoggerOptions options)
         {
 {{ForEachLine("            ", methodParameters, x => x.ConvertJsonWriteMethod())}}
         }
@@ -176,7 +177,7 @@ public partial class ZLoggerGenerator
             return default!;
         }
 
-        public string GetParameterKeyAsString(int index)
+        public ReadOnlySpan<char> GetParameterKeyAsString(int index)
         {
             switch (index)
             {

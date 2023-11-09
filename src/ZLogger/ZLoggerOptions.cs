@@ -1,13 +1,14 @@
-﻿using System;
-using ZLogger.Formatters;
+﻿using ZLogger.Formatters;
 
 namespace ZLogger
 {
     public class ZLoggerOptions
     {
         public Action<LogInfo, Exception>? InternalErrorLogger { get; set; }
+        
         public TimeSpan? FlushRate { get; set; }
         public bool IncludeScopes { get; set; }
+        public IKeyNameMutator? KeyNameMutator { get; set; }
 
         Func<IZLoggerFormatter> formatterFactory = DefaultFormatterFactory;
 

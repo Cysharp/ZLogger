@@ -97,11 +97,13 @@ namespace ZLogger.MessagePack.Tests
         }
     
         [Fact]
-        public void WithPayload()
+        public void WithParameters()
         {
             var now = DateTime.UtcNow;
             var payload = new TestPayload { X = 999 };
-            logger.ZLogInformation(new EventId(1, "HOGE"), $"UMU {payload}");
+            var x = 100;
+            var y = 200;
+            logger.ZLogInformation(new EventId(1, "HOGE"), $"UMU {payload} {x} {y}");
         
             var msgpack = processor.Dequeue();
             ((string)msgpack["CategoryName"]).Should().Be("test");
@@ -110,7 +112,41 @@ namespace ZLogger.MessagePack.Tests
             ((string)msgpack["EventIdName"]).Should().Be("HOGE");
             ((DateTime)msgpack["Timestamp"]).Should().BeOnOrAfter(now);
             ((int)msgpack["payload"]["x"]).Should().Be(999);
+            ((int)msgpack["x"]).Should().Be(100);
+            ((int)msgpack["y"]).Should().Be(200);
             ((bool)msgpack.ContainsKey("Exception")).Should().BeFalse();            
+        }
+
+        [Fact]
+        public void LowercaseMutator()
+        {
+            var options = new ZLoggerOptions
+            {
+                KeyNameMutator = KeyNameMutator.LowercaseInitial
+            };
+
+            options.UseMessagePackFormatter();
+
+            processor = new TestProcessor(options);
+
+            var loggerFactory = LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Debug);
+                x.AddZLoggerLogProcessor(processor);
+            });
+            logger = loggerFactory.CreateLogger("test");
+
+
+            var XyzAbc = 100;
+            var fOo = 200;
+            logger.ZLogInformation($"AAA {XyzAbc} {fOo}");
+ 
+            var msgpack = processor.Dequeue();
+            ((string)msgpack["CategoryName"]).Should().Be("test");
+            ((string)msgpack["LogLevel"]).Should().Be("Information");
+            ((string)msgpack["Message"]).Should().Be("AAA 100 200");
+            ((int)msgpack["xyzAbc"]).Should().Be(100);
+            ((int)msgpack["fOo"]).Should().Be(200);
         }
    }
 }

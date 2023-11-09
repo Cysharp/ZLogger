@@ -1,4 +1,3 @@
-using System;
 using System.Buffers;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -15,7 +14,7 @@ namespace ZLogger.Formatters
         {
             return options.UseFormatter(() =>
             {
-                var formatter = new SystemTextJsonZLoggerFormatter();
+                var formatter = new SystemTextJsonZLoggerFormatter(options);
                 jsonConfigure?.Invoke(formatter);
                 return formatter;
             });
@@ -54,7 +53,13 @@ namespace ZLogger.Formatters
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
 
+        readonly ZLoggerOptions options;
         Utf8JsonWriter? jsonWriter;
+
+        public SystemTextJsonZLoggerFormatter(ZLoggerOptions options)
+        {
+            this.options = options;
+        }
         
         public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
         {
@@ -69,7 +74,7 @@ namespace ZLogger.Formatters
             entry.ToString(bufferWriter);
             jsonWriter.WriteString(MessagePropertyName, bufferWriter.WrittenSpan);
             
-            entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions);
+            entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, options);
             
             if (entry.ScopeState is { IsEmpty: false } scopeState)
             {
@@ -79,8 +84,9 @@ namespace ZLogger.Formatters
                     // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
                     if (x.Key == "{OriginalFormat}")
                         continue;
+
+                    WriteMutatedJsonKeyName(x.Key, jsonWriter, options.KeyNameMutator);
                     
-                    jsonWriter.WritePropertyName(x.Key);
                     if (x.Value is { } value)
                     {
                         JsonSerializer.Serialize(jsonWriter, value, JsonSerializerOptions);
@@ -154,6 +160,45 @@ namespace ZLogger.Formatters
                     }
                 }
                 jsonWriter.WriteEndObject();
+            }
+        }
+        
+        public static void WriteMutatedJsonKeyName(ReadOnlySpan<char> keyName, Utf8JsonWriter jsonWriter, IKeyNameMutator? mutator = null)
+        {
+            if (mutator == null)
+            {
+                jsonWriter.WritePropertyName(keyName);
+                return;
+            }
+
+            var bufferSize = keyName.Length;
+            while (!TryMutate(keyName, bufferSize))
+            {
+                bufferSize *= 2;
+            }
+            return;
+            
+            bool TryMutate(ReadOnlySpan<char> source, int bufferSize)
+            {
+                if (bufferSize > 256)
+                {
+                    var buffer = new char[bufferSize];
+                    if (mutator.TryMutate(source, buffer, out var written))
+                    {
+                        jsonWriter.WritePropertyName(buffer.AsSpan(0, written));
+                        return true;
+                    }
+                }
+                else
+                {
+                    Span<char> buffer = stackalloc char[bufferSize];
+                    if (mutator.TryMutate(source, buffer, out var written))
+                    {
+                        jsonWriter.WritePropertyName(buffer[..written]);
+                        return true;
+                    }
+                }
+                return false;
             }
         }
     }

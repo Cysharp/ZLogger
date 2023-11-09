@@ -11,7 +11,7 @@ namespace ZLogger.MessagePack
         {
             return options.UseFormatter(() =>
             {
-                var formatter = new MessagePackZLoggerFormatter();
+                var formatter = new MessagePackZLoggerFormatter(options);
                 messagePackConfigure?.Invoke(formatter);
                 return formatter;
             });
@@ -62,6 +62,13 @@ namespace ZLogger.MessagePack
 
         public MessagePackSerializerOptions MessagePackSerializerOptions { get; set; } = MessagePackSerializer.DefaultOptions;
         public string MessagePropertyName { get; set; } = "Message";
+
+        readonly ZLoggerOptions options;
+
+        public MessagePackZLoggerFormatter(ZLoggerOptions options)
+        {
+            this.options = options;
+        }
         
         public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
         {
@@ -121,8 +128,7 @@ namespace ZLogger.MessagePack
                 }
                 else
                 {
-                    var key = entry.GetParameterKeyAsString(i);
-                    messagePackWriter.Write(key);
+                    WriteKeyName(ref messagePackWriter, entry, i);
                 }
                 
                 var valueType = entry.GetParameterType(i);
@@ -325,8 +331,8 @@ namespace ZLogger.MessagePack
                     // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
                     if (key == "{OriginalFormat}")
                         continue;
-                    
-                    messagePackWriter.Write(key);
+
+                    WriteKeyName(ref messagePackWriter, key);
                     if (value == null)
                     {
                         messagePackWriter.WriteNil();
@@ -339,6 +345,56 @@ namespace ZLogger.MessagePack
                 }
             }
             messagePackWriter.Flush();
+        }
+
+        void WriteKeyName<TEntry>(ref MessagePackWriter messagePackWriter, TEntry entry, int parameterIndex)
+            where TEntry : IZLoggerEntry
+        {
+            if (entry.IsSupportUtf8ParameterKey)
+            {
+                var key = entry.GetParameterKey(parameterIndex);
+                messagePackWriter.Write(key);
+            }
+            else
+            {
+                var key = entry.GetParameterKeyAsString(parameterIndex);
+                WriteKeyName(ref messagePackWriter, key);
+            }
+        }
+        
+        void WriteKeyName(ref MessagePackWriter messagePackWriter, ReadOnlySpan<char> keyName)
+        {
+            if (options.KeyNameMutator is { } mutator)
+            {
+                var bufferSize = keyName.Length * 2;
+                while (!TryMutate(ref messagePackWriter, keyName, bufferSize))
+                {
+                    bufferSize *= 2;
+                }
+            }
+            else
+            {
+                messagePackWriter.Write(keyName);
+            }
+            return;
+
+            bool TryMutate(ref MessagePackWriter messagePackWriter, ReadOnlySpan<char> source, int bufferSize)
+            {
+                var buffer = ArrayPool<char>.Shared.Rent(bufferSize);
+                try
+                {
+                    if (mutator.TryMutate(source, buffer, out var written))
+                    {
+                        messagePackWriter.Write(buffer.AsSpan(0, written));
+                        return true;
+                    }
+                }
+                finally
+                {
+                    ArrayPool<char>.Shared.Return(buffer);
+                }
+                return false;
+            }
         }
 
         static void WriteException(ref MessagePackWriter messagePackWriter, Exception? ex)
@@ -386,7 +442,6 @@ namespace ZLogger.MessagePack
                     throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, null);
             }
         }
-
 
         static ArrayBufferWriter<byte> GetThreadStaticBufferWriter()
         {

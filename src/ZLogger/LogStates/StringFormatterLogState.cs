@@ -48,7 +48,7 @@ namespace ZLogger.LogStates
             writer.Advance(bytesWritten);
         }
 
-        public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions)
+        public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions, ZLoggerOptions options)
         {
             if (originalStateParameters == null) return;
 
@@ -73,7 +73,7 @@ namespace ZLogger.LogStates
             throw new NotSupportedException();
         }
 
-        public string GetParameterKeyAsString(int index)
+        public ReadOnlySpan<char> GetParameterKeyAsString(int index)
         {
             if (originalStateParameters != null)
             {
