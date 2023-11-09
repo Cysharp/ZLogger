@@ -1,6 +1,9 @@
 using System.IO;
 using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Diagnosers;
+using BenchmarkDotNet.Jobs;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using Serilog;
@@ -31,7 +34,16 @@ namespace Benchmark.Benchmarks;
 //     }
 // }
 
-[MemoryDiagnoser]
+file class BenchmarkConfig : ManualConfig
+{
+    public BenchmarkConfig()
+    {
+        AddDiagnoser(MemoryDiagnoser.Default);
+        AddJob(Job.ShortRun);
+    }
+}
+
+[Config(typeof(BenchmarkConfig))]
 public class PostLogEntry
 {
     static readonly string NullDevicePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "NUL" : "/dev/null";
@@ -121,26 +133,26 @@ public class PostLogEntry
     [Benchmark]
     public void ZLogger_ZLog()
     {
-        var x = 100;
-        var y = 200;
-        var z = 300;
+        const int x = 100;
+        const int y = 200;
+        const int z = 300;
         zLogger.ZLogInformation($"foo{x} bar{y} nazo{z}");
     }
 
     [Benchmark]
-    public void MicrosoftExtensionsLoggingConsole_Log()
+    public void MsExtConsole_Log()
     {
         msExtConsoleLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
     }
 
     [Benchmark]
-    public void Serilog_MicrosoftExtensionsLogging_Log()
+    public void SerilogMsExt_Log()
     {
         serilogMsExtLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
     }
 
     [Benchmark]
-    public void NLog_MicrosoftExtensionsLogging_Log()
+    public void NLogMsExt_Log()
     {
         nLogMsExtLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
     }

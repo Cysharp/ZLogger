@@ -27,7 +27,7 @@ file class BenchmarkConfig : ManualConfig
 [LogWritesPerSecond]
 public class WritePlainTextToConsole
 {
-    const int N = 10_000;
+    const int N = 100_000;
     
     ILogger zLogger = default!;
     ILogger msExtConsoleLogger = default!;
