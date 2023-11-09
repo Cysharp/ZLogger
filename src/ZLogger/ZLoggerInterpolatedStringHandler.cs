@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System.Buffers;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -192,7 +193,15 @@ namespace ZLogger
                     ref var p = ref parameters[parameterIndex++];
                     if (!box.TryReadTo(p.Type, p.BoxOffset, p.Alignment, p.Format, ref stringWriter))
                     {
-                        stringWriter.AppendFormatted(p.BoxedValue, p.Alignment, p.Format);
+                        if (p.BoxedValue is IEnumerable enumerable)
+                        {
+                            var jsonWriter = new Utf8JsonWriter(writer);
+                            JsonSerializer.Serialize(jsonWriter, enumerable);                            
+                        }
+                        else
+                        {
+                            stringWriter.AppendFormatted(p.BoxedValue, p.Alignment, p.Format);
+                        }
                     }
                 }
             }
@@ -215,7 +224,15 @@ namespace ZLogger
                     ref var p = ref parameters[parameterIndex++];
                     if (!box.TryReadTo(p.Type, p.BoxOffset, p.Alignment, p.Format, ref stringHandler))
                     {
-                        stringHandler.AppendFormatted(p.BoxedValue, p.Alignment, p.Format);
+                        if (p.BoxedValue is IEnumerable enumerable)
+                        {
+                            var jsonString = JsonSerializer.Serialize(enumerable);
+                            stringHandler.AppendFormatted(jsonString);
+                        }
+                        else
+                        {
+                            stringHandler.AppendFormatted(p.BoxedValue, p.Alignment, p.Format);
+                        }
                     }
                 }
             }
