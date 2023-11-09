@@ -1,13 +1,13 @@
-﻿using ZLogger;
-using Microsoft.Extensions.Logging;
-using Serilog;
-using System.Runtime.InteropServices;
+﻿using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
+using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
+using Serilog;
 using Serilog.Formatting.Json;
+using ZLogger;
 using ZLogger.Formatters;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
@@ -23,103 +23,173 @@ file class BenchmarkConfig : ManualConfig
 }
 
 [Config(typeof(BenchmarkConfig))]
+[LogWritesPerSecond]
 public class WriteToFileJson
 {
     const int N = 10_000;
-    static readonly string NullDevicePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "NUL" : "/dev/null";
-
-    readonly ILoggerFactory zloggerFactory;
-    readonly ILogger zlogger;
     
-    readonly Serilog.Core.Logger serilogLogger;
-    readonly ILoggerFactory serilogMsExtLoggerFactory;
-    readonly ILogger serilogMsExtLogger;
+    ILogger zLogger = default!;
+    ILogger serilogMsExtLogger = default!;
+    ILogger nLogMsExtLogger = default!;
 
-    readonly NLog.Logger nLogLogger;
-    readonly ILoggerFactory nLogMsExtLoggerFactory;
-    readonly ILogger nLogMsExtLogger;
+    ILoggerFactory zLoggerFactory;
+    ILoggerFactory serilogMsExtLoggerFactory;
+    ILoggerFactory nLogMsExtLoggerFactory;
+
+    Serilog.Core.Logger serilogLogger = default!;
+    Serilog.Core.Logger serilogLoggerForMsExt = default!;
     
-    public WriteToFileJson()
+    NLog.Logger nLogLogger = default!;
+    NLog.Config.LoggingConfiguration nLogConfig = default!;
+    NLog.Config.LoggingConfiguration nLogConfigForMsExt = default!;
+
+    string tempDir = default!;
+
+    [GlobalSetup]
+    public void SetUpDirectory()
     {
-        var zLoggerFactory = LoggerFactory.Create(logging =>
+        tempDir = Path.Join(Path.GetTempPath(), "zlogger-benchmark");
+        try
         {
-            logging.AddZLoggerFile(NullDevicePath, options =>
+            Directory.Delete(tempDir, true);
+        }
+        catch (DirectoryNotFoundException)
+        {
+        }
+        catch (FileNotFoundException)
+        {
+        }
+        Directory.CreateDirectory(tempDir);
+    }
+
+    [IterationSetup]
+    public void SetUpLogger()
+    {
+        // ZLogger
+        
+        zLoggerFactory = LoggerFactory.Create(logging =>
+        {
+            logging.AddZLoggerFile(GetLogFilePath("zlogger.log"), options =>
             {
                 options.UseJsonFormatter();
             });
         });
 
-        zlogger = zLoggerFactory.CreateLogger<WriteToFileJson>();
+        zLogger = zLoggerFactory.CreateLogger<WriteToFilePlainText>();
         
         // Serilog
+
+        var serilogFormatter = new JsonFormatter(renderMessage: true);
         
-        serilogLogger = new LoggerConfiguration()
-            .WriteTo.Async(a => a.File(new JsonFormatter(), NullDevicePath, buffered: true))
-            .WriteTo.File(NullDevicePath, buffered: true)
+        serilogLogger = new Serilog.LoggerConfiguration()
+            .WriteTo.Async(a => a.File(serilogFormatter, GetLogFilePath("serilog.log"), buffered: true))
+            .CreateLogger();
+
+        serilogLoggerForMsExt = new Serilog.LoggerConfiguration()
+            .WriteTo.Async(a => a.File(serilogFormatter, GetLogFilePath("serilog_msext.log"), buffered: true))
             .CreateLogger();
         
-        serilogMsExtLoggerFactory = LoggerFactory.Create(logging =>
-        {
-            logging.AddSerilog(serilogLogger);
-        });
-        
-        serilogMsExtLogger = serilogMsExtLoggerFactory.CreateLogger<WriteToFileJson>();
+        serilogMsExtLoggerFactory = LoggerFactory.Create(logging => logging.AddSerilog(serilogLoggerForMsExt));
+        serilogMsExtLogger = serilogMsExtLoggerFactory.CreateLogger<WriteToFilePlainText>();
         
         // NLog
 
-        var nLogConfig = new NLog.Config.LoggingConfiguration();
-        var target = new NLog.Targets.FileTarget("File")
+        var nLogLayout = new NLog.Layouts.JsonLayout
         {
-            FileName = NullDevicePath,
-            BufferSize = 32768 // default 
+            IncludeEventProperties = true,
+            Attributes =
+            {
+                new NLog.Layouts.JsonAttribute("date", "${longdate}"),
+                new NLog.Layouts.JsonAttribute("level", "${level}"),
+                new NLog.Layouts.JsonAttribute("message", "${message}"),
+                new NLog.Layouts.JsonAttribute("logger", "${logger}"),
+            }
         };
-        // var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target);
-        nLogConfig.AddTarget(target);
-        nLogConfig.AddRuleForAllLevels(target);
-        
-        NLog.LogManager.Configuration = nLogConfig;
-        nLogLogger = NLog.LogManager.GetCurrentClassLogger();
-
-        nLogMsExtLoggerFactory = LoggerFactory.Create(logging =>
         {
-            logging.AddNLog(nLogConfig);
-        });
+            nLogConfig = new NLog.Config.LoggingConfiguration();
+            var target = new NLog.Targets.FileTarget("File")
+            {
+                FileName = GetLogFilePath("nlog.log"),
+                Layout = nLogLayout,
+            };
+            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target);
+            nLogConfig.AddTarget(asyncTarget);
+            nLogConfig.AddRuleForAllLevels(asyncTarget);
 
-        nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<WriteToFileJson>();
+            nLogLogger = nLogConfig.LogFactory.GetLogger(nameof(WriteToFilePlainText));
+        }
+        {
+            nLogMsExtLoggerFactory = LoggerFactory.Create(logging =>
+            {
+                nLogConfigForMsExt = new NLog.Config.LoggingConfiguration();
+                var target2 = new NLog.Targets.FileTarget("FileMsExt")
+                {
+                    FileName = GetLogFilePath("nlog_msext.log"),
+                    Layout = nLogLayout
+                };
+                var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2);
+                nLogConfigForMsExt.AddTarget(asyncTarget2);
+                nLogConfigForMsExt.AddRuleForAllLevels(asyncTarget2);
+                logging.AddNLog(nLogConfigForMsExt);
+            });
+        }
+
+        nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<WriteToFilePlainText>();
     }
 
     [Benchmark]
-    public void ZLogger_WriteJsonToFile()
+    public void ZLogger_JsonFile()
     {
         var x = 100;
         var y = 200;
         var z = 300;
         for (var i = 0; i < N; i++)
         {
-            zlogger.LogInformation($"x={x} y={y} z={z}");
+            zLogger.ZLogInformation($"x={x} y={y} z={z}");
         }
-        zloggerFactory.Dispose(); // wait
+        zLoggerFactory.Dispose();
     }
 
     [Benchmark]
-    public void SerilogMsExt_WriteJsonToFile()
+    public void Serilog_MsExt_JsonFile()
     {
         for (var i = 0; i < N; i++)
         {
             serilogMsExtLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
         }
-
-        serilogLogger.Dispose(); // wait
+        serilogLoggerForMsExt.Dispose();
         serilogMsExtLoggerFactory.Dispose();
     }
 
     [Benchmark]
-    public void NLogMsExt_WriteJsonToFile()
+    public void Serilog_JsonFile()
+    {
+        for (var i = 0; i < N; i++)
+        {
+            serilogLogger.Information("x={X} y={Y} z={Z}", 100, 200, 300);
+        }
+        serilogLogger.Dispose();
+    }
+
+    [Benchmark]
+    public void NLog_MsExt_JsonFile()
     {
         for (var i = 0; i < N; i++)
         {
             nLogMsExtLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
         }
-        nLogMsExtLoggerFactory.Dispose(); // wait
+        nLogMsExtLoggerFactory.Dispose();
     }
+
+    [Benchmark]
+    public void NLog_JsonFile()
+    {
+        for (var i = 0; i < N; i++)
+        {
+            nLogLogger.Info("x={X} y={Y} z={Z}", 100, 200, 300);
+        }
+        nLogConfig.LogFactory.Shutdown();
+    }
+
+    string GetLogFilePath(string filename) => Path.Join(tempDir, filename);
 }

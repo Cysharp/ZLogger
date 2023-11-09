@@ -1,11 +1,10 @@
-using System;
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
-using NLog.Layouts;
 using Serilog;
 using Serilog.Formatting.Display;
 using Utf8StringInterpolation;
@@ -18,7 +17,7 @@ file class BenchmarkConfig : ManualConfig
 {
     public BenchmarkConfig()
     {
-        // AddDiagnoser(MemoryDiagnoser.Default);
+        AddDiagnoser(MemoryDiagnoser.Default);
         AddJob(Job.ShortRun.WithWarmupCount(1).WithIterationCount(1));
     }
 }
@@ -101,7 +100,7 @@ public class WriteToFilePlainText
         
         // NLog
 
-        var nLogLayout = new SimpleLayout("${longdate} [${level}] ${message}");
+        var nLogLayout = new NLog.Layouts.SimpleLayout("${longdate} [${level}] ${message}");
         {
             nLogConfig = new NLog.Config.LoggingConfiguration();
             var target = new NLog.Targets.FileTarget("File")
@@ -135,7 +134,7 @@ public class WriteToFilePlainText
     }
 
     [Benchmark]
-    public void ZLogger_WriteText()
+    public void ZLogger_PlainTextFile()
     {
         var x = 100;
         var y = 200;
@@ -148,7 +147,7 @@ public class WriteToFilePlainText
     }
 
     [Benchmark]
-    public void Serilog_MsExt_WriteText()
+    public void Serilog_MsExt_PlainTextFile()
     {
         for (var i = 0; i < N; i++)
         {
@@ -159,7 +158,7 @@ public class WriteToFilePlainText
     }
 
     [Benchmark]
-    public void Serilog_WriteText()
+    public void Serilog_PlainTextFile()
     {
         for (var i = 0; i < N; i++)
         {
@@ -169,7 +168,7 @@ public class WriteToFilePlainText
     }
 
     [Benchmark]
-    public void NLog_MsExt_WriteText()
+    public void NLog_MsExt_PlainTextFile()
     {
         for (var i = 0; i < N; i++)
         {
@@ -179,7 +178,7 @@ public class WriteToFilePlainText
     }
 
     [Benchmark]
-    public void NLog_WriteText()
+    public void NLog_PlainTextFile()
     {
         for (var i = 0; i < N; i++)
         {
