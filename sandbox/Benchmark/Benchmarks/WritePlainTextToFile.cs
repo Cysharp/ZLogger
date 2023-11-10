@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
@@ -91,11 +92,11 @@ public class WritePlainTextToFile
         var serilogFormatter = new MessageTemplateTextFormatter("{Timestamp} [{Level}] {Message}{NewLine}");
 
         serilogLogger = new Serilog.LoggerConfiguration()
-            .WriteTo.Async(a => a.File(serilogFormatter, GetLogFilePath("serilog.log"), buffered: true), bufferSize: int.MaxValue)
+            .WriteTo.Async(a => a.File(serilogFormatter, GetLogFilePath("serilog.log"), buffered: true, flushToDiskInterval: TimeSpan.Zero), bufferSize: N)
             .CreateLogger();
 
         serilogLoggerForMsExt = new Serilog.LoggerConfiguration()
-            .WriteTo.Async(a => a.File(serilogFormatter, GetLogFilePath("serilog_msext.log"), buffered: true), bufferSize: int.MaxValue)
+            .WriteTo.Async(a => a.File(serilogFormatter, GetLogFilePath("serilog_msext.log"), buffered: true, flushToDiskInterval: TimeSpan.Zero), bufferSize: N)
             .CreateLogger();
 
         serilogMsExtLoggerFactory = LoggerFactory.Create(logging => logging.AddSerilog(serilogLoggerForMsExt));
@@ -110,8 +111,14 @@ public class WritePlainTextToFile
             {
                 FileName = GetLogFilePath("nlog.log"),
                 Layout = nLogLayout,
+                KeepFileOpen = true,
+                ConcurrentWrites = false,
+                AutoFlush = true
             };
-            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target, int.MaxValue, AsyncTargetWrapperOverflowAction.Grow);
+            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target, 10000, AsyncTargetWrapperOverflowAction.Grow)
+            {
+                TimeToSleepBetweenBatches = 0
+            };
             nLogConfig.AddTarget(asyncTarget);
             nLogConfig.AddRuleForAllLevels(asyncTarget);
 
@@ -125,9 +132,15 @@ public class WritePlainTextToFile
                 var target2 = new NLog.Targets.FileTarget("FileMsExt")
                 {
                     FileName = GetLogFilePath("nlog_msext.log"),
-                    Layout = nLogLayout
+                    Layout = nLogLayout,
+                    KeepFileOpen = true,
+                    ConcurrentWrites = false,
+                    AutoFlush = true
                 };
-                var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2, int.MaxValue, AsyncTargetWrapperOverflowAction.Grow);
+                var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2, 10000, AsyncTargetWrapperOverflowAction.Grow)
+                {
+                    TimeToSleepBetweenBatches = 0
+                };
                 nLogConfigForMsExt.AddTarget(asyncTarget2);
                 nLogConfigForMsExt.AddRuleForAllLevels(asyncTarget2);
                 nLogConfigForMsExt.LogFactory.Configuration = nLogConfigForMsExt;

@@ -79,11 +79,11 @@ public class WriteJsonToConsole
         var serilogFormatter = new JsonFormatter(renderMessage: true);
 
         serilogLogger = new Serilog.LoggerConfiguration()
-            .WriteTo.Async(a => a.Console(serilogFormatter), bufferSize: int.MaxValue)
+            .WriteTo.Async(a => a.Console(serilogFormatter), bufferSize: N)
             .CreateLogger();
 
         serilogLoggerForMsExt = new Serilog.LoggerConfiguration()
-            .WriteTo.Async(a => a.Console(serilogFormatter), bufferSize: int.MaxValue)
+            .WriteTo.Async(a => a.Console(serilogFormatter), bufferSize: N)
             .CreateLogger();
 
         serilogMsExtLoggerFactory = LoggerFactory.Create(logging => logging.AddSerilog(serilogLoggerForMsExt));
@@ -108,7 +108,10 @@ public class WriteJsonToConsole
             {
                 Layout = nLogLayout,
             };
-            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target, int.MaxValue, AsyncTargetWrapperOverflowAction.Grow);
+            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target, 10000, AsyncTargetWrapperOverflowAction.Grow)
+            {
+                TimeToSleepBetweenBatches = 0
+            };
             nLogConfig.AddTarget(asyncTarget);
             nLogConfig.AddRuleForAllLevels(asyncTarget);
             nLogConfig.LogFactory.Configuration = nLogConfig;
@@ -123,7 +126,10 @@ public class WriteJsonToConsole
                 {
                     Layout = nLogLayout
                 };
-                var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2, int.MaxValue, AsyncTargetWrapperOverflowAction.Grow);
+                var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2, 10000, AsyncTargetWrapperOverflowAction.Grow)
+                {
+                    TimeToSleepBetweenBatches = 0
+                };
                 nLogConfigForMsExt.AddTarget(asyncTarget2);
                 nLogConfigForMsExt.AddRuleForAllLevels(asyncTarget2);
                 nLogConfigForMsExt.LogFactory.Configuration = nLogConfigForMsExt;

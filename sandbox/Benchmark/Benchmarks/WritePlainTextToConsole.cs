@@ -85,14 +85,14 @@ public class WritePlainTextToConsole
         var serilogFormatter = new MessageTemplateTextFormatter("{Timestamp} [{Level}] {Message}{NewLine}");
 
         serilogLogger = new Serilog.LoggerConfiguration()
-            .WriteTo.Async(a => a.Console(serilogFormatter), bufferSize: int.MaxValue)
+            .WriteTo.Async(a => a.Console(serilogFormatter), bufferSize: N)
             .CreateLogger();
 
         serilogLoggerForMsExt = new Serilog.LoggerConfiguration()
-            .WriteTo.Async(a => a.Console(serilogFormatter), bufferSize: int.MaxValue)
+            .WriteTo.Async(a => a.Console(serilogFormatter), bufferSize: N)
             .CreateLogger();
 
-        serilogMsExtLoggerFactory = LoggerFactory.Create(logging => logging.AddSerilog(serilogLoggerForMsExt));
+        serilogMsExtLoggerFactory = LoggerFactory.Create(logging => logging.AddSerilog(serilogLoggerForMsExt, true));
         serilogMsExtLogger = serilogMsExtLoggerFactory.CreateLogger<WritePlainTextToConsole>();
 
         // NLog
@@ -104,7 +104,10 @@ public class WritePlainTextToConsole
             {
                 Layout = nLogLayout,
             };
-            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target, int.MaxValue, AsyncTargetWrapperOverflowAction.Grow);
+            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target, 10000, AsyncTargetWrapperOverflowAction.Grow)
+            {
+                TimeToSleepBetweenBatches = 0
+            };
             nLogConfig.AddTarget(asyncTarget);
             nLogConfig.AddRuleForAllLevels(asyncTarget);
             nLogConfig.LogFactory.Configuration = nLogConfig;
@@ -119,7 +122,7 @@ public class WritePlainTextToConsole
                 {
                     Layout = nLogLayout
                 };
-                var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2, int.MaxValue, AsyncTargetWrapperOverflowAction.Grow);
+                var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2, 10000, AsyncTargetWrapperOverflowAction.Grow);
                 nLogConfigForMsExt.AddTarget(asyncTarget2);
                 nLogConfigForMsExt.AddRuleForAllLevels(asyncTarget2);
                 nLogConfigForMsExt.LogFactory.Configuration = nLogConfigForMsExt;
@@ -181,6 +184,7 @@ public class WritePlainTextToConsole
         {
             nLogMsExtLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
         }
+        nLogConfigForMsExt.LogFactory.Shutdown();        
         nLogMsExtLoggerFactory.Dispose();
     }
 
