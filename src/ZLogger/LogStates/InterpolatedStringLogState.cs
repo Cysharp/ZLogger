@@ -11,31 +11,29 @@ namespace ZLogger.LogStates
         
         public ref InterpolatedStringLogState? NextNode => ref next;
         InterpolatedStringLogState? next;
-        
-        public int ParameterCount { get; private set; }
+
+        public int ParameterCount => parameters.Count;
         public bool IsSupportUtf8ParameterKey => false;
 
         // pooling values.
-        byte[] magicalBoxStorage;
-        InterpolatedStringParameter[] parameters;
+        ArraySegment<InterpolatedStringParameter> parameters;
 
         int refCount;
 
         MessageSequence messageSequence;
         MagicalBox magicalBox;
 
-        public static InterpolatedStringLogState Create(MessageSequence messageSequence, MagicalBox magicalBox, ReadOnlySpan<InterpolatedStringParameter> parameters)
+        public static InterpolatedStringLogState Create(MessageSequence messageSequence, MagicalBox magicalBox, ArraySegment<InterpolatedStringParameter> parameters)
         {
             if (cache.TryPop(out var state))
             {
-                state.magicalBoxStorage = ArrayPool<byte>.Shared.Rent(magicalBox.Written);
-                magicalBox.AsSpan().CopyTo(state.magicalBoxStorage);
-                state.magicalBox = new MagicalBox(state.magicalBoxStorage, magicalBox.Written);
-
-                state.messageSequence = messageSequence;
-                state.parameters = ArrayPool<InterpolatedStringParameter>.Shared.Rent(parameters.Length);
-                parameters.CopyTo(state.parameters);
-                state.ParameterCount = parameters.Length;
+                state = new InterpolatedStringLogState(messageSequence, magicalBox, parameters)
+                {
+                    parameters = parameters,
+                    messageSequence = messageSequence,
+                    magicalBox = magicalBox
+                };
+                state.Retain();
             }
             else
             {
@@ -44,19 +42,11 @@ namespace ZLogger.LogStates
             return state;
         }
 
-        InterpolatedStringLogState(MessageSequence messageSequence, MagicalBox magicalBox, ReadOnlySpan<InterpolatedStringParameter> parameters)
+        InterpolatedStringLogState(MessageSequence messageSequence, MagicalBox magicalBox, ArraySegment<InterpolatedStringParameter> parameters)
         {
-            // need clone.
-            this.magicalBoxStorage = ArrayPool<byte>.Shared.Rent(magicalBox.Written);
-            magicalBox.AsSpan().CopyTo(magicalBoxStorage);
-
-            this.parameters = ArrayPool<InterpolatedStringParameter>.Shared.Rent(parameters.Length);
-            parameters.CopyTo(this.parameters);
-            ParameterCount = parameters.Length;
-
+            this.parameters = parameters;
             this.messageSequence = messageSequence;
-            this.magicalBox = new MagicalBox(magicalBoxStorage, magicalBox.Written);
-            
+            this.magicalBox = magicalBox;
             Retain();
         }
 
@@ -80,30 +70,27 @@ namespace ZLogger.LogStates
 
         public void Dispose()
         {
-            ArrayPool<byte>.Shared.Return(magicalBoxStorage);
-            ArrayPool<InterpolatedStringParameter>.Shared.Return(parameters);
-
-            magicalBoxStorage = null!;
+            ArrayPool<InterpolatedStringParameter>.Shared.Return(parameters.Array!);
             parameters = null!;
-            
+            magicalBox.Dispose();
+            messageSequence.Dispose();
             cache.TryPush(this);
         }
 
         public override string ToString()
         {
-            return messageSequence.ToString(magicalBox, parameters);
+            return messageSequence.ToString(magicalBox, parameters.AsSpan());
         }
 
         public void ToString(IBufferWriter<byte> writer)
         {
-            messageSequence.ToString(writer, magicalBox, parameters);
+            messageSequence.ToString(writer, magicalBox, parameters.AsSpan());
         }
 
         public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions, ZLoggerOptions options)
         {
-            for (var i = 0; i < ParameterCount; i++)
+            foreach (var p in parameters.AsSpan())
             {
-                ref var p = ref parameters[i];
                 SystemTextJsonZLoggerFormatter.WriteMutatedJsonKeyName(p.ParseKeyName(), jsonWriter, options.KeyNameMutator);
                 
                 if (magicalBox.TryReadTo(p.Type, p.BoxOffset, jsonWriter))
@@ -135,7 +122,7 @@ namespace ZLogger.LogStates
 
         public object? GetParameterValue(int index)
         {
-            ref var p = ref parameters[index];
+            var p = parameters[index];
             var value = magicalBox.Read(p.Type, p.BoxOffset);
             if (value != null) return value;
 
@@ -144,7 +131,7 @@ namespace ZLogger.LogStates
 
         public T? GetParameterValue<T>(int index)
         {
-            ref var p = ref parameters[index];
+            var p = parameters[index];
             if (magicalBox.TryRead<T>(p.BoxOffset, out var value))
             {
                 return value;

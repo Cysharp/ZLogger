@@ -7,25 +7,24 @@ using Utf8StringInterpolation;
 
 namespace ZLogger.Internal;
 
-internal unsafe partial struct MagicalBox
+internal unsafe partial struct MagicalBox : IDisposable
 {
     byte[] storage;
     int written;
 
-    public MagicalBox(byte[] storage)
+    public MagicalBox()
     {
-        this.storage = storage;
-    }
-
-    public MagicalBox(byte[] storage, int written)
-    {
-        this.storage = storage;
-        this.written = written;
+        storage = ArrayPool<byte>.Shared.Rent(2048);
     }
 
     public int Written => written;
 
     public ReadOnlySpan<byte> AsSpan() => storage.AsSpan(0, written);
+
+    public void Dispose()
+    {
+        ArrayPool<byte>.Shared.Return(storage);
+    }
 
     public bool TryWrite<T>(T value, out int offset)
     {

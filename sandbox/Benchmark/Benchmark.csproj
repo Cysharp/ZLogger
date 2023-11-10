@@ -7,6 +7,7 @@
   </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="BenchmarkDotNet" Version="0.13.10" />
+        <PackageReference Include="JetBrains.Profiler.Api" Version="1.4.0" />
         <PackageReference Include="log4net" Version="2.0.8" />
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
         <PackageReference Include="NLog" Version="5.2.5" />

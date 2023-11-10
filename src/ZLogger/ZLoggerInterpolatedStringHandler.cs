@@ -16,23 +16,17 @@ namespace ZLogger
     [InterpolatedStringHandler]
     public ref struct ZLoggerInterpolatedStringHandler
     {
-        [ThreadStatic]
-        static byte[]? boxStoragePool;
-
-        [ThreadStatic]
-        static List<InterpolatedStringParameter>? parametersPool;
-
-        [ThreadStatic]
-        static List<string?>? literalPool;
-
         public bool IsLoggerEnabled { get; }
 
         // fields
         readonly int literalLength;
         readonly int parametersLength;
-        readonly List<string?> literals;
-        readonly List<InterpolatedStringParameter> parameters;
+        readonly string?[] literals;
+        readonly InterpolatedStringParameter[] parameters;
         MagicalBox box;
+
+        int currentLiteralIndex;
+        int currentParameterIndex;
 
         /// <summary>
         /// DO NOT ALLOW DIRECT USE.
@@ -48,41 +42,23 @@ namespace ZLogger
                 return;
             }
 
-            var boxStorage = boxStoragePool;
-            if (boxStorage == null)
-            {
-                boxStorage = boxStoragePool = new byte[2048];
-            }
-
-            var parameters = parametersPool;
-            if (parameters == null)
-            {
-                parameters = parametersPool = new List<InterpolatedStringParameter>();
-            }
-
-            var literals = literalPool;
-            if (literals == null)
-            {
-                literals = literalPool = new List<string?>();
-            }
-
             this.literalLength = literalLength;
             this.parametersLength = formattedCount;
-            this.box = new MagicalBox(boxStorage);
-            this.parameters = parameters;
-            this.literals = literals;
+            this.box = new MagicalBox();
+            this.parameters = ArrayPool<InterpolatedStringParameter>.Shared.Rent(formattedCount);
+            this.literals = ArrayPool<string?>.Shared.Rent(32);
             this.IsLoggerEnabled = true;
         }
 
         public void AppendLiteral(string s)
         {
-            literals.Add(s);
+            literals[currentLiteralIndex++] = s;
         }
 
         public void AppendFormatted<T>(T value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
         {
             // Add for MessageSequence
-            literals.Add(null);
+            literals[currentLiteralIndex++] = null;
 
             // Use MagicalBox(set value without boxing)
             if (!box.TryWrite(value, out var offset))
@@ -90,8 +66,7 @@ namespace ZLogger
                 offset = -1;
             }
 
-            var parameter = new InterpolatedStringParameter(typeof(T), argumentName ?? "", alignment, format, offset, (offset == -1) ? (object?)value : null);
-            parameters.Add(parameter);
+            parameters[currentParameterIndex++] = new InterpolatedStringParameter(typeof(T), argumentName ?? "", alignment, format, offset, (offset == -1) ? (object?)value : null);
         }
 
         public void AppendFormatted<T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
@@ -104,9 +79,8 @@ namespace ZLogger
             }
             else
             {
-                literals.Add(null);
-                var parameter = new InterpolatedStringParameter(typeof(Nullable<T>), argumentName ?? "", alignment, format, -1, null);
-                parameters.Add(parameter);
+                literals[currentLiteralIndex++] = null;
+                parameters[currentParameterIndex++] = new InterpolatedStringParameter(typeof(Nullable<T>), argumentName ?? "", alignment, format, -1, null);
             }
         }
 
@@ -118,75 +92,64 @@ namespace ZLogger
         internal InterpolatedStringLogState GetStateAndClear()
         {
             // MessageSequence is immutable
-            var sequence = MessageSequence.GetOrCreate(literalLength, parametersLength, literals);
+            var sequence = new MessageSequence(literalLength, parametersLength, new ArraySegment<string?>(literals, 0, currentLiteralIndex));
 
             // MagicalBox and Parameters are cloned in ctor.
-            var result = InterpolatedStringLogState.Create(sequence, box, CollectionsMarshal.AsSpan(parameters));
-
-            // clear state
-            literals.Clear();
-            parameters.Clear();
+            var result = InterpolatedStringLogState.Create(sequence, box, new ArraySegment<InterpolatedStringParameter>(parameters, 0, parametersLength));
 
             return result;
         }
     }
 
     // MessageSequence is immutable, can cache per same string format.
-    internal sealed class MessageSequence
+    internal struct MessageSequence : IDisposable
     {
-        // TODO: use specialized impl dictionary?(for example, only check message length)
-        static readonly ConcurrentDictionary<List<string?>, MessageSequence> cache = new(new MessageSequenceEqualityComparer());
+        // // TODO: use specialized impl dictionary?(for example, only check message length)
+        // static readonly ConcurrentDictionary<ArraySegment<string?>, MessageSequence> cache = new(new MessageSequenceEqualityComparer());
+        //
+        // // literals null represents parameter hole
+        // public static MessageSequence GetOrCreate(int literalLength, int parameterLength, ArraySegment<string?> literals)
+        // {
+        //     if (cache.TryGetValue(literals, out var sequence))
+        //     {
+        //         return sequence;
+        //     }
+        //
+        //     sequence = new MessageSequence(literalLength, parameterLength, literals);
+        //
+        //     // if add failed, ok to use duplicate sequence.
+        //     cache.TryAdd(literals, sequence);
+        //     return sequence;
+        // }
 
-        // literals null represents parameter hole
-        public static MessageSequence GetOrCreate(int literalLength, int parameterLength, List<string?> literals)
-        {
-            if (cache.TryGetValue(literals, out var sequence))
-            {
-                return sequence;
-            }
-
-            // create copy
-            var key = literals.ToList();
-            sequence = new MessageSequence(literalLength, parameterLength, CollectionsMarshal.AsSpan(key));
-
-            // if add failed, ok to use duplicate sequence.
-            cache.TryAdd(key, sequence);
-            return sequence;
-        }
+        static readonly ConcurrentDictionary<string, byte[]> utf8LiteralCache = new();
 
         readonly int literalLength;
         readonly int parametersLength;
-        readonly MessageSequenceSegment[] segments;
+        readonly ArraySegment<string?> literals;
 
-        public MessageSequence(int literalLength, int parametersLength, ReadOnlySpan<string?> literals)
+        public MessageSequence(int literalLength, int parametersLength, ArraySegment<string?> literals)
         {
             this.literalLength = literalLength;
             this.parametersLength = parametersLength;
-            this.segments = new MessageSequenceSegment[literals.Length];
-            for (int i = 0; i < literals.Length; i++)
-            {
-                var str = literals[i];
-                if (str == null)
-                {
-                    this.segments[i] = new MessageSequenceSegment(null, null!);
-                }
-                else
-                {
-                    var bytes = Encoding.UTF8.GetBytes(str);
-                    this.segments[i] = new MessageSequenceSegment(str, bytes);
-                }
-            }
+            this.literals = literals;
+        }
+
+        public void Dispose()
+        {
+            ArrayPool<string?>.Shared.Return(literals.Array!);
         }
 
         public void ToString(IBufferWriter<byte> writer, MagicalBox box, Span<InterpolatedStringParameter> parameters)
         {
             var stringWriter = new Utf8StringWriter<IBufferWriter<byte>>(literalLength, parametersLength, writer);
 
-            var parameterIndex = 0; foreach (var item in segments)
+            var parameterIndex = 0; foreach (var literal in literals)
             {
-                if (item.IsLiteral)
+                if (literal != null)
                 {
-                    stringWriter.AppendUtf8(item.Utf8Bytes);
+                    var utf8Bytes = utf8LiteralCache.GetOrAdd(literal, s => Encoding.UTF8.GetBytes(s));
+                    stringWriter.AppendUtf8(utf8Bytes);
                 }
                 else
                 {
@@ -213,11 +176,11 @@ namespace ZLogger
             var stringHandler = new DefaultInterpolatedStringHandler(literalLength, parametersLength);
 
             var parameterIndex = 0;
-            foreach (var item in segments)
+            foreach (var literal in literals)
             {
-                if (item.IsLiteral)
+                if (literal != null)
                 {
-                    stringHandler.AppendLiteral(item.Literal);
+                    stringHandler.AppendLiteral(literal);
                 }
                 else
                 {
@@ -245,11 +208,11 @@ namespace ZLogger
             // for debugging.
             var stringHandler = new DefaultInterpolatedStringHandler(literalLength, parametersLength);
 
-            foreach (var item in segments)
+            foreach (var literal in literals)
             {
-                if (item.IsLiteral)
+                if (literal != null)
                 {
-                    stringHandler.AppendLiteral(item.Literal);
+                    stringHandler.AppendLiteral(literal);
                 }
                 else
                 {
@@ -260,64 +223,64 @@ namespace ZLogger
             return stringHandler.ToStringAndClear();
         }
 
-        internal sealed class MessageSequenceEqualityComparer : IEqualityComparer<List<string?>>
-        {
-            public bool Equals(List<string?>? x, List<string?>? y)
-            {
-                if (x == null && y == null) return true;
-                if (x == null) return false;
-                if (y == null) return false;
-                if (x.Count != y.Count) return false;
-
-                var xs = CollectionsMarshal.AsSpan(x);
-                var ys = CollectionsMarshal.AsSpan(y);
-
-                for (int i = 0; i < xs.Length; i++)
-                {
-                    if (xs[i] != ys[i]) return false;
-                }
-
-                return true;
-            }
-
-            public int GetHashCode([DisallowNull] List<string?>? obj)
-            {
-                if (obj == null) return 0;
-
-                var hashCode = new HashCode();
-
-                var span = CollectionsMarshal.AsSpan(obj);
-                foreach (var item in span)
-                {
-                    if (item != null)
-                    {
-                        hashCode.AddBytes(MemoryMarshal.AsBytes(item.AsSpan()));
-                    }
-                }
-
-                return hashCode.ToHashCode();
-            }
-        }
+        // internal sealed class MessageSequenceEqualityComparer : IEqualityComparer<List<string?>>
+        // {
+        //     public bool Equals(List<string?>? x, List<string?>? y)
+        //     {
+        //         if (x == null && y == null) return true;
+        //         if (x == null) return false;
+        //         if (y == null) return false;
+        //         if (x.Count != y.Count) return false;
+        //
+        //         var xs = CollectionsMarshal.AsSpan(x);
+        //         var ys = CollectionsMarshal.AsSpan(y);
+        //
+        //         for (int i = 0; i < xs.Length; i++)
+        //         {
+        //             if (xs[i] != ys[i]) return false;
+        //         }
+        //
+        //         return true;
+        //     }
+        //
+        //     public int GetHashCode([DisallowNull] List<string?>? obj)
+        //     {
+        //         if (obj == null) return 0;
+        //
+        //         var hashCode = new HashCode();
+        //
+        //         var span = CollectionsMarshal.AsSpan(obj);
+        //         foreach (var item in span)
+        //         {
+        //             if (item != null)
+        //             {
+        //                 hashCode.AddBytes(MemoryMarshal.AsBytes(item.AsSpan()));
+        //             }
+        //         }
+        //
+        //         return hashCode.ToHashCode();
+        //     }
+        // }
     }
 
-    internal readonly struct MessageSequenceSegment
-    {
-        public bool IsLiteral => Literal != null;
-
-        public readonly string Literal;
-        public readonly byte[] Utf8Bytes;
-
-        public MessageSequenceSegment(string? literal, byte[] utf8Bytes)
-        {
-            this.Literal = literal!;
-            this.Utf8Bytes = utf8Bytes;
-        }
-
-        public override string ToString()
-        {
-            return Literal;
-        }
-    }
+    // internal readonly struct MessageSequenceSegment
+    // {
+    //     public bool IsLiteral => Literal != null;
+    //
+    //     public readonly string Literal;
+    //     public readonly byte[] Utf8Bytes;
+    //
+    //     public MessageSequenceSegment(string? literal, byte[] utf8Bytes)
+    //     {
+    //         this.Literal = literal!;
+    //         this.Utf8Bytes = utf8Bytes;
+    //     }
+    //
+    //     public override string ToString()
+    //     {
+    //         return Literal;
+    //     }
+    // }
 
     internal readonly struct InterpolatedStringParameter
     {
