@@ -18,7 +18,7 @@ namespace ZLogger.LogStates
         int refCount;
 
         readonly MessageSequence messageSequence;
-        readonly MagicalBox magicalBox;
+        MagicalBox magicalBox;
 
         public InterpolatedStringLogState(MessageSequence messageSequence, MagicalBox magicalBox, ReadOnlySpan<InterpolatedStringParameter> parameters)
         {
