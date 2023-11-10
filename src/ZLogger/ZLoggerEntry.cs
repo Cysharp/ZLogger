@@ -1,4 +1,5 @@
-﻿using System.Buffers;
+﻿using System;
+using System.Buffers;
 using System.Text;
 using System.Text.Json;
 using ZLogger.Internal;
@@ -80,9 +81,9 @@ namespace ZLogger
 
         public void Return()
         {
-            if (state is IReferenceCountZLoggerFormattable)
+            if (state is IDisposable)
             {
-                ((IReferenceCountZLoggerFormattable)state).Release();
+                ((IDisposable)state).Dispose();
             }
 
             state = default!;

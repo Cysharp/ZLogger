@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System;
 using ZLogger.LogStates;
 
 namespace ZLogger
@@ -29,11 +30,6 @@ namespace ZLogger
                 : new StringFormatterLogState<TState>(state, exception, formatter).CreateEntry(info); // standard `log`
 
             entry.ScopeState = scopeState;
-            
-            if (state is IReferenceCountZLoggerFormattable)
-            {
-                ((IReferenceCountZLoggerFormattable)state).Retain();
-            }
             logProcessor.Post(entry);
         }
 

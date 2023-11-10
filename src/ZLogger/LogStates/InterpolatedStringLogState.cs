@@ -1,3 +1,4 @@
+using System;
 using System.Buffers;
 using System.Text.Json;
 using ZLogger.Formatters;
@@ -5,7 +6,7 @@ using ZLogger.Internal;
 
 namespace ZLogger.LogStates
 {
-    internal struct InterpolatedStringLogState : IReferenceCountZLoggerFormattable
+    internal struct InterpolatedStringLogState : IZLoggerFormattable, IDisposable
     {
         public int ParameterCount { get; }
 
@@ -14,8 +15,6 @@ namespace ZLogger.LogStates
         // pooling values.
         byte[] magicalBoxStorage;
         InterpolatedStringParameter[] parameters;
-
-        int refCount;
 
         readonly MessageSequence messageSequence;
         readonly MagicalBox magicalBox;
@@ -32,26 +31,15 @@ namespace ZLogger.LogStates
 
             this.messageSequence = messageSequence;
             this.magicalBox = new MagicalBox(magicalBoxStorage, magicalBox.Written);
-            
-            Retain();
         }
 
         public IZLoggerEntry CreateEntry(LogInfo info)
         {
-            return ZLoggerEntry<InterpolatedStringLogState>.Create(info, this);
-        }
+            // state needs clone.
+            var newState = new InterpolatedStringLogState(messageSequence, this.magicalBox, this.parameters.AsSpan(0, ParameterCount));
 
-        public void Retain()
-        {
-            Interlocked.Increment(ref refCount);
-        }
-
-        public void Release()
-        {
-            if (Interlocked.Decrement(ref refCount) == 0)
-            {
-                Dispose();
-            }
+            // Create Entry with cloned state(state will dispose when entry was disposed)
+            return ZLoggerEntry<InterpolatedStringLogState>.Create(info, newState);
         }
 
         public void Dispose()
