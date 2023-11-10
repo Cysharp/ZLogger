@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
@@ -6,6 +7,7 @@ using BenchmarkDotNet.Jobs;
 using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Extensions.Logging;
+using NLog.Targets.Wrappers;
 using Serilog;
 using Serilog.Formatting.Json;
 using ZLogger;
@@ -28,7 +30,7 @@ file class BenchmarkConfig : ManualConfig
 public class WriteJsonToConsole
 {
     const int N = 100_000;
-    
+
     ILogger zLogger = default!;
     ILogger msExtConsoleLogger = default!;
     ILogger serilogMsExtLogger = default!;
@@ -41,7 +43,7 @@ public class WriteJsonToConsole
 
     Serilog.Core.Logger serilogLogger = default!;
     Serilog.Core.Logger serilogLoggerForMsExt = default!;
-    
+
     NLog.Logger nLogLogger = default!;
     NLog.Config.LoggingConfiguration nLogConfig = default!;
     NLog.Config.LoggingConfiguration nLogConfigForMsExt = default!;
@@ -50,9 +52,9 @@ public class WriteJsonToConsole
     public void SetUpLogger()
     {
         System.Console.SetOut(TextWriter.Null);
-        
+
         // ZLogger
-        
+
         zLoggerFactory = LoggerFactory.Create(logging =>
         {
             logging.AddZLoggerConsole(options =>
@@ -62,31 +64,31 @@ public class WriteJsonToConsole
         });
 
         zLogger = zLoggerFactory.CreateLogger<WritePlainTextToFile>();
-        
+
         // Microsoft.Extensions.Logging.Console
-        
+
         msExtConsoleLoggerFactory = LoggerFactory.Create(logging =>
         {
             logging.AddJsonConsole();
         });
 
         msExtConsoleLogger = msExtConsoleLoggerFactory.CreateLogger<WriteJsonToConsole>();
-        
+
         // Serilog
 
         var serilogFormatter = new JsonFormatter(renderMessage: true);
-        
+
         serilogLogger = new Serilog.LoggerConfiguration()
-            .WriteTo.Async(a => a.Console(serilogFormatter))
+            .WriteTo.Async(a => a.Console(serilogFormatter), bufferSize: N)
             .CreateLogger();
 
         serilogLoggerForMsExt = new Serilog.LoggerConfiguration()
-            .WriteTo.Async(a => a.Console(serilogFormatter))
+            .WriteTo.Async(a => a.Console(serilogFormatter), bufferSize: N)
             .CreateLogger();
-        
+
         serilogMsExtLoggerFactory = LoggerFactory.Create(logging => logging.AddSerilog(serilogLoggerForMsExt));
         serilogMsExtLogger = serilogMsExtLoggerFactory.CreateLogger<WriteJsonToConsole>();
-        
+
         // NLog
 
         var nLogLayout = new NLog.Layouts.JsonLayout
@@ -106,7 +108,10 @@ public class WriteJsonToConsole
             {
                 Layout = nLogLayout,
             };
-            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target);
+            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target, 10000, AsyncTargetWrapperOverflowAction.Grow)
+            {
+                TimeToSleepBetweenBatches = 0
+            };
             nLogConfig.AddTarget(asyncTarget);
             nLogConfig.AddRuleForAllLevels(asyncTarget);
             nLogConfig.LogFactory.Configuration = nLogConfig;
@@ -121,7 +126,10 @@ public class WriteJsonToConsole
                 {
                     Layout = nLogLayout
                 };
-                var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2);
+                var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2, 10000, AsyncTargetWrapperOverflowAction.Grow)
+                {
+                    TimeToSleepBetweenBatches = 0
+                };
                 nLogConfigForMsExt.AddTarget(asyncTarget2);
                 nLogConfigForMsExt.AddRuleForAllLevels(asyncTarget2);
                 nLogConfigForMsExt.LogFactory.Configuration = nLogConfigForMsExt;
@@ -143,7 +151,7 @@ public class WriteJsonToConsole
         }
         zLoggerFactory.Dispose();
     }
-    
+
     [Benchmark]
     public void MsExtConsole_JsonConsole()
     {

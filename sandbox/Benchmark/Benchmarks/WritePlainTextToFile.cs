@@ -1,11 +1,14 @@
+using System;
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
+using Microsoft.Diagnostics.Runtime;
 using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Extensions.Logging;
+using NLog.Targets.Wrappers;
 using Serilog;
 using Serilog.Formatting.Display;
 using Utf8StringInterpolation;
@@ -28,7 +31,7 @@ file class BenchmarkConfig : ManualConfig
 public class WritePlainTextToFile
 {
     const int N = 100_000;
-    
+
     ILogger zLogger = default!;
     ILogger serilogMsExtLogger = default!;
     ILogger nLogMsExtLogger = default!;
@@ -39,7 +42,7 @@ public class WritePlainTextToFile
 
     Serilog.Core.Logger serilogLogger = default!;
     Serilog.Core.Logger serilogLoggerForMsExt = default!;
-    
+
     NLog.Logger nLogLogger = default!;
     NLog.Config.LoggingConfiguration nLogConfig = default!;
     NLog.Config.LoggingConfiguration nLogConfigForMsExt = default!;
@@ -67,7 +70,7 @@ public class WritePlainTextToFile
     public void SetUpLogger()
     {
         // ZLogger
-        
+
         zLoggerFactory = LoggerFactory.Create(logging =>
         {
             logging.AddZLoggerFile(GetLogFilePath("zlogger.log"), options =>
@@ -83,22 +86,22 @@ public class WritePlainTextToFile
         });
 
         zLogger = zLoggerFactory.CreateLogger<WritePlainTextToFile>();
-        
+
         // Serilog
 
         var serilogFormatter = new MessageTemplateTextFormatter("{Timestamp} [{Level}] {Message}{NewLine}");
-        
+
         serilogLogger = new Serilog.LoggerConfiguration()
-            .WriteTo.Async(a => a.File(serilogFormatter, GetLogFilePath("serilog.log"), buffered: true))
+            .WriteTo.Async(a => a.File(serilogFormatter, GetLogFilePath("serilog.log"), buffered: true, flushToDiskInterval: TimeSpan.Zero), bufferSize: N)
             .CreateLogger();
 
         serilogLoggerForMsExt = new Serilog.LoggerConfiguration()
-            .WriteTo.Async(a => a.File(serilogFormatter, GetLogFilePath("serilog_msext.log"), buffered: true))
+            .WriteTo.Async(a => a.File(serilogFormatter, GetLogFilePath("serilog_msext.log"), buffered: true, flushToDiskInterval: TimeSpan.Zero), bufferSize: N)
             .CreateLogger();
-        
+
         serilogMsExtLoggerFactory = LoggerFactory.Create(logging => logging.AddSerilog(serilogLoggerForMsExt));
         serilogMsExtLogger = serilogMsExtLoggerFactory.CreateLogger<WritePlainTextToFile>();
-        
+
         // NLog
 
         var nLogLayout = new NLog.Layouts.SimpleLayout("${longdate} [${level}] ${message}");
@@ -108,8 +111,14 @@ public class WritePlainTextToFile
             {
                 FileName = GetLogFilePath("nlog.log"),
                 Layout = nLogLayout,
+                KeepFileOpen = true,
+                ConcurrentWrites = false,
+                AutoFlush = true
             };
-            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target);
+            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target, 10000, AsyncTargetWrapperOverflowAction.Grow)
+            {
+                TimeToSleepBetweenBatches = 0
+            };
             nLogConfig.AddTarget(asyncTarget);
             nLogConfig.AddRuleForAllLevels(asyncTarget);
 
@@ -123,9 +132,15 @@ public class WritePlainTextToFile
                 var target2 = new NLog.Targets.FileTarget("FileMsExt")
                 {
                     FileName = GetLogFilePath("nlog_msext.log"),
-                    Layout = nLogLayout
+                    Layout = nLogLayout,
+                    KeepFileOpen = true,
+                    ConcurrentWrites = false,
+                    AutoFlush = true
                 };
-                var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2);
+                var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2, 10000, AsyncTargetWrapperOverflowAction.Grow)
+                {
+                    TimeToSleepBetweenBatches = 0
+                };
                 nLogConfigForMsExt.AddTarget(asyncTarget2);
                 nLogConfigForMsExt.AddRuleForAllLevels(asyncTarget2);
                 nLogConfigForMsExt.LogFactory.Configuration = nLogConfigForMsExt;
@@ -168,7 +183,7 @@ public class WritePlainTextToFile
         }
         serilogLogger.Dispose();
     }
-    
+
     [Benchmark]
     public void NLog_MsExt_PlainTextFile()
     {
