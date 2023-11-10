@@ -97,11 +97,20 @@ namespace ZLogger
                     {
                         while (reader.TryRead(out var value))
                         {
-                            info = value.LogInfo;
                             var currentWriter = errorWriter != null && info.LogLevel >= options.LogToErrorThreshold
                                 ? errorWriter
                                 : writer;
-                            value.FormatUtf8(currentWriter, formatter);
+                            try
+                            {
+                                value.FormatUtf8(currentWriter, formatter);
+                            }
+                            finally
+                            {
+                                if (value is IReturnableZLoggerEntry)
+                                {
+                                    ((IReturnableZLoggerEntry)value).Return();
+                                }
+                            }
                             AppendLine(currentWriter);
                         }
                         info = default;

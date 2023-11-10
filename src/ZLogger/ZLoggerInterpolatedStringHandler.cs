@@ -121,7 +121,7 @@ namespace ZLogger
             var sequence = MessageSequence.GetOrCreate(literalLength, parametersLength, literals);
 
             // MagicalBox and Parameters are cloned in ctor.
-            var result = new InterpolatedStringLogState(sequence, box, CollectionsMarshal.AsSpan(parameters));
+            var result = InterpolatedStringLogState.Create(sequence, box, CollectionsMarshal.AsSpan(parameters));
 
             // clear state
             literals.Clear();
