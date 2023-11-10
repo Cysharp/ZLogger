@@ -72,13 +72,17 @@ public class WritePlainTextToConsole
         zLogger = zLoggerFactory.CreateLogger<WritePlainTextToConsole>();
 
         // Microsoft.Extensions.Logging.Console
-
+        
         msExtConsoleLoggerFactory = LoggerFactory.Create(logging =>
         {
-            logging.AddJsonConsole();
+            logging
+                .AddConsole(options =>
+                {
+                    options.FormatterName = "BenchmarkPlainText";
+                })
+                .AddConsoleFormatter<BenchmarkPlainTextConsoleFormatter, BenchmarkPlainTextConsoleFormatter.Options>();
         });
-        msExtConsoleLogger = msExtConsoleLoggerFactory.CreateLogger<WritePlainTextToConsole>();
-
+        msExtConsoleLogger = msExtConsoleLoggerFactory.CreateLogger<Program>();
 
         // Serilog
 
@@ -122,7 +126,10 @@ public class WritePlainTextToConsole
                 {
                     Layout = nLogLayout
                 };
-                var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2, 10000, AsyncTargetWrapperOverflowAction.Grow);
+                var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2, 10000, AsyncTargetWrapperOverflowAction.Grow)
+                {
+                    TimeToSleepBetweenBatches = 0 
+                };
                 nLogConfigForMsExt.AddTarget(asyncTarget2);
                 nLogConfigForMsExt.AddRuleForAllLevels(asyncTarget2);
                 nLogConfigForMsExt.LogFactory.Configuration = nLogConfigForMsExt;

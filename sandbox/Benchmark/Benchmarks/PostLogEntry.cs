@@ -7,7 +7,9 @@ using BenchmarkDotNet.Jobs;
 using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Extensions.Logging;
+using NLog.Targets.Wrappers;
 using Serilog;
+using Utf8StringInterpolation;
 using ZLogger;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
@@ -66,23 +68,33 @@ public class PostLogEntry
         
         var zLoggerFactory = LoggerFactory.Create(logging =>
         {
-            logging.AddZLoggerStream(Stream.Null);
+            logging.AddZLoggerStream(Stream.Null, options =>
+            {
+                options.UsePlainTextFormatter(formatter =>
+                {
+                    formatter.PrefixFormatter = (writer, info) =>
+                    {
+                        Utf8String.Format(writer, $"{info.Timestamp.DateTime} [{info.LogLevel}] ");
+                    };
+                });
+            });
         });
 
         zLogger = zLoggerFactory.CreateLogger<PostLogEntry>();
         
         // Microsoft.Extensions.Logging.Console
         
-        using var msExtLoggerFactory = LoggerFactory.Create(logging =>
+        var msExtConsoleLoggerFactory = LoggerFactory.Create(logging =>
         {
-            logging.AddConsole(options =>
-            {
-                // options.QueueFullMode = ConsoleLoggerQueueFullMode.DropWrite;
-                // options.MaxQueueLength = 1024;
-            });
+            logging
+                .AddConsole(options =>
+                {
+                    options.FormatterName = "BenchmarkPlainText";
+                })
+                .AddConsoleFormatter<BenchmarkPlainTextConsoleFormatter, BenchmarkPlainTextConsoleFormatter.Options>();
         });
 
-        msExtConsoleLogger = msExtLoggerFactory.CreateLogger<Program>();
+        msExtConsoleLogger = msExtConsoleLoggerFactory.CreateLogger<Program>();
         
         // Serilog
         
@@ -100,14 +112,18 @@ public class PostLogEntry
         serilogMsExtLogger = serilogMsExtLoggerFactory.CreateLogger<PostLogEntry>();
         
         // NLog
-
+        var nLogLayout = new NLog.Layouts.SimpleLayout("${longdate} [${level}] ${message}");
         {
             var nLogConfig = new NLog.Config.LoggingConfiguration(new LogFactory());
             var target = new NLog.Targets.FileTarget("Null")
             {
-                FileName = NullDevicePath
+                FileName = NullDevicePath,
+                Layout = nLogLayout
             };
-            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target);
+            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target, 10000, AsyncTargetWrapperOverflowAction.Grow)
+            {
+                TimeToSleepBetweenBatches = 0
+            };
             nLogConfig.AddTarget(asyncTarget);
             nLogConfig.AddRuleForAllLevels(asyncTarget);
             nLogConfig.LogFactory.Configuration = nLogConfig;
@@ -118,9 +134,13 @@ public class PostLogEntry
             var nLogConfigForMsExt = new NLog.Config.LoggingConfiguration(new LogFactory());
             var target = new NLog.Targets.FileTarget("Null")
             {
-                FileName = NullDevicePath
+                FileName = NullDevicePath,
+                Layout = nLogLayout
             };
-            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target);
+            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target, 10000, AsyncTargetWrapperOverflowAction.Grow)
+            {
+                TimeToSleepBetweenBatches = 0
+            };
             nLogConfigForMsExt.AddTarget(asyncTarget);
             nLogConfigForMsExt.AddRuleForAllLevels(asyncTarget);
             nLogConfigForMsExt.LogFactory.Configuration = nLogConfigForMsExt;
