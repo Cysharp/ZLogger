@@ -182,7 +182,8 @@ namespace ZLogger
         {
             var stringWriter = new Utf8StringWriter<IBufferWriter<byte>>(literalLength, parametersLength, writer);
 
-            var parameterIndex = 0; foreach (var item in segments)
+            var parameterIndex = 0;
+            foreach (var item in segments)
             {
                 if (item.IsLiteral)
                 {
