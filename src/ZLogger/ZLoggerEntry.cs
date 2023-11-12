@@ -10,7 +10,7 @@ namespace ZLogger
     {
         LogInfo LogInfo { get; }
         LogScopeState? ScopeState { get; set; }
-        void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter); // TODO: 2 -> 1
+        void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter);
     }
 
     public interface IReturnableZLoggerEntry : IZLoggerEntry

@@ -5,10 +5,14 @@ using ZLogger.Internal;
 
 namespace ZLogger.LogStates
 {
-    internal struct InterpolatedStringLogState : IReferenceCountZLoggerFormattable
+    internal class InterpolatedStringLogState : IReferenceCountZLoggerFormattable, IObjectPoolNode<InterpolatedStringLogState>
     {
-        public int ParameterCount { get; }
-
+        static readonly ObjectPool<InterpolatedStringLogState> cache = new();
+        
+        public ref InterpolatedStringLogState? NextNode => ref next;
+        InterpolatedStringLogState? next;
+        
+        public int ParameterCount { get; private set; }
         public bool IsSupportUtf8ParameterKey => false;
 
         // pooling values.
@@ -17,10 +21,30 @@ namespace ZLogger.LogStates
 
         int refCount;
 
-        readonly MessageSequence messageSequence;
+        MessageSequence messageSequence;
         MagicalBox magicalBox;
 
-        public InterpolatedStringLogState(MessageSequence messageSequence, MagicalBox magicalBox, ReadOnlySpan<InterpolatedStringParameter> parameters)
+        public static InterpolatedStringLogState Create(MessageSequence messageSequence, MagicalBox magicalBox, ReadOnlySpan<InterpolatedStringParameter> parameters)
+        {
+            if (cache.TryPop(out var state))
+            {
+                state.magicalBoxStorage = ArrayPool<byte>.Shared.Rent(magicalBox.Written);
+                magicalBox.AsSpan().CopyTo(state.magicalBoxStorage);
+                state.magicalBox = new MagicalBox(state.magicalBoxStorage, magicalBox.Written);
+
+                state.messageSequence = messageSequence;
+                state.parameters = ArrayPool<InterpolatedStringParameter>.Shared.Rent(parameters.Length);
+                parameters.CopyTo(state.parameters);
+                state.ParameterCount = parameters.Length;
+            }
+            else
+            {
+                state = new InterpolatedStringLogState(messageSequence, magicalBox, parameters);
+            }
+            return state;
+        }
+
+        InterpolatedStringLogState(MessageSequence messageSequence, MagicalBox magicalBox, ReadOnlySpan<InterpolatedStringParameter> parameters)
         {
             // need clone.
             this.magicalBoxStorage = ArrayPool<byte>.Shared.Rent(magicalBox.Written);
@@ -56,14 +80,13 @@ namespace ZLogger.LogStates
 
         public void Dispose()
         {
-            if (magicalBoxStorage != null)
-            {
-                ArrayPool<byte>.Shared.Return(magicalBoxStorage);
-                ArrayPool<InterpolatedStringParameter>.Shared.Return(parameters);
+            ArrayPool<byte>.Shared.Return(magicalBoxStorage);
+            ArrayPool<InterpolatedStringParameter>.Shared.Return(parameters);
 
-                magicalBoxStorage = null!;
-                parameters = null!;
-            }
+            magicalBoxStorage = null!;
+            parameters = null!;
+            
+            cache.TryPush(this);
         }
 
         public override string ToString()
