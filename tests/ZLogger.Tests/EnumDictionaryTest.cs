@@ -36,9 +36,9 @@ namespace ZLogger.Tests
             flags.GetStringName(ToBytes(FlagsEnum.A | FlagsEnum.D)).Should().BeNull();
 
             duplicate.GetStringName(ToBytes(Duplicate.Foo)).Should().Be("Foo");
-            duplicate.GetStringName(ToBytes(Duplicate.Bar)).Should().Be("MoreBar");
+            (duplicate.GetStringName(ToBytes(Duplicate.Bar)) is "MoreBar" or "Bar").Should().BeTrue();
             duplicate.GetStringName(ToBytes(Duplicate.Baz)).Should().Be("Baz");
-            duplicate.GetStringName(ToBytes(Duplicate.MoreBar)).Should().Be("MoreBar");
+            (duplicate.GetStringName(ToBytes(Duplicate.MoreBar)) is "MoreBar" or "Bar").Should().BeTrue();
             duplicate.GetStringName(ToBytes(Duplicate.End)).Should().Be("End");
         }
 

@@ -131,7 +131,7 @@ namespace ZLogger.Tests
             logger.ZLogDebug($"array: {array} enumerable: {enumerable}");
 
             var message = processor.Dequeue();
-            message.Should().Be("array: 111, 222, 333 enumerable: a, i, u, e");
+            message.Should().Be("array: [111,222,333] enumerable: [\"a\",\"i\",\"u\",\"e\"]");
         }
     }
 }

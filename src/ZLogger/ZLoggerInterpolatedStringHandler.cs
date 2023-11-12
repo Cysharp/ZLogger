@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -174,10 +175,20 @@ namespace ZLogger
                     ref var p = ref parameters[parameterIndex++];
                     if (!box.TryReadTo(p.Type, p.BoxOffset, p.Alignment, p.Format, ref stringWriter))
                     {
-                        if (p.BoxedValue is IEnumerable enumerable)
+                        if (p.BoxedValue is string s)
                         {
-                            var jsonWriter = new Utf8JsonWriter(writer);
+                            stringWriter.AppendLiteral(s);
+                        }
+                        else if (p.BoxedValue is IEnumerable enumerable)
+                        {
+                            // require Flush before use Utf8JsonWriter
+                            stringWriter.Dispose();
+                            using var jsonWriter = new Utf8JsonWriter(writer);
                             JsonSerializer.Serialize(jsonWriter, enumerable);
+                            jsonWriter.Flush();
+
+                            // require re-create after use Utf8JsonWriter for control internal buffer
+                            stringWriter = new Utf8StringWriter<IBufferWriter<byte>>(literalLength, parametersLength, writer);
                         }
                         else
                         {
@@ -205,10 +216,14 @@ namespace ZLogger
                     ref var p = ref parameters[parameterIndex++];
                     if (!box.TryReadTo(p.Type, p.BoxOffset, p.Alignment, p.Format, ref stringHandler))
                     {
-                        if (p.BoxedValue is IEnumerable enumerable)
+                        if (p.BoxedValue is string s)
+                        {
+                            stringHandler.AppendLiteral(s);
+                        }
+                        else if (p.BoxedValue is IEnumerable enumerable)
                         {
                             var jsonString = JsonSerializer.Serialize(enumerable);
-                            stringHandler.AppendFormatted(jsonString);
+                            stringHandler.AppendLiteral(jsonString);
                         }
                         else
                         {
