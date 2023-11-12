@@ -134,24 +134,30 @@ namespace ZLogger
     // MessageSequence is immutable, can cache per same string format.
     internal sealed class MessageSequence
     {
-        // TODO: use specialized impl dictionary?(for example, only check message length)
-        static readonly ConcurrentDictionary<List<string?>, MessageSequence> cache = new(new MessageSequenceEqualityComparer());
+        static readonly ConcurrentDictionary<LiteralList, MessageSequence> cache = new();
 
         // literals null represents parameter hole
         public static MessageSequence GetOrCreate(int literalLength, int parameterLength, List<string?> literals)
         {
-            if (cache.TryGetValue(literals, out var sequence))
+            var key = new LiteralList(literals);
+            if (cache.TryGetValue(key, out var sequence))
             {
                 return sequence;
             }
 
-            // create copy
-            var key = literals.ToList();
-            sequence = new MessageSequence(literalLength, parameterLength, CollectionsMarshal.AsSpan(key));
+            lock (cache)
+            {
+                if (cache.TryGetValue(key, out sequence))
+                {
+                    return sequence;
+                }
 
-            // if add failed, ok to use duplicate sequence.
-            cache.TryAdd(key, sequence);
-            return sequence;
+                // create copy
+                var clonedList = literals.ToList();
+                sequence = new MessageSequence(literalLength, parameterLength, CollectionsMarshal.AsSpan(clonedList));
+                cache.TryAdd(new LiteralList(clonedList), sequence);
+                return sequence;
+            }
         }
 
         readonly int literalLength;
@@ -197,7 +203,7 @@ namespace ZLogger
                         if (p.BoxedValue is IEnumerable enumerable)
                         {
                             var jsonWriter = new Utf8JsonWriter(writer);
-                            JsonSerializer.Serialize(jsonWriter, enumerable);                            
+                            JsonSerializer.Serialize(jsonWriter, enumerable);
                         }
                         else
                         {
@@ -261,42 +267,41 @@ namespace ZLogger
             return stringHandler.ToStringAndClear();
         }
 
-        internal sealed class MessageSequenceEqualityComparer : IEqualityComparer<List<string?>>
+        readonly struct LiteralList : IEquatable<LiteralList>
         {
-            public bool Equals(List<string?>? x, List<string?>? y)
+            readonly List<string?> literals;
+
+            public LiteralList(List<string?> literals)
             {
-                if (x == null && y == null) return true;
-                if (x == null) return false;
-                if (y == null) return false;
-                if (x.Count != y.Count) return false;
-
-                var xs = CollectionsMarshal.AsSpan(x);
-                var ys = CollectionsMarshal.AsSpan(y);
-
-                for (int i = 0; i < xs.Length; i++)
-                {
-                    if (xs[i] != ys[i]) return false;
-                }
-
-                return true;
+                this.literals = literals;
             }
 
-            public int GetHashCode([DisallowNull] List<string?>? obj)
+            public override int GetHashCode()
             {
-                if (obj == null) return 0;
+                return BuildHashCode(AsBytes(CollectionsMarshal.AsSpan(literals)));
+            }
 
-                var hashCode = new HashCode();
+            public bool Equals(LiteralList other)
+            {
+                var xs = CollectionsMarshal.AsSpan(literals);
+                var ys = CollectionsMarshal.AsSpan(other.literals);
 
-                var span = CollectionsMarshal.AsSpan(obj);
-                foreach (var item in span)
-                {
-                    if (item != null)
-                    {
-                        hashCode.AddBytes(MemoryMarshal.AsBytes(item.AsSpan()));
-                    }
-                }
+                return AsBytes(xs).SequenceEqual(AsBytes(ys));
+            }
 
-                return hashCode.ToHashCode();
+            // convert const strings as address sequence
+            static ReadOnlySpan<byte> AsBytes(ReadOnlySpan<string?> literals)
+            {
+                return MemoryMarshal.CreateSpan(
+                    ref Unsafe.As<string?, byte>(ref MemoryMarshal.GetReference(literals)),
+                    literals.Length * Unsafe.SizeOf<string>());
+            }
+
+            static int BuildHashCode(ReadOnlySpan<byte> source)
+            {
+                // https://github.com/Cyan4973/xxHash/issues/453
+                // XXH3 64bit -> 32bit, okay to simple cast answered by XXH3 author.
+                return unchecked((int)System.IO.Hashing.XxHash3.HashToUInt64(source));
             }
         }
     }

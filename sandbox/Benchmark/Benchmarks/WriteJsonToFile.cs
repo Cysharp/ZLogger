@@ -48,8 +48,8 @@ public class WriteJsonToFile
 
     static string tempDir = default!;
 
-    [GlobalSetup]
-    public void SetUpDirectory()
+    [IterationSetup]
+    public void SetUpLogger()
     {
         tempDir = Path.Join(Path.GetTempPath(), "zlogger-benchmark");
         try
@@ -63,11 +63,7 @@ public class WriteJsonToFile
         {
         }
         Directory.CreateDirectory(tempDir);
-    }
 
-    [IterationSetup]
-    public void SetUpLogger()
-    {
         // ZLogger
 
         zLoggerFactory = LoggerFactory.Create(logging =>
@@ -120,7 +116,7 @@ public class WriteJsonToFile
             };
             var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target, 10000, AsyncTargetWrapperOverflowAction.Grow)
             {
-                TimeToSleepBetweenBatches = 0
+                TimeToSleepBetweenBatches = 0,
             };
             nLogConfig.AddTarget(asyncTarget);
             nLogConfig.AddRuleForAllLevels(asyncTarget);
@@ -152,6 +148,18 @@ public class WriteJsonToFile
         }
 
         nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<WritePlainTextToFile>();
+    }
+
+    [IterationCleanup]
+    public void Cleanup()
+    {
+        zLoggerFactory.Dispose();
+        serilogLoggerForMsExt.Dispose();
+        serilogMsExtLoggerFactory.Dispose();
+        serilogLogger.Dispose();
+        nLogConfigForMsExt.LogFactory.Shutdown();
+        nLogMsExtLoggerFactory.Dispose();
+        nLogConfig.LogFactory.Shutdown(); 
     }
 
     [Benchmark]

@@ -32,15 +32,18 @@ namespace ZLogger.LogStates
                 magicalBox.AsSpan().CopyTo(state.magicalBoxStorage);
                 state.magicalBox = new MagicalBox(state.magicalBoxStorage, magicalBox.Written);
 
-                state.messageSequence = messageSequence;
                 state.parameters = ArrayPool<InterpolatedStringParameter>.Shared.Rent(parameters.Length);
                 parameters.CopyTo(state.parameters);
                 state.ParameterCount = parameters.Length;
+
+                state.messageSequence = messageSequence;
             }
             else
             {
                 state = new InterpolatedStringLogState(messageSequence, magicalBox, parameters);
             }
+
+            state.Retain();
             return state;
         }
 
@@ -49,15 +52,13 @@ namespace ZLogger.LogStates
             // need clone.
             this.magicalBoxStorage = ArrayPool<byte>.Shared.Rent(magicalBox.Written);
             magicalBox.AsSpan().CopyTo(magicalBoxStorage);
+            this.magicalBox = new MagicalBox(magicalBoxStorage, magicalBox.Written);
 
             this.parameters = ArrayPool<InterpolatedStringParameter>.Shared.Rent(parameters.Length);
             parameters.CopyTo(this.parameters);
             ParameterCount = parameters.Length;
 
             this.messageSequence = messageSequence;
-            this.magicalBox = new MagicalBox(magicalBoxStorage, magicalBox.Written);
-            
-            Retain();
         }
 
         public IZLoggerEntry CreateEntry(LogInfo info)
