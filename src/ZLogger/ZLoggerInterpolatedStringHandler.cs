@@ -2,7 +2,6 @@ using Microsoft.Extensions.Logging;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -17,12 +16,6 @@ namespace ZLogger
     public ref struct ZLoggerInterpolatedStringHandler
     {
         [ThreadStatic]
-        static byte[]? boxStoragePool;
-
-        [ThreadStatic]
-        static List<InterpolatedStringParameter>? parametersPool;
-
-        [ThreadStatic]
         static List<string?>? literalPool;
 
         public bool IsLoggerEnabled { get; }
@@ -31,8 +24,8 @@ namespace ZLogger
         readonly int literalLength;
         readonly int parametersLength;
         readonly List<string?> literals;
-        readonly List<InterpolatedStringParameter> parameters;
-        MagicalBox box;
+        readonly InterpolatedStringLogState state;
+        int parameterWritten;
 
         /// <summary>
         /// DO NOT ALLOW DIRECT USE.
@@ -44,20 +37,8 @@ namespace ZLogger
             {
                 IsLoggerEnabled = false;
                 this.literals = default!;
-                this.parameters = default!;
+                this.state = default!;
                 return;
-            }
-
-            var boxStorage = boxStoragePool;
-            if (boxStorage == null)
-            {
-                boxStorage = boxStoragePool = new byte[2048];
-            }
-
-            var parameters = parametersPool;
-            if (parameters == null)
-            {
-                parameters = parametersPool = new List<InterpolatedStringParameter>();
             }
 
             var literals = literalPool;
@@ -68,8 +49,7 @@ namespace ZLogger
 
             this.literalLength = literalLength;
             this.parametersLength = formattedCount;
-            this.box = new MagicalBox(boxStorage);
-            this.parameters = parameters;
+            this.state = InterpolatedStringLogState.Create(formattedCount); // start to use from Pool.
             this.literals = literals;
             this.IsLoggerEnabled = true;
         }
@@ -85,13 +65,13 @@ namespace ZLogger
             literals.Add(null);
 
             // Use MagicalBox(set value without boxing)
-            if (!box.TryWrite(value, out var offset))
+            if (!state.magicalBox.TryWrite(value, out var offset))
             {
                 offset = -1;
             }
 
             var parameter = new InterpolatedStringParameter(typeof(T), argumentName ?? "", alignment, format, offset, (offset == -1) ? (object?)value : null);
-            parameters.Add(parameter);
+            state.parameters[parameterWritten++] = parameter;
         }
 
         public void AppendFormatted<T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
@@ -106,7 +86,7 @@ namespace ZLogger
             {
                 literals.Add(null);
                 var parameter = new InterpolatedStringParameter(typeof(Nullable<T>), argumentName ?? "", alignment, format, -1, null);
-                parameters.Add(parameter);
+                state.parameters[parameterWritten++] = parameter;
             }
         }
 
@@ -115,19 +95,13 @@ namespace ZLogger
             AppendFormatted(namedValue.Item2, alignment, format, namedValue.Item1);
         }
 
-        internal InterpolatedStringLogState GetStateAndClear()
+        internal InterpolatedStringLogState GetState()
         {
             // MessageSequence is immutable
-            var sequence = MessageSequence.GetOrCreate(literalLength, parametersLength, literals);
-
-            // MagicalBox and Parameters are cloned in ctor.
-            var result = InterpolatedStringLogState.Create(sequence, box, CollectionsMarshal.AsSpan(parameters));
-
-            // clear state
+            state.messageSequence = MessageSequence.GetOrCreate(literalLength, parametersLength, literals);
             literals.Clear();
-            parameters.Clear();
 
-            return result;
+            return state;
         }
     }
 

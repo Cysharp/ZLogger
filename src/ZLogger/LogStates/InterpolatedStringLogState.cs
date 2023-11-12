@@ -8,57 +8,35 @@ namespace ZLogger.LogStates
     internal class InterpolatedStringLogState : IReferenceCountZLoggerFormattable, IObjectPoolNode<InterpolatedStringLogState>
     {
         static readonly ObjectPool<InterpolatedStringLogState> cache = new();
-        
+
         public ref InterpolatedStringLogState? NextNode => ref next;
         InterpolatedStringLogState? next;
-        
+
         public int ParameterCount { get; private set; }
         public bool IsSupportUtf8ParameterKey => false;
 
         // pooling values.
-        byte[] magicalBoxStorage;
-        InterpolatedStringParameter[] parameters;
+        byte[] magicalBoxStorage = default!;
+        internal InterpolatedStringParameter[] parameters = default!;
 
         int refCount;
+        internal MessageSequence messageSequence = default!;
+        internal MagicalBox magicalBox;
 
-        MessageSequence messageSequence;
-        MagicalBox magicalBox;
-
-        public static InterpolatedStringLogState Create(MessageSequence messageSequence, MagicalBox magicalBox, ReadOnlySpan<InterpolatedStringParameter> parameters)
+        public static InterpolatedStringLogState Create(int formattedCount)
         {
-            if (cache.TryPop(out var state))
+            if (!cache.TryPop(out var state))
             {
-                state.magicalBoxStorage = ArrayPool<byte>.Shared.Rent(magicalBox.Written);
-                magicalBox.AsSpan().CopyTo(state.magicalBoxStorage);
-                state.magicalBox = new MagicalBox(state.magicalBoxStorage, magicalBox.Written);
-
-                state.parameters = ArrayPool<InterpolatedStringParameter>.Shared.Rent(parameters.Length);
-                parameters.CopyTo(state.parameters);
-                state.ParameterCount = parameters.Length;
-
-                state.messageSequence = messageSequence;
-            }
-            else
-            {
-                state = new InterpolatedStringLogState(messageSequence, magicalBox, parameters);
+                state = new InterpolatedStringLogState();
             }
 
-            state.Retain();
+            state.magicalBoxStorage = ArrayPool<byte>.Shared.Rent(2048);
+            state.magicalBox = new MagicalBox(state.magicalBoxStorage);
+            state.parameters = ArrayPool<InterpolatedStringParameter>.Shared.Rent(formattedCount);
+            state.ParameterCount = formattedCount;
+            state.refCount = 1;
+
             return state;
-        }
-
-        InterpolatedStringLogState(MessageSequence messageSequence, MagicalBox magicalBox, ReadOnlySpan<InterpolatedStringParameter> parameters)
-        {
-            // need clone.
-            this.magicalBoxStorage = ArrayPool<byte>.Shared.Rent(magicalBox.Written);
-            magicalBox.AsSpan().CopyTo(magicalBoxStorage);
-            this.magicalBox = new MagicalBox(magicalBoxStorage, magicalBox.Written);
-
-            this.parameters = ArrayPool<InterpolatedStringParameter>.Shared.Rent(parameters.Length);
-            parameters.CopyTo(this.parameters);
-            ParameterCount = parameters.Length;
-
-            this.messageSequence = messageSequence;
         }
 
         public IZLoggerEntry CreateEntry(LogInfo info)
@@ -86,7 +64,7 @@ namespace ZLogger.LogStates
 
             magicalBoxStorage = null!;
             parameters = null!;
-            
+
             cache.TryPush(this);
         }
 
@@ -106,7 +84,7 @@ namespace ZLogger.LogStates
             {
                 ref var p = ref parameters[i];
                 SystemTextJsonZLoggerFormatter.WriteMutatedJsonKeyName(p.ParseKeyName(), jsonWriter, options.KeyNameMutator);
-                
+
                 if (magicalBox.TryReadTo(p.Type, p.BoxOffset, jsonWriter))
                 {
                     continue;

@@ -17,12 +17,6 @@ internal unsafe partial struct MagicalBox
         this.storage = storage;
     }
 
-    public MagicalBox(byte[] storage, int written)
-    {
-        this.storage = storage;
-        this.written = written;
-    }
-
     public int Written => written;
 
     public ReadOnlySpan<byte> AsSpan() => storage.AsSpan(0, written);
