@@ -4,6 +4,8 @@ namespace ZLogger.Internal
     {
         public static ReadOnlySpan<char> GetParameterizedName(ReadOnlySpan<char> expressionString)
         {
+            if (expressionString.Length == 1) return expressionString;
+
             var lastDotPos = -1;
             var lastOpenParenthesisPos = -1;
             for (var i = 0; i < expressionString.Length; i++)

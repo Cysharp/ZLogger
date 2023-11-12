@@ -29,7 +29,7 @@ namespace ZLogger
                 : new StringFormatterLogState<TState>(state, exception, formatter).CreateEntry(info); // standard `log`
 
             entry.ScopeState = scopeState;
-            
+
             if (state is IReferenceCountZLoggerFormattable)
             {
                 ((IReferenceCountZLoggerFormattable)state).Retain();
@@ -37,7 +37,8 @@ namespace ZLogger
             logProcessor.Post(entry);
         }
 
-        public IDisposable BeginScope<TState>(TState state)
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull
         {
             return ScopeProvider?.Push(state) ?? NullDisposable.Instance;
         }

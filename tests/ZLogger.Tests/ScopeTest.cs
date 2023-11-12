@@ -52,7 +52,7 @@ namespace ZLogger.Tests
         [Fact]
         public void BeginScope_KeyValuePairToJson()
         {
-            using (logger.BeginScope(new KeyValuePair<string, object?>("Hoge", "AAA")))
+            using (logger.BeginScope(new KeyValuePair<string, object>("Hoge", "AAA")))
             {
                 var x = 100;
                 var y = 200;
