@@ -1,5 +1,6 @@
 using System;
 using System.Buffers;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using ZLogger.Formatters;
 using ZLogger.Internal;
@@ -147,6 +148,7 @@ namespace ZLogger.LogStates
         }
     }
 
+    [StructLayout(LayoutKind.Auto)]
     internal readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCountable
     {
         readonly InterpolatedStringLogState state;
