@@ -9,6 +9,7 @@
 #>
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
+using ZLogger.LogStates;
 
 namespace ZLogger
 {
@@ -33,8 +34,15 @@ namespace ZLogger
         {
             if (message.IsLoggerEnabled)
             {
-                using var state = message.GetStateAndClear();
-                logger.Log(logLevel, eventId, state, exception, static (state, ex) => state.ToString());
+                var state = message.GetState();
+                try
+                {
+                    logger.Log(logLevel, eventId, new VersionedLogState(state), exception, static (state, ex) => state.ToString());
+                }
+                finally
+                {
+                    state.Release();
+                }
             }
         }
 <# foreach(var logLevel in logLevels) { #>

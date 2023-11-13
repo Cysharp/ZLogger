@@ -1,3 +1,4 @@
+using System;
 using System.Buffers;
 using System.Text.Json;
 using ZLogger.Formatters;
@@ -5,7 +6,7 @@ using ZLogger.Internal;
 
 namespace ZLogger.LogStates
 {
-    internal class InterpolatedStringLogState : IReferenceCountZLoggerFormattable, IObjectPoolNode<InterpolatedStringLogState>
+    internal class InterpolatedStringLogState : IZLoggerFormattable, IReferenceCountable, IObjectPoolNode<InterpolatedStringLogState>
     {
         static readonly ObjectPool<InterpolatedStringLogState> cache = new();
 
@@ -22,6 +23,11 @@ namespace ZLogger.LogStates
         int refCount;
         internal MessageSequence messageSequence = default!;
         internal MagicalBox magicalBox;
+
+        // pool safety token
+        short version;
+
+        public short Version => version;
 
         public static InterpolatedStringLogState Create(int formattedCount)
         {
@@ -60,10 +66,14 @@ namespace ZLogger.LogStates
         public void Dispose()
         {
             ArrayPool<byte>.Shared.Return(magicalBoxStorage);
-            ArrayPool<InterpolatedStringParameter>.Shared.Return(parameters);
+            ArrayPool<InterpolatedStringParameter>.Shared.Return(parameters, clearArray: true);
 
             magicalBoxStorage = null!;
             parameters = null!;
+            unchecked
+            {
+                version += 1;
+            }
 
             cache.TryPush(this);
         }
@@ -134,6 +144,46 @@ namespace ZLogger.LogStates
         public Type GetParameterType(int index)
         {
             return parameters[index].Type;
+        }
+    }
+
+    internal readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCountable
+    {
+        readonly InterpolatedStringLogState state;
+        readonly int version;
+
+        public int Version => version;
+
+        public VersionedLogState(InterpolatedStringLogState state)
+        {
+            this.state = state;
+            this.version = state.Version;
+        }
+
+        public IZLoggerEntry CreateEntry(LogInfo info)
+        {
+            return state.CreateEntry(info);
+        }
+
+        public void Release()
+        {
+            state.Release();
+        }
+
+        public void Retain()
+        {
+            state.Retain();
+        }
+
+        public override string ToString()
+        {
+            // with validate
+            if (state.Version != version)
+            {
+                throw new InvalidOperationException("ZLogger log state version is unmatched. The reason is that the external log provider is not generating strings immediately, ZLog does not support such providers.");
+            }
+
+            return state.ToString();
         }
     }
 }

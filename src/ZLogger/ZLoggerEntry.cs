@@ -80,9 +80,9 @@ namespace ZLogger
 
         public void Return()
         {
-            if (state is IReferenceCountZLoggerFormattable)
+            if (state is IReferenceCountable)
             {
-                ((IReferenceCountZLoggerFormattable)state).Release();
+                ((IReferenceCountable)state).Release();
             }
 
             state = default!;
@@ -90,24 +90,6 @@ namespace ZLogger
             ScopeState?.Return();
             ScopeState = default;
             cache.TryPush(this);
-        }
-    }
-
-    // TODO:remove?
-    public static class ZLoggerEntryExtensions
-    {
-        public static string FormatToString(this IZLoggerEntry entry, IZLoggerFormatter formatter)
-        {
-            var buffer = ArrayBufferWriterPool.Rent();
-            try
-            {
-                formatter.FormatLogEntry(buffer, entry);
-                return Encoding.UTF8.GetString(buffer.WrittenSpan);
-            }
-            finally
-            {
-                ArrayBufferWriterPool.Return(buffer);
-            }
         }
     }
 }

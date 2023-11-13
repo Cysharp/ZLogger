@@ -24,16 +24,17 @@ namespace ZLogger
                 ? LogScopeState.Create(ScopeProvider)
                 : null;
 
-            var entry = state is IZLoggerFormattable
-                ? ((IZLoggerFormattable)state).CreateEntry(info) // constrained call avoiding boxing for value types
+            var entry = state is IZLoggerEntryCreatable
+                ? ((IZLoggerEntryCreatable)state).CreateEntry(info) // constrained call avoiding boxing for value types
                 : new StringFormatterLogState<TState>(state, exception, formatter).CreateEntry(info); // standard `log`
 
             entry.ScopeState = scopeState;
 
-            if (state is IReferenceCountZLoggerFormattable)
+            if (state is IReferenceCountable)
             {
-                ((IReferenceCountZLoggerFormattable)state).Retain();
+                ((IReferenceCountable)state).Retain();
             }
+
             logProcessor.Post(entry);
         }
 

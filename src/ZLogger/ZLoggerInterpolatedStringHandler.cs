@@ -267,7 +267,10 @@ namespace ZLogger
 
             public override int GetHashCode()
             {
-                return BuildHashCode(AsBytes(CollectionsMarshal.AsSpan(literals)));
+                // https://github.com/Cyan4973/xxHash/issues/453
+                // XXH3 64bit -> 32bit, okay to simple cast answered by XXH3 author.
+                var source = AsBytes(CollectionsMarshal.AsSpan(literals));
+                return unchecked((int)System.IO.Hashing.XxHash3.HashToUInt64(source));
             }
 
             public bool Equals(LiteralList other)
@@ -284,13 +287,6 @@ namespace ZLogger
                 return MemoryMarshal.CreateSpan(
                     ref Unsafe.As<string?, byte>(ref MemoryMarshal.GetReference(literals)),
                     literals.Length * Unsafe.SizeOf<string>());
-            }
-
-            static int BuildHashCode(ReadOnlySpan<byte> source)
-            {
-                // https://github.com/Cyan4973/xxHash/issues/453
-                // XXH3 64bit -> 32bit, okay to simple cast answered by XXH3 author.
-                return unchecked((int)System.IO.Hashing.XxHash3.HashToUInt64(source));
             }
         }
     }

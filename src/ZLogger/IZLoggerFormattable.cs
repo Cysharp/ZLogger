@@ -4,10 +4,14 @@ using System.Text.Json;
 namespace ZLogger
 {
     // Implement for log state.
-    public interface IZLoggerFormattable
+
+    public interface IZLoggerEntryCreatable
     {
         IZLoggerEntry CreateEntry(LogInfo info);
+    }
 
+    public interface IZLoggerFormattable : IZLoggerEntryCreatable
+    {
         int ParameterCount { get; }
         bool IsSupportUtf8ParameterKey { get; }
         string ToString();
@@ -21,8 +25,8 @@ namespace ZLogger
         T? GetParameterValue<T>(int index);
         Type GetParameterType(int index);
     }
-    
-    public interface IReferenceCountZLoggerFormattable : IZLoggerFormattable
+
+    internal interface IReferenceCountable
     {
         void Retain();
         void Release();

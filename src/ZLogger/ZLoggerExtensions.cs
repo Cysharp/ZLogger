@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
+using ZLogger.LogStates;
 
 namespace ZLogger
 {
@@ -27,7 +28,7 @@ namespace ZLogger
                 var state = message.GetState();
                 try
                 {
-                    logger.Log(logLevel, eventId, state, exception, static (state, ex) => state.ToString());
+                    logger.Log(logLevel, eventId, new VersionedLogState(state), exception, static (state, ex) => state.ToString());
                 }
                 finally
                 {
