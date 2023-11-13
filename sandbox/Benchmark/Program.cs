@@ -10,12 +10,12 @@ BenchmarkSwitcher.FromAssembly(Assembly.GetEntryAssembly()!).Run(args);
 
 #else
 
-var bench= new WriteJsonToFile();
+var bench = new WritePlainTextToConsole();
 bench.SetUpLogger();
 
-bench.ZLogger_JsonFile();
+bench.ZLogger_PlainTextConsole();
 
-bench.Cleanup();
+
 
 
 #endif

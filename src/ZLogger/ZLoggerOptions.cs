@@ -6,6 +6,7 @@ namespace ZLogger
     [Flags]
     public enum LogInfoProperties
     {
+        // TODO: needs None?
         Timestamp = 1 << 0,
         LogLevel = 1 << 1,
         CategoryName = 1 << 2,
@@ -17,9 +18,11 @@ namespace ZLogger
     public class ZLoggerOptions
     {
         public Action<Exception>? InternalErrorLogger { get; set; }
-        
-        public TimeSpan? FlushRate { get; set; }
         public bool IncludeScopes { get; set; }
+
+
+        // TODO:these options should move to formatter? provider?
+        public TimeSpan? FlushRate { get; set; }
         public IKeyNameMutator? KeyNameMutator { get; set; }
         public LogLevel LogToErrorThreshold { get; set; } = LogLevel.None;
         public LogInfoProperties IncludeProperties { get; set; } = LogInfoProperties.All;

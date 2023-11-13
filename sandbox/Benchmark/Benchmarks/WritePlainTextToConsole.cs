@@ -63,7 +63,7 @@ public class WritePlainTextToConsole
                 {
                     formatter.PrefixFormatter = (writer, info) =>
                     {
-                        Utf8String.Format(writer, $"{info.Timestamp.DateTime} [{info.LogLevel}] ");
+                        Utf8String.Format(writer, $"{info.Timestamp.DateTime} [{info.LogLevel.AsUtf8()}] ");
                     };
                 });
             });
@@ -72,7 +72,7 @@ public class WritePlainTextToConsole
         zLogger = zLoggerFactory.CreateLogger<WritePlainTextToConsole>();
 
         // Microsoft.Extensions.Logging.Console
-        
+
         msExtConsoleLoggerFactory = LoggerFactory.Create(logging =>
         {
             logging
@@ -128,7 +128,7 @@ public class WritePlainTextToConsole
                 };
                 var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2, 10000, AsyncTargetWrapperOverflowAction.Grow)
                 {
-                    TimeToSleepBetweenBatches = 0 
+                    TimeToSleepBetweenBatches = 0
                 };
                 nLogConfigForMsExt.AddTarget(asyncTarget2);
                 nLogConfigForMsExt.AddRuleForAllLevels(asyncTarget2);
@@ -191,7 +191,7 @@ public class WritePlainTextToConsole
         {
             nLogMsExtLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
         }
-        nLogConfigForMsExt.LogFactory.Shutdown();        
+        nLogConfigForMsExt.LogFactory.Shutdown();
         nLogMsExtLoggerFactory.Dispose();
     }
 
