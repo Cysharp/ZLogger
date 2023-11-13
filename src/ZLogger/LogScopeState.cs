@@ -7,15 +7,15 @@ namespace ZLogger
     public class LogScopeState
     {
         const string DefaultScopeKeyName = "Scope";
-        static readonly ConcurrentQueue<LogScopeState> cache = new();        
-        
+        static readonly ConcurrentQueue<LogScopeState> cache = new();
+
         public bool IsEmpty => properties.Count <= 0;
 
         public IReadOnlyList<KeyValuePair<string, object?>> Properties => properties;
 
         readonly List<KeyValuePair<string, object?>> properties = new();
 
-        public static LogScopeState Create(IExternalScopeProvider scopeProvider)
+        internal static LogScopeState Create(IExternalScopeProvider scopeProvider)
         {
             if (!cache.TryDequeue(out var result))
             {
@@ -24,8 +24,8 @@ namespace ZLogger
             result.Snapshot(scopeProvider);
             return result;
         }
-        
-        public void Return()
+
+        internal void Return()
         {
             Clear();
             cache.Enqueue(this);
@@ -35,7 +35,7 @@ namespace ZLogger
         {
             properties.Clear();
         }
-        
+
         void Snapshot(IExternalScopeProvider scopeProvider)
         {
             Clear();

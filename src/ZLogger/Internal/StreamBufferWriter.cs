@@ -1,10 +1,8 @@
-﻿using System;
-using System.Buffers;
+﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Runtime.CompilerServices;
 
-namespace ZLogger
+namespace ZLogger.Internal
 {
     internal class StreamBufferWriter : IBufferWriter<byte>
     {
@@ -50,11 +48,27 @@ namespace ZLogger
 
         public Span<byte> GetSpan(int sizeHint = 0)
         {
-            return GetMemory(sizeHint).Span;
+            if (buffer != defaultBuffer)
+            {
+                Flush();
+            }
+
+            if (written + sizeHint > buffer.Length)
+            {
+                Flush();
+            }
+
+            if (buffer.Length - written < sizeHint)
+            {
+                Flush();
+                buffer = ArrayPool<byte>.Shared.Rent(sizeHint);
+            }
+
+            return new Span<byte>(buffer, written, buffer.Length - written);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetForNewLine([NotNullWhen(true)]out byte[]? rawBuffer, out int rawWritten)
+        public bool TryGetForNewLine([NotNullWhen(true)] out byte[]? rawBuffer, out int rawWritten)
         {
             if (buffer.Length - written > 2)
             {

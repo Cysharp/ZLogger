@@ -20,8 +20,6 @@ namespace ZLogger.LogStates
             this.exception = exception;
             this.formatter = formatter;
 
-            // In most case, TState is `Microsoft.Extensions.Logging.FormattedLogValues`.
-            // TODO: can avoid boxing ?
             if (originalState is IReadOnlyList<KeyValuePair<string, object?>> x)
             {
                 originalStateParameters = x;

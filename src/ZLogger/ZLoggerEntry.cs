@@ -11,14 +11,10 @@ namespace ZLogger
         LogInfo LogInfo { get; }
         LogScopeState? ScopeState { get; set; }
         void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter);
-    }
-
-    public interface IReturnableZLoggerEntry : IZLoggerEntry
-    {
         void Return();
     }
 
-    public sealed class ZLoggerEntry<TState> : IReturnableZLoggerEntry, IObjectPoolNode<ZLoggerEntry<TState>>
+    public sealed class ZLoggerEntry<TState> : IZLoggerEntry, IObjectPoolNode<ZLoggerEntry<TState>>
         where TState : IZLoggerFormattable
     {
         static readonly ObjectPool<ZLoggerEntry<TState>> cache = new();

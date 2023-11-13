@@ -1,6 +1,4 @@
-using System;
 using System.Buffers;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace ZLogger.Formatters
@@ -12,7 +10,7 @@ namespace ZLogger.Formatters
         public Action<IBufferWriter<byte>, Exception> ExceptionFormatter { get; set; } = DefaultExceptionLoggingFormatter;
 
         static byte[] newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
-        
+
         public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
         {
             PrefixFormatter?.Invoke(writer, entry.LogInfo);
@@ -24,19 +22,12 @@ namespace ZLogger.Formatters
                 ExceptionFormatter(writer, ex);
             }
         }
-        
+
         static void DefaultExceptionLoggingFormatter(IBufferWriter<byte> writer, Exception exception)
         {
             // \n + exception
-            Write(writer, Environment.NewLine);
+            Write(writer, newLine);
             WriteExceptionLoggingCore(writer, exception);
-        }
-
-        static void Write(IBufferWriter<byte> writer, ReadOnlySpan<byte> value)
-        {
-            var span = writer.GetSpan(value.Length);
-            value.CopyTo(span);
-            writer.Advance(value.Length);
         }
 
         static void WriteExceptionLoggingCore(IBufferWriter<byte> writer, Exception exception)
@@ -55,48 +46,40 @@ namespace ZLogger.Formatters
             Write(writer, className!, ": ", message ?? "");
             if (innerException != null)
             {
-                Write(writer, Environment.NewLine, " ---> ");
+                Write(writer, newLine, " ---> ");
                 WriteExceptionLoggingCore(writer, innerException);
-                Write(writer, Environment.NewLine, "   --- End of inner exception stack trace ---");
+                Write(writer, newLine, "   --- End of inner exception stack trace ---");
             }
 
             if (stackTrace != null)
             {
-                Write(writer, Environment.NewLine, stackTrace);
+                Write(writer, newLine, stackTrace);
             }
         }
 
-        static void Write(IBufferWriter<byte> writer, string message)
+        static void Write(IBufferWriter<byte> writer, ReadOnlySpan<byte> value)
         {
-            var memory = writer.GetMemory(Encoding.UTF8.GetMaxByteCount(message.Length));
-            if (MemoryMarshal.TryGetArray<byte>(memory, out var array) && array.Array != null)
-            {
-                var written = Encoding.UTF8.GetBytes(message, 0, message.Length, array.Array, array.Offset);
-                writer.Advance(written);
-            }
+            var span = writer.GetSpan(value.Length);
+            value.CopyTo(span);
+            writer.Advance(value.Length);
         }
 
-        static void Write(IBufferWriter<byte> writer, string message1, string message2)
+        static void Write(IBufferWriter<byte> writer, ReadOnlySpan<byte> message1, string message2)
         {
-            var memory = writer.GetMemory(Encoding.UTF8.GetMaxByteCount(message1.Length + message2.Length));
-            if (MemoryMarshal.TryGetArray<byte>(memory, out var array) && array.Array != null)
-            {
-                var written1 = Encoding.UTF8.GetBytes(message1, 0, message1.Length, array.Array, array.Offset);
-                var written2 = Encoding.UTF8.GetBytes(message2, 0, message2.Length, array.Array, array.Offset + written1);
-                writer.Advance(written1 + written2);
-            }
+            var span = writer.GetSpan(message1.Length + Encoding.UTF8.GetMaxByteCount(message2.Length));
+            message1.CopyTo(span);
+            var written2 = Encoding.UTF8.GetBytes(message2, span.Slice(message1.Length));
+            writer.Advance(message1.Length + written2);
         }
 
         static void Write(IBufferWriter<byte> writer, string message1, string message2, string message3)
         {
-            var memory = writer.GetMemory(Encoding.UTF8.GetMaxByteCount(message1.Length + message2.Length + message3.Length));
-            if (MemoryMarshal.TryGetArray<byte>(memory, out var array) && array.Array != null)
-            {
-                var written1 = Encoding.UTF8.GetBytes(message1, 0, message1.Length, array.Array, array.Offset);
-                var written2 = Encoding.UTF8.GetBytes(message2, 0, message2.Length, array.Array, array.Offset + written1);
-                var written3 = Encoding.UTF8.GetBytes(message3, 0, message3.Length, array.Array, array.Offset + written1 + written2);
-                writer.Advance(written1 + written2 + written3);
-            }
+            var span = writer.GetSpan(Encoding.UTF8.GetMaxByteCount(message1.Length + message2.Length + message3.Length));
+
+            var written1 = Encoding.UTF8.GetBytes(message1, span);
+            var written2 = Encoding.UTF8.GetBytes(message2, span.Slice(written1));
+            var written3 = Encoding.UTF8.GetBytes(message3, span.Slice(written1 + written2));
+            writer.Advance(written1 + written2 + written3);
         }
     }
 }

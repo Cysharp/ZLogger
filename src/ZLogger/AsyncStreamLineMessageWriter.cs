@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Channels;
+using ZLogger.Internal;
 
 namespace ZLogger
 {
@@ -92,12 +93,11 @@ namespace ZLogger
             {
                 while (await reader.WaitToReadAsync().ConfigureAwait(false))
                 {
-                    LogInfo info = default;
                     try
                     {
                         while (reader.TryRead(out var value))
                         {
-                            var currentWriter = errorWriter != null && info.LogLevel >= options.LogToErrorThreshold
+                            var currentWriter = errorWriter != null && value.LogInfo.LogLevel >= options.LogToErrorThreshold
                                 ? errorWriter
                                 : writer;
                             try
@@ -106,14 +106,10 @@ namespace ZLogger
                             }
                             finally
                             {
-                                if (value is IReturnableZLoggerEntry)
-                                {
-                                    ((IReturnableZLoggerEntry)value).Return();
-                                }
+                                value.Return();
                             }
                             AppendLine(currentWriter);
                         }
-                        info = default;
 
                         if (options.FlushRate != null && !cancellationTokenSource.IsCancellationRequested)
                         {
@@ -142,11 +138,7 @@ namespace ZLogger
                         {
                             if (options.InternalErrorLogger != null)
                             {
-                                options.InternalErrorLogger(info, ex);
-                            }
-                            else
-                            {
-                                Console.WriteLine(ex);
+                                options.InternalErrorLogger(ex);
                             }
                         }
                         catch { }
