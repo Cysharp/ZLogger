@@ -72,10 +72,7 @@ public class PostLogEntry
             {
                 options.UsePlainTextFormatter(formatter =>
                 {
-                    formatter.PrefixFormatter = (writer, info) =>
-                    {
-                        Utf8String.Format(writer, $"{info.Timestamp.DateTime} [{info.LogLevel}] ");
-                    };
+                    formatter.SetPrefixFormatter($"{0} [{1}]", (template, info) => template.Format(info.Timestamp.DateTime, info.LogLevel));
                 });
             });
         });

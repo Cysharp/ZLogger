@@ -61,10 +61,7 @@ public class WritePlainTextToConsole
             {
                 options.UsePlainTextFormatter(formatter =>
                 {
-                    formatter.PrefixFormatter = (writer, info) =>
-                    {
-                        Utf8String.Format(writer, $"{info.Timestamp.DateTime} [{info.LogLevel.AsUtf8()}] ");
-                    };
+                    formatter.SetPrefixFormatter($"{0} [{1}]", (template, info) => template.Format(info.Timestamp.DateTime, info.LogLevel));
                 });
             });
         });

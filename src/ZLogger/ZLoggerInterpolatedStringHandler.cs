@@ -129,6 +129,7 @@ namespace ZLogger
 
                 // create copy
                 var clonedList = literals.ToList();
+                clonedList.TrimExcess();
                 sequence = new MessageSequence(literalLength, parameterLength, CollectionsMarshal.AsSpan(clonedList));
                 cache.TryAdd(new LiteralList(clonedList), sequence);
                 return sequence;

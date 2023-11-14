@@ -5,21 +5,49 @@ namespace ZLogger.Formatters
 {
     public class PlainTextZLoggerFormatter : IZLoggerFormatter
     {
-        public Action<IBufferWriter<byte>, LogInfo>? PrefixFormatter { get; set; }
-        public Action<IBufferWriter<byte>, LogInfo>? SuffixFormatter { get; set; }
-        public Action<IBufferWriter<byte>, Exception> ExceptionFormatter { get; set; } = DefaultExceptionLoggingFormatter;
+        static readonly byte[] newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
 
-        static byte[] newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
+        Action<IBufferWriter<byte>, Exception> exceptionFormatter = DefaultExceptionLoggingFormatter;
+
+        MessageTemplateHolder? prefixTemplate;
+        Action<MessageTemplate, LogInfo>? prefixFormatter;
+        MessageTemplateHolder? suffixTemplate;
+        Action<MessageTemplate, LogInfo>? suffixFormatter;
+
+        public void SetPrefixFormatter(MessageTemplateHandler format, Action<MessageTemplate, LogInfo> formatter)
+        {
+            this.prefixTemplate = format.GetTemplate();
+            this.prefixFormatter = formatter;
+        }
+
+        public void SetSuffixFormatter(MessageTemplateHandler format, Action<MessageTemplate, LogInfo> formatter)
+        {
+            this.suffixTemplate = format.GetTemplate();
+            this.suffixFormatter = formatter;
+        }
+
+        public void SetExceptionFormatter(Action<IBufferWriter<byte>, Exception> formatter)
+        {
+            this.exceptionFormatter = formatter;
+        }
 
         public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
         {
-            PrefixFormatter?.Invoke(writer, entry.LogInfo);
+            if (prefixTemplate != null)
+            {
+                prefixFormatter!(new MessageTemplate(prefixTemplate, writer), entry.LogInfo);
+            }
+
             entry.ToString(writer);
-            SuffixFormatter?.Invoke(writer, entry.LogInfo);
+
+            if (suffixTemplate != null)
+            {
+                suffixFormatter!(new MessageTemplate(suffixTemplate, writer), entry.LogInfo);
+            }
 
             if (entry.LogInfo.Exception is { } ex)
             {
-                ExceptionFormatter(writer, ex);
+                exceptionFormatter(writer, ex);
             }
         }
 
