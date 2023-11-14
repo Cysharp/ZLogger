@@ -3,14 +3,14 @@ using ZLogger.LogStates;
 
 namespace ZLogger
 {
-    public sealed class AsyncProcessZLogger : ILogger
+    public sealed class ZLoggerLogger : ILogger
     {
         public IExternalScopeProvider? ScopeProvider { get; set; }
 
         readonly string categoryName;
         readonly IAsyncLogProcessor logProcessor;
 
-        public AsyncProcessZLogger(string categoryName, IAsyncLogProcessor logProcessor)
+        public ZLoggerLogger(string categoryName, IAsyncLogProcessor logProcessor)
         {
             this.categoryName = categoryName;
             this.logProcessor = logProcessor;

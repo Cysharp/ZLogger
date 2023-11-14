@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Options;
 using System.Runtime.InteropServices;
+using ZLogger.Internal;
 using ZLogger.Providers;
 
 namespace ZLogger

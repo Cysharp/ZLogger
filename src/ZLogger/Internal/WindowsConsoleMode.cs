@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace ZLogger
+namespace ZLogger.Internal
 {
     internal static class WindowsConsoleMode
     {
