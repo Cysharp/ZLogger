@@ -77,7 +77,7 @@ public class WritePlainTextToFile
             {
                 options.UsePlainTextFormatter(formatter =>
                 {
-                    formatter.SetPrefixFormatter($"{0} [{1}]", (template, info) => template.Format(info.Timestamp.DateTime, info.LogLevel));
+                    formatter.SetPrefixFormatter($"{0} [{1}]", (template, info) => template.Format(info.Timestamp, info.LogLevel));
                 });
             });
         });

@@ -178,7 +178,7 @@ namespace ZLogger
                     {
                         if (p.BoxedValue is string s)
                         {
-                            stringWriter.AppendLiteral(s);
+                            stringWriter.AppendFormatted(s, p.Alignment, p.Format);
                         }
                         else if (p.BoxedValue is IEnumerable enumerable)
                         {
@@ -219,7 +219,7 @@ namespace ZLogger
                     {
                         if (p.BoxedValue is string s)
                         {
-                            stringHandler.AppendLiteral(s);
+                            stringHandler.AppendFormatted(s, p.Alignment, p.Format);
                         }
                         else if (p.BoxedValue is IEnumerable enumerable)
                         {

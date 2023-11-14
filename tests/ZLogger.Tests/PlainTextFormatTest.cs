@@ -14,7 +14,7 @@ namespace ZLogger.Tests
             var options = new ZLoggerOptions();
             options.UsePlainTextFormatter(plainText =>
             {
-                plainText.ExceptionFormatter = (writer, ex) => { };
+                plainText.SetExceptionFormatter((writer, ex) => { });
             });
 
             var processsor = new TestProcessor(options);
@@ -82,9 +82,9 @@ namespace ZLogger.Tests
             var options = new ZLoggerOptions();
             options.UsePlainTextFormatter(formatter =>
             {
-                formatter.PrefixFormatter = (writer, info) => Utf8String.Format(writer, $"[Pre:{info.LogLevel}]");
-                formatter.SuffixFormatter = (writer, info) => Utf8String.Format(writer, $"[Suf:{info.CategoryName}]");
-                formatter.ExceptionFormatter = (writer, ex) => Utf8String.Format(writer, $"{ex.Message}");
+                formatter.SetPrefixFormatter($"[Pre:{0}]", (formatter, info) => formatter.Format(info.LogLevel));
+                formatter.SetSuffixFormatter($"[Suf:{0}]", (formatter, info) => formatter.Format(info.Category));
+                formatter.SetExceptionFormatter((writer, ex) => Utf8String.Format(writer, $"{ex.Message}"));
             });
             var processsor = new TestProcessor(options);
 
@@ -110,7 +110,7 @@ namespace ZLogger.Tests
             logger.LogInformation("FooBar{0}-NanoNano{1}", 100, 300);
             processsor.Dequeue().Should().Be("[Pre:Information]FooBar100-NanoNano300[Suf:test]");
         }
-        
+
         [Fact]
         public void CollectionDestructuring()
         {
@@ -127,7 +127,7 @@ namespace ZLogger.Tests
 
             var array = new[] { 111, 222, 333 };
             var enumerable = new[] { "a", "i", "u", "e" }.Where(_ => true);
-            
+
             logger.ZLogDebug($"array: {array} enumerable: {enumerable}");
 
             var message = processor.Dequeue();

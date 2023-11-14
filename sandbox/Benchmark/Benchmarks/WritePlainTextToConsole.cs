@@ -12,6 +12,7 @@ using Serilog;
 using Serilog.Formatting.Display;
 using Utf8StringInterpolation;
 using ZLogger;
+using ZLogger.Formatters;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Benchmark.Benchmarks;
@@ -51,7 +52,7 @@ public class WritePlainTextToConsole
     [IterationSetup]
     public void SetUpLogger()
     {
-        Console.SetOut(TextWriter.Null);
+        // Console.SetOut(TextWriter.Null);
 
         // ZLogger
 
@@ -61,7 +62,7 @@ public class WritePlainTextToConsole
             {
                 options.UsePlainTextFormatter(formatter =>
                 {
-                    formatter.SetPrefixFormatter($"{0} [{1}]", (template, info) => template.Format(info.Timestamp.DateTime, info.LogLevel));
+                    formatter.SetPrefixFormatter($"{0} [{1}]", (template, info) => template.Format(info.Timestamp, info.LogLevel));
                 });
             });
         });

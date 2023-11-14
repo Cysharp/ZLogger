@@ -23,7 +23,7 @@ namespace ZLogger.Formatters
 
     public class SystemTextJsonZLoggerFormatter : IZLoggerFormatter
     {
-        static readonly JsonEncodedText CategoryNameText = JsonEncodedText.Encode(nameof(LogInfo.CategoryName));
+        static readonly JsonEncodedText CategoryNameText = JsonEncodedText.Encode(nameof(LogInfo.Category));
         static readonly JsonEncodedText TimestampText = JsonEncodedText.Encode(nameof(LogInfo.Timestamp));
         static readonly JsonEncodedText LogLevelText = JsonEncodedText.Encode(nameof(LogInfo.LogLevel));
         static readonly JsonEncodedText EventIdText = JsonEncodedText.Encode(nameof(LogInfo.EventId));
@@ -129,7 +129,7 @@ namespace ZLogger.Formatters
         {
             if ((options.IncludeProperties & LogInfoProperties.CategoryName) != 0)
             {
-                jsonWriter.WriteString(CategoryNameText, info.CategoryName);
+                jsonWriter.WriteString(CategoryNameText, info.Category.JsonEncoded);
             }
             if ((options.IncludeProperties & LogInfoProperties.LogLevel) != 0)
             {
@@ -145,7 +145,7 @@ namespace ZLogger.Formatters
             }
             if ((options.IncludeProperties & LogInfoProperties.Timestamp) != 0)
             {
-                jsonWriter.WriteString(TimestampText, info.Timestamp);
+                jsonWriter.WriteString(TimestampText, info.Timestamp.Local); // use Local
             }
 
             // Write Exception

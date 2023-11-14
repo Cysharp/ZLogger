@@ -14,7 +14,7 @@ namespace ZLogger
         EventIdName = 1 << 4,
         All = Timestamp | LogLevel | CategoryName | EventIdValue | EventIdName
     }
-    
+
     public class ZLoggerOptions
     {
         public Action<Exception>? InternalErrorLogger { get; set; }
@@ -25,7 +25,7 @@ namespace ZLogger
         public TimeSpan? FlushRate { get; set; }
         public IKeyNameMutator? KeyNameMutator { get; set; }
         public LogLevel LogToErrorThreshold { get; set; } = LogLevel.None;
-        public LogInfoProperties IncludeProperties { get; set; } = LogInfoProperties.All;
+        public LogInfoProperties IncludeProperties { get; set; } = LogInfoProperties.Timestamp | LogInfoProperties.LogLevel | LogInfoProperties.CategoryName;
 
         Func<IZLoggerFormatter> formatterFactory = DefaultFormatterFactory;
 

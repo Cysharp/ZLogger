@@ -788,9 +788,22 @@ public readonly partial struct MessageTemplate
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static void AppendFormatted<T>(ref Utf8StringWriter<IBufferWriter<byte>> writer, ref T value, ref MessageTemplateChunk chunk)
     {
+        // JIT eliminates typeof(T) == typeof(...).
         if (typeof(T) == typeof(LogLevel))
         {
             AppendLogLevel(ref writer, ref Unsafe.As<T, LogLevel>(ref value), ref chunk);
+        }
+        else if (typeof(T) == typeof(LogCategory))
+        {
+            AppendLogCategory(ref writer, ref Unsafe.As<T, LogCategory>(ref value), ref chunk);
+        }
+        else if (typeof(T) == typeof(Timestamp))
+        {
+            AppendTimestamp(ref writer, ref Unsafe.As<T, Timestamp>(ref value), ref chunk);
+        }
+        else if (typeof(T) == typeof(string))
+        {
+            writer.AppendFormatted(Unsafe.As<T, string>(ref value), chunk.Alignment, chunk.Format);
         }
         else if (typeof(T) == typeof(char))
         {

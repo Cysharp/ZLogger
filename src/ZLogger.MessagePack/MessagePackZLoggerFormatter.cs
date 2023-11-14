@@ -95,7 +95,7 @@ namespace ZLogger.MessagePack
             if ((options.IncludeProperties & LogInfoProperties.CategoryName) != 0)
             {
                 messagePackWriter.WriteRaw(CategoryNameKey);
-                messagePackWriter.Write(entry.LogInfo.CategoryName);
+                messagePackWriter.WriteString(entry.LogInfo.Category.Utf8Span);
             }
             if ((options.IncludeProperties & LogInfoProperties.LogLevel) != 0)
             {
@@ -116,7 +116,7 @@ namespace ZLogger.MessagePack
             {
                 messagePackWriter.WriteRaw(TimestampKey);
                 MessagePackSerializerOptions.Resolver.GetFormatterWithVerify<DateTime>()
-                    .Serialize(ref messagePackWriter, entry.LogInfo.Timestamp.UtcDateTime, MessagePackSerializerOptions);
+                    .Serialize(ref messagePackWriter, entry.LogInfo.Timestamp.Utc.DateTime, MessagePackSerializerOptions);
             }
             
             messagePackWriter.Write(MessagePropertyName);

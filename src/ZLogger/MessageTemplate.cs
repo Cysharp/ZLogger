@@ -93,4 +93,145 @@ public readonly partial struct MessageTemplate
                 break;
         }
     }
+
+    static void AppendLogCategory(ref Utf8StringWriter<IBufferWriter<byte>> writer, ref LogCategory value, ref MessageTemplateChunk chunk)
+    {
+        if (!chunk.NoAlignmentAndFormat)
+        {
+            writer.AppendUtf8(value.Utf8Span);
+            return;
+        }
+
+        // currently ReadOnlySpan<byte> no support alignment/format.
+        writer.AppendFormatted(value.Name, chunk.Alignment, chunk.Format);
+    }
+
+    static void AppendTimestamp(ref Utf8StringWriter<IBufferWriter<byte>> writer, ref Timestamp value, ref MessageTemplateChunk chunk)
+    {
+        if (!chunk.NoAlignmentAndFormat)
+        {
+            // uses Local DateTimeOffset
+            writer.AppendFormatted(value.Local, chunk.Alignment, chunk.Format);
+            return;
+        }
+
+        // no format string, uses Local time and `yyyy-MM-dd HH:mm:ss.fff` (short form of ISO 8601)
+        var local = value.Local.DateTime;
+
+        // yyyy-
+        var year = local.Year;
+        if (year < 10) // 0~9
+        {
+            AppendWithFillZero3(ref writer, year);
+        }
+        else if (year < 100) // 10~99
+        {
+            AppendWithFillZero2(ref writer, year);
+        }
+        else if (year < 1000) // 100~999
+        {
+            AppendWithFillZero1(ref writer, year);
+        }
+        else // 1000~9999
+        {
+            writer.AppendFormatted(year);
+        }
+        writer.AppendUtf8("-"u8);
+
+        // MM-
+        var month = local.Month;
+        if (month < 10)
+        {
+            AppendWithFillZero1(ref writer, month);
+        }
+        else
+        {
+            writer.AppendFormatted(month);
+        }
+        writer.AppendUtf8("-"u8);
+
+        // 'dd '
+        var day = local.Day;
+        if (day < 10)
+        {
+            AppendWithFillZero1(ref writer, day);
+        }
+        else
+        {
+            writer.AppendFormatted(day);
+        }
+        writer.AppendUtf8(" "u8);
+
+        // HH:
+        var hour = local.Hour;
+        if (hour < 10)
+        {
+            AppendWithFillZero1(ref writer, hour);
+        }
+        else
+        {
+            writer.AppendFormatted(hour);
+        }
+        writer.AppendUtf8(":"u8);
+
+        // mm:
+        var minute = local.Minute;
+        if (minute < 10)
+        {
+            AppendWithFillZero1(ref writer, minute);
+        }
+        else
+        {
+            writer.AppendFormatted(minute);
+        }
+        writer.AppendUtf8(":"u8);
+
+        // ss.
+        var second = local.Second;
+        if (second < 10)
+        {
+            AppendWithFillZero1(ref writer, second);
+        }
+        else
+        {
+            writer.AppendFormatted(second);
+        }
+        writer.AppendUtf8("."u8);
+
+        // fff
+        var millisecond = local.Millisecond; // The returned value is an integer between 0 and 999.
+        if (millisecond < 10)
+        {
+            AppendWithFillZero2(ref writer, millisecond);
+        }
+        else if (millisecond < 100)
+        {
+            AppendWithFillZero1(ref writer, millisecond);
+        }
+        else
+        {
+            writer.AppendFormatted(millisecond);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static void AppendWithFillZero1(ref Utf8StringWriter<IBufferWriter<byte>> writer, int value)
+        {
+            writer.AppendUtf8("0"u8);
+            writer.AppendFormatted(value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static void AppendWithFillZero2(ref Utf8StringWriter<IBufferWriter<byte>> writer, int value)
+        {
+            writer.AppendUtf8("00"u8);
+            writer.AppendFormatted(value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static void AppendWithFillZero3(ref Utf8StringWriter<IBufferWriter<byte>> writer, int value)
+        {
+            writer.AppendUtf8("000"u8);
+            writer.AppendFormatted(value);
+        }
+    }
 }

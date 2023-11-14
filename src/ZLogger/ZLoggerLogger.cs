@@ -7,18 +7,18 @@ namespace ZLogger
     {
         public IExternalScopeProvider? ScopeProvider { get; set; }
 
-        readonly string categoryName;
+        readonly LogCategory category;
         readonly IAsyncLogProcessor logProcessor;
 
         public ZLoggerLogger(string categoryName, IAsyncLogProcessor logProcessor)
         {
-            this.categoryName = categoryName;
+            this.category = new LogCategory( categoryName);
             this.logProcessor = logProcessor;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            var info = new LogInfo(categoryName, DateTimeOffset.UtcNow, logLevel, eventId, exception);
+            var info = new LogInfo(category, Timestamp.Now, logLevel, eventId, exception);
 
             var scopeState = ScopeProvider != null
                 ? LogScopeState.Create(ScopeProvider)

@@ -42,6 +42,7 @@ namespace ZLogger
             this.options = options;
             this.stream = stream;
             this.errorStream = errorStream;
+
             this.channel = Channel.CreateUnbounded<IZLoggerEntry>(new UnboundedChannelOptions
             {
                 AllowSynchronousContinuations = false, // always should be in async loop.

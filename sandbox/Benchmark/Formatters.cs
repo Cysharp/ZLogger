@@ -24,5 +24,6 @@ class BenchmarkPlainTextConsoleFormatter : ConsoleFormatter
         textWriter.Write(logEntry.LogLevel);
         textWriter.Write("] ");
         textWriter.Write(message);
+        textWriter.WriteLine();
     }
 }
