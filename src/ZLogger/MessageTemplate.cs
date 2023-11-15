@@ -98,12 +98,12 @@ public readonly partial struct MessageTemplate
     {
         if (!chunk.NoAlignmentAndFormat)
         {
-            writer.AppendUtf8(value.Utf8Span);
+            // currently ReadOnlySpan<byte> no support alignment/format.
+            writer.AppendFormatted(value.Name, chunk.Alignment, chunk.Format);
             return;
         }
 
-        // currently ReadOnlySpan<byte> no support alignment/format.
-        writer.AppendFormatted(value.Name, chunk.Alignment, chunk.Format);
+        writer.AppendUtf8(value.Utf8Span);
     }
 
     static void AppendTimestamp(ref Utf8StringWriter<IBufferWriter<byte>> writer, ref Timestamp value, ref MessageTemplateChunk chunk)

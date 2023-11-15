@@ -12,7 +12,7 @@ namespace ZLogger
 
         public ZLoggerLogger(string categoryName, IAsyncLogProcessor logProcessor)
         {
-            this.category = new LogCategory( categoryName);
+            this.category = new LogCategory(categoryName);
             this.logProcessor = logProcessor;
         }
 
