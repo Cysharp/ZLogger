@@ -19,9 +19,7 @@ namespace ZLogger
     {
         public Action<Exception>? InternalErrorLogger { get; set; }
         public bool IncludeScopes { get; set; }
-#if NET8_0_OR_GREATER
         public TimeProvider? TimeProvider { get; set; }
-#endif
 
         // TODO:these options should move to formatter? provider?
         public TimeSpan? FlushRate { get; set; }

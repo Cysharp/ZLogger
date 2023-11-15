@@ -25,17 +25,16 @@ public readonly struct LogInfo
 public readonly struct Timestamp
 {
     readonly DateTimeOffset utcNow;
-#if NET8_0_OR_GREATER
+    
     // uses GetUtcNow() and LocalTimeZone
     readonly TimeProvider? timeProvider;
-#endif
 
     public DateTimeOffset Utc => utcNow;
+    
     public DateTimeOffset Local
     {
         get
         {
-#if NET8_0_OR_GREATER
             if (timeProvider == null)
             {
                 return utcNow.ToLocalTime();
@@ -44,9 +43,6 @@ public readonly struct Timestamp
             {
                 return ToLocalTime(utcNow, timeProvider);
             }
-#else
-            return utcNow.ToLocalTime();
-#endif
         }
     }
 
@@ -54,11 +50,6 @@ public readonly struct Timestamp
     {
         return Local.ToString();
     }
-
-#if NET8_0_OR_GREATER
-
-    static readonly long MinTicks = DateTime.MinValue.Ticks;
-    static readonly long MaxTicks = DateTime.MaxValue.Ticks;
 
     public Timestamp(TimeProvider? timeProvider)
     {
@@ -74,7 +65,12 @@ public readonly struct Timestamp
         }
     }
 
-    private static DateTimeOffset ToLocalTime(DateTimeOffset dateTimeOffset, TimeProvider timeProvider)
+    // DateTimeOffset does not have LocalTime(TimeProvider) so implement myself.
+
+    static readonly long MinTicks = DateTime.MinValue.Ticks;
+    static readonly long MaxTicks = DateTime.MaxValue.Ticks;
+
+    static DateTimeOffset ToLocalTime(DateTimeOffset dateTimeOffset, TimeProvider timeProvider)
     {
         var utcDateTime = dateTimeOffset.UtcDateTime;
         var offset = timeProvider.LocalTimeZone.GetUtcOffset(utcDateTime);
@@ -87,14 +83,6 @@ public readonly struct Timestamp
 
         return new DateTimeOffset(localTicks, offset);
     }
-#else
-    
-    public Timestamp(DateTimeOffset utcNow)
-    {
-        this.utcNow = utcNow;
-    }
-
-#endif
 }
 
 public readonly struct LogCategory

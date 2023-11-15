@@ -33,8 +33,8 @@
 		<PackageReference Include="Utf8StringInterpolation" Version="1.1.0" />
 	</ItemGroup>
 
-	<ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
-		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
+	<ItemGroup Condition="$(TargetFramework) == 'net6.0'">
+		<PackageReference Include="Microsoft.Bcl.TimeProvider" Version="8.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

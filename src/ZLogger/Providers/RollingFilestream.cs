@@ -13,6 +13,7 @@ namespace ZLogger.Providers
         readonly Func<DateTimeOffset, int, string> fileNameSelector;
         readonly long rollSizeInBytes;
         readonly ZLoggerOptions options;
+        readonly TimeProvider? timeProvider;
 
 #pragma warning disable CS8618
 
@@ -28,6 +29,7 @@ namespace ZLogger.Providers
             this.fileNameSelector = fileNameSelector;
             this.rollSizeInBytes = rollSizeKB * 1024;
             this.options = options;
+            this.timeProvider = options.TimeProvider;
 
             ValidateFileNameSelector();
             TryChangeNewRollingFile();
@@ -37,7 +39,7 @@ namespace ZLogger.Providers
 
         void ValidateFileNameSelector()
         {
-            var now = DateTimeOffset.UtcNow;
+            var now = (timeProvider == null) ? DateTimeOffset.UtcNow : timeProvider.GetUtcNow();
             var fileName1 = Path.GetFileNameWithoutExtension(fileNameSelector(now, 0));
             var fileName2 = Path.GetFileNameWithoutExtension(fileNameSelector(now, 1));
 
@@ -64,7 +66,7 @@ namespace ZLogger.Providers
 
         void TryChangeNewRollingFile()
         {
-            var now = DateTimeOffset.UtcNow;
+            var now = (timeProvider == null) ? DateTimeOffset.UtcNow : timeProvider.GetUtcNow();
             DateTimeOffset ts;
             try
             {
@@ -160,8 +162,6 @@ namespace ZLogger.Providers
 
         static int ExtractCurrentSequence(string fileName)
         {
-            int extensionDotIndex = fileName.LastIndexOf('.');
-
             fileName = Path.GetFileNameWithoutExtension(fileName);
 
             var sequenceString = NumberRegex.Match(fileName).Groups[0].Value;
