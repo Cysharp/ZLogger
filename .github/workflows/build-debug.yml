@@ -15,10 +15,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
-        with:
-          dotnet-version: |
-            3.1.x
-            6.0.x
       # build CommandTools first (using dotnet run command in ZLogger.csproj)
       - run: dotnet build -c Debug ./tools/CommandTools/CommandTools.csproj
       - run: dotnet build -c Debug
