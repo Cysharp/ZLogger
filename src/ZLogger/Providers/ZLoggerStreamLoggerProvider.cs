@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 namespace ZLogger.Providers
 {
     [ProviderAlias("ZLoggerStream")]
-    public class ZLoggerStreamLoggerProvider : ILoggerProvider, ISupportExternalScope
+    public class ZLoggerStreamLoggerProvider : ILoggerProvider, ISupportExternalScope, IAsyncDisposable
     {
         internal const string DefaultOptionName = "ZLoggerStream.Default";
 
@@ -36,6 +36,11 @@ namespace ZLogger.Providers
         public void Dispose()
         {
             streamWriter.DisposeAsync().AsTask().Wait();
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await streamWriter.DisposeAsync().ConfigureAwait(false);
         }
 
         public void SetScopeProvider(IExternalScopeProvider scopeProvider)

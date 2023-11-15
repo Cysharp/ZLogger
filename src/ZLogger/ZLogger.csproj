@@ -16,11 +16,6 @@
 
 	<ItemGroup>
 		<None Include="Icon.png" Pack="true" PackagePath="/" />
-		<None Include="MessageTemplate.Format.cs">
-		  <DesignTime>True</DesignTime>
-		  <AutoGen>True</AutoGen>
-		  <DependentUpon>MessageTemplate.Format.tt</DependentUpon>
-		</None>
 		<InternalsVisibleTo Include="ZLogger.Tests, PublicKey=00240000048000009400000006020000002400005253413100040000010001000144ec28f1e9ef7b17dacc47425a7a153aea0a7baa590743a2d1a86f4b3e10a8a12712c6e647966bfd8bd6e830048b23bd42bbc56f179585c15b8c19cf86c0eed1b73c993dd7a93a30051dd50fdda0e4d6b65e6874e30f1c37cf8bcbc7fe02c7f2e6a0a3327c0ccc1631bf645f40732521fa0b41a30c178d08f7dd779d42a1ee" />
 	</ItemGroup>
 
@@ -28,7 +23,6 @@
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="8.0.0" />
 		<PackageReference Include="System.Threading.Channels" Version="8.0.0" />
-		<PackageReference Include="System.Text.Json" Version="8.0.0" />
 		<PackageReference Include="System.IO.Hashing" Version="8.0.0" />
 		<PackageReference Include="Utf8StringInterpolation" Version="1.1.0" />
 	</ItemGroup>
@@ -37,10 +31,16 @@
 		<PackageReference Include="Microsoft.Bcl.TimeProvider" Version="8.0.0" />
 	</ItemGroup>
 
+	<ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
+		<PackageReference Include="System.Text.Json" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Bcl.TimeProvider" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<None Update="MessageTemplate.Format.tt">
-		  <Generator>TextTemplatingFileGenerator</Generator>
-		  <LastGenOutput>MessageTemplate.Format.cs</LastGenOutput>
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>MessageTemplate.Format.cs</LastGenOutput>
 		</None>
 		<None Update="ZLoggerExtensions.tt">
 			<Generator>TextTemplatingFileGenerator</Generator>
@@ -54,9 +54,9 @@
 
 	<ItemGroup>
 		<Compile Update="MessageTemplate.Format.cs">
-		  <DesignTime>True</DesignTime>
-		  <AutoGen>True</AutoGen>
-		  <DependentUpon>MessageTemplate.Format.tt</DependentUpon>
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>MessageTemplate.Format.tt</DependentUpon>
 		</Compile>
 		<Compile Update="ZLoggerExtensions.cs">
 			<DesignTime>True</DesignTime>

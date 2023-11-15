@@ -5,7 +5,7 @@ using System;
 namespace ZLogger.Providers
 {
     [ProviderAlias("ZLoggerRollingFile")]
-    public class ZLoggerRollingFileLoggerProvider : ILoggerProvider, ISupportExternalScope
+    public class ZLoggerRollingFileLoggerProvider : ILoggerProvider, ISupportExternalScope, IAsyncDisposable
     {
         internal const string DefaultOptionName = "ZLoggerRollingFile.Default";
 
@@ -38,6 +38,11 @@ namespace ZLogger.Providers
         public void Dispose()
         {
             streamWriter.DisposeAsync().AsTask().Wait();
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await streamWriter.DisposeAsync().ConfigureAwait(false);
         }
 
         public void SetScopeProvider(IExternalScopeProvider scopeProvider)

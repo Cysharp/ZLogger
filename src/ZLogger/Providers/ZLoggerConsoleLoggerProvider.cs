@@ -1,12 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
 using System.Text;
 
 namespace ZLogger.Providers
 {
     [ProviderAlias("ZLoggerConsole")]
-    public class ZLoggerConsoleLoggerProvider : ILoggerProvider, ISupportExternalScope
+    public class ZLoggerConsoleLoggerProvider : ILoggerProvider, ISupportExternalScope, IAsyncDisposable
     {
         internal const string DefaultOptionName = "ZLoggerConsole.Default";
 
@@ -48,6 +47,11 @@ namespace ZLogger.Providers
         public void Dispose()
         {
             streamWriter.DisposeAsync().AsTask().Wait();
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await streamWriter.DisposeAsync().ConfigureAwait(false);
         }
 
         public void SetScopeProvider(IExternalScopeProvider scopeProvider)
