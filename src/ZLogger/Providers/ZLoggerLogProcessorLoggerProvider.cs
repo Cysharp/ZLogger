@@ -25,7 +25,7 @@ namespace ZLogger.Providers
 
         public ILogger CreateLogger(string categoryName)
         {
-            var logger = new ZLoggerLogger(categoryName, processor);
+            var logger = new ZLoggerLogger(categoryName, processor, options);
             if (options.IncludeScopes)
             {
                 logger.ScopeProvider = scopeProvider;

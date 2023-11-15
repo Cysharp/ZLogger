@@ -37,7 +37,7 @@ namespace ZLogger.Providers
 
         public ILogger CreateLogger(string categoryName)
         {
-            var logger = new ZLoggerLogger(categoryName, streamWriter);
+            var logger = new ZLoggerLogger(categoryName, streamWriter, options);
             if (options.IncludeScopes)
             {
                 logger.ScopeProvider = scopeProvider;

@@ -52,10 +52,6 @@ public class WritePlainTextToConsole
     [IterationSetup]
     public void SetUpLogger()
     {
-        // Console.SetOut(TextWriter.Null);
-
-        // ZLogger
-
         zLoggerFactory = LoggerFactory.Create(logging =>
         {
             logging.AddZLoggerConsole(options =>

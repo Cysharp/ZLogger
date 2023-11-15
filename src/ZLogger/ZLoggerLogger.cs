@@ -10,15 +10,26 @@ namespace ZLogger
         readonly LogCategory category;
         readonly IAsyncLogProcessor logProcessor;
 
-        public ZLoggerLogger(string categoryName, IAsyncLogProcessor logProcessor)
+#if NET8_0_OR_GREATER
+        readonly TimeProvider? timeProvider;
+#endif
+
+        public ZLoggerLogger(string categoryName, IAsyncLogProcessor logProcessor, ZLoggerOptions options)
         {
             this.category = new LogCategory(categoryName);
             this.logProcessor = logProcessor;
+#if NET8_0_OR_GREATER
+            this.timeProvider = options.TimeProvider;
+#endif
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            var info = new LogInfo(category, Timestamp.Now, logLevel, eventId, exception);
+#if NET8_0_OR_GREATER
+            var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception);
+#else
+            var info = new LogInfo(category, new Timestamp(DateTime.UtcNow), logLevel, eventId, exception);
+#endif
 
             var scopeState = ScopeProvider != null
                 ? LogScopeState.Create(ScopeProvider)

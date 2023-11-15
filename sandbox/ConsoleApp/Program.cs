@@ -180,31 +180,31 @@ namespace MyApp
                             // \u001b[31m => Red(ANSI Escape Code)
                             // \u001b[0m => Reset
                             // \u001b[38;5;***m => 256 Colors(08 is Gray)
-                            plainText.PrefixFormatter = (writer, info) =>
+                            plainText.SetPrefixFormatter($"{0}[{1}]", (formatter, info) =>
                             {
                                 if (info.LogLevel == LogLevel.Error)
                                 {
-                                    Utf8String.Format(writer, $"\u001b[31m[{info.LogLevel}]");
+                                    formatter.Format("\u001b[31m", info.LogLevel);
                                 }
                                 else
                                 {
-                                    if (!info.CategoryName.StartsWith("MyApp")) // your application namespace.
+                                    if (!info.Category.Name.StartsWith("MyApp")) // your application namespace.
                                     {
-                                        Utf8String.Format(writer, $"\u001b[38;5;08m[{info.LogLevel}]");
+                                        formatter.Format("\u001b[38;5;08m", info.LogLevel);
                                     }
                                     else
                                     {
-                                        Utf8String.Format(writer, $"[{info.LogLevel}]");
+                                        formatter.Format("", info.LogLevel);
                                     }
                                 }
-                            };
-                            plainText.SuffixFormatter = (writer, info) =>
+                            });
+                            plainText.SetSuffixFormatter($"\u001b[0m", (formatter, info) =>
                             {
-                                if (info.LogLevel == LogLevel.Error || !info.CategoryName.StartsWith("MyApp"))
+                                if (info.LogLevel == LogLevel.Error || !info.Category.Name.StartsWith("MyApp"))
                                 {
-                                    Utf8String.Format(writer, $"\u001b[0m");
+                                    formatter.Format();
                                 }
-                            };
+                            });
                         });
 #endif
 
