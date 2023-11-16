@@ -1,12 +1,7 @@
-#if NET6_0_OR_GREATER
-using System.Runtime.CompilerServices;
-[assembly: TypeForwardedTo(typeof(DefaultInterpolatedStringHandler))]
-#else
-
+#if !NET6_0_OR_GREATER
 using System.Buffers;
 using System.Diagnostics;
 using System.Globalization;
-using System.Runtime.InteropServices;
 
 namespace System.Runtime.CompilerServices;
 
@@ -646,5 +641,4 @@ public ref struct DefaultInterpolatedStringHandler
         }
     }
 }
-
 #endif
