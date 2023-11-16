@@ -308,6 +308,7 @@ namespace ZLogger.MessagePack
                     var value = entry.GetParameterValue<TimeSpan>(index);
                     MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
                 }
+#if NET6_OR_GRATER                
                 else if (type == typeof(TimeOnly))
                 {
                     var value = entry.GetParameterValue<TimeOnly>(index);
@@ -318,6 +319,7 @@ namespace ZLogger.MessagePack
                     var value = entry.GetParameterValue<DateOnly>(index);
                     MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
                 }
+#endif
                 else if (type == typeof(Guid))
                 {
                     var value = entry.GetParameterValue<Guid>(index);
