@@ -148,7 +148,26 @@ internal sealed class EnumDictionary
     static int GetBytesHashCode(ReadOnlySpan<byte> bytes)
     {
         var hash = new HashCode();
+#if NET6_0_OR_GREATER        
         hash.AddBytes(bytes);
+#else
+        ref byte pos = ref MemoryMarshal.GetReference(bytes);
+        ref byte end = ref Unsafe.Add(ref pos, bytes.Length);
+
+        // Add four bytes at a time until the input has fewer than four bytes remaining.
+        while ((nint)Unsafe.ByteOffset(ref pos, ref end) >= sizeof(int))
+        {
+            hash.Add(Unsafe.ReadUnaligned<int>(ref pos));
+            pos = ref Unsafe.Add(ref pos, sizeof(int));
+        }
+
+        // Add the remaining bytes a single byte at a time.
+        while (Unsafe.IsAddressLessThan(ref pos, ref end))
+        {
+            hash.Add((int)pos);
+            pos = ref Unsafe.Add(ref pos, 1);
+        }
+#endif        
         return hash.ToHashCode();
     }
 
