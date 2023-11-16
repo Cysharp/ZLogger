@@ -2,7 +2,6 @@ using Microsoft.Extensions.Logging;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -328,11 +327,6 @@ namespace ZLogger
             Format = format;
             BoxOffset = boxOffset;
             BoxedValue = boxedValue;
-        }
-
-        public ReadOnlySpan<char> ParseKeyName()
-        {
-            return CallerArgumentExpressionParser.GetParameterizedName(Name);
         }
     }
 }
