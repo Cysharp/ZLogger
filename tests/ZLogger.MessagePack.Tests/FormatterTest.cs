@@ -1,5 +1,6 @@
 ﻿using System;
 using FluentAssertions;
+using MessagePack;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
@@ -35,8 +36,6 @@ namespace ZLogger.MessagePack.Tests
             var msgpack = processor.Dequeue();
             ((string)msgpack["CategoryName"]).Should().Be("test");
             ((string)msgpack["LogLevel"]).Should().Be("Information");
-            ((int)msgpack["EventId"]).Should().Be(1);
-            ((string)msgpack["EventIdName"]).Should().Be("HOGE");
             ((string)msgpack["Message"]).Should().Be("AAA 111 BBB Hello");
             ((DateTime)msgpack["Timestamp"]).Should().BeOnOrAfter(now);
             ((bool)msgpack.ContainsKey("Exception")).Should().BeFalse();
@@ -59,8 +58,6 @@ namespace ZLogger.MessagePack.Tests
             var msgpack = processor.Dequeue();
             ((string)msgpack["CategoryName"]).Should().Be("test");
             ((string)msgpack["LogLevel"]).Should().Be("Error");
-            ((int)msgpack["EventId"]).Should().Be(1);
-            ((string)msgpack["EventIdName"]).Should().Be("NG");
             ((string)msgpack["Message"]).Should().Be("DAMEDA 111");
             ((DateTime)msgpack["Timestamp"]).Should().BeOnOrAfter(now);
             ((string)msgpack["Exception"]["Name"]).Should().Be("ZLogger.MessagePack.Tests.TestException");
@@ -85,8 +82,6 @@ namespace ZLogger.MessagePack.Tests
             var msgpack = processor.Dequeue();
             ((string)msgpack["CategoryName"]).Should().Be("test");
             ((string)msgpack["LogLevel"]).Should().Be("Error");
-            ((int)msgpack["EventId"]).Should().Be(1);
-            ((string)msgpack["EventIdName"]).Should().Be("NG");
             ((string)msgpack["Message"]).Should().Be("DAMEDA 111");
             ((DateTime)msgpack["Timestamp"]).Should().BeOnOrAfter(now);
             ((string)msgpack["Exception"]["Name"]).Should().Be("ZLogger.MessagePack.Tests.TestException");
@@ -108,8 +103,6 @@ namespace ZLogger.MessagePack.Tests
             var msgpack = processor.Dequeue();
             ((string)msgpack["CategoryName"]).Should().Be("test");
             ((string)msgpack["LogLevel"]).Should().Be("Information");
-            ((int)msgpack["EventId"]).Should().Be(1);
-            ((string)msgpack["EventIdName"]).Should().Be("HOGE");
             ((DateTime)msgpack["Timestamp"]).Should().BeOnOrAfter(now);
             ((int?)msgpack["x"]).Should().Be(100);
             ((int?)msgpack["y"]).Should().Be(null);
@@ -123,14 +116,21 @@ namespace ZLogger.MessagePack.Tests
             var options = new ZLoggerOptions
             {
                 KeyNameMutator = KeyNameMutator.LowercaseInitial
-            };
-
-            options.UseMessagePackFormatter();
+            }.UseMessagePackFormatter();
+            
+            processor = new TestProcessor(options);
+            
+            var loggerFactory = LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Debug);
+                x.AddZLoggerLogProcessor(processor);
+            });
+            logger = loggerFactory.CreateLogger("test");
             
             var XyzAbc = 100;
             var fOo = 200;
             logger.ZLogInformation($"AAA {XyzAbc} {fOo}");
- 
+
             var msgpack = processor.Dequeue();
             ((string)msgpack["CategoryName"]).Should().Be("test");
             ((string)msgpack["LogLevel"]).Should().Be("Information");

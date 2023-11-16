@@ -75,7 +75,7 @@ namespace ZLogger.MessagePack
         {
             var messagePackWriter = new MessagePackWriter(writer);
             
-            var propCount = BitOperations.PopCount((uint)options.IncludeProperties) + entry.ParameterCount;
+            var propCount = BitOperations.PopCount((uint)options.IncludeProperties) + entry.ParameterCount + 1;
             if (entry.LogInfo.Exception != null) 
                 propCount++;
 
