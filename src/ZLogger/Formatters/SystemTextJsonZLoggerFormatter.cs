@@ -43,6 +43,8 @@ namespace ZLogger.Formatters
         static readonly JsonEncodedText Critical = JsonEncodedText.Encode(nameof(LogLevel.Critical));
         static readonly JsonEncodedText None = JsonEncodedText.Encode(nameof(LogLevel.None));
 
+        public bool WithLineBreak => true;
+        
         public JsonEncodedText MessagePropertyName { get; set; } = JsonEncodedText.Encode("Message");
         public Action<Utf8JsonWriter, LogInfo> MetadataFormatter { get; set; }
         public LogInfoProperties IncludeProperties { get; set; } = LogInfoProperties.Timestamp | LogInfoProperties.LogLevel | LogInfoProperties.CategoryName;

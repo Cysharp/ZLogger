@@ -7,6 +7,8 @@ namespace ZLogger.Formatters
     {
         static readonly byte[] newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
 
+        public bool WithLineBreak => true;
+
         Action<IBufferWriter<byte>, Exception> exceptionFormatter = DefaultExceptionLoggingFormatter;
 
         MessageTemplateHolder? prefixTemplate;

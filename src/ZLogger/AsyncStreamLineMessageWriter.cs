@@ -109,7 +109,10 @@ namespace ZLogger
                             {
                                 value.Return();
                             }
-                            AppendLine(currentWriter);
+                            if (formatter.WithLineBreak)
+                            {
+                                AppendLine(currentWriter);
+                            }
                         }
 
                         if (options.FlushRate != null && !cancellationTokenSource.IsCancellationRequested)
