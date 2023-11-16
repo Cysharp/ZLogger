@@ -61,6 +61,8 @@ namespace ZLogger.MessagePack
         [ThreadStatic]
         static ArrayBufferWriter<byte>? threadStaticBufferWriter;
 
+        public bool WithLineBreak => false;
+
         public MessagePackSerializerOptions MessagePackSerializerOptions { get; set; } = MessagePackSerializer.DefaultOptions;
         public string MessagePropertyName { get; set; } = "Message";
 
