@@ -142,12 +142,12 @@ namespace ZLogger.MessagePack.Tests
         [Fact]
         public void ExcludeLogInfoProperties()
         {
-            var options = new ZLoggerOptions
+            var options = new ZLoggerOptions().UseMessagePackFormatter(formatter =>
             {
-                IncludeProperties = LogInfoProperties.LogLevel | 
-                                    LogInfoProperties.Timestamp |
-                                    LogInfoProperties.EventIdValue
-            }.UseMessagePackFormatter();
+                formatter.IncludeProperties = LogInfoProperties.LogLevel |
+                                              LogInfoProperties.Timestamp |
+                                              LogInfoProperties.EventIdValue;
+            });
 
             processor = new TestProcessor(options);
 
@@ -165,6 +165,35 @@ namespace ZLogger.MessagePack.Tests
             ((string)msgpack["LogLevel"]).Should().Be("Information");
             ((int)msgpack["EventId"]).Should().Be(1);
             ((DateTime)msgpack["Timestamp"]).Should().BeOnOrAfter(now);
+            ((bool)msgpack.ContainsKey("Exception")).Should().BeFalse();
+            ((bool)msgpack.ContainsKey("CategoryName")).Should().BeFalse();
+            ((bool)msgpack.ContainsKey("EventIdName")).Should().BeFalse();
+        }
+
+        [Fact]
+        public void ExcludeAllLogInfo()
+        {
+            var options = new ZLoggerOptions().UseMessagePackFormatter(formatter =>
+            {
+                formatter.IncludeProperties = LogInfoProperties.None;
+            });
+
+            processor = new TestProcessor(options);
+
+            var loggerFactory = LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Debug);
+                x.AddZLoggerLogProcessor(processor);
+            });
+            logger = loggerFactory.CreateLogger("test");
+                
+            logger.ZLogInformation(new EventId(1, "TEST"), $"HELLO!");
+        
+            var msgpack = processor.Dequeue();
+            ((bool)msgpack.ContainsKey("LogLevel")).Should().BeFalse();
+            ((bool)msgpack.ContainsKey("Timestamp")).Should().BeFalse();
+            ((bool)msgpack.ContainsKey("EventId")).Should().BeFalse();
+            ((bool)msgpack.ContainsKey("EventIdName")).Should().BeFalse();
             ((bool)msgpack.ContainsKey("Exception")).Should().BeFalse();
             ((bool)msgpack.ContainsKey("CategoryName")).Should().BeFalse();
             ((bool)msgpack.ContainsKey("EventIdName")).Should().BeFalse();
