@@ -130,7 +130,12 @@ namespace ZLogger
                 // create copy
                 var clonedList = literals.ToList();
                 clonedList.TrimExcess();
-                sequence = new MessageSequence(literalLength, parameterLength, CollectionsMarshal.AsSpan(clonedList));
+#if NET6_0_OR_GREATER                
+                var span = CollectionsMarshal.AsSpan(clonedList);
+#else
+                var span = UnsafeListHelper.AsSpan(clonedList);
+#endif
+                sequence = new MessageSequence(literalLength, parameterLength, span);
                 cache.TryAdd(new LiteralList(clonedList), sequence);
                 return sequence;
             }
@@ -241,7 +246,6 @@ namespace ZLogger
         {
             // for debugging.
             var stringHandler = new DefaultInterpolatedStringHandler(literalLength, parametersLength);
-
             foreach (var item in segments)
             {
                 if (item.IsLiteral)
@@ -268,16 +272,26 @@ namespace ZLogger
 
             public override int GetHashCode()
             {
+#if NET6_0_OR_GREATER                
+                var span = CollectionsMarshal.AsSpan(literals);
+#else
+                var span = UnsafeListHelper.AsSpan(literals);
+#endif
                 // https://github.com/Cyan4973/xxHash/issues/453
                 // XXH3 64bit -> 32bit, okay to simple cast answered by XXH3 author.
-                var source = AsBytes(CollectionsMarshal.AsSpan(literals));
+                var source = AsBytes(span);
                 return unchecked((int)System.IO.Hashing.XxHash3.HashToUInt64(source));
             }
 
             public bool Equals(LiteralList other)
             {
+#if NET6_0_OR_GREATER                
                 var xs = CollectionsMarshal.AsSpan(literals);
                 var ys = CollectionsMarshal.AsSpan(other.literals);
+#else
+                var xs = UnsafeListHelper.AsSpan(literals);
+                var ys = UnsafeListHelper.AsSpan(other.literals);
+#endif
 
                 return AsBytes(xs).SequenceEqual(AsBytes(ys));
             }

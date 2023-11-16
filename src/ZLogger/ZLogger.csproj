@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.1;net6.0;net8.0</TargetFrameworks>
 		<Nullable>enable</Nullable>
 		<LangVersion>12.0</LangVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -31,10 +31,14 @@
 		<PackageReference Include="Microsoft.Bcl.TimeProvider" Version="8.0.0" />
 	</ItemGroup>
 
-	<ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
+	<ItemGroup Condition="$(TargetFramework) == 'netstandard2.1'">
 		<PackageReference Include="System.Text.Json" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Bcl.TimeProvider" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
+		<PackageReference Include="PolySharp" Version="1.13.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 	</ItemGroup>
 
 	<ItemGroup>

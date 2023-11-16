@@ -164,6 +164,7 @@ internal unsafe partial struct MagicalBox
         {
             handler.AppendFormatted(Read<TimeSpan>(offset), alignment, format);
         }
+#if NET6_0_OR_GREATER
         else if (type == typeof(TimeOnly))
         {
             handler.AppendFormatted(Read<TimeOnly>(offset), alignment, format);
@@ -172,6 +173,7 @@ internal unsafe partial struct MagicalBox
         {
             handler.AppendFormatted(Read<DateOnly>(offset), alignment, format);
         }
+#endif
 
         return true;
     }
@@ -260,6 +262,7 @@ internal unsafe partial struct MagicalBox
         {
             handler.AppendFormatted(Read<TimeSpan>(offset), alignment, format);
         }
+#if NET6_0_OR_GREATER        
         else if (type == typeof(TimeOnly))
         {
             handler.AppendFormatted(Read<TimeOnly>(offset), alignment, format);
@@ -268,7 +271,7 @@ internal unsafe partial struct MagicalBox
         {
             handler.AppendFormatted(Read<DateOnly>(offset), alignment, format);
         }
-
+#endif
         return true;
     }
 
