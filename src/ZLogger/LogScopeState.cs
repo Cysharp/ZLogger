@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 
 namespace ZLogger
@@ -11,7 +12,7 @@ namespace ZLogger
 
         public bool IsEmpty => properties.Count <= 0;
 
-        public IReadOnlyList<KeyValuePair<string, object?>> Properties => properties;
+        public ReadOnlySpan<KeyValuePair<string, object?>> Properties => CollectionsMarshal.AsSpan(properties);
 
         readonly List<KeyValuePair<string, object?>> properties = new();
 

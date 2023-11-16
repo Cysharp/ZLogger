@@ -18,7 +18,7 @@ namespace ZLogger.MessagePack
             });
         }
     }
-    
+
     public class MessagePackZLoggerFormatter : IZLoggerFormatter
     {
         // "CategoryName"
@@ -70,20 +70,21 @@ namespace ZLogger.MessagePack
         {
             this.options = options;
         }
-        
+
         public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
         {
             var messagePackWriter = new MessagePackWriter(writer);
-            
+
             var propCount = BitOperations.PopCount((uint)options.IncludeProperties) + entry.ParameterCount + 1;
-            if (entry.LogInfo.Exception != null) 
+            if (entry.LogInfo.Exception != null)
                 propCount++;
 
             if (entry.ScopeState != null)
             {
-                for (var i = 0; i < entry.ScopeState.Properties.Count; i++)
+                var scopeProperties = entry.ScopeState.Properties;
+                for (var i = 0; i < scopeProperties.Length; i++)
                 {
-                    if (entry.ScopeState.Properties[i].Key != "{OriginalFormat}")
+                    if (scopeProperties[i].Key != "{OriginalFormat}")
                     {
                         propCount++;
                     }
@@ -118,18 +119,18 @@ namespace ZLogger.MessagePack
                 MessagePackSerializerOptions.Resolver.GetFormatterWithVerify<DateTime>()
                     .Serialize(ref messagePackWriter, entry.LogInfo.Timestamp.Utc.DateTime, MessagePackSerializerOptions);
             }
-            
+
             messagePackWriter.Write(MessagePropertyName);
             var buffer = GetThreadStaticBufferWriter();
             entry.ToString(buffer);
             messagePackWriter.WriteString(buffer.WrittenSpan);
-            
+
             if (entry.LogInfo.Exception is { } ex)
             {
                 messagePackWriter.WriteRaw(ExceptionKey);
                 WriteException(ref messagePackWriter, ex);
             }
-            
+
             for (var i = 0; i < entry.ParameterCount; i++)
             {
                 if (entry.IsSupportUtf8ParameterKey)
@@ -144,15 +145,15 @@ namespace ZLogger.MessagePack
 
                 WriteParameterValue(ref messagePackWriter, entry, entry.GetParameterType(i), i);
             }
-            
+
             if (entry.ScopeState != null)
             {
-                for (var i = 0; i < entry.ScopeState.Properties.Count; i++)
+                var scopeProperties = entry.ScopeState.Properties;
+                for (var i = 0; i < scopeProperties.Length; i++)
                 {
-                    var (key, value) = entry.ScopeState.Properties[i];
+                    var (key, value) = scopeProperties[i];
                     // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
-                    if (key == "{OriginalFormat}")
-                        continue;
+                    if (key == "{OriginalFormat}") continue;
 
                     WriteKeyName(ref messagePackWriter, key);
                     if (value == null)
@@ -161,8 +162,7 @@ namespace ZLogger.MessagePack
                     }
                     else
                     {
-                        MessagePackSerializer.Serialize(value.GetType(), ref messagePackWriter, value,
-                            MessagePackSerializerOptions);
+                        MessagePackSerializer.Serialize(value.GetType(), ref messagePackWriter, value, MessagePackSerializerOptions);
                     }
                 }
             }
@@ -183,7 +183,7 @@ namespace ZLogger.MessagePack
                 WriteKeyName(ref messagePackWriter, key);
             }
         }
-        
+
         void WriteKeyName(ref MessagePackWriter messagePackWriter, ReadOnlySpan<char> keyName)
         {
             if (options.KeyNameMutator is { } mutator)
@@ -329,126 +329,126 @@ namespace ZLogger.MessagePack
                     switch (code)
                     {
                         case TypeCode.Boolean:
-                        {
-                            var nullableValue = entry.GetParameterValue<bool?>(index);
-                            if (nullableValue.HasValue)
-                                messagePackWriter.Write(nullableValue.Value);
-                            else
-                                messagePackWriter.WriteNil();
-                            return;
-                        }
+                            {
+                                var nullableValue = entry.GetParameterValue<bool?>(index);
+                                if (nullableValue.HasValue)
+                                    messagePackWriter.Write(nullableValue.Value);
+                                else
+                                    messagePackWriter.WriteNil();
+                                return;
+                            }
                         case TypeCode.Char:
-                        {
-                            var nullableValue = entry.GetParameterValue<char?>(index);
-                            if (nullableValue.HasValue)
-                                messagePackWriter.Write(nullableValue.Value);
-                            else
-                                messagePackWriter.WriteNil();
-                            return;
-                        }
+                            {
+                                var nullableValue = entry.GetParameterValue<char?>(index);
+                                if (nullableValue.HasValue)
+                                    messagePackWriter.Write(nullableValue.Value);
+                                else
+                                    messagePackWriter.WriteNil();
+                                return;
+                            }
                         case TypeCode.SByte:
-                        {
-                            var nullableValue = entry.GetParameterValue<sbyte?>(index);
-                            if (nullableValue.HasValue)
-                                messagePackWriter.Write(nullableValue.Value);
-                            else
-                                messagePackWriter.WriteNil();
-                            return;
-                        }
+                            {
+                                var nullableValue = entry.GetParameterValue<sbyte?>(index);
+                                if (nullableValue.HasValue)
+                                    messagePackWriter.Write(nullableValue.Value);
+                                else
+                                    messagePackWriter.WriteNil();
+                                return;
+                            }
                         case TypeCode.Byte:
-                        {
-                            var nullableValue = entry.GetParameterValue<byte?>(index);
-                            if (nullableValue.HasValue)
-                                messagePackWriter.Write(nullableValue.Value);
-                            else
-                                messagePackWriter.WriteNil();
-                            return;
-                        }
+                            {
+                                var nullableValue = entry.GetParameterValue<byte?>(index);
+                                if (nullableValue.HasValue)
+                                    messagePackWriter.Write(nullableValue.Value);
+                                else
+                                    messagePackWriter.WriteNil();
+                                return;
+                            }
                         case TypeCode.Int16:
-                        {
-                            var nullableValue = entry.GetParameterValue<Int16?>(index);
-                            if (nullableValue.HasValue)
-                                messagePackWriter.Write(nullableValue.Value);
-                            else
-                                messagePackWriter.WriteNil();
-                            return;
-                        }
+                            {
+                                var nullableValue = entry.GetParameterValue<Int16?>(index);
+                                if (nullableValue.HasValue)
+                                    messagePackWriter.Write(nullableValue.Value);
+                                else
+                                    messagePackWriter.WriteNil();
+                                return;
+                            }
                         case TypeCode.UInt16:
-                        {
-                            var nullableValue = entry.GetParameterValue<UInt16?>(index);
-                            if (nullableValue.HasValue)
-                                messagePackWriter.Write(nullableValue.Value);
-                            else
-                                messagePackWriter.WriteNil();
-                            return;
-                        }
+                            {
+                                var nullableValue = entry.GetParameterValue<UInt16?>(index);
+                                if (nullableValue.HasValue)
+                                    messagePackWriter.Write(nullableValue.Value);
+                                else
+                                    messagePackWriter.WriteNil();
+                                return;
+                            }
                         case TypeCode.Int32:
-                        {
-                            var nullableValue = entry.GetParameterValue<Int32?>(index);
-                            if (nullableValue.HasValue)
-                                messagePackWriter.Write(nullableValue.Value);
-                            else
-                                messagePackWriter.WriteNil();
-                            return;
-                        }
+                            {
+                                var nullableValue = entry.GetParameterValue<Int32?>(index);
+                                if (nullableValue.HasValue)
+                                    messagePackWriter.Write(nullableValue.Value);
+                                else
+                                    messagePackWriter.WriteNil();
+                                return;
+                            }
                         case TypeCode.UInt32:
-                        {
-                            var nullableValue = entry.GetParameterValue<UInt32?>(index);
-                            if (nullableValue.HasValue)
-                                messagePackWriter.Write(nullableValue.Value);
-                            else
-                                messagePackWriter.WriteNil();
-                            return;
-                        }
+                            {
+                                var nullableValue = entry.GetParameterValue<UInt32?>(index);
+                                if (nullableValue.HasValue)
+                                    messagePackWriter.Write(nullableValue.Value);
+                                else
+                                    messagePackWriter.WriteNil();
+                                return;
+                            }
                         case TypeCode.Int64:
-                        {
-                            var nullableValue = entry.GetParameterValue<Int64?>(index);
-                            if (nullableValue.HasValue)
-                                messagePackWriter.Write(nullableValue.Value);
-                            else
-                                messagePackWriter.WriteNil();
-                            return;
-                        }
+                            {
+                                var nullableValue = entry.GetParameterValue<Int64?>(index);
+                                if (nullableValue.HasValue)
+                                    messagePackWriter.Write(nullableValue.Value);
+                                else
+                                    messagePackWriter.WriteNil();
+                                return;
+                            }
                         case TypeCode.UInt64:
-                        {
-                            var nullableValue = entry.GetParameterValue<UInt64?>(index);
-                            if (nullableValue.HasValue)
-                                messagePackWriter.Write(nullableValue.Value);
-                            else
-                                messagePackWriter.WriteNil();
-                            return;
-                        }
+                            {
+                                var nullableValue = entry.GetParameterValue<UInt64?>(index);
+                                if (nullableValue.HasValue)
+                                    messagePackWriter.Write(nullableValue.Value);
+                                else
+                                    messagePackWriter.WriteNil();
+                                return;
+                            }
                         case TypeCode.Single:
-                        {
-                            var nullableValue = entry.GetParameterValue<Single?>(index);
-                            if (nullableValue.HasValue)
-                                messagePackWriter.Write(nullableValue.Value);
-                            else
-                                messagePackWriter.WriteNil();
-                            return;
-                        }
+                            {
+                                var nullableValue = entry.GetParameterValue<Single?>(index);
+                                if (nullableValue.HasValue)
+                                    messagePackWriter.Write(nullableValue.Value);
+                                else
+                                    messagePackWriter.WriteNil();
+                                return;
+                            }
                         case TypeCode.Double:
-                        {
-                            var nullableValue = entry.GetParameterValue<double?>(index);
-                            if (nullableValue.HasValue)
-                                messagePackWriter.Write(nullableValue.Value);
-                            else
-                                messagePackWriter.WriteNil();
-                            return;
-                        }
+                            {
+                                var nullableValue = entry.GetParameterValue<double?>(index);
+                                if (nullableValue.HasValue)
+                                    messagePackWriter.Write(nullableValue.Value);
+                                else
+                                    messagePackWriter.WriteNil();
+                                return;
+                            }
                         case TypeCode.DateTime:
-                        {
-                            var nullableValue = entry.GetParameterValue<DateTime?>(index);
-                            if (nullableValue.HasValue)
-                                messagePackWriter.Write(nullableValue.Value);
-                            else
-                                messagePackWriter.WriteNil();
-                            return;
-                        }
+                            {
+                                var nullableValue = entry.GetParameterValue<DateTime?>(index);
+                                if (nullableValue.HasValue)
+                                    messagePackWriter.Write(nullableValue.Value);
+                                else
+                                    messagePackWriter.WriteNil();
+                                return;
+                            }
                     }
                 }
             }
-            
+
             var boxedValue = entry.GetParameterValue(index);
             if (boxedValue == null)
             {

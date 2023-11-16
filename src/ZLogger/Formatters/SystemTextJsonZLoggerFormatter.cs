@@ -60,33 +60,33 @@ namespace ZLogger.Formatters
         {
             this.options = options;
         }
-        
+
         public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
         {
             jsonWriter?.Reset(writer);
             jsonWriter ??= new Utf8JsonWriter(writer);
 
             jsonWriter.WriteStartObject();
-            
+
             MetadataFormatter.Invoke(jsonWriter, entry.LogInfo, options);
 
             var bufferWriter = ArrayBufferWriterPool.GetThreadStaticInstance();
             entry.ToString(bufferWriter);
             jsonWriter.WriteString(MessagePropertyName, bufferWriter.WrittenSpan);
-            
+
             entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, options);
-            
+
             if (entry.ScopeState is { IsEmpty: false } scopeState)
             {
-                for (var i = 0; i < scopeState.Properties.Count; i++)
+                var properties = scopeState.Properties;
+                for (var i = 0; i < properties.Length; i++)
                 {
-                    var x = scopeState.Properties[i];
+                    var x = properties[i];
                     // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
-                    if (x.Key == "{OriginalFormat}")
-                        continue;
+                    if (x.Key == "{OriginalFormat}") continue;
 
                     WriteMutatedJsonKeyName(x.Key, jsonWriter, options.KeyNameMutator);
-                    
+
                     if (x.Value is { } value)
                     {
                         JsonSerializer.Serialize(jsonWriter, value, JsonSerializerOptions);
@@ -177,7 +177,7 @@ namespace ZLogger.Formatters
                 jsonWriter.WriteEndObject();
             }
         }
-        
+
         public static void WriteMutatedJsonKeyName(ReadOnlySpan<char> keyName, Utf8JsonWriter jsonWriter, IKeyNameMutator? mutator = null)
         {
             if (mutator == null)
@@ -192,7 +192,7 @@ namespace ZLogger.Formatters
                 bufferSize *= 2;
             }
             return;
-            
+
             bool TryMutate(ReadOnlySpan<char> source, int bufferSize)
             {
                 if (bufferSize > 256)
