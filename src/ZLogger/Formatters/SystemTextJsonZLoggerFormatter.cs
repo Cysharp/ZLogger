@@ -44,7 +44,8 @@ namespace ZLogger.Formatters
         static readonly JsonEncodedText None = JsonEncodedText.Encode(nameof(LogLevel.None));
 
         public JsonEncodedText MessagePropertyName { get; set; } = JsonEncodedText.Encode("Message");
-        public Action<Utf8JsonWriter, LogInfo, ZLoggerOptions> MetadataFormatter { get; set; } = DefaultMetadataFormatter;
+        public Action<Utf8JsonWriter, LogInfo> MetadataFormatter { get; set; }
+        public LogInfoProperties IncludeProperties { get; set; } = LogInfoProperties.Timestamp | LogInfoProperties.LogLevel | LogInfoProperties.CategoryName;
 
         public JsonSerializerOptions JsonSerializerOptions { get; set; } = new()
         {
@@ -59,6 +60,7 @@ namespace ZLogger.Formatters
         public SystemTextJsonZLoggerFormatter(ZLoggerOptions options)
         {
             this.options = options;
+            MetadataFormatter = DefaultMetadataFormatter;
         }
 
         public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
@@ -67,8 +69,7 @@ namespace ZLogger.Formatters
             jsonWriter ??= new Utf8JsonWriter(writer);
 
             jsonWriter.WriteStartObject();
-
-            MetadataFormatter.Invoke(jsonWriter, entry.LogInfo, options);
+            MetadataFormatter.Invoke(jsonWriter, entry.LogInfo);
 
             var bufferWriter = ArrayBufferWriterPool.GetThreadStaticInstance();
             entry.ToString(bufferWriter);
@@ -125,25 +126,25 @@ namespace ZLogger.Formatters
             }
         }
 
-        public static void DefaultMetadataFormatter(Utf8JsonWriter jsonWriter, LogInfo info, ZLoggerOptions options)
+        public void DefaultMetadataFormatter(Utf8JsonWriter jsonWriter, LogInfo info)
         {
-            if ((options.IncludeProperties & LogInfoProperties.CategoryName) != 0)
+            if ((IncludeProperties & LogInfoProperties.CategoryName) != 0)
             {
                 jsonWriter.WriteString(CategoryNameText, info.Category.JsonEncoded);
             }
-            if ((options.IncludeProperties & LogInfoProperties.LogLevel) != 0)
+            if ((IncludeProperties & LogInfoProperties.LogLevel) != 0)
             {
                 jsonWriter.WriteString(LogLevelText, LogLevelToEncodedText(info.LogLevel));
             }
-            if ((options.IncludeProperties & LogInfoProperties.EventIdValue) != 0)
+            if ((IncludeProperties & LogInfoProperties.EventIdValue) != 0)
             {
                 jsonWriter.WriteNumber(EventIdText, info.EventId.Id);
             }
-            if ((options.IncludeProperties & LogInfoProperties.EventIdName) != 0)
+            if ((IncludeProperties & LogInfoProperties.EventIdName) != 0)
             {
                 jsonWriter.WriteString(EventIdNameText, info.EventId.Name);
             }
-            if ((options.IncludeProperties & LogInfoProperties.Timestamp) != 0)
+            if ((IncludeProperties & LogInfoProperties.Timestamp) != 0)
             {
                 jsonWriter.WriteString(TimestampText, info.Timestamp.Local); // use Local
             }

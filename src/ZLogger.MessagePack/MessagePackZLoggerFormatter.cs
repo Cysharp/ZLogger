@@ -63,6 +63,7 @@ namespace ZLogger.MessagePack
 
         public MessagePackSerializerOptions MessagePackSerializerOptions { get; set; } = MessagePackSerializer.DefaultOptions;
         public string MessagePropertyName { get; set; } = "Message";
+        public LogInfoProperties IncludeProperties { get; set; } = LogInfoProperties.Timestamp | LogInfoProperties.LogLevel | LogInfoProperties.CategoryName;
 
         readonly ZLoggerOptions options;
 
@@ -74,9 +75,8 @@ namespace ZLogger.MessagePack
         public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
         {
             var messagePackWriter = new MessagePackWriter(writer);
-
-            var propCount = BitOperations.PopCount((uint)options.IncludeProperties) + entry.ParameterCount + 1;
-            if (entry.LogInfo.Exception != null)
+            var propCount = BitOperations.PopCount((uint)IncludeProperties) + entry.ParameterCount + 1;
+            if (entry.LogInfo.Exception != null) 
                 propCount++;
 
             if (entry.ScopeState != null)
@@ -93,27 +93,27 @@ namespace ZLogger.MessagePack
 
             messagePackWriter.WriteMapHeader(propCount);
 
-            if ((options.IncludeProperties & LogInfoProperties.CategoryName) != 0)
+            if ((IncludeProperties & LogInfoProperties.CategoryName) != 0)
             {
                 messagePackWriter.WriteRaw(CategoryNameKey);
                 messagePackWriter.WriteString(entry.LogInfo.Category.Utf8Span);
             }
-            if ((options.IncludeProperties & LogInfoProperties.LogLevel) != 0)
+            if ((IncludeProperties & LogInfoProperties.LogLevel) != 0)
             {
                 messagePackWriter.WriteRaw(LogLevelKey);
                 messagePackWriter.WriteRaw(EncodedLogLevel(entry.LogInfo.LogLevel));
             }
-            if ((options.IncludeProperties & LogInfoProperties.EventIdValue) != 0)
+            if ((IncludeProperties & LogInfoProperties.EventIdValue) != 0)
             {
                 messagePackWriter.WriteRaw(EventIdKey);
                 messagePackWriter.WriteInt32(entry.LogInfo.EventId.Id);
             }
-            if ((options.IncludeProperties & LogInfoProperties.EventIdName) != 0)
+            if ((IncludeProperties & LogInfoProperties.EventIdName) != 0)
             {
                 messagePackWriter.WriteRaw(EventIdNameKey);
                 messagePackWriter.Write(entry.LogInfo.EventId.Name);
             }
-            if ((options.IncludeProperties & LogInfoProperties.Timestamp) != 0)
+            if ((IncludeProperties & LogInfoProperties.Timestamp) != 0)
             {
                 messagePackWriter.WriteRaw(TimestampKey);
                 MessagePackSerializerOptions.Resolver.GetFormatterWithVerify<DateTime>()

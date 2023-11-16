@@ -27,10 +27,10 @@ namespace ZLogger.Tests
 
                     option.UseJsonFormatter(formatter =>
                     {
-                        formatter.MetadataFormatter = (writer, info, options) =>
+                        formatter.MetadataFormatter = (writer, info) =>
                         {
                             // Use default and add custom metadata
-                            SystemTextJsonZLoggerFormatter.DefaultMetadataFormatter(writer, info, options);
+                            formatter.DefaultMetadataFormatter(writer, info);
                             writer.WriteString(hashProp, sourceCodeHash);
                         };
                     });
@@ -62,12 +62,12 @@ namespace ZLogger.Tests
         [Fact]
         public void FormatLogEntry_ExcludeLogInfoProperties()
         {
-            var options = new ZLoggerOptions
+            var options = new ZLoggerOptions().UseJsonFormatter(formatter =>
             {
-                IncludeProperties = LogInfoProperties.LogLevel | 
-                                    LogInfoProperties.Timestamp |
-                                    LogInfoProperties.EventIdValue
-            }.UseJsonFormatter();
+                formatter.IncludeProperties = LogInfoProperties.LogLevel |
+                                              LogInfoProperties.Timestamp |
+                                              LogInfoProperties.EventIdValue;
+            });
 
             var processor = new TestProcessor(options);
 
@@ -88,6 +88,37 @@ namespace ZLogger.Tests
             doc.GetProperty("LogLevel").GetString().Should().Be("Information");
             doc.GetProperty("Timestamp").GetDateTime().Should().BeOnOrAfter(now);
             doc.GetProperty("EventId").GetInt32().Should().Be(1);
+            doc.TryGetProperty("EventIdName", out _).Should().BeFalse();
+            doc.TryGetProperty("CategoryName", out _).Should().BeFalse();
+        }
+        
+        [Fact]
+        public void FormatLogEntry_ExcludeAllLogInfo()
+        {
+            var options = new ZLoggerOptions().UseJsonFormatter(formatter =>
+            {
+                formatter.IncludeProperties = LogInfoProperties.None;
+            });
+
+            var processor = new TestProcessor(options);
+
+            var loggerFactory = LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Debug);
+                x.AddZLoggerLogProcessor(processor);
+            });
+            var logger = loggerFactory.CreateLogger("test");
+            
+            logger.ZLogInformation(new EventId(1, "TEST"), $"HELLO!");
+            
+            var json = processor.Dequeue();
+            var doc = JsonDocument.Parse(json).RootElement;
+
+            doc.GetProperty("Message").GetString().Should().Be("HELLO!");
+            doc.TryGetProperty("LogLevel", out _).Should().BeFalse();
+            doc.TryGetProperty("Timestamp", out _).Should().BeFalse();
+            doc.TryGetProperty("EventId", out _).Should().BeFalse();
+            doc.TryGetProperty("EventIdName", out _).Should().BeFalse();
             doc.TryGetProperty("EventIdName", out _).Should().BeFalse();
             doc.TryGetProperty("CategoryName", out _).Should().BeFalse();
         }
