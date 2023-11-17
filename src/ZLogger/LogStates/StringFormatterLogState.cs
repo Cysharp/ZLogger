@@ -45,7 +45,7 @@ namespace ZLogger.LogStates
             writer.Advance(bytesWritten);
         }
 
-        public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions, ZLoggerOptions options)
+        public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions, IKeyNameMutator? keyNameMutator = null)
         {
             if (originalStateParameters == null) return;
 

@@ -21,18 +21,21 @@ namespace ZLogger.Tests
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerStream(ms, option =>
+                x.AddZLogger(zLogger =>
                 {
-                    var hashProp = JsonEncodedText.Encode("Hash");
-
-                    option.UseJsonFormatter(formatter =>
+                    zLogger.AddStream(ms, options =>
                     {
-                        formatter.LogInfoFormatter = (writer, info) =>
+                        var hashProp = JsonEncodedText.Encode("Hash");
+
+                        options.UseJsonFormatter(formatter =>
                         {
-                            // Use default and add custom metadata
-                            formatter.DefaultLogInfoFormatter(writer, info);
-                            writer.WriteString(hashProp, sourceCodeHash);
-                        };
+                            formatter.LogInfoFormatter = (writer, info) =>
+                            {
+                                // Use default and add custom metadata
+                                formatter.DefaultLogInfoFormatter(writer, info);
+                                writer.WriteString(hashProp, sourceCodeHash);
+                            };
+                        });
                     });
                 });
             });
@@ -74,7 +77,7 @@ namespace ZLogger.Tests
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processor);
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
             });
             var logger = loggerFactory.CreateLogger("test");
             
@@ -105,7 +108,7 @@ namespace ZLogger.Tests
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processor);
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
             });
             var logger = loggerFactory.CreateLogger("test");
             
@@ -130,18 +133,17 @@ namespace ZLogger.Tests
             {
                 IncludeScopes = true
             };
-            options.UseJsonFormatter();
-            options.KeyNameMutator = KeyNameMutator.LowercaseInitial; 
+            options.UseJsonFormatter(formatter =>
+            {
+                formatter.KeyNameMutator = LowerCamelCaseMutator.Instance;
+            });
             
             var processor = new TestProcessor(options);
 
             using var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processor, options =>
-                {
-                    options.IncludeScopes = true;
-                });
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
             });
             var logger = loggerFactory.CreateLogger("test");
 

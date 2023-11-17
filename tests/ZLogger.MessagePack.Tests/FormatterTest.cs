@@ -22,7 +22,7 @@ namespace ZLogger.MessagePack.Tests
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processor);
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
             });
             logger = loggerFactory.CreateLogger("test");
         }
@@ -113,17 +113,17 @@ namespace ZLogger.MessagePack.Tests
         [Fact]
         public void LowercaseMutator()
         {
-            var options = new ZLoggerOptions
+            var options = new ZLoggerOptions().UseMessagePackFormatter(formatter =>
             {
-                KeyNameMutator = KeyNameMutator.LowercaseInitial
-            }.UseMessagePackFormatter();
+                formatter.KeyNameMutator = LowerCamelCaseMutator.Instance;
+            });
             
             processor = new TestProcessor(options);
             
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processor);
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
             });
             logger = loggerFactory.CreateLogger("test");
             
@@ -154,7 +154,7 @@ namespace ZLogger.MessagePack.Tests
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processor);
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
             });
             logger = loggerFactory.CreateLogger("test");
                 
@@ -183,7 +183,7 @@ namespace ZLogger.MessagePack.Tests
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processor);
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
             });
             logger = loggerFactory.CreateLogger("test");
                 

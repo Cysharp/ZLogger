@@ -59,9 +59,9 @@ namespace Benchmark
             protected override Microsoft.Extensions.Logging.ILogger GetLogger()
             {
                 var serviceCollection = new ServiceCollection();
-                serviceCollection.AddLogging(options =>
+                serviceCollection.AddLogging(logging =>
                 {
-                    options.AddZLoggerFile("ZLogger.log");
+                    logging.AddZLogger(zLogger => zLogger.AddFile("ZLogger.log"));
                     //options.AddZLoggerConsole();
                 });
                 var serviceProvider = serviceCollection.BuildServiceProvider();

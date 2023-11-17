@@ -1,42 +1,47 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Text;
 
 namespace ZLogger.Providers
 {
+    public class ZLoggerConsoleOptions : ZLoggerOptions
+    {
+        public bool OutputEncodingToUtf8 { get; set; } = true;
+        public bool ConfigureEnableAnsiEscapeCode { get; set; } = false;
+        public LogLevel LogToStandardErrorThreshold { get; set; } = LogLevel.None;
+    }
+    
     [ProviderAlias("ZLoggerConsole")]
     public class ZLoggerConsoleLoggerProvider : ILoggerProvider, ISupportExternalScope, IAsyncDisposable
     {
         internal const string DefaultOptionName = "ZLoggerConsole.Default";
 
         readonly ZLoggerOptions options;
-        readonly AsyncStreamLineMessageWriter streamWriter;
+        readonly IAsyncLogProcessor processor;
         IExternalScopeProvider? scopeProvider; 
 
         public ZLoggerConsoleLoggerProvider(IOptionsMonitor<ZLoggerOptions> options)
-            : this(true, null, options)
+            : this(DefaultOptionName, options)
         {
         }
 
-        public ZLoggerConsoleLoggerProvider(bool consoleOutputEncodingToUtf8, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
-            : this(consoleOutputEncodingToUtf8, LogLevel.None, optionName, options)
+        public ZLoggerConsoleLoggerProvider(string optionName, IOptionsMonitor<ZLoggerOptions> options, LogLevel logToStandardErrorThreshold = LogLevel.None)
         {
-        }
-
-        public ZLoggerConsoleLoggerProvider(bool consoleOutputEncodingToUtf8, LogLevel logToStandardErrorThreshold, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
-        {
-            if (consoleOutputEncodingToUtf8)
+            this.options = options.Get(optionName);
+            if (logToStandardErrorThreshold == LogLevel.None)
             {
-                Console.OutputEncoding = new UTF8Encoding(false);
+                processor = new AsyncStreamLineMessageWriter(Console.OpenStandardOutput(), this.options);
             }
-
-            this.options = options.Get(optionName ?? DefaultOptionName);
-            this.streamWriter = new AsyncStreamLineMessageWriter(Console.OpenStandardOutput(), Console.OpenStandardError(), this.options);
+            else
+            {
+                processor = new CompositeAsyncLogProcessor(
+                     new AsyncStreamLineMessageWriter(Console.OpenStandardOutput(), this.options, level => level < logToStandardErrorThreshold),
+                     new AsyncStreamLineMessageWriter(Console.OpenStandardError(), this.options, level => level >= logToStandardErrorThreshold));
+            }
         }
 
         public ILogger CreateLogger(string categoryName)
         {
-            var logger = new ZLoggerLogger(categoryName, streamWriter, options);
+            var logger = new ZLoggerLogger(categoryName, processor, options);
             if (options.IncludeScopes)
             {
                 logger.ScopeProvider = scopeProvider;
@@ -46,12 +51,12 @@ namespace ZLogger.Providers
 
         public void Dispose()
         {
-            streamWriter.DisposeAsync().AsTask().Wait();
+            processor.DisposeAsync().AsTask().Wait();
         }
 
         public async ValueTask DisposeAsync()
         {
-            await streamWriter.DisposeAsync().ConfigureAwait(false);
+            await processor.DisposeAsync().ConfigureAwait(false);
         }
 
         public void SetScopeProvider(IExternalScopeProvider scopeProvider)
