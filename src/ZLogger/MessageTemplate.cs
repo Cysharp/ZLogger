@@ -61,6 +61,37 @@ public readonly partial struct MessageTemplate
     {
         if (!chunk.NoAlignmentAndFormat)
         {
+            if (chunk is { Alignment: 0, Format: "short" })
+            {
+                switch (value)
+                {
+                    case LogLevel.Trace:
+                        writer.AppendUtf8("TRC"u8);
+                        break;
+                    case LogLevel.Debug:
+                        writer.AppendUtf8("DBG"u8);
+                        break;
+                    case LogLevel.Information:
+                        writer.AppendUtf8("INF"u8);
+                        break;
+                    case LogLevel.Warning:
+                        writer.AppendUtf8("WRN"u8);
+                        break;
+                    case LogLevel.Error:
+                        writer.AppendUtf8("ERR"u8);
+                        break;
+                    case LogLevel.Critical:
+                        writer.AppendUtf8("CRI"u8);
+                        break;
+                    case LogLevel.None:
+                        writer.AppendUtf8("NON"u8);
+                        break;
+                    default:
+                        writer.AppendFormatted(value);
+                        break;
+                }
+            }
+
             writer.AppendFormatted(value, chunk.Alignment, chunk.Format);
             return;
         }
