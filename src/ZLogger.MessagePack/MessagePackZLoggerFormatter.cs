@@ -88,6 +88,8 @@ namespace ZLogger.MessagePack
             }
 
             messagePackWriter.WriteMapHeader(propCount);
+            
+            // LogInfo
 
             if ((IncludeProperties & LogInfoProperties.CategoryName) != 0)
             {
@@ -115,32 +117,14 @@ namespace ZLogger.MessagePack
                 MessagePackSerializerOptions.Resolver.GetFormatterWithVerify<DateTime>()
                     .Serialize(ref messagePackWriter, entry.LogInfo.Timestamp.Utc.DateTime, MessagePackSerializerOptions);
             }
-
-            messagePackWriter.Write(MessagePropertyName);
-            var buffer = GetThreadStaticBufferWriter();
-            entry.ToString(buffer);
-            messagePackWriter.WriteString(buffer.WrittenSpan);
-
+            
             if (entry.LogInfo.Exception is { } ex)
             {
                 messagePackWriter.WriteRaw(ExceptionKey);
                 WriteException(ref messagePackWriter, ex);
             }
 
-            for (var i = 0; i < entry.ParameterCount; i++)
-            {
-                if (entry.IsSupportUtf8ParameterKey)
-                {
-                    var key = entry.GetParameterKey(i);
-                    messagePackWriter.Write(key);
-                }
-                else
-                {
-                    WriteKeyName(ref messagePackWriter, entry, i);
-                }
-
-                WriteParameterValue(ref messagePackWriter, entry, entry.GetParameterType(i), i);
-            }
+            // Scope
 
             if (entry.ScopeState != null)
             {
@@ -162,6 +146,31 @@ namespace ZLogger.MessagePack
                     }
                 }
             }
+            
+            // Params
+
+            for (var i = 0; i < entry.ParameterCount; i++)
+            {
+                if (entry.IsSupportUtf8ParameterKey)
+                {
+                    var key = entry.GetParameterKey(i);
+                    messagePackWriter.Write(key);
+                }
+                else
+                {
+                    WriteKeyName(ref messagePackWriter, entry, i);
+                }
+
+                WriteParameterValue(ref messagePackWriter, entry, entry.GetParameterType(i), i);
+            }
+            
+            // Message
+
+            messagePackWriter.Write(MessagePropertyName);
+            var buffer = GetThreadStaticBufferWriter();
+            entry.ToString(buffer);
+            messagePackWriter.WriteString(buffer.WrittenSpan);
+            
             messagePackWriter.Flush();
         }
 
