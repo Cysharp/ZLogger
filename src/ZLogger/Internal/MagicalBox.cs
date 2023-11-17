@@ -1,4 +1,5 @@
-﻿using System.Buffers;
+﻿using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -23,7 +24,7 @@ internal unsafe partial struct MagicalBox
 
     public bool TryWrite<T>(T value, out int offset)
     {
-        if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+        if (!IsSupportedType<T>())
         {
             offset = 0;
             return false;
@@ -47,7 +48,7 @@ internal unsafe partial struct MagicalBox
 
     public bool TryRead<T>(int offset, out T value)
     {
-        if (RuntimeHelpers.IsReferenceOrContainsReferences<T>()
+        if (!IsSupportedType<T>()
             || offset < 0
             || (storage.Length < offset + Unsafe.SizeOf<T>()))
         {
@@ -77,7 +78,11 @@ internal unsafe partial struct MagicalBox
     public ReadOnlySpan<byte> ReadRawEnumValue(Type type, int offset)
     {
         var (_, size, _) = ReaderCache.GetEnumDictionaryAndValueSize(type);
+#if NETSTANDARD2_0        
+        return Shims.CreateReadOnlySpan(ref storage[offset], size);
+#else
         return MemoryMarshal.CreateReadOnlySpan(ref storage[offset], size);
+#endif
     }
 
     public bool TryReadTo(Type type, int offset, int alignment, string? format, ref Utf8StringWriter<IBufferWriter<byte>> handler)
@@ -136,7 +141,12 @@ internal unsafe partial struct MagicalBox
         if (type.IsEnum)
         {
             var (dict, size, converter) = ReaderCache.GetEnumDictionaryAndValueSize(type);
-            var rawValue = MemoryMarshal.CreateReadOnlySpan(ref storage[offset], size);
+            var rawValue = 
+#if NETSTANDARD2_0
+                Shims.CreateReadOnlySpan(ref storage[offset], size);
+#else
+                MemoryMarshal.CreateReadOnlySpan(ref storage[offset], size);
+#endif            
             var name = dict.GetUtf8Name(rawValue);
             if (name == null)
             {
@@ -234,7 +244,11 @@ internal unsafe partial struct MagicalBox
         if (type.IsEnum)
         {
             var (dict, size, converter) = ReaderCache.GetEnumDictionaryAndValueSize(type);
+#if NETSTANDARD2_0
+            var rawValue = Shims.CreateReadOnlySpan(ref storage[offset], size);
+#else            
             var rawValue = MemoryMarshal.CreateReadOnlySpan(ref storage[offset], size);
+#endif            
             var name = dict.GetStringName(rawValue);
             if (name == null)
             {
@@ -334,7 +348,12 @@ internal unsafe partial struct MagicalBox
         if (type.IsEnum)
         {
             var (dict, size, converter) = ReaderCache.GetEnumDictionaryAndValueSize(type);
-            var rawValue = MemoryMarshal.CreateReadOnlySpan(ref storage[offset], size);
+            var rawValue =
+#if NETSTANDARD2_0                
+                 Shims.CreateReadOnlySpan(ref storage[offset], size);
+#else
+                MemoryMarshal.CreateReadOnlySpan(ref storage[offset], size);
+#endif
             var name = dict.GetJsonEncodedName(rawValue);
             if (name == null)
             {
@@ -360,6 +379,39 @@ internal unsafe partial struct MagicalBox
         }
 
         return true;
+    }
+
+    static bool IsSupportedType<T>()
+    {
+#if NETSTANDARD2_0
+        var type = typeof(T);
+        var code = Type.GetTypeCode(type);
+        switch (code)
+        {
+            case TypeCode.Boolean:
+            case TypeCode.Byte:
+            case TypeCode.Char:
+            case TypeCode.DateTime:
+            case TypeCode.Decimal:
+            case TypeCode.Double:
+            case TypeCode.Int16:
+            case TypeCode.Int32:
+            case TypeCode.Int64:
+            case TypeCode.SByte:
+            case TypeCode.Single:
+            case TypeCode.UInt16:
+            case TypeCode.UInt32:
+            case TypeCode.UInt64:
+                return true;
+        }
+        if (type.IsEnum || type == typeof(Guid) || type == typeof(DateTimeOffset))
+        {
+            return true;
+        }
+        return false;
+#else
+        return !RuntimeHelpers.IsReferenceOrContainsReferences<T>();
+#endif
     }
 
     static void ThrowArgumentOutOfRangeException()
@@ -391,7 +443,7 @@ internal unsafe partial struct MagicalBox
     {
         static ReaderCache()
         {
-            if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+            if (!IsSupportedType<T>())
             {
                 ReaderCache.readCache.TryAdd(typeof(T), null);
                 return;

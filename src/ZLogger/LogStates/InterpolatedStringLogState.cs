@@ -93,7 +93,7 @@ namespace ZLogger.LogStates
             for (var i = 0; i < ParameterCount; i++)
             {
                 ref var p = ref parameters[i];
-                SystemTextJsonZLoggerFormatter.WriteMutatedJsonKeyName(p.Name, jsonWriter, keyNameMutator);
+                SystemTextJsonZLoggerFormatter.WriteMutatedJsonKeyName(p.Name.AsSpan(), jsonWriter, keyNameMutator);
 
                 if (magicalBox.TryReadTo(p.Type, p.BoxOffset, jsonWriter))
                 {
@@ -119,7 +119,7 @@ namespace ZLogger.LogStates
 
         public ReadOnlySpan<char> GetParameterKeyAsString(int index)
         {
-            return parameters[index].Name;
+            return parameters[index].Name.AsSpan();
         }
 
         public object? GetParameterValue(int index)
