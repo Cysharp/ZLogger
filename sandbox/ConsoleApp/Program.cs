@@ -172,8 +172,6 @@ namespace MyApp
                     logging.AddZLoggerConsole(options =>
                     {
                         //options.FlushRate = TimeSpan.FromSeconds(5);
-
-                        options.LogToErrorThreshold = LogLevel.Error;
 #if DEBUG
                         options.UsePlainTextFormatter(plainText =>
                         {
@@ -208,7 +206,7 @@ namespace MyApp
                         });
 #endif
 
-                    }, configureEnableAnsiEscapeCode: true);
+                    }, configureEnableAnsiEscapeCode: true, logToStandardErrorThreshold: LogLevel.Error);
 
 
 
