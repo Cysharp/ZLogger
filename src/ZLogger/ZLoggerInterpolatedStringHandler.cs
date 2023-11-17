@@ -286,6 +286,9 @@ namespace ZLogger
             static ReadOnlySpan<byte> AsBytes(ReadOnlySpan<string?> literals)
             {
 #if NETSTANDARD2_0
+                if (literals.IsEmpty)
+                    return default;
+                
                 return Shims.CreateSpan(
                     ref Unsafe.As<string?, byte>(ref Unsafe.AsRef(in literals[0])),
                     literals.Length * Unsafe.SizeOf<string>());
