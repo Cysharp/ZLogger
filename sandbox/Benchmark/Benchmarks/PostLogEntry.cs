@@ -9,7 +9,6 @@ using NLog;
 using NLog.Extensions.Logging;
 using NLog.Targets.Wrappers;
 using Serilog;
-using Utf8StringInterpolation;
 using ZLogger;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 

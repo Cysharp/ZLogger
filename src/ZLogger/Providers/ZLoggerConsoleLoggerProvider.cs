@@ -9,7 +9,7 @@ namespace ZLogger.Providers
         internal const string DefaultOptionName = "ZLoggerConsole.Default";
 
         readonly ZLoggerOptions options;
-        readonly AsyncStreamLineMessageWriter streamWriter;
+        readonly IAsyncLogProcessor processor;
         IExternalScopeProvider? scopeProvider; 
 
         public ZLoggerConsoleLoggerProvider(IOptionsMonitor<ZLoggerOptions> options)
@@ -20,12 +20,21 @@ namespace ZLogger.Providers
         public ZLoggerConsoleLoggerProvider(string optionName, IOptionsMonitor<ZLoggerOptions> options, LogLevel logToStandardErrorThreshold = LogLevel.None)
         {
             this.options = options.Get(optionName);
-            this.streamWriter = new AsyncStreamLineMessageWriter(Console.OpenStandardOutput(), this.options, Console.OpenStandardError(), logToStandardErrorThreshold);
+            if (logToStandardErrorThreshold == LogLevel.None)
+            {
+                processor = new AsyncStreamLineMessageWriter(Console.OpenStandardOutput(), this.options);
+            }
+            else
+            {
+                processor = new CompositeAsyncLogProcessor(
+                     new AsyncStreamLineMessageWriter(Console.OpenStandardOutput(), this.options, level => level < logToStandardErrorThreshold),
+                     new AsyncStreamLineMessageWriter(Console.OpenStandardError(), this.options, level => level >= logToStandardErrorThreshold));
+            }
         }
 
         public ILogger CreateLogger(string categoryName)
         {
-            var logger = new ZLoggerLogger(categoryName, streamWriter, options);
+            var logger = new ZLoggerLogger(categoryName, processor, options);
             if (options.IncludeScopes)
             {
                 logger.ScopeProvider = scopeProvider;
@@ -35,12 +44,12 @@ namespace ZLogger.Providers
 
         public void Dispose()
         {
-            streamWriter.DisposeAsync().AsTask().Wait();
+            processor.DisposeAsync().AsTask().Wait();
         }
 
         public async ValueTask DisposeAsync()
         {
-            await streamWriter.DisposeAsync().ConfigureAwait(false);
+            await processor.DisposeAsync().ConfigureAwait(false);
         }
 
         public void SetScopeProvider(IExternalScopeProvider scopeProvider)
