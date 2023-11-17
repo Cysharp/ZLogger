@@ -1,5 +1,4 @@
 using ZLogger.Formatters;
-using Microsoft.Extensions.Logging;
 
 namespace ZLogger
 {
@@ -24,7 +23,6 @@ namespace ZLogger
         // TODO:these options should move to formatter? provider?
         public TimeSpan? FlushRate { get; set; }
         public IKeyNameMutator? KeyNameMutator { get; set; }
-        public LogLevel LogToErrorThreshold { get; set; } = LogLevel.None;
 
         Func<IZLoggerFormatter> formatterFactory = DefaultFormatterFactory;
 

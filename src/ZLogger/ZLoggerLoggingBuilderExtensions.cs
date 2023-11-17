@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Options;
 using System.Runtime.InteropServices;
+using System.Text;
 using ZLogger.Internal;
 using ZLogger.Providers;
 
@@ -10,39 +11,30 @@ namespace ZLogger
 {
     public static class ZLoggerLoggingBuilderExtensions
     {
-        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, bool consoleOutputEncodingToUtf8 = true, bool configureEnableAnsiEscapeCode = false)
+        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, bool consoleOutputEncodingToUtf8 = true, bool configureEnableAnsiEscapeCode = false, LogLevel logToStandardErrorThreshold = LogLevel.None)
+        {
+            return AddZLoggerConsole(builder, ZLoggerConsoleLoggerProvider.DefaultOptionName, static _ => { }, consoleOutputEncodingToUtf8, configureEnableAnsiEscapeCode, logToStandardErrorThreshold);
+        }
+
+        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, Action<ZLoggerOptions> configure, bool consoleOutputEncodingToUtf8 = true, bool configureEnableAnsiEscapeCode = false, LogLevel logToStandardErrorThreshold = LogLevel.None)
+        {
+            return AddZLoggerConsole(builder, ZLoggerConsoleLoggerProvider.DefaultOptionName, configure, consoleOutputEncodingToUtf8, configureEnableAnsiEscapeCode, logToStandardErrorThreshold);
+        }
+
+        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, string optionName, Action<ZLoggerOptions> configure, bool consoleOutputEncodingToUtf8 = true, bool configureEnableAnsiEscapeCode = false, LogLevel logToStandardErrorThreshold = LogLevel.None)
         {
             if (configureEnableAnsiEscapeCode)
             {
                 EnableAnsiEscapeCode();
             }
             
-            builder.AddConfiguration();
-            builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerConsoleLoggerProvider>(x => new ZLoggerConsoleLoggerProvider(consoleOutputEncodingToUtf8, null, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
-            LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerConsoleLoggerProvider>(builder.Services);
-
-            return builder;
-        }
-
-        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, Action<ZLoggerOptions> configure, bool consoleOutputEncodingToUtf8 = true, bool configureEnableAnsiEscapeCode = false)
-        {
-            return AddZLoggerConsole(builder, ZLoggerConsoleLoggerProvider.DefaultOptionName, configure, consoleOutputEncodingToUtf8: consoleOutputEncodingToUtf8, configureEnableAnsiEscapeCode: configureEnableAnsiEscapeCode);
-        }
-
-        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, string optionName, Action<ZLoggerOptions> configure, bool consoleOutputEncodingToUtf8 = true, bool configureEnableAnsiEscapeCode = false)
-        {
-            if (configureEnableAnsiEscapeCode)
+            if (consoleOutputEncodingToUtf8)
             {
-                EnableAnsiEscapeCode();
-            }
-
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
+                Console.OutputEncoding = new UTF8Encoding(false);
             }
 
             builder.AddConfiguration();
-            builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerConsoleLoggerProvider>(x => new ZLoggerConsoleLoggerProvider(consoleOutputEncodingToUtf8, optionName, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
+            builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerConsoleLoggerProvider>(x => new ZLoggerConsoleLoggerProvider(optionName, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>(), logToStandardErrorThreshold)));
             LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerConsoleLoggerProvider>(builder.Services);
 
             builder.Services.AddOptions<ZLoggerOptions>(optionName).Configure(configure);

@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Channels;
+using Microsoft.Extensions.Logging;
 using ZLogger.Internal;
 
 namespace ZLogger
@@ -18,9 +19,10 @@ namespace ZLogger
         readonly Channel<IZLoggerEntry> channel;
         readonly Task writeLoop;
         readonly ZLoggerOptions options;
+        readonly LogLevel logToErrorThreshold;
         readonly CancellationTokenSource cancellationTokenSource;
 
-        public AsyncStreamLineMessageWriter(Stream stream, Stream? errorStream, ZLoggerOptions options)
+        public AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options, Stream? errorStream = null, LogLevel logToErrorThreshold = LogLevel.None)
         {
             this.newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
             this.cancellationTokenSource = new CancellationTokenSource();
@@ -42,6 +44,7 @@ namespace ZLogger
             this.options = options;
             this.stream = stream;
             this.errorStream = errorStream;
+            this.logToErrorThreshold = logToErrorThreshold;
 
             this.channel = Channel.CreateUnbounded<IZLoggerEntry>(new UnboundedChannelOptions
             {
@@ -51,7 +54,6 @@ namespace ZLogger
             });
             this.writeLoop = Task.Run(WriteLoop);
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Post(IZLoggerEntry log)
@@ -98,7 +100,7 @@ namespace ZLogger
                     {
                         while (reader.TryRead(out var value))
                         {
-                            var currentWriter = errorWriter != null && value.LogInfo.LogLevel >= options.LogToErrorThreshold
+                            var currentWriter = errorWriter != null && value.LogInfo.LogLevel >= logToErrorThreshold
                                 ? errorWriter
                                 : writer;
                             try

@@ -20,7 +20,7 @@ namespace ZLogger.Providers
         public ZLoggerStreamLoggerProvider(Stream stream, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
         {
             this.options = options.Get(optionName ?? DefaultOptionName);
-            this.streamWriter = new AsyncStreamLineMessageWriter(stream, null, this.options);
+            this.streamWriter = new AsyncStreamLineMessageWriter(stream, this.options);
         }
 
         public ILogger CreateLogger(string categoryName)
