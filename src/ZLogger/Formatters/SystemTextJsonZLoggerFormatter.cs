@@ -14,7 +14,7 @@ namespace ZLogger.Formatters
         {
             return options.UseFormatter(() =>
             {
-                var formatter = new SystemTextJsonZLoggerFormatter(options);
+                var formatter = new SystemTextJsonZLoggerFormatter();
                 jsonConfigure?.Invoke(formatter);
                 return formatter;
             });
@@ -46,7 +46,7 @@ namespace ZLogger.Formatters
         public bool WithLineBreak => true;
         
         public JsonEncodedText MessagePropertyName { get; set; } = JsonEncodedText.Encode("Message");
-        public Action<Utf8JsonWriter, LogInfo> MetadataFormatter { get; set; }
+        public Action<Utf8JsonWriter, LogInfo> LogInfoFormatter { get; set; }
         public LogInfoProperties IncludeProperties { get; set; } = LogInfoProperties.Timestamp | LogInfoProperties.LogLevel | LogInfoProperties.CategoryName;
 
         public JsonSerializerOptions JsonSerializerOptions { get; set; } = new()
@@ -55,14 +55,14 @@ namespace ZLogger.Formatters
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
+        
+        public IKeyNameMutator? KeyNameMutator { get; set; }
 
-        readonly ZLoggerOptions options;
         Utf8JsonWriter? jsonWriter;
 
-        public SystemTextJsonZLoggerFormatter(ZLoggerOptions options)
+        public SystemTextJsonZLoggerFormatter()
         {
-            this.options = options;
-            MetadataFormatter = DefaultMetadataFormatter;
+            LogInfoFormatter = DefaultLogInfoFormatter;
         }
 
         public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
@@ -71,13 +71,13 @@ namespace ZLogger.Formatters
             jsonWriter ??= new Utf8JsonWriter(writer);
 
             jsonWriter.WriteStartObject();
-            MetadataFormatter.Invoke(jsonWriter, entry.LogInfo);
+            LogInfoFormatter.Invoke(jsonWriter, entry.LogInfo);
 
             var bufferWriter = ArrayBufferWriterPool.GetThreadStaticInstance();
             entry.ToString(bufferWriter);
             jsonWriter.WriteString(MessagePropertyName, bufferWriter.WrittenSpan);
 
-            entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, options);
+            entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, KeyNameMutator);
 
             if (entry.ScopeState is { IsEmpty: false } scopeState)
             {
@@ -88,7 +88,7 @@ namespace ZLogger.Formatters
                     // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
                     if (x.Key == "{OriginalFormat}") continue;
 
-                    WriteMutatedJsonKeyName(x.Key, jsonWriter, options.KeyNameMutator);
+                    WriteMutatedJsonKeyName(x.Key.AsSpan(), jsonWriter, KeyNameMutator);
 
                     if (x.Value is { } value)
                     {
@@ -128,7 +128,7 @@ namespace ZLogger.Formatters
             }
         }
 
-        public void DefaultMetadataFormatter(Utf8JsonWriter jsonWriter, LogInfo info)
+        public void DefaultLogInfoFormatter(Utf8JsonWriter jsonWriter, LogInfo info)
         {
             if ((IncludeProperties & LogInfoProperties.CategoryName) != 0)
             {

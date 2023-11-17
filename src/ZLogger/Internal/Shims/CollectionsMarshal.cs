@@ -5,9 +5,16 @@ namespace System.Runtime.InteropServices;
 
 internal static class CollectionsMarshal
 {
+    class ListDummy<T>
+    {
+        public T[] Items;
+        int size;
+        int version;
+    }
+    
     internal static Span<T> AsSpan<T>(List<T> list)
     {
-        return Unsafe.As<StrongBox<T[]>>(list).Value.AsSpan(0, list.Count);
+        return Unsafe.As<ListDummy<T>>(list).Items.AsSpan(0, list.Count);
     }
 }
 #endif

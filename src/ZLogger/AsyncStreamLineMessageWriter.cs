@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Channels;
+using Microsoft.Extensions.Logging;
 using ZLogger.Internal;
 
 namespace ZLogger
@@ -14,13 +15,13 @@ namespace ZLogger
         readonly byte newLine2;
 
         readonly Stream stream;
-        readonly Stream? errorStream;
         readonly Channel<IZLoggerEntry> channel;
         readonly Task writeLoop;
         readonly ZLoggerOptions options;
+        readonly Func<LogLevel, bool>? levelFilter;
         readonly CancellationTokenSource cancellationTokenSource;
 
-        public AsyncStreamLineMessageWriter(Stream stream, Stream? errorStream, ZLoggerOptions options)
+        public AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options, Func<LogLevel, bool>? levelFilter = null)
         {
             this.newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
             this.cancellationTokenSource = new CancellationTokenSource();
@@ -41,7 +42,7 @@ namespace ZLogger
 
             this.options = options;
             this.stream = stream;
-            this.errorStream = errorStream;
+            this.levelFilter = levelFilter;
 
             this.channel = Channel.CreateUnbounded<IZLoggerEntry>(new UnboundedChannelOptions
             {
@@ -51,7 +52,6 @@ namespace ZLogger
             });
             this.writeLoop = Task.Run(WriteLoop);
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Post(IZLoggerEntry log)
@@ -86,7 +86,6 @@ namespace ZLogger
         async Task WriteLoop()
         {
             var writer = new StreamBufferWriter(stream);
-            var errorWriter = errorStream != null ? new StreamBufferWriter(errorStream) : null;
             var formatter = options.CreateFormatter();
             var reader = channel.Reader;
             var sw = Stopwatch.StartNew();
@@ -98,12 +97,13 @@ namespace ZLogger
                     {
                         while (reader.TryRead(out var value))
                         {
-                            var currentWriter = errorWriter != null && value.LogInfo.LogLevel >= options.LogToErrorThreshold
-                                ? errorWriter
-                                : writer;
+                            if (levelFilter != null && levelFilter.Invoke(value.LogInfo.LogLevel) == false)
+                            {
+                                continue;
+                            }
                             try
                             {
-                                value.FormatUtf8(currentWriter, formatter);
+                                value.FormatUtf8(writer, formatter);
                             }
                             finally
                             {
@@ -111,7 +111,7 @@ namespace ZLogger
                             }
                             if (formatter.WithLineBreak)
                             {
-                                AppendLine(currentWriter);
+                                AppendLine(writer);
                             }
                         }
 
@@ -131,7 +131,6 @@ namespace ZLogger
                             }
                         }
                         writer.Flush(); // flush before wait.
-                        errorWriter?.Flush();
 
                         sw.Reset();
                         sw.Start();
@@ -157,7 +156,6 @@ namespace ZLogger
                 try
                 {
                     writer.Flush();
-                    errorWriter?.Flush();
                 }
                 catch { }
             }
@@ -174,7 +172,6 @@ namespace ZLogger
             finally
             {
                 this.stream.Dispose();
-                this.errorStream?.Dispose();
             }
         }
     }

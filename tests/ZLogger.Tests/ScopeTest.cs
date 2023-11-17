@@ -25,9 +25,12 @@ namespace ZLogger.Tests
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processor, options =>
+                x.AddZLogger(zLogger =>
                 {
-                    options.IncludeScopes = true;
+                    zLogger.AddLogProcessor(processor, options =>
+                    {
+                        options.IncludeScopes = true;
+                    });
                 });
             });
             logger = loggerFactory.CreateLogger("test");

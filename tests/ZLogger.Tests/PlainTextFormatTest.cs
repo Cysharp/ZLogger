@@ -17,63 +17,63 @@ namespace ZLogger.Tests
                 plainText.SetExceptionFormatter((writer, ex) => { });
             });
 
-            var processsor = new TestProcessor(options);
+            var processor = new TestProcessor(options);
 
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processsor);
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
             });
             var logger = loggerFactory.CreateLogger("test");
 
             logger.ZLogDebug($"foo");
-            processsor.EntryMessages.Dequeue().Should().Be("foo");
+            processor.EntryMessages.Dequeue().Should().Be("foo");
 
             logger.ZLogDebug(new EventId(10), $"foo");
-            processsor.EntryMessages.Dequeue().Should().Be("foo");
+            processor.EntryMessages.Dequeue().Should().Be("foo");
 
             logger.ZLogDebug(new Exception(), $"foo");
-            processsor.EntryMessages.Dequeue().Should().Be("foo");
+            processor.EntryMessages.Dequeue().Should().Be("foo");
 
             logger.ZLogDebug(new EventId(10), new Exception(), $"foo");
-            processsor.EntryMessages.Dequeue().Should().Be("foo");
+            processor.EntryMessages.Dequeue().Should().Be("foo");
 
             var bar = "bar";
             logger.ZLogDebug($"foo {bar}");
-            processsor.EntryMessages.Dequeue().Should().Be("foo bar");
+            processor.EntryMessages.Dequeue().Should().Be("foo bar");
 
             logger.ZLogDebug(new EventId(10), $"foo {bar}");
-            processsor.EntryMessages.Dequeue().Should().Be("foo bar");
+            processor.EntryMessages.Dequeue().Should().Be("foo bar");
 
             logger.ZLogDebug(new Exception(), $"foo {bar}");
-            processsor.EntryMessages.Dequeue().Should().Be("foo bar");
+            processor.EntryMessages.Dequeue().Should().Be("foo bar");
 
             logger.ZLogDebug(new EventId(10), new Exception(), $"foo {bar}");
-            processsor.EntryMessages.Dequeue().Should().Be("foo bar");
+            processor.EntryMessages.Dequeue().Should().Be("foo bar");
 
             logger.ZLog(LogLevel.Debug, $"foo");
-            processsor.EntryMessages.Dequeue().Should().Be("foo");
+            processor.EntryMessages.Dequeue().Should().Be("foo");
 
             logger.ZLog(LogLevel.Debug, new EventId(10), $"foo");
-            processsor.EntryMessages.Dequeue().Should().Be("foo");
+            processor.EntryMessages.Dequeue().Should().Be("foo");
 
             logger.ZLog(LogLevel.Debug, new Exception(), $"foo");
-            processsor.EntryMessages.Dequeue().Should().Be("foo");
+            processor.EntryMessages.Dequeue().Should().Be("foo");
 
             logger.ZLog(LogLevel.Debug, new EventId(10), new Exception(), $"foo");
-            processsor.EntryMessages.Dequeue().Should().Be("foo");
+            processor.EntryMessages.Dequeue().Should().Be("foo");
 
             logger.ZLog(LogLevel.Debug, $"foo {bar}");
-            processsor.EntryMessages.Dequeue().Should().Be("foo bar");
+            processor.EntryMessages.Dequeue().Should().Be("foo bar");
 
             logger.ZLog(LogLevel.Debug, new EventId(10), $"foo {bar}");
-            processsor.EntryMessages.Dequeue().Should().Be("foo bar");
+            processor.EntryMessages.Dequeue().Should().Be("foo bar");
 
             logger.ZLog(LogLevel.Debug, new Exception(), $"foo {bar}");
-            processsor.EntryMessages.Dequeue().Should().Be("foo bar");
+            processor.EntryMessages.Dequeue().Should().Be("foo bar");
 
             logger.ZLog(LogLevel.Debug, new EventId(10), new Exception(), $"foo {bar}");
-            processsor.EntryMessages.Dequeue().Should().Be("foo bar");
+            processor.EntryMessages.Dequeue().Should().Be("foo bar");
         }
 
         [Fact]
@@ -91,7 +91,7 @@ namespace ZLogger.Tests
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processsor);
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processsor));
             });
             var logger = loggerFactory.CreateLogger("test");
 
@@ -121,7 +121,7 @@ namespace ZLogger.Tests
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processor);
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
             });
             var logger = loggerFactory.CreateLogger("test");
 

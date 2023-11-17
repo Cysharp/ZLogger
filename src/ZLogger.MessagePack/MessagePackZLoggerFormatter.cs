@@ -12,7 +12,7 @@ namespace ZLogger.MessagePack
         {
             return options.UseFormatter(() =>
             {
-                var formatter = new MessagePackZLoggerFormatter(options);
+                var formatter = new MessagePackZLoggerFormatter();
                 messagePackConfigure?.Invoke(formatter);
                 return formatter;
             });
@@ -66,13 +66,7 @@ namespace ZLogger.MessagePack
         public MessagePackSerializerOptions MessagePackSerializerOptions { get; set; } = MessagePackSerializer.DefaultOptions;
         public string MessagePropertyName { get; set; } = "Message";
         public LogInfoProperties IncludeProperties { get; set; } = LogInfoProperties.Timestamp | LogInfoProperties.LogLevel | LogInfoProperties.CategoryName;
-
-        readonly ZLoggerOptions options;
-
-        public MessagePackZLoggerFormatter(ZLoggerOptions options)
-        {
-            this.options = options;
-        }
+        public IKeyNameMutator? KeyNameMutator { get; set; }
 
         public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
         {
@@ -188,7 +182,7 @@ namespace ZLogger.MessagePack
 
         void WriteKeyName(ref MessagePackWriter messagePackWriter, ReadOnlySpan<char> keyName)
         {
-            if (options.KeyNameMutator is { } mutator)
+            if (KeyNameMutator is { } mutator)
             {
                 var bufferSize = keyName.Length * 2;
                 while (!TryMutate(ref messagePackWriter, keyName, bufferSize))

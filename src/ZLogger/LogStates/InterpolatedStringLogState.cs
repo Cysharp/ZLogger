@@ -1,4 +1,3 @@
-using System;
 using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -89,12 +88,12 @@ namespace ZLogger.LogStates
             messageSequence.ToString(writer, magicalBox, parameters);
         }
 
-        public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions, ZLoggerOptions options)
+        public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions, IKeyNameMutator? keyNameMutator = null)
         {
             for (var i = 0; i < ParameterCount; i++)
             {
                 ref var p = ref parameters[i];
-                SystemTextJsonZLoggerFormatter.WriteMutatedJsonKeyName(p.Name, jsonWriter, options.KeyNameMutator);
+                SystemTextJsonZLoggerFormatter.WriteMutatedJsonKeyName(p.Name.AsSpan(), jsonWriter, keyNameMutator);
 
                 if (magicalBox.TryReadTo(p.Type, p.BoxOffset, jsonWriter))
                 {
@@ -120,7 +119,7 @@ namespace ZLogger.LogStates
 
         public ReadOnlySpan<char> GetParameterKeyAsString(int index)
         {
-            return parameters[index].Name;
+            return parameters[index].Name.AsSpan();
         }
 
         public object? GetParameterValue(int index)

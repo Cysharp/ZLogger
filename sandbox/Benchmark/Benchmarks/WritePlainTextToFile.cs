@@ -73,11 +73,14 @@ public class WritePlainTextToFile
 
         zLoggerFactory = LoggerFactory.Create(logging =>
         {
-            logging.AddZLoggerFile(GetLogFilePath("zlogger.log"), options =>
+            logging.AddZLogger(zLogger =>
             {
-                options.UsePlainTextFormatter(formatter =>
+                zLogger.AddFile(GetLogFilePath("zlogger.log"), options =>
                 {
-                    formatter.SetPrefixFormatter($"{0} [{1}]", (template, info) => template.Format(info.Timestamp, info.LogLevel));
+                    options.UsePlainTextFormatter(formatter =>
+                    {
+                        formatter.SetPrefixFormatter($"{0} [{1}]", (template, info) => template.Format(info.Timestamp, info.LogLevel));
+                    });
                 });
             });
         });

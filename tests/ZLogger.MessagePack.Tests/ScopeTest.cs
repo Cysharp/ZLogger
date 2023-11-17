@@ -23,10 +23,7 @@ namespace ZLogger.MessagePack.Tests
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processor, options =>
-                {
-                    options.IncludeScopes = true;
-                });
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor, options => options.IncludeScopes = true));
             });
             logger = loggerFactory.CreateLogger("test");
         }

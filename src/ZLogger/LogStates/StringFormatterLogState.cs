@@ -45,7 +45,7 @@ namespace ZLogger.LogStates
             writer.Advance(bytesWritten);
         }
 
-        public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions, ZLoggerOptions options)
+        public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions, IKeyNameMutator? keyNameMutator = null)
         {
             if (originalStateParameters == null) return;
 
@@ -74,7 +74,7 @@ namespace ZLogger.LogStates
         {
             if (originalStateParameters != null)
             {
-                return originalStateParameters[index].Key;
+                return originalStateParameters[index].Key.AsSpan();
             }
             throw new IndexOutOfRangeException(nameof(index));
         }
