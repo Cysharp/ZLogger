@@ -19,10 +19,7 @@ namespace ZLogger
         public Action<Exception>? InternalErrorLogger { get; set; }
         public bool IncludeScopes { get; set; }
         public TimeProvider? TimeProvider { get; set; }
-
-        // TODO:these options should move to formatter? provider?
         public TimeSpan? FlushRate { get; set; }
-        public IKeyNameMutator? KeyNameMutator { get; set; }
 
         Func<IZLoggerFormatter> formatterFactory = DefaultFormatterFactory;
 

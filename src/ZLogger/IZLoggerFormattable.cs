@@ -17,7 +17,7 @@ namespace ZLogger
         string ToString();
         void ToString(IBufferWriter<byte> writer);
 
-        void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions, ZLoggerOptions options);
+        void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions, IKeyNameMutator? keyNameMutator = null);
 
         ReadOnlySpan<byte> GetParameterKey(int index);
         ReadOnlySpan<char> GetParameterKeyAsString(int index);

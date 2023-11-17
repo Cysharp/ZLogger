@@ -14,7 +14,7 @@ namespace ZLogger.Formatters
         {
             return options.UseFormatter(() =>
             {
-                var formatter = new SystemTextJsonZLoggerFormatter(options);
+                var formatter = new SystemTextJsonZLoggerFormatter();
                 jsonConfigure?.Invoke(formatter);
                 return formatter;
             });
@@ -55,13 +55,13 @@ namespace ZLogger.Formatters
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
+        
+        public IKeyNameMutator? KeyNameMutator { get; set; }
 
-        readonly ZLoggerOptions options;
         Utf8JsonWriter? jsonWriter;
 
-        public SystemTextJsonZLoggerFormatter(ZLoggerOptions options)
+        public SystemTextJsonZLoggerFormatter()
         {
-            this.options = options;
             LogInfoFormatter = DefaultLogInfoFormatter;
         }
 
@@ -77,7 +77,7 @@ namespace ZLogger.Formatters
             entry.ToString(bufferWriter);
             jsonWriter.WriteString(MessagePropertyName, bufferWriter.WrittenSpan);
 
-            entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, options);
+            entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, KeyNameMutator);
 
             if (entry.ScopeState is { IsEmpty: false } scopeState)
             {
@@ -88,7 +88,7 @@ namespace ZLogger.Formatters
                     // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
                     if (x.Key == "{OriginalFormat}") continue;
 
-                    WriteMutatedJsonKeyName(x.Key, jsonWriter, options.KeyNameMutator);
+                    WriteMutatedJsonKeyName(x.Key, jsonWriter, KeyNameMutator);
 
                     if (x.Value is { } value)
                     {

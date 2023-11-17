@@ -130,8 +130,10 @@ namespace ZLogger.Tests
             {
                 IncludeScopes = true
             };
-            options.UseJsonFormatter();
-            options.KeyNameMutator = KeyNameMutator.LowercaseInitial; 
+            options.UseJsonFormatter(formatter =>
+            {
+                formatter.KeyNameMutator = LowerCamelCaseMutator.Instance;
+            });
             
             var processor = new TestProcessor(options);
 

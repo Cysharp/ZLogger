@@ -113,10 +113,10 @@ namespace ZLogger.MessagePack.Tests
         [Fact]
         public void LowercaseMutator()
         {
-            var options = new ZLoggerOptions
+            var options = new ZLoggerOptions().UseMessagePackFormatter(formatter =>
             {
-                KeyNameMutator = KeyNameMutator.LowercaseInitial
-            }.UseMessagePackFormatter();
+                formatter.KeyNameMutator = LowerCamelCaseMutator.Instance;
+            });
             
             processor = new TestProcessor(options);
             

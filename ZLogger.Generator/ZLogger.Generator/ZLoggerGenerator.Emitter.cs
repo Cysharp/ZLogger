@@ -156,7 +156,7 @@ public partial class ZLoggerGenerator
 
             //void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions);
             sb.AppendLine($$"""
-        public void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions, ZLoggerOptions options)
+        public void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions, IKeyNameMutator? keyNameMutator = null)
         {
 {{ForEachLine("            ", methodParameters, x => x.ConvertJsonWriteMethod())}}
         }

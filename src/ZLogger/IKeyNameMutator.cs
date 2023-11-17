@@ -1,18 +1,14 @@
 namespace ZLogger
 {
-    public static class KeyNameMutator
-    {
-        public static readonly IKeyNameMutator LowercaseInitial = new LowercaseInitialMutator();
-        public static readonly IKeyNameMutator UppercaseInitial = new UppercaseInitialMutator();
-    }
-
     public interface IKeyNameMutator
     {
         bool TryMutate(ReadOnlySpan<char> source, scoped Span<char> destination, out int written);
     }
     
-    class LowercaseInitialMutator : IKeyNameMutator
+    public class LowerCamelCaseMutator : IKeyNameMutator
     {
+        public static readonly IKeyNameMutator Instance = new LowerCamelCaseMutator();
+        
         public bool TryMutate(ReadOnlySpan<char> source, scoped Span<char> destination, out int written)
         {
             if (source.Length > destination.Length)
@@ -37,8 +33,10 @@ namespace ZLogger
         }
     }
 
-    class UppercaseInitialMutator : IKeyNameMutator
+    public class UpperCamelCaseMutator : IKeyNameMutator
     {
+        public static readonly IKeyNameMutator Instance = new UpperCamelCaseMutator();
+        
         public bool TryMutate(ReadOnlySpan<char> source, scoped Span<char> destination, out int written)
         {
             if (source.Length > destination.Length)
