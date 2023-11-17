@@ -94,7 +94,7 @@ public ref struct DefaultInterpolatedStringHandler
 
     /// <summary>Gets the built <see cref="string"/>.</summary>
     /// <returns>The built string.</returns>
-    public override string ToString() => new string(Text);
+    public override string ToString() => Text.ToString();
 
     /// <summary>Gets the built <see cref="string"/> and clears the handler.</summary>
     /// <returns>The built string.</returns>
@@ -106,7 +106,7 @@ public ref struct DefaultInterpolatedStringHandler
     /// </remarks>
     public string ToStringAndClear()
     {
-        string result = new string(Text);
+        string result = Text.ToString();
         Clear();
         return result;
     }
@@ -627,7 +627,7 @@ public ref struct DefaultInterpolatedStringHandler
 
         // uint newCapacity = Math.Max(requiredMinCapacity, Math.Min((uint)_chars.Length * 2, string.MaxLength));
         uint newCapacity = Math.Max(requiredMinCapacity, Math.Min((uint)_chars.Length * 2, 0x3FFFFFDF));
-        int arraySize = (int)Math.Clamp(newCapacity, MinimumArrayPoolLength, int.MaxValue);
+        var arraySize = (int)Math.Max(Math.Min(newCapacity, int.MaxValue), MinimumArrayPoolLength);
 
         char[] newArray = ArrayPool<char>.Shared.Rent(arraySize);
         _chars.Slice(0, _pos).CopyTo(newArray);

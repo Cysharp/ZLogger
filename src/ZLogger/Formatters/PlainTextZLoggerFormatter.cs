@@ -98,7 +98,7 @@ namespace ZLogger.Formatters
         {
             var span = writer.GetSpan(message1.Length + Encoding.UTF8.GetMaxByteCount(message2.Length));
             message1.CopyTo(span);
-            var written2 = Encoding.UTF8.GetBytes(message2, span.Slice(message1.Length));
+            var written2 = Encoding.UTF8.GetBytes(message2.AsSpan(), span.Slice(message1.Length));
             writer.Advance(message1.Length + written2);
         }
 
@@ -106,9 +106,9 @@ namespace ZLogger.Formatters
         {
             var span = writer.GetSpan(Encoding.UTF8.GetMaxByteCount(message1.Length + message2.Length + message3.Length));
 
-            var written1 = Encoding.UTF8.GetBytes(message1, span);
-            var written2 = Encoding.UTF8.GetBytes(message2, span.Slice(written1));
-            var written3 = Encoding.UTF8.GetBytes(message3, span.Slice(written1 + written2));
+            var written1 = Encoding.UTF8.GetBytes(message1.AsSpan(), span);
+            var written2 = Encoding.UTF8.GetBytes(message2.AsSpan(), span.Slice(written1));
+            var written3 = Encoding.UTF8.GetBytes(message3.AsSpan(), span.Slice(written1 + written2));
             writer.Advance(written1 + written2 + written3);
         }
     }

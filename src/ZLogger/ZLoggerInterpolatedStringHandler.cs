@@ -285,9 +285,15 @@ namespace ZLogger
             // convert const strings as address sequence
             static ReadOnlySpan<byte> AsBytes(ReadOnlySpan<string?> literals)
             {
+#if NETSTANDARD2_0
+                return Shims.CreateSpan(
+                    ref Unsafe.As<string?, byte>(ref Unsafe.AsRef(in literals[0])),
+                    literals.Length * Unsafe.SizeOf<string>());
+#else                
                 return MemoryMarshal.CreateSpan(
                     ref Unsafe.As<string?, byte>(ref MemoryMarshal.GetReference(literals)),
                     literals.Length * Unsafe.SizeOf<string>());
+#endif
             }
         }
     }

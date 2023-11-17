@@ -88,7 +88,7 @@ namespace ZLogger.Formatters
                     // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
                     if (x.Key == "{OriginalFormat}") continue;
 
-                    WriteMutatedJsonKeyName(x.Key, jsonWriter, KeyNameMutator);
+                    WriteMutatedJsonKeyName(x.Key.AsSpan(), jsonWriter, KeyNameMutator);
 
                     if (x.Value is { } value)
                     {

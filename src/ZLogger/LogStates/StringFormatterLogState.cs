@@ -74,7 +74,7 @@ namespace ZLogger.LogStates
         {
             if (originalStateParameters != null)
             {
-                return originalStateParameters[index].Key;
+                return originalStateParameters[index].Key.AsSpan();
             }
             throw new IndexOutOfRangeException(nameof(index));
         }
