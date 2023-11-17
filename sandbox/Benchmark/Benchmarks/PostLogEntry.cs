@@ -10,6 +10,7 @@ using NLog.Extensions.Logging;
 using NLog.Targets.Wrappers;
 using Serilog;
 using ZLogger;
+using ZLogger.Formatters;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Benchmark.Benchmarks;
@@ -67,11 +68,11 @@ public class PostLogEntry
         
         var zLoggerFactory = LoggerFactory.Create(logging =>
         {
-            logging.AddZLoggerStream(Stream.Null, options =>
+            logging.AddZLogger(builder =>
             {
-                options.UsePlainTextFormatter(formatter =>
+                builder.AddStream(Stream.Null, options =>
                 {
-                    formatter.SetPrefixFormatter($"{0} [{1}]", (template, info) => template.Format(info.Timestamp, info.LogLevel));
+                    options.UsePlainTextFormatter(formatter => formatter.SetPrefixFormatter($"{0} [{1}]", (template, info) => template.Format(info.Timestamp, info.LogLevel)));
                 });
             });
         });

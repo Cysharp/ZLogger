@@ -3,6 +3,13 @@ using Microsoft.Extensions.Options;
 
 namespace ZLogger.Providers
 {
+    public class ZLoggerConsoleOptions : ZLoggerOptions
+    {
+        public bool OutputEncodingToUtf8 { get; set; } = true;
+        public bool ConfigureEnableAnsiEscapeCode { get; set; } = false;
+        public LogLevel LogToStandardErrorThreshold { get; set; } = LogLevel.None;
+    }
+    
     [ProviderAlias("ZLoggerConsole")]
     public class ZLoggerConsoleLoggerProvider : ILoggerProvider, ISupportExternalScope, IAsyncDisposable
     {

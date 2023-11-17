@@ -22,7 +22,7 @@ namespace ZLogger.MessagePack.Tests
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processor);
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
             });
             logger = loggerFactory.CreateLogger("test");
         }
@@ -123,7 +123,7 @@ namespace ZLogger.MessagePack.Tests
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processor);
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
             });
             logger = loggerFactory.CreateLogger("test");
             
@@ -154,7 +154,7 @@ namespace ZLogger.MessagePack.Tests
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processor);
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
             });
             logger = loggerFactory.CreateLogger("test");
                 
@@ -183,7 +183,7 @@ namespace ZLogger.MessagePack.Tests
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processor);
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
             });
             logger = loggerFactory.CreateLogger("test");
                 

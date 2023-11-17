@@ -19,7 +19,7 @@ namespace ZLogger.Tests
                 var loggerFactory = LoggerFactory.Create(x =>
                 {
                     x.SetMinimumLevel(LogLevel.Debug);
-                    x.AddZLoggerFile(Path);
+                    x.AddZLogger(zLogger => zLogger.AddFile(Path));
                 });
 
                 var logger = loggerFactory.CreateLogger("mytest");
@@ -45,7 +45,7 @@ namespace ZLogger.Tests
                 var loggerFactory = LoggerFactory.Create(x =>
                 {
                     x.SetMinimumLevel(LogLevel.Debug);
-                    x.AddZLoggerFile(Path);
+                    x.AddZLogger(zLogger => zLogger.AddFile(Path));
                 });
 
                 var logger = loggerFactory.CreateLogger("mytest");
@@ -87,8 +87,12 @@ namespace ZLogger.Tests
                 var loggerFactory = LoggerFactory.Create(x =>
                 {
                     x.SetMinimumLevel(LogLevel.Debug);
-                    x.AddZLoggerRollingFile((dt, seq) => $"ZLoggerRollingTest_{now.Date.ToString("yyyy-MM-dd")}-{seq}.log",
-                        x => now, 5);
+                    x.AddZLogger(zLogger =>
+                    {
+                        zLogger.AddRollingFile(
+                            (dt, seq) => $"ZLoggerRollingTest_{now.Date.ToString("yyyy-MM-dd")}-{seq}.log",
+                            x => now, 5);
+                    });
                 });
 
                 var logger = loggerFactory.CreateLogger("mytest");

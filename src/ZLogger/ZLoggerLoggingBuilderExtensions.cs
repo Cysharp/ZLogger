@@ -7,171 +7,181 @@ using System.Text;
 using ZLogger.Internal;
 using ZLogger.Providers;
 
-namespace ZLogger
+namespace ZLogger;
+
+public class ZLoggerBuilder(ILoggingBuilder loggingBuilder)
 {
-    public static class ZLoggerLoggingBuilderExtensions
+    public ZLoggerBuilder AddConsole()
     {
-        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, bool consoleOutputEncodingToUtf8 = true, bool configureEnableAnsiEscapeCode = false, LogLevel logToStandardErrorThreshold = LogLevel.None)
-        {
-            return AddZLoggerConsole(builder, ZLoggerConsoleLoggerProvider.DefaultOptionName, static _ => { }, consoleOutputEncodingToUtf8, configureEnableAnsiEscapeCode, logToStandardErrorThreshold);
-        }
+        return AddConsole(ZLoggerConsoleLoggerProvider.DefaultOptionName, static _ => { });
+    }
 
-        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, Action<ZLoggerOptions> configure, bool consoleOutputEncodingToUtf8 = true, bool configureEnableAnsiEscapeCode = false, LogLevel logToStandardErrorThreshold = LogLevel.None)
-        {
-            return AddZLoggerConsole(builder, ZLoggerConsoleLoggerProvider.DefaultOptionName, configure, consoleOutputEncodingToUtf8, configureEnableAnsiEscapeCode, logToStandardErrorThreshold);
-        }
+    public ZLoggerBuilder AddConsole(Action<ZLoggerConsoleOptions> configure)
+    {
+        return AddConsole(ZLoggerConsoleLoggerProvider.DefaultOptionName, configure);
+    }
 
-        public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, string optionName, Action<ZLoggerOptions> configure, bool consoleOutputEncodingToUtf8 = true, bool configureEnableAnsiEscapeCode = false, LogLevel logToStandardErrorThreshold = LogLevel.None)
+    public ZLoggerBuilder AddConsole(string optionName, Action<ZLoggerConsoleOptions> configure)
+    {
+        loggingBuilder.AddConfiguration();
+        loggingBuilder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerConsoleLoggerProvider>(x => new ZLoggerConsoleLoggerProvider(optionName, x.GetRequiredService<IOptionsMonitor<ZLoggerConsoleOptions>>())));
+        LoggerProviderOptions.RegisterProviderOptions<ZLoggerConsoleOptions, ZLoggerConsoleLoggerProvider>(loggingBuilder.Services);
+
+        loggingBuilder.Services.AddOptions<ZLoggerConsoleOptions>(optionName).Configure(options =>
         {
-            if (configureEnableAnsiEscapeCode)
+            configure(options);
+            
+            if (options.ConfigureEnableAnsiEscapeCode)
             {
                 EnableAnsiEscapeCode();
             }
-            
-            if (consoleOutputEncodingToUtf8)
+            if (options.OutputEncodingToUtf8)
             {
                 Console.OutputEncoding = new UTF8Encoding(false);
             }
+        });
 
-            builder.AddConfiguration();
-            builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerConsoleLoggerProvider>(x => new ZLoggerConsoleLoggerProvider(optionName, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>(), logToStandardErrorThreshold)));
-            LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerConsoleLoggerProvider>(builder.Services);
+        return this;
+    }
 
-            builder.Services.AddOptions<ZLoggerOptions>(optionName).Configure(configure);
-
-            return builder;
-        }
-
-        static void EnableAnsiEscapeCode()
+    static void EnableAnsiEscapeCode()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                WindowsConsoleMode.TryEnableVirtualTerminalProcessing();
-            }
+            WindowsConsoleMode.TryEnableVirtualTerminalProcessing();
         }
+    }
 
-        public static ILoggingBuilder AddZLoggerStream(this ILoggingBuilder builder, Stream stream)
+    public ZLoggerBuilder AddStream(Stream stream)
+    {
+        loggingBuilder.AddConfiguration();
+        loggingBuilder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerStreamLoggerProvider>(x => new ZLoggerStreamLoggerProvider(stream, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
+        LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerStreamLoggerProvider>(loggingBuilder.Services);
+
+        return this;
+    }
+
+    public ZLoggerBuilder AddStream(Stream stream, Action<ZLoggerOptions> configure)
+    {
+        return AddStream(stream, ZLoggerStreamLoggerProvider.DefaultOptionName, configure);
+    }
+
+    public ZLoggerBuilder AddStream(Stream stream, string optionName, Action<ZLoggerOptions> configure)
+    {
+        if (configure == null)
         {
-            builder.AddConfiguration();
-            builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerStreamLoggerProvider>(x => new ZLoggerStreamLoggerProvider(stream, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
-            LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerStreamLoggerProvider>(builder.Services);
-
-            return builder;
+            throw new ArgumentNullException(nameof(configure));
         }
 
-        public static ILoggingBuilder AddZLoggerStream(this ILoggingBuilder builder, Stream stream, Action<ZLoggerOptions> configure)
-        {
-            return AddZLoggerStream(builder, stream, ZLoggerStreamLoggerProvider.DefaultOptionName, configure);
-        }
 
-        public static ILoggingBuilder AddZLoggerStream(this ILoggingBuilder builder, Stream stream, string optionName, Action<ZLoggerOptions> configure)
-        {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
+        loggingBuilder.AddConfiguration();
+        loggingBuilder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerStreamLoggerProvider>(x => new ZLoggerStreamLoggerProvider(stream, optionName, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
+        LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerStreamLoggerProvider>(loggingBuilder.Services);
 
+        loggingBuilder.Services.AddOptions<ZLoggerOptions>(optionName).Configure(configure);
 
-            builder.AddConfiguration();
-            builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerStreamLoggerProvider>(x => new ZLoggerStreamLoggerProvider(stream, optionName, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
-            LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerStreamLoggerProvider>(builder.Services);
+        return this;
+    }
 
-            builder.Services.AddOptions<ZLoggerOptions>(optionName).Configure(configure);
-
-            return builder;
-        }
-
-        public static ILoggingBuilder AddZLoggerLogProcessor(this ILoggingBuilder builder, IAsyncLogProcessor logProcessor)
-        {
-            builder.AddConfiguration();
-            builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerLogProcessorLoggerProvider>(x => new ZLoggerLogProcessorLoggerProvider(logProcessor, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
-            LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerLogProcessorLoggerProvider>(builder.Services);
-
-            return builder;
-        }
+    public ZLoggerBuilder AddLogProcessor(IAsyncLogProcessor logProcessor)
+    {
+        loggingBuilder.AddConfiguration();
+        loggingBuilder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerLogProcessorLoggerProvider>(x => new ZLoggerLogProcessorLoggerProvider(logProcessor, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
+        LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerLogProcessorLoggerProvider>(loggingBuilder.Services);
+        return this;
+    }
         
-        public static ILoggingBuilder AddZLoggerLogProcessor(this ILoggingBuilder builder, IAsyncLogProcessor logProcessor, Action<ZLoggerOptions> configure)
-        {
-            return AddZLoggerLogProcessor(builder, logProcessor, ZLoggerLogProcessorLoggerProvider.DefaultOptionName, configure);
-        }
+    public ZLoggerBuilder AddLogProcessor(IAsyncLogProcessor logProcessor, Action<ZLoggerOptions> configure)
+    {
+        return AddLogProcessor(logProcessor, ZLoggerLogProcessorLoggerProvider.DefaultOptionName, configure);
+    }
         
-        public static ILoggingBuilder AddZLoggerLogProcessor(this ILoggingBuilder builder, IAsyncLogProcessor logProcessor, string optionName, Action<ZLoggerOptions> configure)
-        {
-            builder.AddConfiguration();
-            builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerLogProcessorLoggerProvider>(x => new ZLoggerLogProcessorLoggerProvider(logProcessor, optionName, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
-            LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerLogProcessorLoggerProvider>(builder.Services);
+    public ZLoggerBuilder AddLogProcessor(IAsyncLogProcessor logProcessor, string optionName, Action<ZLoggerOptions> configure)
+    {
+        loggingBuilder.AddConfiguration();
+        loggingBuilder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerLogProcessorLoggerProvider>(x => new ZLoggerLogProcessorLoggerProvider(logProcessor, optionName, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
+        LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerLogProcessorLoggerProvider>(loggingBuilder.Services);
 
-            builder.Services.AddOptions<ZLoggerOptions>(optionName).Configure(configure);
-            return builder;
+        loggingBuilder.Services.AddOptions<ZLoggerOptions>(optionName).Configure(configure);
+        return this;
+    }
+
+    public ZLoggerBuilder AddFile(string fileName)
+    {
+        loggingBuilder.AddConfiguration();
+        loggingBuilder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerFileLoggerProvider>(x => new ZLoggerFileLoggerProvider(fileName, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
+        LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerFileLoggerProvider>(loggingBuilder.Services);
+
+        return this;
+    }
+
+    public ZLoggerBuilder AddFile(string fileName, Action<ZLoggerOptions> configure)
+    {
+        return AddFile(fileName, ZLoggerFileLoggerProvider.DefaultOptionName, configure);
+    }
+
+    public ZLoggerBuilder AddFile(string fileName, string optionName, Action<ZLoggerOptions> configure)
+    {
+        if (configure == null)
+        {
+            throw new ArgumentNullException(nameof(configure));
         }
 
-        public static ILoggingBuilder AddZLoggerFile(this ILoggingBuilder builder, string fileName)
-        {
-            builder.AddConfiguration();
-            builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerFileLoggerProvider>(x => new ZLoggerFileLoggerProvider(fileName, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
-            LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerFileLoggerProvider>(builder.Services);
+        loggingBuilder.AddConfiguration();
+        loggingBuilder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerFileLoggerProvider>(x => new ZLoggerFileLoggerProvider(fileName, optionName, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
+        LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerFileLoggerProvider>(loggingBuilder.Services);
 
-            return builder;
+        loggingBuilder.Services.AddOptions<ZLoggerOptions>(optionName).Configure(configure);
+
+        return this;
+    }
+
+    /// <param name="fileNameSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
+    /// <param name="timestampPattern">DateTimeOffset is write time of message(UTC). If pattern is different previously then roll new file.</param>
+    /// <param name="rollSizeKB">Limit size of single file.</param>
+    public ZLoggerBuilder AddRollingFile(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB)
+    {
+        loggingBuilder.AddConfiguration();
+        loggingBuilder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerRollingFileLoggerProvider>(x => new ZLoggerRollingFileLoggerProvider(fileNameSelector, timestampPattern, rollSizeKB, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
+        LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerRollingFileLoggerProvider>(loggingBuilder.Services);
+
+        return this;
+    }
+
+    /// <param name="fileNameSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
+    /// <param name="timestampPattern">DateTimeOffset is write time of message(UTC). If pattern is different previously then roll new file.</param>
+    /// <param name="rollSizeKB">Limit size of single file.</param>
+    public ZLoggerBuilder AddRollingFile(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, Action<ZLoggerOptions> configure)
+    {
+        return AddRollingFile(fileNameSelector, timestampPattern, rollSizeKB, ZLoggerRollingFileLoggerProvider.DefaultOptionName, configure);
+    }
+
+    /// <param name="fileNameSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
+    /// <param name="timestampPattern">DateTimeOffset is write time of message(UTC). If pattern is different previously then roll new file.</param>
+    /// <param name="rollSizeKB">Limit size of single file.</param>
+    public ZLoggerBuilder AddRollingFile(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, string optionName, Action<ZLoggerOptions> configure)
+    {
+        if (configure == null)
+        {
+            throw new ArgumentNullException(nameof(configure));
         }
 
-        public static ILoggingBuilder AddZLoggerFile(this ILoggingBuilder builder, string fileName, Action<ZLoggerOptions> configure)
-        {
-            return AddZLoggerFile(builder, fileName, ZLoggerFileLoggerProvider.DefaultOptionName, configure);
-        }
+        loggingBuilder.AddConfiguration();
+        loggingBuilder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerRollingFileLoggerProvider>(x => new ZLoggerRollingFileLoggerProvider(fileNameSelector, timestampPattern, rollSizeKB, optionName, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
+        LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerRollingFileLoggerProvider>(loggingBuilder.Services);
 
-        public static ILoggingBuilder AddZLoggerFile(this ILoggingBuilder builder, string fileName, string optionName, Action<ZLoggerOptions> configure)
-        {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
+        loggingBuilder.Services.AddOptions<ZLoggerOptions>(optionName).Configure(configure);
 
-            builder.AddConfiguration();
-            builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerFileLoggerProvider>(x => new ZLoggerFileLoggerProvider(fileName, optionName, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
-            LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerFileLoggerProvider>(builder.Services);
+        return this;
+    }
+}
 
-            builder.Services.AddOptions<ZLoggerOptions>(optionName).Configure(configure);
-
-            return builder;
-        }
-
-        /// <param name="fileNameSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
-        /// <param name="timestampPattern">DateTimeOffset is write time of message(UTC). If pattern is different previously then roll new file.</param>
-        /// <param name="rollSizeKB">Limit size of single file.</param>
-        public static ILoggingBuilder AddZLoggerRollingFile(this ILoggingBuilder builder, Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB)
-        {
-            builder.AddConfiguration();
-            builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerRollingFileLoggerProvider>(x => new ZLoggerRollingFileLoggerProvider(fileNameSelector, timestampPattern, rollSizeKB, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
-            LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerRollingFileLoggerProvider>(builder.Services);
-
-            return builder;
-        }
-
-        /// <param name="fileNameSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
-        /// <param name="timestampPattern">DateTimeOffset is write time of message(UTC). If pattern is different previously then roll new file.</param>
-        /// <param name="rollSizeKB">Limit size of single file.</param>
-        public static ILoggingBuilder AddZLoggerRollingFile(this ILoggingBuilder builder, Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, Action<ZLoggerOptions> configure)
-        {
-            return AddZLoggerRollingFile(builder, fileNameSelector, timestampPattern, rollSizeKB, ZLoggerRollingFileLoggerProvider.DefaultOptionName, configure);
-        }
-
-        /// <param name="fileNameSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
-        /// <param name="timestampPattern">DateTimeOffset is write time of message(UTC). If pattern is different previously then roll new file.</param>
-        /// <param name="rollSizeKB">Limit size of single file.</param>
-        public static ILoggingBuilder AddZLoggerRollingFile(this ILoggingBuilder builder, Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, string optionName, Action<ZLoggerOptions> configure)
-        {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            builder.AddConfiguration();
-            builder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerRollingFileLoggerProvider>(x => new ZLoggerRollingFileLoggerProvider(fileNameSelector, timestampPattern, rollSizeKB, optionName, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
-            LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerRollingFileLoggerProvider>(builder.Services);
-
-            builder.Services.AddOptions<ZLoggerOptions>(optionName).Configure(configure);
-
-            return builder;
-        }
+public static class ZLoggerLoggingBuilderExtensions
+{
+    public static ILoggingBuilder AddZLogger(this ILoggingBuilder loggingBuilder, Action<ZLoggerBuilder> configure)
+    {
+        var builder = new ZLoggerBuilder(loggingBuilder);
+        configure.Invoke(builder);
+        return loggingBuilder;
     }
 }
