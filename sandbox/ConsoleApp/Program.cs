@@ -16,7 +16,10 @@ var factory = LoggerFactory.Create(logging =>
         {
             console.ConfigureEnableAnsiEscapeCode = true;
             console.OutputEncodingToUtf8 = true;
-            console.UsePlainTextFormatter();
+            console.UsePlainTextFormatter(formatter =>
+            {
+                formatter.SetPrefixFormatter($"{0:timeonly} | {1:short} | ", (template, info) => template.Format(info.Timestamp, info.LogLevel));
+            });
         });
     });
 });

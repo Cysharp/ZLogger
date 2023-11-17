@@ -67,27 +67,26 @@ public readonly partial struct MessageTemplate
                 {
                     case LogLevel.Trace:
                         writer.AppendUtf8("TRC"u8);
-                        break;
+                        return;
                     case LogLevel.Debug:
                         writer.AppendUtf8("DBG"u8);
-                        break;
+                        return;
                     case LogLevel.Information:
                         writer.AppendUtf8("INF"u8);
-                        break;
+                        return;
                     case LogLevel.Warning:
                         writer.AppendUtf8("WRN"u8);
-                        break;
+                        return;
                     case LogLevel.Error:
                         writer.AppendUtf8("ERR"u8);
-                        break;
+                        return;
                     case LogLevel.Critical:
                         writer.AppendUtf8("CRI"u8);
-                        break;
+                        return;
                     case LogLevel.None:
                         writer.AppendUtf8("NON"u8);
-                        break;
+                        return;
                     default:
-                        writer.AppendFormatted(value);
                         break;
                 }
             }
