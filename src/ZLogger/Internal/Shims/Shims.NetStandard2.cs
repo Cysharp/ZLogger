@@ -1,9 +1,9 @@
-//#if NETSTANDARD2_0
+#if NETSTANDARD2_0
 using System.Text;
 
 namespace ZLogger;
 
-internal static partial class Shims 
+internal static partial class Shims
 {
     public static int GetBytes(this Encoding encoding, ReadOnlySpan<char> chars, ReadOnlySpan<byte> bytes)
     {
@@ -33,4 +33,4 @@ internal static partial class Shims
          }
      }
 }
-//#endif
+#endif

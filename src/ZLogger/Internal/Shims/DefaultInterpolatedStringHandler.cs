@@ -7,7 +7,7 @@ namespace System.Runtime.CompilerServices;
 
 /// <summary>Provides a handler used by the language compiler to process interpolated strings into <see cref="string"/> instances.</summary>
 [InterpolatedStringHandler]
-public ref struct DefaultInterpolatedStringHandler
+internal ref struct DefaultInterpolatedStringHandler
 {
     // Implementation note:
     // As this type lives in CompilerServices and is only intended to be targeted by the compiler,
