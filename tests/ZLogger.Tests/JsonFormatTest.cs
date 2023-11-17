@@ -27,10 +27,10 @@ namespace ZLogger.Tests
 
                     option.UseJsonFormatter(formatter =>
                     {
-                        formatter.MetadataFormatter = (writer, info) =>
+                        formatter.LogInfoFormatter = (writer, info) =>
                         {
                             // Use default and add custom metadata
-                            formatter.DefaultMetadataFormatter(writer, info);
+                            formatter.DefaultLogInfoFormatter(writer, info);
                             writer.WriteString(hashProp, sourceCodeHash);
                         };
                     });
