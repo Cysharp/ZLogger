@@ -72,13 +72,9 @@ namespace ZLogger.Formatters
 
             jsonWriter.WriteStartObject();
             LogInfoFormatter.Invoke(jsonWriter, entry.LogInfo);
-
-            var bufferWriter = ArrayBufferWriterPool.GetThreadStaticInstance();
-            entry.ToString(bufferWriter);
-            jsonWriter.WriteString(MessagePropertyName, bufferWriter.WrittenSpan);
-
-            entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, KeyNameMutator);
-
+            
+            // Scope
+            
             if (entry.ScopeState is { IsEmpty: false } scopeState)
             {
                 var properties = scopeState.Properties;
@@ -100,6 +96,16 @@ namespace ZLogger.Formatters
                     }
                 }
             }
+            
+            // Params
+
+            entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, KeyNameMutator);
+
+            // Message
+            
+            var bufferWriter = ArrayBufferWriterPool.GetThreadStaticInstance();
+            entry.ToString(bufferWriter);
+            jsonWriter.WriteString(MessagePropertyName, bufferWriter.WrittenSpan);
 
             jsonWriter.WriteEndObject();
             jsonWriter.Flush();
