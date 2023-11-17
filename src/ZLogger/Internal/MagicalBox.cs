@@ -78,11 +78,7 @@ internal unsafe partial struct MagicalBox
     public ReadOnlySpan<byte> ReadRawEnumValue(Type type, int offset)
     {
         var (_, size, _) = ReaderCache.GetEnumDictionaryAndValueSize(type);
-#if NETSTANDARD2_0        
-        return Shims.CreateReadOnlySpan(ref storage[offset], size);
-#else
-        return MemoryMarshal.CreateReadOnlySpan(ref storage[offset], size);
-#endif
+        return storage.AsSpan(offset, size);
     }
 
     public bool TryReadTo(Type type, int offset, int alignment, string? format, ref Utf8StringWriter<IBufferWriter<byte>> handler)
@@ -141,12 +137,7 @@ internal unsafe partial struct MagicalBox
         if (type.IsEnum)
         {
             var (dict, size, converter) = ReaderCache.GetEnumDictionaryAndValueSize(type);
-            var rawValue = 
-#if NETSTANDARD2_0
-                Shims.CreateReadOnlySpan(ref storage[offset], size);
-#else
-                MemoryMarshal.CreateReadOnlySpan(ref storage[offset], size);
-#endif            
+            var rawValue = storage.AsSpan(offset, size);
             var name = dict.GetUtf8Name(rawValue);
             if (name == null)
             {
@@ -244,11 +235,7 @@ internal unsafe partial struct MagicalBox
         if (type.IsEnum)
         {
             var (dict, size, converter) = ReaderCache.GetEnumDictionaryAndValueSize(type);
-#if NETSTANDARD2_0
-            var rawValue = Shims.CreateReadOnlySpan(ref storage[offset], size);
-#else            
-            var rawValue = MemoryMarshal.CreateReadOnlySpan(ref storage[offset], size);
-#endif            
+            var rawValue = storage.AsSpan(offset, size);
             var name = dict.GetStringName(rawValue);
             if (name == null)
             {
@@ -348,12 +335,7 @@ internal unsafe partial struct MagicalBox
         if (type.IsEnum)
         {
             var (dict, size, converter) = ReaderCache.GetEnumDictionaryAndValueSize(type);
-            var rawValue =
-#if NETSTANDARD2_0                
-                 Shims.CreateReadOnlySpan(ref storage[offset], size);
-#else
-                MemoryMarshal.CreateReadOnlySpan(ref storage[offset], size);
-#endif
+            var rawValue = storage.AsSpan(offset, size);
             var name = dict.GetJsonEncodedName(rawValue);
             if (name == null)
             {
