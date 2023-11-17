@@ -1,4 +1,5 @@
-﻿using System.Buffers;
+﻿using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -403,7 +404,7 @@ internal unsafe partial struct MagicalBox
             case TypeCode.UInt64:
                 return true;
         }
-        if (type.IsEnum)
+        if (type.IsEnum || type == typeof(Guid) || type == typeof(DateTimeOffset))
         {
             return true;
         }
