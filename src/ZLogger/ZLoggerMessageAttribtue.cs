@@ -32,13 +32,13 @@ namespace ZLogger
     public sealed class ZLoggerMessageAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="LoggerMessageAttribute"/> class
+        /// Initializes a new instance of the <see cref="ZLoggerMessageAttribute"/> class
         /// which is used to guide the production of a strongly-typed logging method.
         /// </summary>
         public ZLoggerMessageAttribute() { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LoggerMessageAttribute"/> class
+        /// Initializes a new instance of the <see cref="ZLoggerMessageAttribute"/> class
         /// which is used to guide the production of a strongly-typed logging method.
         /// </summary>
         /// <param name="level">The log level.</param>
@@ -50,7 +50,7 @@ namespace ZLogger
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LoggerMessageAttribute"/> class
+        /// Initializes a new instance of the <see cref="ZLoggerMessageAttribute"/> class
         /// which is used to guide the production of a strongly-typed logging method.
         /// </summary>
         /// <param name="eventId">The log event Id.</param>
@@ -60,6 +60,26 @@ namespace ZLogger
         {
             EventId = eventId;
             Level = level;
+            Message = message;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ZLoggerMessageAttribute"/> class
+        /// which is used to guide the production of a strongly-typed logging method.
+        /// </summary>
+        /// <param name="level">The log level.</param>
+        public ZLoggerMessageAttribute(LogLevel level)
+        {
+            Level = level;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ZLoggerMessageAttribute"/> class
+        /// which is used to guide the production of a strongly-typed logging method.
+        /// </summary>
+        /// <param name="message">Format string of the log message.</param>
+        public ZLoggerMessageAttribute(string message)
+        {
             Message = message;
         }
 
