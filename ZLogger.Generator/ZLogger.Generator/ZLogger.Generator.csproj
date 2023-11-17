@@ -17,6 +17,7 @@
 		<IsRoslynComponent>true</IsRoslynComponent>
 		<PackageTags>codegenerator</PackageTags>
 		<Description>ZLogger SourceGenerator.</Description>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>
