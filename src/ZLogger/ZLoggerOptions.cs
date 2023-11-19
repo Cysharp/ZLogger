@@ -2,18 +2,6 @@ using ZLogger.Formatters;
 
 namespace ZLogger
 {
-    [Flags]
-    public enum LogInfoProperties
-    {
-        None = 0,
-        Timestamp = 1 << 0,
-        LogLevel = 1 << 1,
-        CategoryName = 1 << 2,
-        EventIdValue = 1 << 3,
-        EventIdName = 1 << 4,
-        All = Timestamp | LogLevel | CategoryName | EventIdValue | EventIdName
-    }
-
     public class ZLoggerOptions
     {
         public Action<Exception>? InternalErrorLogger { get; set; }

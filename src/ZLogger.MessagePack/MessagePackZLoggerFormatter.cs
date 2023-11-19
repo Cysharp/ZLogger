@@ -3,8 +3,9 @@ using System.Buffers;
 using System.Numerics;
 using MessagePack;
 using Microsoft.Extensions.Logging;
+using ZLogger.MessagePack;
 
-namespace ZLogger.MessagePack
+namespace ZLogger
 {
     public static class ZLoggerOptionsMessagePackExtensions
     {
@@ -18,7 +19,10 @@ namespace ZLogger.MessagePack
             });
         }
     }
+}
 
+namespace ZLogger.MessagePack
+{
     public class MessagePackZLoggerFormatter : IZLoggerFormatter
     {
         // "CategoryName"
@@ -65,15 +69,17 @@ namespace ZLogger.MessagePack
 
         public MessagePackSerializerOptions MessagePackSerializerOptions { get; set; } = MessagePackSerializer.DefaultOptions;
         public string MessagePropertyName { get; set; } = "Message";
-        public LogInfoProperties IncludeProperties { get; set; } = LogInfoProperties.Timestamp | LogInfoProperties.LogLevel | LogInfoProperties.CategoryName;
+        public IncludeProperties IncludeProperties { get; set; } = IncludeProperties.Timestamp | IncludeProperties.LogLevel | IncludeProperties.CategoryName | IncludeProperties.Message | IncludeProperties.Exception;
         public IKeyNameMutator? KeyNameMutator { get; set; }
 
         public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
         {
             var messagePackWriter = new MessagePackWriter(writer);
-            var propCount = BitOperations.PopCount((uint)IncludeProperties) + entry.ParameterCount + 1;
-            if (entry.LogInfo.Exception != null) 
-                propCount++;
+            var propCount = BitOperations.PopCount((uint)IncludeProperties) + entry.ParameterCount;
+            if (entry.LogInfo.Exception == null && ((IncludeProperties & IncludeProperties.Exception) != 0))
+            {
+                propCount--;
+            }
 
             if (entry.ScopeState != null)
             {
@@ -88,40 +94,51 @@ namespace ZLogger.MessagePack
             }
 
             messagePackWriter.WriteMapHeader(propCount);
-            
-            // LogInfo
 
-            if ((IncludeProperties & LogInfoProperties.CategoryName) != 0)
+            // LogInfo
+            var flag = IncludeProperties;
+            if ((flag & IncludeProperties.CategoryName) != 0)
             {
                 messagePackWriter.WriteRaw(CategoryNameKey);
                 messagePackWriter.WriteString(entry.LogInfo.Category.Utf8Span);
             }
-            if ((IncludeProperties & LogInfoProperties.LogLevel) != 0)
+            if ((flag & IncludeProperties.LogLevel) != 0)
             {
                 messagePackWriter.WriteRaw(LogLevelKey);
                 messagePackWriter.WriteRaw(EncodedLogLevel(entry.LogInfo.LogLevel));
             }
-            if ((IncludeProperties & LogInfoProperties.EventIdValue) != 0)
+            if ((flag & IncludeProperties.EventIdValue) != 0)
             {
                 messagePackWriter.WriteRaw(EventIdKey);
                 messagePackWriter.WriteInt32(entry.LogInfo.EventId.Id);
             }
-            if ((IncludeProperties & LogInfoProperties.EventIdName) != 0)
+            if ((flag & IncludeProperties.EventIdName) != 0)
             {
                 messagePackWriter.WriteRaw(EventIdNameKey);
                 messagePackWriter.Write(entry.LogInfo.EventId.Name);
             }
-            if ((IncludeProperties & LogInfoProperties.Timestamp) != 0)
+            if ((flag & IncludeProperties.Timestamp) != 0)
             {
                 messagePackWriter.WriteRaw(TimestampKey);
                 MessagePackSerializerOptions.Resolver.GetFormatterWithVerify<DateTime>()
                     .Serialize(ref messagePackWriter, entry.LogInfo.Timestamp.Utc.DateTime, MessagePackSerializerOptions);
             }
-            
-            if (entry.LogInfo.Exception is { } ex)
+            if ((flag & IncludeProperties.Exception) != 0)
             {
-                messagePackWriter.WriteRaw(ExceptionKey);
-                WriteException(ref messagePackWriter, ex);
+                if (entry.LogInfo.Exception is { } ex)
+                {
+                    messagePackWriter.WriteRaw(ExceptionKey);
+                    WriteException(ref messagePackWriter, ex);
+                }
+            }
+
+            // Message
+            if ((flag & IncludeProperties.Message) != 0)
+            {
+                messagePackWriter.Write(MessagePropertyName);
+                var buffer = GetThreadStaticBufferWriter();
+                entry.ToString(buffer);
+                messagePackWriter.WriteString(buffer.WrittenSpan);
             }
 
             // Scope
@@ -146,7 +163,7 @@ namespace ZLogger.MessagePack
                     }
                 }
             }
-            
+
             // Params
 
             for (var i = 0; i < entry.ParameterCount; i++)
@@ -163,14 +180,8 @@ namespace ZLogger.MessagePack
 
                 WriteParameterValue(ref messagePackWriter, entry, entry.GetParameterType(i), i);
             }
-            
-            // Message
 
-            messagePackWriter.Write(MessagePropertyName);
-            var buffer = GetThreadStaticBufferWriter();
-            entry.ToString(buffer);
-            messagePackWriter.WriteString(buffer.WrittenSpan);
-            
+
             messagePackWriter.Flush();
         }
 

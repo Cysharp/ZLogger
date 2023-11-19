@@ -1,5 +1,4 @@
-﻿using System;
-using System.Buffers;
+﻿using System.Buffers;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -147,36 +146,45 @@ internal unsafe partial struct MagicalBox
             {
                 handler.AppendUtf8(name);
             }
+            return true;
         }
 
         if (type == typeof(Guid))
         {
             handler.AppendFormatted(Read<Guid>(offset), alignment, format);
-        }
-        else if (type == typeof(DateTime))
-        {
-            handler.AppendFormatted(Read<DateTime>(offset), alignment, format);
+            return true;
         }
         else if (type == typeof(DateTimeOffset))
         {
             handler.AppendFormatted(Read<DateTimeOffset>(offset), alignment, format);
+            return true;
         }
         else if (type == typeof(TimeSpan))
         {
             handler.AppendFormatted(Read<TimeSpan>(offset), alignment, format);
+            return true;
         }
 #if NET6_0_OR_GREATER
         else if (type == typeof(TimeOnly))
         {
             handler.AppendFormatted(Read<TimeOnly>(offset), alignment, format);
+            return true;
         }
         else if (type == typeof(DateOnly))
         {
             handler.AppendFormatted(Read<DateOnly>(offset), alignment, format);
+            return true;
         }
 #endif
 
-        return true;
+        var boxedValue = ReaderCache.GetReadMethod(type)?.Invoke(this, offset);
+        if (boxedValue != null)
+        {
+            handler.AppendFormatted(boxedValue, alignment, format);
+            return true;
+        }
+
+        return false;
     }
 
     public bool TryReadTo(Type type, int offset, int alignment, string? format, ref DefaultInterpolatedStringHandler handler)
@@ -245,35 +253,45 @@ internal unsafe partial struct MagicalBox
             {
                 handler.AppendLiteral(name);
             }
+            return true;
         }
 
         if (type == typeof(Guid))
         {
             handler.AppendFormatted(Read<Guid>(offset), alignment, format);
-        }
-        else if (type == typeof(DateTime))
-        {
-            handler.AppendFormatted(Read<DateTime>(offset), alignment, format);
+            return true;
         }
         else if (type == typeof(DateTimeOffset))
         {
             handler.AppendFormatted(Read<DateTimeOffset>(offset), alignment, format);
+            return true;
         }
         else if (type == typeof(TimeSpan))
         {
             handler.AppendFormatted(Read<TimeSpan>(offset), alignment, format);
+            return true;
         }
 #if NET6_0_OR_GREATER        
         else if (type == typeof(TimeOnly))
         {
             handler.AppendFormatted(Read<TimeOnly>(offset), alignment, format);
+            return true;
         }
         else if (type == typeof(DateOnly))
         {
             handler.AppendFormatted(Read<DateOnly>(offset), alignment, format);
+            return true;
         }
 #endif
-        return true;
+
+        var boxedValue = ReaderCache.GetReadMethod(type)?.Invoke(this, offset);
+        if (boxedValue != null)
+        {
+            handler.AppendFormatted(boxedValue, alignment, format);
+            return true;
+        }
+
+        return false;
     }
 
     public bool TryReadTo(Type type, int offset, Utf8JsonWriter jsonWriter)
@@ -291,7 +309,7 @@ internal unsafe partial struct MagicalBox
                 Span<char> cs = stackalloc char[1];
                 cs[0] = c;
                 jsonWriter.WriteStringValue(cs);
-                break;
+                return true;
             case TypeCode.SByte:
                 jsonWriter.WriteNumberValue(Read<SByte>(offset));
                 return true;
@@ -345,19 +363,42 @@ internal unsafe partial struct MagicalBox
             {
                 jsonWriter.WriteStringValue(name.Value);
             }
+            return true;
         }
 
         if (type == typeof(Guid))
         {
             jsonWriter.WriteStringValue(Read<Guid>(offset));
-        }
-        else if (type == typeof(DateTime))
-        {
-            jsonWriter.WriteStringValue(Read<DateTime>(offset));
+            return true;
         }
         else if (type == typeof(DateTimeOffset))
         {
             jsonWriter.WriteStringValue(Read<DateTimeOffset>(offset));
+            return true;
+        }
+        else if (type == typeof(TimeSpan))
+        {
+            JsonSerializer.Serialize(jsonWriter, Read<TimeSpan>(offset));
+            return true;
+        }
+#if NET6_0_OR_GREATER        
+        else if (type == typeof(TimeOnly))
+        {
+            JsonSerializer.Serialize(jsonWriter, Read<TimeOnly>(offset));
+            return true;
+        }
+        else if (type == typeof(DateOnly))
+        {
+            JsonSerializer.Serialize(jsonWriter, Read<DateOnly>(offset));
+            return true;
+        }
+#endif
+
+        var boxedValue = ReaderCache.GetReadMethod(type)?.Invoke(this, offset);
+        if (boxedValue != null)
+        {
+            JsonSerializer.Serialize(jsonWriter, boxedValue, type);
+            return true;
         }
 
         return true;
@@ -386,7 +427,7 @@ internal unsafe partial struct MagicalBox
             case TypeCode.UInt64:
                 return true;
         }
-        if (type.IsEnum || type == typeof(Guid) || type == typeof(DateTimeOffset))
+        if (type.IsEnum || type == typeof(Guid) || type == typeof(DateTimeOffset) || type == typeof(TimeSpan))
         {
             return true;
         }

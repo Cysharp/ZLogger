@@ -144,9 +144,9 @@ namespace ZLogger.MessagePack.Tests
         {
             var options = new ZLoggerOptions().UseMessagePackFormatter(formatter =>
             {
-                formatter.IncludeProperties = LogInfoProperties.LogLevel |
-                                              LogInfoProperties.Timestamp |
-                                              LogInfoProperties.EventIdValue;
+                formatter.IncludeProperties = IncludeProperties.LogLevel |
+                                              IncludeProperties.Timestamp |
+                                              IncludeProperties.EventIdValue;
             });
 
             processor = new TestProcessor(options);
@@ -175,7 +175,7 @@ namespace ZLogger.MessagePack.Tests
         {
             var options = new ZLoggerOptions().UseMessagePackFormatter(formatter =>
             {
-                formatter.IncludeProperties = LogInfoProperties.None;
+                formatter.IncludeProperties = IncludeProperties.None;
             });
 
             processor = new TestProcessor(options);

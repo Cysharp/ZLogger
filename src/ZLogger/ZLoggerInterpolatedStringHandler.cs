@@ -2,6 +2,8 @@ using Microsoft.Extensions.Logging;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -65,7 +67,7 @@ namespace ZLogger
             literals.Add(null);
 
             // Use MagicalBox(set value without boxing)
-            if (!state.magicalBox.TryWrite(value, out var offset))
+            if (format == "json" || !state.magicalBox.TryWrite(value, out var offset))
             {
                 offset = -1;
             }
@@ -174,7 +176,15 @@ namespace ZLogger
                 else
                 {
                     ref var p = ref parameters[parameterIndex++];
-                    if (!box.TryReadTo(p.Type, p.BoxOffset, p.Alignment, p.Format, ref stringWriter))
+                    if (p.Format == "json")
+                    {
+                        stringWriter.Dispose();
+                        using var jsonWriter = new Utf8JsonWriter(writer);
+                        JsonSerializer.Serialize(jsonWriter, p.BoxedValue, p.Type);
+                        jsonWriter.Flush();
+                        stringWriter = new Utf8StringWriter<IBufferWriter<byte>>(literalLength, parametersLength, writer);
+                    }
+                    else if (!box.TryReadTo(p.Type, p.BoxOffset, p.Alignment, p.Format, ref stringWriter))
                     {
                         if (p.BoxedValue is string s)
                         {
@@ -215,7 +225,12 @@ namespace ZLogger
                 else
                 {
                     ref var p = ref parameters[parameterIndex++];
-                    if (!box.TryReadTo(p.Type, p.BoxOffset, p.Alignment, p.Format, ref stringHandler))
+                    if (p.Format == "json")
+                    {
+                        var jsonString = JsonSerializer.Serialize(p.BoxedValue, p.Type);
+                        stringHandler.AppendLiteral(jsonString);
+                    }
+                    else if (!box.TryReadTo(p.Type, p.BoxOffset, p.Alignment, p.Format, ref stringHandler))
                     {
                         if (p.BoxedValue is string s)
                         {

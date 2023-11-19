@@ -67,9 +67,9 @@ namespace ZLogger.Tests
         {
             var options = new ZLoggerOptions().UseJsonFormatter(formatter =>
             {
-                formatter.IncludeProperties = LogInfoProperties.LogLevel |
-                                              LogInfoProperties.Timestamp |
-                                              LogInfoProperties.EventIdValue;
+                formatter.IncludeProperties = IncludeProperties.LogLevel |
+                                              IncludeProperties.Timestamp |
+                                              IncludeProperties.EventIdValue;
             });
 
             var processor = new TestProcessor(options);
@@ -87,7 +87,7 @@ namespace ZLogger.Tests
             var json = processor.Dequeue();
             var doc = JsonDocument.Parse(json).RootElement;
 
-            doc.GetProperty("Message").GetString().Should().Be("HELLO!");
+            doc.TryGetProperty("Message", out _).Should().BeFalse();
             doc.GetProperty("LogLevel").GetString().Should().Be("Information");
             doc.GetProperty("Timestamp").GetDateTime().Should().BeOnOrAfter(now);
             doc.GetProperty("EventId").GetInt32().Should().Be(1);
@@ -100,7 +100,7 @@ namespace ZLogger.Tests
         {
             var options = new ZLoggerOptions().UseJsonFormatter(formatter =>
             {
-                formatter.IncludeProperties = LogInfoProperties.None;
+                formatter.IncludeProperties = IncludeProperties.None;
             });
 
             var processor = new TestProcessor(options);
@@ -117,7 +117,7 @@ namespace ZLogger.Tests
             var json = processor.Dequeue();
             var doc = JsonDocument.Parse(json).RootElement;
 
-            doc.GetProperty("Message").GetString().Should().Be("HELLO!");
+            doc.TryGetProperty("Message", out _).Should().BeFalse();
             doc.TryGetProperty("LogLevel", out _).Should().BeFalse();
             doc.TryGetProperty("Timestamp", out _).Should().BeFalse();
             doc.TryGetProperty("EventId", out _).Should().BeFalse();

@@ -4,9 +4,10 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Unicode;
 using Microsoft.Extensions.Logging;
+using ZLogger.Formatters;
 using ZLogger.Internal;
 
-namespace ZLogger.Formatters
+namespace ZLogger
 {
     public static class ZLoggerOptionsSystemTextJsonExtensions
     {
@@ -21,6 +22,24 @@ namespace ZLogger.Formatters
         }
     }
 
+    // use in JsonFormatter and MessagePackFormatter
+    [Flags]
+    public enum IncludeProperties
+    {
+        None = 0,
+        Timestamp = 1 << 0,
+        LogLevel = 1 << 1,
+        CategoryName = 1 << 2,
+        EventIdValue = 1 << 3,
+        EventIdName = 1 << 4,
+        Message = 1 << 5,
+        Exception = 1 << 6,
+        All = Timestamp | LogLevel | CategoryName | EventIdValue | EventIdName | Message | Exception
+    }
+}
+
+namespace ZLogger.Formatters
+{
     public class SystemTextJsonZLoggerFormatter : IZLoggerFormatter
     {
         static readonly JsonEncodedText CategoryNameText = JsonEncodedText.Encode(nameof(LogInfo.Category));
@@ -44,10 +63,10 @@ namespace ZLogger.Formatters
         static readonly JsonEncodedText None = JsonEncodedText.Encode(nameof(LogLevel.None));
 
         public bool WithLineBreak => true;
-        
+
         public JsonEncodedText MessagePropertyName { get; set; } = JsonEncodedText.Encode("Message");
         public Action<Utf8JsonWriter, LogInfo> LogInfoFormatter { get; set; }
-        public LogInfoProperties IncludeProperties { get; set; } = LogInfoProperties.Timestamp | LogInfoProperties.LogLevel | LogInfoProperties.CategoryName;
+        public IncludeProperties IncludeProperties { get; set; } = IncludeProperties.Timestamp | IncludeProperties.LogLevel | IncludeProperties.CategoryName | IncludeProperties.Message | IncludeProperties.Exception;
 
         public JsonSerializerOptions JsonSerializerOptions { get; set; } = new()
         {
@@ -55,7 +74,7 @@ namespace ZLogger.Formatters
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
-        
+
         public IKeyNameMutator? KeyNameMutator { get; set; }
 
         Utf8JsonWriter? jsonWriter;
@@ -71,10 +90,19 @@ namespace ZLogger.Formatters
             jsonWriter ??= new Utf8JsonWriter(writer);
 
             jsonWriter.WriteStartObject();
+
+            // LogInfo
             LogInfoFormatter.Invoke(jsonWriter, entry.LogInfo);
-            
+
+            // Message
+            if ((IncludeProperties & IncludeProperties.Message) != 0)
+            {
+                var bufferWriter = ArrayBufferWriterPool.GetThreadStaticInstance();
+                entry.ToString(bufferWriter);
+                jsonWriter.WriteString(MessagePropertyName, bufferWriter.WrittenSpan);
+            }
+
             // Scope
-            
             if (entry.ScopeState is { IsEmpty: false } scopeState)
             {
                 var properties = scopeState.Properties;
@@ -96,16 +124,9 @@ namespace ZLogger.Formatters
                     }
                 }
             }
-            
+
             // Params
-
             entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, KeyNameMutator);
-
-            // Message
-            
-            var bufferWriter = ArrayBufferWriterPool.GetThreadStaticInstance();
-            entry.ToString(bufferWriter);
-            jsonWriter.WriteString(MessagePropertyName, bufferWriter.WrittenSpan);
 
             jsonWriter.WriteEndObject();
             jsonWriter.Flush();
@@ -136,32 +157,34 @@ namespace ZLogger.Formatters
 
         public void DefaultLogInfoFormatter(Utf8JsonWriter jsonWriter, LogInfo info)
         {
-            if ((IncludeProperties & LogInfoProperties.CategoryName) != 0)
-            {
-                jsonWriter.WriteString(CategoryNameText, info.Category.JsonEncoded);
-            }
-            if ((IncludeProperties & LogInfoProperties.LogLevel) != 0)
-            {
-                jsonWriter.WriteString(LogLevelText, LogLevelToEncodedText(info.LogLevel));
-            }
-            if ((IncludeProperties & LogInfoProperties.EventIdValue) != 0)
-            {
-                jsonWriter.WriteNumber(EventIdText, info.EventId.Id);
-            }
-            if ((IncludeProperties & LogInfoProperties.EventIdName) != 0)
-            {
-                jsonWriter.WriteString(EventIdNameText, info.EventId.Name);
-            }
-            if ((IncludeProperties & LogInfoProperties.Timestamp) != 0)
+            var flag = IncludeProperties;
+            if ((flag & IncludeProperties.Timestamp) != 0)
             {
                 jsonWriter.WriteString(TimestampText, info.Timestamp.Local); // use Local
             }
-
-            // Write Exception
-            if (info.Exception is { } ex)
+            if ((flag & IncludeProperties.LogLevel) != 0)
             {
-                jsonWriter.WritePropertyName(ExceptionText);
-                WriteException(jsonWriter, ex);
+                jsonWriter.WriteString(LogLevelText, LogLevelToEncodedText(info.LogLevel));
+            }
+            if ((flag & IncludeProperties.CategoryName) != 0)
+            {
+                jsonWriter.WriteString(CategoryNameText, info.Category.JsonEncoded);
+            }
+            if ((flag & IncludeProperties.EventIdValue) != 0)
+            {
+                jsonWriter.WriteNumber(EventIdText, info.EventId.Id);
+            }
+            if ((flag & IncludeProperties.EventIdName) != 0)
+            {
+                jsonWriter.WriteString(EventIdNameText, info.EventId.Name);
+            }
+            if ((flag & IncludeProperties.Exception) != 0)
+            {
+                if (info.Exception is { } ex)
+                {
+                    jsonWriter.WritePropertyName(ExceptionText);
+                    WriteException(jsonWriter, ex);
+                }
             }
         }
 
