@@ -71,27 +71,44 @@ public readonly struct Timestamp
         if (format == null)
         {
             // no format string, uses Local time
-            FormatDateAndTime(ref writer, Local.DateTime);
+            FormatDateAndTimeAndMilliseconds(ref writer, Local.DateTime);
+            return true;
         }
 
         switch (format)
         {
-            case "utc":
-            case "utc-longdate":
-                FormatDateAndTime(ref writer, Utc.DateTime);
-                return true;
             case "local":
             case "local-longdate":
             case "longdate":
-                FormatDateAndTime(ref writer, Local.DateTime);
+                FormatDateAndTimeAndMilliseconds(ref writer, Local.DateTime);
+                return true;
+            case "utc":
+            case "utc-longdate":
+                FormatDateAndTimeAndMilliseconds(ref writer, Utc.DateTime);
                 return true;
 
-            // TODO: more format
-            case "dateonly":
-                return true;
-            case "timeonly":
-                return true;
             case "datetime":
+            case "local-datetime":
+                FormatDateAndTime(ref writer, Local.DateTime);
+                return true;
+            case "utc-datetime":
+                FormatDateAndTime(ref writer, Utc.DateTime);
+                return true;
+
+            case "dateonly":
+            case "local-dateonly":
+                FormatDate(ref writer, Local.DateTime);
+                return true;
+            case "utc-dateonly":
+                FormatDate(ref writer, Utc.DateTime);
+                return true;
+
+            case "timeonly":
+            case "local-timeonly":
+                FormatTime(ref writer, Local.DateTime);
+                return true;
+            case "utc-timeonly":
+                FormatTime(ref writer, Utc.DateTime);
                 return true;
 
             default:
@@ -99,12 +116,10 @@ public readonly struct Timestamp
         }
     }
 
-    static void FormatDateAndTime(ref Utf8StringWriter<IBufferWriter<byte>> writer, DateTime dateTime)
+    static void FormatDate(ref Utf8StringWriter<IBufferWriter<byte>> writer, DateTime date)
     {
-        // `yyyy-MM-dd HH:mm:ss.fff` (short form of ISO 8601)
-
         // yyyy-
-        var year = dateTime.Year;
+        var year = date.Year;
         if (year < 10) // 0~9
         {
             AppendWithFillZero3(ref writer, year);
@@ -124,7 +139,7 @@ public readonly struct Timestamp
         writer.AppendUtf8("-"u8);
 
         // MM-
-        var month = dateTime.Month;
+        var month = date.Month;
         if (month < 10)
         {
             AppendWithFillZero1(ref writer, month);
@@ -135,8 +150,8 @@ public readonly struct Timestamp
         }
         writer.AppendUtf8("-"u8);
 
-        // 'dd '
-        var day = dateTime.Day;
+        // 'dd'
+        var day = date.Day;
         if (day < 10)
         {
             AppendWithFillZero1(ref writer, day);
@@ -145,10 +160,12 @@ public readonly struct Timestamp
         {
             writer.AppendFormatted(day);
         }
-        writer.AppendUtf8(" "u8);
+    }
 
+    static void FormatTime(ref Utf8StringWriter<IBufferWriter<byte>> writer, DateTime time)
+    {
         // HH:
-        var hour = dateTime.Hour;
+        var hour = time.Hour;
         if (hour < 10)
         {
             AppendWithFillZero1(ref writer, hour);
@@ -160,7 +177,7 @@ public readonly struct Timestamp
         writer.AppendUtf8(":"u8);
 
         // mm:
-        var minute = dateTime.Minute;
+        var minute = time.Minute;
         if (minute < 10)
         {
             AppendWithFillZero1(ref writer, minute);
@@ -171,8 +188,8 @@ public readonly struct Timestamp
         }
         writer.AppendUtf8(":"u8);
 
-        // ss.
-        var second = dateTime.Second;
+        // ss
+        var second = time.Second;
         if (second < 10)
         {
             AppendWithFillZero1(ref writer, second);
@@ -181,9 +198,10 @@ public readonly struct Timestamp
         {
             writer.AppendFormatted(second);
         }
-        writer.AppendUtf8("."u8);
+    }
 
-        // fff
+    static void FormatTimeMilliseconds(ref Utf8StringWriter<IBufferWriter<byte>> writer, DateTime dateTime)
+    {
         var millisecond = dateTime.Millisecond; // The returned value is an integer between 0 and 999.
         if (millisecond < 10)
         {
@@ -197,6 +215,25 @@ public readonly struct Timestamp
         {
             writer.AppendFormatted(millisecond);
         }
+    }
+
+    static void FormatDateAndTime(ref Utf8StringWriter<IBufferWriter<byte>> writer, DateTime dateTime)
+    {
+        // `yyyy-MM-dd HH:mm:ss`
+        FormatDate(ref writer, dateTime);
+        writer.AppendUtf8(" "u8);
+        FormatTime(ref writer, dateTime);
+    }
+
+    static void FormatDateAndTimeAndMilliseconds(ref Utf8StringWriter<IBufferWriter<byte>> writer, DateTime dateTime)
+    {
+        // `yyyy-MM-dd HH:mm:ss.fff` (short form of ISO 8601)
+
+        FormatDate(ref writer, dateTime);
+        writer.AppendUtf8(" "u8);
+        FormatTime(ref writer, dateTime);
+        writer.AppendUtf8("."u8);
+        FormatTimeMilliseconds(ref writer, dateTime);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
