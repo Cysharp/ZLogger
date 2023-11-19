@@ -29,6 +29,12 @@ namespace ZLogger.LogStates
 
         public short Version => version;
 
+        InterpolatedStringLogState()
+        {
+            this.magicalBoxStorage = new byte[1024];
+            this.parameters = new InterpolatedStringParameter[32];
+        }
+
         public static InterpolatedStringLogState Create(int formattedCount)
         {
             if (!cache.TryPop(out var state))
@@ -36,9 +42,11 @@ namespace ZLogger.LogStates
                 state = new InterpolatedStringLogState();
             }
 
-            state.magicalBoxStorage = ArrayPool<byte>.Shared.Rent(2048);
             state.magicalBox = new MagicalBox(state.magicalBoxStorage);
-            state.parameters = ArrayPool<InterpolatedStringParameter>.Shared.Rent(formattedCount);
+            if (state.parameters.Length < formattedCount)
+            {
+                state.parameters = new InterpolatedStringParameter[formattedCount];
+            }
             state.ParameterCount = formattedCount;
             state.refCount = 1;
 
@@ -65,11 +73,7 @@ namespace ZLogger.LogStates
 
         public void Dispose()
         {
-            ArrayPool<byte>.Shared.Return(magicalBoxStorage);
-            ArrayPool<InterpolatedStringParameter>.Shared.Return(parameters, clearArray: true);
-
-            magicalBoxStorage = null!;
-            parameters = null!;
+            parameters.AsSpan(0, ParameterCount).Clear();
             unchecked
             {
                 version += 1;
