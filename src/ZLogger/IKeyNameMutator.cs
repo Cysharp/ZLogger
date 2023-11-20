@@ -1,63 +1,112 @@
-namespace ZLogger
+namespace ZLogger;
+
+public interface IKeyNameMutator
 {
-    public interface IKeyNameMutator
-    {
-        bool TryMutate(ReadOnlySpan<char> source, scoped Span<char> destination, out int written);
-    }
-    
-    public class LowerCamelCaseMutator : IKeyNameMutator
-    {
-        public static readonly IKeyNameMutator Instance = new LowerCamelCaseMutator();
-        
-        public bool TryMutate(ReadOnlySpan<char> source, scoped Span<char> destination, out int written)
-        {
-            if (source.Length > destination.Length)
-            {
-                written = default;
-                return false;
-            }
+    bool IsSupportSlice { get; }
+    ReadOnlySpan<char> Slice(ReadOnlySpan<char> source);
+    bool TryMutate(ReadOnlySpan<char> source, scoped Span<char> destination, out int written);
+}
 
-            if (source.Length <= 0)
-            {
-                written = 0;
-                return true;
-            }
+public static class KeyNameMutator
+{
+    public static readonly IKeyNameMutator LastMemberName = new LastMemberNameMutator();
+    public static readonly IKeyNameMutator LowerFirstCharacter = new LowerFirstCharacterMutator();
+    public static readonly IKeyNameMutator UpperFirstCharacter = new UpperFirstCharacterMutator();
+    public static readonly IKeyNameMutator LastMemberNameLowerFirstCharacter = new CombineMutator(LastMemberName, LowerFirstCharacter);
+    public static readonly IKeyNameMutator LastMemberNameUpperFirstCharacter = new CombineMutator(LastMemberName, UpperFirstCharacter);
+}
 
-            destination[0] = char.ToLowerInvariant(source[0]);
-            if (source.Length > 1)
-            {
-                source[1..].CopyTo(destination[1..]);
-            }
-            written = source.Length;
-            return true;
-        }
+internal sealed class CombineMutator(IKeyNameMutator sliceSupported, IKeyNameMutator tryMutateSupported) : IKeyNameMutator
+{
+    public bool IsSupportSlice => false;
+
+    public ReadOnlySpan<char> Slice(ReadOnlySpan<char> source)
+    {
+        throw new NotSupportedException();
     }
 
-    public class UpperCamelCaseMutator : IKeyNameMutator
+    public bool TryMutate(ReadOnlySpan<char> source, Span<char> destination, out int written)
     {
-        public static readonly IKeyNameMutator Instance = new UpperCamelCaseMutator();
-        
-        public bool TryMutate(ReadOnlySpan<char> source, scoped Span<char> destination, out int written)
+        source = sliceSupported.Slice(source);
+        return tryMutateSupported.TryMutate(source, destination, out written);
+    }
+}
+
+internal sealed class LastMemberNameMutator : IKeyNameMutator
+{
+    public bool IsSupportSlice => true;
+
+    public ReadOnlySpan<char> Slice(ReadOnlySpan<char> source)
+    {
+        var lastDot = source.LastIndexOf('.');
+        if (lastDot != -1)
         {
-            if (source.Length > destination.Length)
-            {
-                written = default;
-                return false;
-            }
+            return source.Slice(lastDot + 1);
+        }
 
-            if (source.Length <= 0)
-            {
-                written = 0;
-                return true;
-            }
+        return source;
+    }
 
-            destination[0] = char.ToUpperInvariant(source[0]);
-            if (source.Length > 1)
-            {
-                source[1..].CopyTo(destination[1..]);
-            }
-            written = source.Length;
+    public bool TryMutate(ReadOnlySpan<char> source, Span<char> destination, out int written)
+    {
+        throw new NotSupportedException();
+    }
+}
+
+internal sealed class LowerFirstCharacterMutator : IKeyNameMutator
+{
+    public bool IsSupportSlice => false;
+    public ReadOnlySpan<char> Slice(ReadOnlySpan<char> source) => throw new NotSupportedException();
+
+    public bool TryMutate(ReadOnlySpan<char> source, scoped Span<char> destination, out int written)
+    {
+        if (source.Length > destination.Length)
+        {
+            written = default;
+            return false;
+        }
+
+        if (source.Length <= 0)
+        {
+            written = 0;
             return true;
         }
+
+        destination[0] = char.ToLowerInvariant(source[0]);
+        if (source.Length > 1)
+        {
+            source[1..].CopyTo(destination[1..]);
+        }
+        written = source.Length;
+        return true;
+    }
+}
+
+internal sealed class UpperFirstCharacterMutator : IKeyNameMutator
+{
+    public bool IsSupportSlice => false;
+    public ReadOnlySpan<char> Slice(ReadOnlySpan<char> source) => throw new NotSupportedException();
+
+    public bool TryMutate(ReadOnlySpan<char> source, scoped Span<char> destination, out int written)
+    {
+        if (source.Length > destination.Length)
+        {
+            written = default;
+            return false;
+        }
+
+        if (source.Length <= 0)
+        {
+            written = 0;
+            return true;
+        }
+
+        destination[0] = char.ToUpperInvariant(source[0]);
+        if (source.Length > 1)
+        {
+            source[1..].CopyTo(destination[1..]);
+        }
+        written = source.Length;
+        return true;
     }
 }

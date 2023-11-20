@@ -215,17 +215,21 @@ namespace ZLogger.Formatters
             if (mutator == null)
             {
                 jsonWriter.WritePropertyName(keyName);
-                return;
             }
-
-            var bufferSize = keyName.Length;
-            while (!TryMutate(keyName, bufferSize))
+            else if (mutator.IsSupportSlice)
             {
-                bufferSize *= 2;
+                jsonWriter.WritePropertyName(mutator.Slice(keyName));
             }
-            return;
+            else
+            {
+                var bufferSize = keyName.Length;
+                while (!TryMutate(keyName, bufferSize, jsonWriter, mutator))
+                {
+                    bufferSize *= 2;
+                }
+            }
 
-            bool TryMutate(ReadOnlySpan<char> source, int bufferSize)
+            static bool TryMutate(ReadOnlySpan<char> source, int bufferSize, Utf8JsonWriter jsonWriter, IKeyNameMutator mutator)
             {
                 if (bufferSize > 256)
                 {

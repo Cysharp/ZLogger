@@ -60,7 +60,7 @@ namespace ZLogger.LogStates
                 else
                 {
                     var valueType = GetParameterType(i);
-                    JsonSerializer.Serialize(jsonWriter, x.Value, valueType, jsonSerializerOptions); // TODO: more optimize ?
+                    JsonSerializer.Serialize(jsonWriter, x.Value, valueType, jsonSerializerOptions);
                 }
             }
         }

@@ -204,17 +204,23 @@ namespace ZLogger.MessagePack
         {
             if (KeyNameMutator is { } mutator)
             {
-                var bufferSize = keyName.Length * 2;
-                while (!TryMutate(ref messagePackWriter, keyName, bufferSize))
+                if (mutator.IsSupportSlice)
                 {
-                    bufferSize *= 2;
+                    messagePackWriter.Write(mutator.Slice(keyName));
+                }
+                else
+                {
+                    var bufferSize = keyName.Length * 2;
+                    while (!TryMutate(ref messagePackWriter, keyName, bufferSize))
+                    {
+                        bufferSize *= 2;
+                    }
                 }
             }
             else
             {
                 messagePackWriter.Write(keyName);
             }
-            return;
 
             bool TryMutate(ref MessagePackWriter messagePackWriter, ReadOnlySpan<char> source, int bufferSize)
             {

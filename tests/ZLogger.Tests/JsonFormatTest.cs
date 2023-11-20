@@ -44,7 +44,7 @@ namespace ZLogger.Tests
             var tako = 100;
             var yaki = "あいうえお";
             logger.ZLogDebug($"FooBar{tako} NanoNano{yaki}");
-            
+
             logger.LogInformation("");
 
             loggerFactory.Dispose();
@@ -61,7 +61,7 @@ namespace ZLogger.Tests
             doc.GetProperty("Hash").GetString().Should().Be(sourceCodeHash);
             doc.GetProperty("LogLevel").GetString().Should().Be("Debug");
         }
-        
+
         [Fact]
         public void FormatLogEntry_ExcludeLogInfoProperties()
         {
@@ -80,10 +80,10 @@ namespace ZLogger.Tests
                 x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
             });
             var logger = loggerFactory.CreateLogger("test");
-            
+
             var now = DateTime.UtcNow;
             logger.ZLogInformation(new EventId(1, "TEST"), $"HELLO!");
-            
+
             var json = processor.Dequeue();
             var doc = JsonDocument.Parse(json).RootElement;
 
@@ -94,7 +94,7 @@ namespace ZLogger.Tests
             doc.TryGetProperty("EventIdName", out _).Should().BeFalse();
             doc.TryGetProperty("CategoryName", out _).Should().BeFalse();
         }
-        
+
         [Fact]
         public void FormatLogEntry_ExcludeAllLogInfo()
         {
@@ -111,9 +111,9 @@ namespace ZLogger.Tests
                 x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
             });
             var logger = loggerFactory.CreateLogger("test");
-            
+
             logger.ZLogInformation(new EventId(1, "TEST"), $"HELLO!");
-            
+
             var json = processor.Dequeue();
             var doc = JsonDocument.Parse(json).RootElement;
 
@@ -125,7 +125,7 @@ namespace ZLogger.Tests
             doc.TryGetProperty("EventIdName", out _).Should().BeFalse();
             doc.TryGetProperty("CategoryName", out _).Should().BeFalse();
         }
-        
+
         [Fact]
         public void KeyNameMutator_Lower()
         {
@@ -135,9 +135,9 @@ namespace ZLogger.Tests
             };
             options.UseJsonFormatter(formatter =>
             {
-                formatter.KeyNameMutator = LowerCamelCaseMutator.Instance;
+                formatter.KeyNameMutator = KeyNameMutator.LowerFirstCharacter;
             });
-            
+
             var processor = new TestProcessor(options);
 
             using var loggerFactory = LoggerFactory.Create(x =>
@@ -157,6 +157,72 @@ namespace ZLogger.Tests
             doc.GetProperty("Message").GetString().Should().Be("tako: 100 yaki: あいうえお");
             doc.GetProperty("tako").GetInt32().Should().Be(100);
             doc.GetProperty("yaki").GetString().Should().Be("あいうえお");
+        }
+
+        [Fact]
+        public void KeyNameMutatorProp1()
+        {
+            var options = new ZLoggerOptions
+            {
+                IncludeScopes = true
+            };
+            options.UseJsonFormatter(formatter =>
+            {
+                formatter.KeyNameMutator = KeyNameMutator.LastMemberName;
+            });
+
+            var processor = new TestProcessor(options);
+
+            using var loggerFactory = LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Debug);
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
+            });
+            var logger = loggerFactory.CreateLogger("test");
+
+            var zzz = new { Tako = 100, Yaki = "あいうえお" };
+
+            logger.ZLogDebug($"tako: {zzz.Tako} yaki: {zzz.Yaki}");
+
+            var json = processor.Dequeue();
+            var doc = JsonDocument.Parse(json).RootElement;
+
+            doc.GetProperty("Message").GetString().Should().Be("tako: 100 yaki: あいうえお");
+            doc.GetProperty("Tako").GetInt32().Should().Be(100);
+            doc.GetProperty("Yaki").GetString().Should().Be("あいうえお");
+        }
+
+        [Fact]
+        public void KeyNameMutatorProp2()
+        {
+            var options = new ZLoggerOptions
+            {
+                IncludeScopes = true
+            };
+            options.UseJsonFormatter(formatter =>
+            {
+                formatter.KeyNameMutator = KeyNameMutator.LastMemberNameUpperFirstCharacter;
+            });
+
+            var processor = new TestProcessor(options);
+
+            using var loggerFactory = LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Debug);
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
+            });
+            var logger = loggerFactory.CreateLogger("test");
+
+            var zzz = new { tako = 100, yaki = "あいうえお" };
+
+            logger.ZLogDebug($"tako: {zzz.tako} yaki: {zzz.yaki}");
+
+            var json = processor.Dequeue();
+            var doc = JsonDocument.Parse(json).RootElement;
+
+            doc.GetProperty("Message").GetString().Should().Be("tako: 100 yaki: あいうえお");
+            doc.GetProperty("Tako").GetInt32().Should().Be(100);
+            doc.GetProperty("Yaki").GetString().Should().Be("あいうえお");
         }
     }
 }

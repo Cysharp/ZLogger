@@ -115,7 +115,7 @@ namespace ZLogger.MessagePack.Tests
         {
             var options = new ZLoggerOptions().UseMessagePackFormatter(formatter =>
             {
-                formatter.KeyNameMutator = LowerCamelCaseMutator.Instance;
+                formatter.KeyNameMutator = KeyNameMutator.LowerFirstCharacter;
             });
             
             processor = new TestProcessor(options);

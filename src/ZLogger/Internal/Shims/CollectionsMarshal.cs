@@ -5,7 +5,10 @@ namespace System.Runtime.InteropServices;
 
 internal static class CollectionsMarshal
 {
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable CS8618
+#pragma warning disable CS0169
+#pragma warning disable CS0649
+
     class ListDummy<T>
     {
         public T[] Items;
