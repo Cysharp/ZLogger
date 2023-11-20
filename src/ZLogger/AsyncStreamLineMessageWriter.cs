@@ -87,6 +87,9 @@ namespace ZLogger
         {
             var writer = new StreamBufferWriter(stream);
             var formatter = options.CreateFormatter();
+            var withLineBreak = formatter.WithLineBreak;
+            var requireFilterCheck = levelFilter != null;
+            var requireFlushCheck = options.FlushRate != null;
             var reader = channel.Reader;
             var sw = Stopwatch.StartNew();
             try
@@ -97,7 +100,7 @@ namespace ZLogger
                     {
                         while (reader.TryRead(out var value))
                         {
-                            if (levelFilter != null && levelFilter.Invoke(value.LogInfo.LogLevel) == false)
+                            if (requireFilterCheck && levelFilter!.Invoke(value.LogInfo.LogLevel) == false)
                             {
                                 continue;
                             }
@@ -109,16 +112,16 @@ namespace ZLogger
                             {
                                 value.Return();
                             }
-                            if (formatter.WithLineBreak)
+                            if (withLineBreak)
                             {
                                 AppendLine(writer);
                             }
                         }
 
-                        if (options.FlushRate != null && !cancellationTokenSource.IsCancellationRequested)
+                        if (requireFlushCheck && !cancellationTokenSource.IsCancellationRequested)
                         {
                             sw.Stop();
-                            var sleepTime = options.FlushRate.Value - sw.Elapsed;
+                            var sleepTime = options.FlushRate!.Value - sw.Elapsed;
                             if (sleepTime > TimeSpan.Zero)
                             {
                                 try
@@ -129,11 +132,14 @@ namespace ZLogger
                                 {
                                 }
                             }
+                            writer.Flush(); // flush before wait.
+                            sw.Reset();
+                            sw.Start();
                         }
-                        writer.Flush(); // flush before wait.
-
-                        sw.Reset();
-                        sw.Start();
+                        else
+                        {
+                            writer.Flush(); // flush before wait.
+                        }
                     }
                     catch (Exception ex)
                     {

@@ -4,6 +4,7 @@ using System.Buffers.Text;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using Utf8StringInterpolation;
 
 namespace ZLogger.Internal
 {
@@ -27,6 +28,44 @@ namespace ZLogger.Internal
             return writer;
         }
 #endif
+
+        [ThreadStatic]
+        static Utf8JsonWriter? utf8JsonWriter;
+
+        public static Utf8JsonWriter GetThreadStaticUtf8JsonWriter(IBufferWriter<byte> bufferWriter)
+        {
+            var writer = utf8JsonWriter;
+            if (writer == null)
+            {
+                writer = utf8JsonWriter = new Utf8JsonWriter(bufferWriter);
+            }
+            else
+            {
+                writer.Reset(bufferWriter);
+            }
+
+            return writer;
+        }
+
+        public static void AppendAsJson<T>(ref Utf8StringWriter<IBufferWriter<byte>> stringWriter, T value)
+        {
+            stringWriter.ClearState();
+
+            var utf8JsonWriter = GetThreadStaticUtf8JsonWriter(stringWriter.GetBufferWriter());
+            JsonSerializer.Serialize(utf8JsonWriter, value);
+            utf8JsonWriter.Flush();
+            utf8JsonWriter.Reset();
+        }
+
+        public static void AppendAsJson(ref Utf8StringWriter<IBufferWriter<byte>> stringWriter, object? value, Type inputType)
+        {
+            stringWriter.ClearState();
+
+            var utf8JsonWriter = GetThreadStaticUtf8JsonWriter(stringWriter.GetBufferWriter());
+            JsonSerializer.Serialize(utf8JsonWriter, value, inputType);
+            utf8JsonWriter.Flush();
+            utf8JsonWriter.Reset();
+        }
 
         public static void ThrowArgumentOutOfRangeException()
         {

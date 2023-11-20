@@ -43,6 +43,9 @@ public class WritePlainTextToFile
     Serilog.Core.Logger serilogLogger = default!;
     Serilog.Core.Logger serilogLoggerForMsExt = default!;
 
+    Serilog.Core.Logger serilogLoggerDefault = default!;
+
+
     NLog.Logger nLogLogger = default!;
     NLog.Config.LoggingConfiguration nLogConfig = default!;
     NLog.Config.LoggingConfiguration nLogConfigForMsExt = default!;
@@ -101,6 +104,9 @@ public class WritePlainTextToFile
 
         serilogMsExtLoggerFactory = LoggerFactory.Create(logging => logging.AddSerilog(serilogLoggerForMsExt));
         serilogMsExtLogger = serilogMsExtLoggerFactory.CreateLogger<WritePlainTextToFile>();
+
+
+        serilogLoggerDefault = new Serilog.LoggerConfiguration().WriteTo.File("serilog_default.log").CreateLogger();
 
         // NLog
 
@@ -192,6 +198,16 @@ public class WritePlainTextToFile
             nLogMsExtLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
         }
         nLogMsExtLoggerFactory.Dispose();
+    }
+
+    [Benchmark]
+    public void Serilog_Default_PlainTextFile()
+    {
+        for (var i = 0; i < N; i++)
+        {
+            serilogLoggerDefault.Information("x={X} y={Y} z={Z}", 100, 200, 300);
+        }
+        serilogLoggerDefault.Dispose();
     }
 
     [Benchmark]

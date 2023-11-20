@@ -179,11 +179,7 @@ namespace ZLogger
                     ref var p = ref parameters[parameterIndex++];
                     if (p.Format == "json")
                     {
-                        stringWriter.Dispose();
-                        using var jsonWriter = new Utf8JsonWriter(writer);
-                        JsonSerializer.Serialize(jsonWriter, p.BoxedValue, p.Type);
-                        jsonWriter.Flush();
-                        stringWriter = new Utf8StringWriter<IBufferWriter<byte>>(literalLength, parametersLength, writer);
+                        CodeGeneratorUtil.AppendAsJson(ref stringWriter, p.BoxedValue, p.Type);
                     }
                     else if (!box.TryReadTo(p.Type, p.BoxOffset, p.Alignment, p.Format, ref stringWriter))
                     {
@@ -193,14 +189,7 @@ namespace ZLogger
                         }
                         else if (p.BoxedValue is IEnumerable enumerable)
                         {
-                            // require Flush before use Utf8JsonWriter
-                            stringWriter.Dispose();
-                            using var jsonWriter = new Utf8JsonWriter(writer);
-                            JsonSerializer.Serialize(jsonWriter, enumerable);
-                            jsonWriter.Flush();
-
-                            // require re-create after use Utf8JsonWriter for control internal buffer
-                            stringWriter = new Utf8StringWriter<IBufferWriter<byte>>(literalLength, parametersLength, writer);
+                            CodeGeneratorUtil.AppendAsJson(ref stringWriter, enumerable);
                         }
                         else
                         {

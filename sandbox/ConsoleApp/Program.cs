@@ -19,20 +19,27 @@ using System.Text.Json;
 using System.IO.Hashing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Net.Sockets;
+using System.Net.Http;
+using System.Buffers;
+using System.Reflection.PortableExecutable;
+using System.Net.Mail;
 
 var factory = LoggerFactory.Create(logging =>
 {
     logging.AddZLogger(zLogger =>
     {
-        zLogger.AddFile("foo.log", option =>
-        {
-            option.InternalErrorLogger = ex => Console.WriteLine(ex);
+        zLogger.AddConsole();
 
-            option.UsePlainTextFormatter(formatter =>
-            {
-                formatter.SetPrefixFormatter($"{0:timeonly} | {1:short} | ", (template, info) => template.Format(info.Timestamp, info.LogLevel));
-            });
-        });
+        //zLogger.AddFile("foo.log", option =>
+        //{
+        //    option.InternalErrorLogger = ex => Console.WriteLine(ex);
+
+        //    option.UsePlainTextFormatter(formatter =>
+        //    {
+        //        formatter.SetPrefixFormatter($"{0:timeonly} | {1:short} | ", (template, info) => template.Format(info.Timestamp, info.LogLevel));
+        //    });
+        //});
     });
 });
 
@@ -42,31 +49,12 @@ var logger = factory.CreateLogger<Program>();
 var x = 10;
 var y = 20;
 var z = 30;
+var v3 = new MyVector3 { X = 1.0f, Y = 2.2f, Z = 9.9f };
 
-var c = 0;
-while (c++ < 3)
-{
-    for (int i = 0; i < 100000; i++)
-    {
-        logger.ZLogInformation($"x={x} y={y} z={z}");
-    }
-
-    Thread.Sleep(TimeSpan.FromSeconds(4));
-}
+logger.ZLogInformation($"v3 = {v3:json} is dead.");
 
 
 factory.Dispose();
-
-
-unsafe
-{
-    var obj = new string[] { "hoge", "huga" };
-
-    var p = new IntPtr(Unsafe.AsPointer(ref obj[0]));
-
-    var xx = p.ToInt64();
-    MemoryMarshal.CreateSpan(ref xx, sizeof(long));
-}
 
 public struct MyVector3
 {
@@ -117,6 +105,114 @@ public class InMemoryLogProcessor : IAsyncLogProcessor
         return default;
     }
 }
+
+
+
+
+
+public class TcpLogProcessor : IAsyncLogProcessor
+{
+    TcpClient tcpClient;
+    AsyncStreamLineMessageWriter writer;
+
+    public TcpLogProcessor(ZLoggerOptions options)
+    {
+        tcpClient = new TcpClient("127.0.0.1", 1111);
+        writer = new AsyncStreamLineMessageWriter(tcpClient.GetStream(), options);
+    }
+
+    public void Post(IZLoggerEntry log)
+    {
+        writer.Post(log);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await writer.DisposeAsync();
+        tcpClient.Dispose();
+    }
+}
+
+public class BatchingHttpLogProcessor : IAsyncLogProcessor
+{
+    Channel<IZLoggerEntry> channel;
+    IZLoggerFormatter formatter;
+    HttpClient httpClient;
+    Task loop;
+
+    public BatchingHttpLogProcessor(ZLoggerOptions options)
+    {
+        formatter = options.CreateFormatter();
+        httpClient = new HttpClient();
+        this.channel = Channel.CreateUnbounded<IZLoggerEntry>(new UnboundedChannelOptions
+        {
+            AllowSynchronousContinuations = false,
+            SingleWriter = false,
+            SingleReader = true,
+        });
+        loop = Task.Run(WriteLoop);
+    }
+
+    public void Post(IZLoggerEntry log)
+    {
+        channel.Writer.TryWrite(log);
+    }
+
+    async Task WriteLoop()
+    {
+        var list = new List<IZLoggerEntry>();
+        var reader = channel.Reader;
+        var buffer = new ArrayBufferWriter<byte>();
+        var batchCount = 0;
+
+        try
+        {
+            while (await reader.WaitToReadAsync().ConfigureAwait(false))
+            {
+                while (reader.TryRead(out var item) && batchCount++ < 100)
+                {
+                    try
+                    {
+                        item.FormatUtf8(buffer, formatter);
+                        AppendNewLine(buffer);
+                    }
+                    finally
+                    {
+                        item.Return(); // IMPORTANT: reuse LogEntry.
+                    }
+                }
+
+                var byteArrayContent = new ByteArrayContent(buffer.WrittenSpan.ToArray());
+
+                await httpClient.PostAsync("http://foo", byteArrayContent).ConfigureAwait(false);
+
+                buffer.Clear();
+                batchCount = 0;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    static void AppendNewLine(IBufferWriter<byte> writer)
+    {
+        var span = writer.GetSpan(1);
+        "\n"u8.CopyTo(span);
+        writer.Advance(1);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        channel.Writer.Complete();
+        await loop.ConfigureAwait(false);
+        httpClient.Dispose();
+    }
+}
+
+
+
+
 
 readonly struct LiteralList : IEquatable<LiteralList>
 {

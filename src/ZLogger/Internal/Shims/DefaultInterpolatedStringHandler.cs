@@ -438,7 +438,7 @@ internal ref struct DefaultInterpolatedStringHandler
     /// <param name="value">The value to write.</param>
     public void AppendFormatted(string? value)
     {
-        // Fast-path for no custom formatter and a non-null string that fits in the current destination buffer.
+        // Fast-path for no custom formatter and a non-null string that fits in the current  buffer.
         if (!_hasCustomFormatter &&
             value is not null &&
             value.AsSpan().TryCopyTo(_chars.Slice(_pos)))

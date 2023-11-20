@@ -24,7 +24,7 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="8.0.0" />
 		<PackageReference Include="System.Threading.Channels" Version="8.0.0" />
 		<PackageReference Include="System.IO.Hashing" Version="8.0.0" />
-		<PackageReference Include="Utf8StringInterpolation" Version="1.2.0" />
+		<PackageReference Include="Utf8StringInterpolation" Version="1.2.2" />
 	</ItemGroup>
 
 	<ItemGroup Condition="$(TargetFramework) == 'net6.0'">

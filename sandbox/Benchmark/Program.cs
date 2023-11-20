@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Benchmark.Benchmarks;
 using BenchmarkDotNet.Running;
@@ -13,12 +14,21 @@ BenchmarkSwitcher.FromAssembly(Assembly.GetEntryAssembly()!).Run(args);
 
 #else
 
-var bench = new WriteJsonToFile();
+var bench = new PostLogEntry();
+bench.SetUp();
 
-bench.SetUpLogger();
-bench.ZLogger_JsonFile();
+bench.ZLogger_ZLog();
+Thread.Sleep(1000);
+bench.ZLogger_ZLog();
 
-bench.Cleanup();
+bench.NLog_Log();
+
+//var bench = new WriteJsonToFile();
+
+//bench.SetUpLogger();
+//bench.ZLogger_JsonFile();
+
+//bench.Cleanup();
 
 //bench.NLog_PlainTextConsole();
 //bench.Serilog_PlainTextConsole();

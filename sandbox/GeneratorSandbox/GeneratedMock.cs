@@ -35,12 +35,6 @@ public static class Log22
 
 file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
 {
-    const int _parameterCount = 2;
-
-    // TODO:
-    const int _utf8LiteralLength = 33;
-    const int _guessedParameterLength = 2 * 11;
-
     static readonly JsonEncodedText _jsonParameter_hostName = JsonEncodedText.Encode("hostName");
     static readonly JsonEncodedText _jsonParameter_ipAddress = JsonEncodedText.Encode("ipAddress");
 
@@ -57,29 +51,38 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
     {
         return ZLoggerEntry<CouldNotOpenSocketState>.Create(info, this);
     }
-    public int ParameterCount => _parameterCount;
+
+    public int ParameterCount => 2;
     public bool IsSupportUtf8ParameterKey => true;
-    public override string ToString() => "Could not open socket to {hostName} {ipAddress}."; // TODO:alignment, format
+    public override string ToString() => $"Could not open socket to {hostName} {ipAddress}."; // TODO:alignment, format
 
     public void ToString(IBufferWriter<byte> writer)
     {
-        // chunk0.Length + chunk2.Length + chunk4.Length
-
-        var stringWriter = new Utf8StringWriter<IBufferWriter<byte>>(_utf8LiteralLength, _guessedParameterLength, writer);
+        var stringWriter = new Utf8StringWriter<IBufferWriter<byte>>(literalLength: 33, formattedCount: 2, bufferWriter: writer);
 
         stringWriter.AppendUtf8("Could not open socket to "u8);
-        stringWriter.AppendFormatted(hostName); // TODO:alignment, format
+        stringWriter.AppendFormatted(this.hostName, 0, null); // TODO: alignment, format
         stringWriter.AppendUtf8(" "u8);
-        stringWriter.AppendFormatted(ipAddress);
-        stringWriter.AppendUtf8("."u8);
+        stringWriter.AppendFormatted(this.ipAddress, 0, null); // TODO: when IEnumerable, or format is "json", JSON Serialize
 
+        // CodeGeneratorUtil.AppendAsJson(ref stringWriter, this.ipAddress);
+
+        stringWriter.AppendUtf8("."u8);
+        
         stringWriter.Flush();
     }
 
+
+
+    // NOTE: keyNameMutator is only affects Interpolated String.
     public void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions, IKeyNameMutator? keyNameMutator = null)
     {
         writer.WriteString(_jsonParameter_hostName, this.hostName);
         writer.WriteNumber(_jsonParameter_ipAddress, this.ipAddress);
+
+        // TODO: serialize pattern, check format = "json"
+        
+        // writer.WritePropertyName(_jsonParameter_ipAddress); JsonSerializer.Serialize(writer, this.ipAddress, jsonSerializerOptions);
     }
 
     public ReadOnlySpan<byte> GetParameterKey(int index)

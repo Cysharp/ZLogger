@@ -1,9 +1,15 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
+using log4net.Repository.Hierarchy;
 using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Extensions.Logging;
@@ -46,11 +52,38 @@ file class BenchmarkConfig : ManualConfig
     }
 }
 
+file class NullProcessor : IAsyncLogProcessor
+{
+    Channel<IZLoggerEntry> channel;
+
+    public NullProcessor()
+    {
+
+        this.channel = Channel.CreateUnbounded<IZLoggerEntry>(new UnboundedChannelOptions
+        {
+            AllowSynchronousContinuations = false, // always should be in async loop.
+            SingleWriter = false,
+            SingleReader = true,
+        });
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return default;
+    }
+
+    public void Post(IZLoggerEntry log)
+    {
+        channel.Writer.TryWrite(log);
+        log.Return();
+    }
+}
+
 [Config(typeof(BenchmarkConfig))]
 public class PostLogEntry
 {
     static readonly string NullDevicePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "NUL" : "/dev/null";
-    
+
     ILogger zLogger = default!;
     ILogger msExtConsoleLogger = default!;
     ILogger serilogMsExtLogger = default!;
@@ -59,28 +92,37 @@ public class PostLogEntry
     Serilog.ILogger serilogLogger = default!;
     NLog.Logger nLogLogger = default!;
 
+    List<IDisposable> disposables = new List<IDisposable>();
+
     [GlobalSetup]
     public void SetUp()
     {
         System.Console.SetOut(TextWriter.Null);
-        
+
         // ZLogger
-        
+
         var zLoggerFactory = LoggerFactory.Create(logging =>
         {
             logging.AddZLogger(builder =>
             {
+                //builder.AddLogProcessor(new NullProcessor());
+
+                //builder.AddStream(Stream.Null);
+
                 builder.AddStream(Stream.Null, options =>
                 {
                     options.UsePlainTextFormatter(formatter => formatter.SetPrefixFormatter($"{0} [{1}]", (template, info) => template.Format(info.Timestamp, info.LogLevel)));
                 });
             });
         });
+        disposables.Add(zLoggerFactory);
 
         zLogger = zLoggerFactory.CreateLogger<PostLogEntry>();
-        
+
+
+
         // Microsoft.Extensions.Logging.Console
-        
+
         var msExtConsoleLoggerFactory = LoggerFactory.Create(logging =>
         {
             logging
@@ -90,24 +132,26 @@ public class PostLogEntry
                 })
                 .AddConsoleFormatter<BenchmarkPlainTextConsoleFormatter, BenchmarkPlainTextConsoleFormatter.Options>();
         });
+        disposables.Add(msExtConsoleLoggerFactory);
 
         msExtConsoleLogger = msExtConsoleLoggerFactory.CreateLogger<Program>();
-        
+
         // Serilog
-        
+
         serilogLogger = new LoggerConfiguration()
             .WriteTo.Async(a => a.TextWriter(TextWriter.Null))
             .CreateLogger();
-        
+
         var serilogMsExtLoggerFactory = LoggerFactory.Create(logging =>
         {
             logging.AddSerilog(new LoggerConfiguration()
                 .WriteTo.Async(a => a.TextWriter(TextWriter.Null))
                 .CreateLogger());
         });
-        
+        disposables.Add(serilogMsExtLoggerFactory);
+
         serilogMsExtLogger = serilogMsExtLoggerFactory.CreateLogger<PostLogEntry>();
-        
+
         // NLog
         var nLogLayout = new NLog.Layouts.SimpleLayout("${longdate} [${level}] ${message}");
         {
@@ -147,6 +191,17 @@ public class PostLogEntry
                 logging.AddNLog(nLogConfigForMsExt);
             });
             nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<PostLogEntry>();
+
+            disposables.Add(nLogMsExtLoggerFactory);
+        }
+    }
+
+    [GlobalCleanup]
+    public void Cleanup()
+    {
+        foreach (var item in disposables)
+        {
+            item.Dispose();
         }
     }
 
@@ -176,13 +231,13 @@ public class PostLogEntry
     {
         nLogMsExtLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
     }
-    
+
     [Benchmark]
     public void Serilog_Log()
     {
         serilogLogger.Information("x={X} y={Y} z={Z}", 100, 200, 300);
     }
-    
+
     [Benchmark]
     public void NLog_Log()
     {
