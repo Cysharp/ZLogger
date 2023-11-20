@@ -29,10 +29,8 @@ namespace ZLogger.Tests
 
                         options.UseJsonFormatter(formatter =>
                         {
-                            formatter.LogInfoFormatter = (writer, info) =>
+                            formatter.AdditionalFormatter = (writer) =>
                             {
-                                // Use default and add custom metadata
-                                formatter.DefaultLogInfoFormatter(writer, info);
                                 writer.WriteString(hashProp, sourceCodeHash);
                             };
                         });
@@ -223,6 +221,79 @@ namespace ZLogger.Tests
             doc.GetProperty("Message").GetString().Should().Be("tako: 100 yaki: あいうえお");
             doc.GetProperty("Tako").GetInt32().Should().Be(100);
             doc.GetProperty("Yaki").GetString().Should().Be("あいうえお");
+        }
+
+        [Fact]
+        public void NestPayload()
+        {
+            var options = new ZLoggerOptions
+            {
+                IncludeScopes = true
+            };
+            options.UseJsonFormatter(formatter =>
+            {
+                formatter.KeyNameMutator = KeyNameMutator.LastMemberName;
+                formatter.ParametersObjectName = JsonEncodedText.Encode("Payload");
+            });
+
+            var processor = new TestProcessor(options);
+
+            using var loggerFactory = LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Debug);
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
+            });
+            var logger = loggerFactory.CreateLogger("test");
+
+            var zzz = new { Tako = 100, Yaki = "あいうえお" };
+
+            logger.ZLogDebug($"tako: {zzz.Tako} yaki: {zzz.Yaki}");
+
+            var json = processor.Dequeue();
+            var doc = JsonDocument.Parse(json).RootElement;
+
+            doc.GetProperty("Message").GetString().Should().Be("tako: 100 yaki: あいうえお");
+            doc.GetProperty("Payload").GetProperty("Tako").GetInt32().Should().Be(100);
+            doc.GetProperty("Payload").GetProperty("Yaki").GetString().Should().Be("あいうえお");
+        }
+
+        [Fact]
+        public void ConfigureName()
+        {
+            var options = new ZLoggerOptions().UseJsonFormatter(formatter =>
+            {
+                formatter.JsonPropertyNames = JsonPropertyNames.Default with
+                {
+                    Message = JsonEncodedText.Encode("MMMMMMMMMMMOsage"),
+                    LogLevel = JsonEncodedText.Encode("LeVeL5"),
+                    Category = JsonEncodedText.Encode("CAT"),
+                    Timestamp = JsonEncodedText.Encode("TST"),
+                    EventId = JsonEncodedText.Encode("EventIddd"),
+                    EventIdName = JsonEncodedText.Encode("EventNAME"),
+                };
+                formatter.IncludeProperties = IncludeProperties.All;
+            });
+
+            var processor = new TestProcessor(options);
+
+            var loggerFactory = LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Debug);
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
+            });
+            var logger = loggerFactory.CreateLogger("test");
+
+            logger.ZLogInformation(new EventId(1, "TEST"), $"HELLO!");
+
+            var json = processor.Dequeue();
+            var doc = JsonDocument.Parse(json).RootElement;
+
+            doc.TryGetProperty("MMMMMMMMMMMOsage", out _).Should().BeTrue();
+            doc.TryGetProperty("LeVeL5", out _).Should().BeTrue();
+            doc.TryGetProperty("TST", out _).Should().BeTrue();
+            doc.TryGetProperty("EventIddd", out _).Should().BeTrue();
+            doc.TryGetProperty("EventNAME", out _).Should().BeTrue();
+            doc.TryGetProperty("CAT", out _).Should().BeTrue();
         }
     }
 }

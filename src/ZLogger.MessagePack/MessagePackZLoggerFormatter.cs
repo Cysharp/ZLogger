@@ -65,11 +65,11 @@ namespace ZLogger.MessagePack
         [ThreadStatic]
         static ArrayBufferWriter<byte>? threadStaticBufferWriter;
 
-        public bool WithLineBreak => false;
+        bool IZLoggerFormatter.WithLineBreak => false;
 
         public MessagePackSerializerOptions MessagePackSerializerOptions { get; set; } = MessagePackSerializer.DefaultOptions;
         public string MessagePropertyName { get; set; } = "Message";
-        public IncludeProperties IncludeProperties { get; set; } = IncludeProperties.Timestamp | IncludeProperties.LogLevel | IncludeProperties.CategoryName | IncludeProperties.Message | IncludeProperties.Exception;
+        public IncludeProperties IncludeProperties { get; set; } = IncludeProperties.Default;
         public IKeyNameMutator? KeyNameMutator { get; set; }
 
         public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry

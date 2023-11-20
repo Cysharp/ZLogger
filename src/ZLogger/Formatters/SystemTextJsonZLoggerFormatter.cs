@@ -34,39 +34,67 @@ namespace ZLogger
         EventIdName = 1 << 4,
         Message = 1 << 5,
         Exception = 1 << 6,
+        Default = Timestamp | LogLevel | CategoryName | Message | Exception,
         All = Timestamp | LogLevel | CategoryName | EventIdValue | EventIdName | Message | Exception
     }
 }
 
 namespace ZLogger.Formatters
 {
+    public record JsonPropertyNames(
+        JsonEncodedText Category,
+        JsonEncodedText Timestamp,
+        JsonEncodedText LogLevel,
+        JsonEncodedText EventId,
+        JsonEncodedText EventIdName,
+        JsonEncodedText Exception,
+        JsonEncodedText Message,
+
+        JsonEncodedText ExceptionName,
+        JsonEncodedText ExceptionMessage,
+        JsonEncodedText ExceptionStackTrace,
+        JsonEncodedText ExceptionInnerException,
+
+        JsonEncodedText LogLevelTrace,
+        JsonEncodedText LogLevelDebug,
+        JsonEncodedText LogLevelInformation,
+        JsonEncodedText LogLevelWarning,
+        JsonEncodedText LogLevelError,
+        JsonEncodedText LogLevelCritical,
+        JsonEncodedText LogLevelNone
+    )
+    {
+        public static readonly JsonPropertyNames Default = new JsonPropertyNames(
+            Category: JsonEncodedText.Encode(nameof(LogInfo.Category)),
+            Timestamp: JsonEncodedText.Encode(nameof(LogInfo.Timestamp)),
+            LogLevel: JsonEncodedText.Encode(nameof(LogInfo.LogLevel)),
+            EventId: JsonEncodedText.Encode(nameof(LogInfo.EventId)),
+            EventIdName: JsonEncodedText.Encode("EventIdName"),
+            Exception: JsonEncodedText.Encode(nameof(LogInfo.Exception)),
+            Message: JsonEncodedText.Encode("Message"),
+
+            ExceptionName: JsonEncodedText.Encode("Name"),
+            ExceptionMessage: JsonEncodedText.Encode("Message"),
+            ExceptionStackTrace: JsonEncodedText.Encode("StackTrace"),
+            ExceptionInnerException: JsonEncodedText.Encode("InnerException"),
+
+            LogLevelTrace: JsonEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Trace)),
+            LogLevelDebug: JsonEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Debug)),
+            LogLevelInformation: JsonEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Information)),
+            LogLevelWarning: JsonEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Warning)),
+            LogLevelError: JsonEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Error)),
+            LogLevelCritical: JsonEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Critical)),
+            LogLevelNone: JsonEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.None))
+        );
+    }
+
     public class SystemTextJsonZLoggerFormatter : IZLoggerFormatter
     {
-        static readonly JsonEncodedText CategoryNameText = JsonEncodedText.Encode(nameof(LogInfo.Category));
-        static readonly JsonEncodedText TimestampText = JsonEncodedText.Encode(nameof(LogInfo.Timestamp));
-        static readonly JsonEncodedText LogLevelText = JsonEncodedText.Encode(nameof(LogInfo.LogLevel));
-        static readonly JsonEncodedText EventIdText = JsonEncodedText.Encode(nameof(LogInfo.EventId));
-        static readonly JsonEncodedText EventIdNameText = JsonEncodedText.Encode("EventIdName");
-        static readonly JsonEncodedText ExceptionText = JsonEncodedText.Encode(nameof(LogInfo.Exception));
+        public JsonPropertyNames JsonPropertyNames { get; set; } = JsonPropertyNames.Default;
 
-        static readonly JsonEncodedText NameText = JsonEncodedText.Encode("Name");
-        static readonly JsonEncodedText MessageText = JsonEncodedText.Encode("Message");
-        static readonly JsonEncodedText StackTraceText = JsonEncodedText.Encode("StackTrace");
-        static readonly JsonEncodedText InnerExceptionText = JsonEncodedText.Encode("InnerException");
+        bool IZLoggerFormatter.WithLineBreak => true;
 
-        static readonly JsonEncodedText Trace = JsonEncodedText.Encode(nameof(LogLevel.Trace));
-        static readonly JsonEncodedText Debug = JsonEncodedText.Encode(nameof(LogLevel.Debug));
-        static readonly JsonEncodedText Information = JsonEncodedText.Encode(nameof(LogLevel.Information));
-        static readonly JsonEncodedText Warning = JsonEncodedText.Encode(nameof(LogLevel.Warning));
-        static readonly JsonEncodedText Error = JsonEncodedText.Encode(nameof(LogLevel.Error));
-        static readonly JsonEncodedText Critical = JsonEncodedText.Encode(nameof(LogLevel.Critical));
-        static readonly JsonEncodedText None = JsonEncodedText.Encode(nameof(LogLevel.None));
-
-        public bool WithLineBreak => true;
-
-        public JsonEncodedText MessagePropertyName { get; set; } = JsonEncodedText.Encode("Message");
-        public Action<Utf8JsonWriter, LogInfo> LogInfoFormatter { get; set; }
-        public IncludeProperties IncludeProperties { get; set; } = IncludeProperties.Timestamp | IncludeProperties.LogLevel | IncludeProperties.CategoryName | IncludeProperties.Message | IncludeProperties.Exception;
+        public IncludeProperties IncludeProperties { get; set; } = IncludeProperties.Default;
 
         public JsonSerializerOptions JsonSerializerOptions { get; set; } = new()
         {
@@ -75,14 +103,11 @@ namespace ZLogger.Formatters
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
 
+        public Action<Utf8JsonWriter>? AdditionalFormatter { get; set; }
+        public JsonEncodedText? ParametersObjectName { get; set; }
         public IKeyNameMutator? KeyNameMutator { get; set; }
 
         Utf8JsonWriter? jsonWriter;
-
-        public SystemTextJsonZLoggerFormatter()
-        {
-            LogInfoFormatter = DefaultLogInfoFormatter;
-        }
 
         public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
         {
@@ -92,14 +117,14 @@ namespace ZLogger.Formatters
             jsonWriter.WriteStartObject();
 
             // LogInfo
-            LogInfoFormatter.Invoke(jsonWriter, entry.LogInfo);
+            FormatLogInfo(jsonWriter, entry.LogInfo);
 
             // Message
             if ((IncludeProperties & IncludeProperties.Message) != 0)
             {
                 var bufferWriter = ArrayBufferWriterPool.GetThreadStaticInstance();
                 entry.ToString(bufferWriter);
-                jsonWriter.WriteString(MessagePropertyName, bufferWriter.WrittenSpan);
+                jsonWriter.WriteString(JsonPropertyNames.Message, bufferWriter.WrittenSpan);
             }
 
             // Scope
@@ -125,70 +150,82 @@ namespace ZLogger.Formatters
                 }
             }
 
+            // Additional
+            AdditionalFormatter?.Invoke(jsonWriter);
+
             // Params
-            entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, KeyNameMutator);
+            if (ParametersObjectName == null)
+            {
+                entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, KeyNameMutator);
+            }
+            else
+            {
+                jsonWriter.WriteStartObject(ParametersObjectName.Value);
+                entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, KeyNameMutator);
+                jsonWriter.WriteEndObject();
+            }
 
             jsonWriter.WriteEndObject();
             jsonWriter.Flush();
         }
 
-        static JsonEncodedText LogLevelToEncodedText(LogLevel logLevel)
+        JsonEncodedText LogLevelToEncodedText(LogLevel logLevel)
         {
             switch (logLevel)
             {
                 case LogLevel.Trace:
-                    return Trace;
+                    return JsonPropertyNames.LogLevelTrace;
                 case LogLevel.Debug:
-                    return Debug;
+                    return JsonPropertyNames.LogLevelDebug;
                 case LogLevel.Information:
-                    return Information;
+                    return JsonPropertyNames.LogLevelInformation;
                 case LogLevel.Warning:
-                    return Warning;
+                    return JsonPropertyNames.LogLevelWarning;
                 case LogLevel.Error:
-                    return Error;
+                    return JsonPropertyNames.LogLevelError;
                 case LogLevel.Critical:
-                    return Critical;
+                    return JsonPropertyNames.LogLevelCritical;
                 case LogLevel.None:
-                    return None;
+                    return JsonPropertyNames.LogLevelNone;
                 default:
                     return JsonEncodedText.Encode(((int)logLevel).ToString());
             }
         }
 
-        public void DefaultLogInfoFormatter(Utf8JsonWriter jsonWriter, LogInfo info)
+        void FormatLogInfo(Utf8JsonWriter jsonWriter, LogInfo info)
         {
             var flag = IncludeProperties;
             if ((flag & IncludeProperties.Timestamp) != 0)
             {
-                jsonWriter.WriteString(TimestampText, info.Timestamp.Local); // use Local
+                jsonWriter.WriteString(JsonPropertyNames.Timestamp, info.Timestamp.Local); // use Local
             }
             if ((flag & IncludeProperties.LogLevel) != 0)
             {
-                jsonWriter.WriteString(LogLevelText, LogLevelToEncodedText(info.LogLevel));
+                jsonWriter.WriteString(JsonPropertyNames.LogLevel, LogLevelToEncodedText(info.LogLevel));
             }
             if ((flag & IncludeProperties.CategoryName) != 0)
             {
-                jsonWriter.WriteString(CategoryNameText, info.Category.JsonEncoded);
+                jsonWriter.WriteString(JsonPropertyNames.Category, info.Category.JsonEncoded);
             }
             if ((flag & IncludeProperties.EventIdValue) != 0)
             {
-                jsonWriter.WriteNumber(EventIdText, info.EventId.Id);
+                jsonWriter.WriteNumber(JsonPropertyNames.EventId, info.EventId.Id);
             }
             if ((flag & IncludeProperties.EventIdName) != 0)
             {
-                jsonWriter.WriteString(EventIdNameText, info.EventId.Name);
+                jsonWriter.WriteString(JsonPropertyNames.EventIdName, info.EventId.Name);
             }
             if ((flag & IncludeProperties.Exception) != 0)
             {
                 if (info.Exception is { } ex)
                 {
-                    jsonWriter.WritePropertyName(ExceptionText);
+                    jsonWriter.WritePropertyName(JsonPropertyNames.Exception);
                     WriteException(jsonWriter, ex);
                 }
             }
         }
 
-        public static void WriteException(Utf8JsonWriter jsonWriter, Exception? ex)
+        void WriteException(Utf8JsonWriter jsonWriter, Exception? ex)
         {
             if (ex == null)
             {
@@ -198,10 +235,10 @@ namespace ZLogger.Formatters
             {
                 jsonWriter.WriteStartObject();
                 {
-                    jsonWriter.WriteString(NameText, ex.GetType().FullName);
-                    jsonWriter.WriteString(MessageText, ex.Message);
-                    jsonWriter.WriteString(StackTraceText, ex.StackTrace);
-                    jsonWriter.WritePropertyName(InnerExceptionText);
+                    jsonWriter.WriteString(JsonPropertyNames.ExceptionName, ex.GetType().FullName);
+                    jsonWriter.WriteString(JsonPropertyNames.ExceptionMessage, ex.Message);
+                    jsonWriter.WriteString(JsonPropertyNames.ExceptionStackTrace, ex.StackTrace);
+                    jsonWriter.WritePropertyName(JsonPropertyNames.ExceptionInnerException);
                     {
                         WriteException(jsonWriter, ex.InnerException);
                     }
@@ -210,7 +247,7 @@ namespace ZLogger.Formatters
             }
         }
 
-        public static void WriteMutatedJsonKeyName(ReadOnlySpan<char> keyName, Utf8JsonWriter jsonWriter, IKeyNameMutator? mutator = null)
+        internal static void WriteMutatedJsonKeyName(ReadOnlySpan<char> keyName, Utf8JsonWriter jsonWriter, IKeyNameMutator? mutator = null)
         {
             if (mutator == null)
             {
