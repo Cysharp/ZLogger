@@ -24,95 +24,73 @@ using System.Net.Http;
 using System.Buffers;
 using System.Reflection.PortableExecutable;
 using System.Net.Mail;
+using System.Collections.Immutable;
 namespace ConsoleApp;
 
 
 
 public class InMemoryObservableLogProcessor : IAsyncLogProcessor, IObservable<string>
 {
-    List<IObserver<string>> observers = new();
+    bool isDisposed;
+    ImmutableArray<IObserver<string>> observers = [];
 
     public void Post(IZLoggerEntry log)
     {
+        if (isDisposed) return;
         var msg = log.ToString();
-        log.Return(); // IMPORTANT: reuse LogEntry.
-        lock (observers)
+        log.Return();
+        foreach (var item in observers)
         {
-            foreach (var item in observers)
-            {
-                item.OnNext(msg);
-            }
+            item.OnNext(msg);
         }
     }
 
     public IDisposable Subscribe(IObserver<string> observer)
     {
-        lock (observers)
-        {
-            observers.Add(observer);
-        }
+        if (isDisposed) return NullDisposable.Instance;
+        ImmutableInterlocked.Update(ref observers, (xs, arg) => xs.Add(arg), observer);
         return new Subscription(this, observer);
     }
 
     public ValueTask DisposeAsync()
     {
-        lock (observers)
-        {
-            observers.Clear();
-        }
+        isDisposed = true;
+        ImmutableInterlocked.Update(ref observers, (xs) => xs.Clear());
         return default;
     }
 
-    class Subscription(InMemoryObservableLogProcessor parent, IObserver<string> observer) : IDisposable
+    sealed class Subscription(InMemoryObservableLogProcessor parent, IObserver<string> observer) : IDisposable
     {
         public void Dispose()
         {
             if (parent != null)
             {
-                lock (parent.observers)
-                {
-                    parent.observers.Remove(observer);
-                }
+                ImmutableInterlocked.Update(ref parent.observers, (xs, arg) => xs.Remove(arg), observer);
             }
             parent = null!;
             observer = null!;
         }
     }
-}
 
+    sealed class NullDisposable : IDisposable
+    {
+        public static readonly IDisposable Instance = new NullDisposable();
+
+        public void Dispose()
+        {
+        }
+    }
+}
 
 public class InMemoryLogProcessor : IAsyncLogProcessor
 {
-    ConcurrentQueue<IZLoggerEntry> queue = new ConcurrentQueue<IZLoggerEntry>();
+    public event Action<string>? OnMessageReceived;
 
     public void Post(IZLoggerEntry log)
     {
-        queue.Enqueue(log);
-    }
-
-    public string[] ConsumeMessages()
-    {
-        var result = new string[queue.Count];
-        for (int i = 0; i < result.Length; i++)
-        {
-            if (queue.TryDequeue(out var entry))
-            {
-                try
-                {
-                    result[i] = entry.ToString();
-                }
-                finally
-                {
-                    entry.Return();
-                }
-            }
-            else
-            {
-                throw new InvalidOperationException();
-            }
-        }
-
-        return result;
+        var msg = log.ToString();
+        log.Return();
+        OnMessageReceived?.Invoke(msg);
     }
 
     public ValueTask DisposeAsync()
@@ -120,6 +98,7 @@ public class InMemoryLogProcessor : IAsyncLogProcessor
         return default;
     }
 }
+
 
 
 public class TcpLogProcessor : IAsyncLogProcessor

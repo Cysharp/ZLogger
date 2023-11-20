@@ -4,9 +4,9 @@ using Microsoft.Extensions.Options;
 namespace ZLogger.Providers
 {
     [ProviderAlias("ZLoggerLogProcessor")]
-    public class ZLoggerLogProcessorLoggerProvider : ILoggerProvider, ISupportExternalScope
+    public class ZLoggerLogProcessorLoggerProvider : ILoggerProvider, ISupportExternalScope, IAsyncDisposable
     {
-        internal const string DefaultOptionName = "ZLoggerFile.Default";
+        internal const string DefaultOptionName = "ZLoggerLogProcessor.Default";
         
         readonly ZLoggerOptions options;
         readonly IAsyncLogProcessor processor;
@@ -31,6 +31,11 @@ namespace ZLogger.Providers
         public void Dispose()
         {
             processor.DisposeAsync().AsTask().Wait();
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await processor.DisposeAsync().ConfigureAwait(false);
         }
 
         public void SetScopeProvider(IExternalScopeProvider scopeProvider)

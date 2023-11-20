@@ -174,6 +174,31 @@ public class ZLoggerBuilder(ILoggingBuilder loggingBuilder)
 
         return this;
     }
+
+    public ZLoggerBuilder AddInMemory()
+    {
+        loggingBuilder.AddConfiguration();
+        loggingBuilder.Services.AddSingleton<InMemoryObservableLogProcessor>();
+        loggingBuilder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerLogProcessorLoggerProvider>(x => new ZLoggerLogProcessorLoggerProvider(x.GetRequiredService<InMemoryObservableLogProcessor>(), x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
+        LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerLogProcessorLoggerProvider>(loggingBuilder.Services);
+        return this;
+    }
+
+    public ZLoggerBuilder AddInMemory(Action<ZLoggerOptions> configure)
+    {
+        return AddInMemory(ZLoggerLogProcessorLoggerProvider.DefaultOptionName, configure);
+    }
+
+    public ZLoggerBuilder AddInMemory(string optionName, Action<ZLoggerOptions> configure)
+    {
+        loggingBuilder.AddConfiguration();
+        loggingBuilder.Services.AddSingleton<InMemoryObservableLogProcessor>();
+        loggingBuilder.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerLogProcessorLoggerProvider>(x => new ZLoggerLogProcessorLoggerProvider(x.GetRequiredService<InMemoryObservableLogProcessor>(), optionName, x.GetRequiredService<IOptionsMonitor<ZLoggerOptions>>())));
+        LoggerProviderOptions.RegisterProviderOptions<ZLoggerOptions, ZLoggerLogProcessorLoggerProvider>(loggingBuilder.Services);
+
+        loggingBuilder.Services.AddOptions<ZLoggerOptions>(optionName).Configure(configure);
+        return this;
+    }
 }
 
 public static class ZLoggerLoggingBuilderExtensions

@@ -25,11 +25,15 @@ using System.Buffers;
 using System.Reflection.PortableExecutable;
 using System.Net.Mail;
 
-var factory = LoggerFactory.Create(logging =>
+
+
+
+var sp = new ServiceCollection().AddLogging(logging =>
 {
     logging.AddZLogger(zLogger =>
     {
-        zLogger.AddConsole();
+        zLogger.AddInMemory();
+
 
         //zLogger.AddFile("foo.log", option =>
         //{
@@ -41,7 +45,13 @@ var factory = LoggerFactory.Create(logging =>
         //    });
         //});
     });
-});
+}).BuildServiceProvider();
+
+var inmemory = sp.GetRequiredService<InMemoryObservableLogProcessor>();
+inmemory.Subscribe(new LoggingObserver());
+
+var factory = sp.GetRequiredService<ILoggerFactory>();
+
 
 var logger = factory.CreateLogger<Program>();
 
@@ -64,7 +74,23 @@ public struct MyVector3
 }
 
 
+class LoggingObserver : IObserver<string>
+{
+    public void OnCompleted()
+    {
+        throw new NotImplementedException();
+    }
 
+    public void OnError(Exception error)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnNext(string value)
+    {
+        Console.WriteLine("YEAH:!!!" + value);
+    }
+}
 
 public class InMemoryLogProcessor : IAsyncLogProcessor
 {
