@@ -19,7 +19,7 @@ public class LogWritesPerSecond : IColumn
 {
     public string Id => nameof(LogWritesPerSecond);
 
-    public string ColumnName => "recs/ms";
+    public string ColumnName => "recs/sec";
 
     public bool AlwaysShow => true;
 
@@ -42,7 +42,7 @@ public class LogWritesPerSecond : IColumn
             var statistics = summary[benchmarkCase].ResultStatistics;
             var mean = TimeInterval.FromNanoseconds(statistics.Mean);
             var ms = TimeInterval.FromMilliseconds(1);
-            return (ms.ToMilliseconds() / (mean.ToMilliseconds() / n)).ToString("F3");
+            return (ms.ToMilliseconds() / (mean.ToMilliseconds() / n) * 1000).ToString("F3");
         }
         return "-";
     }

@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.IO;
+using System.IO.Hashing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -280,13 +281,20 @@ namespace ZLogger
                 this.literals = literals;
             }
 
+#if NET8_0_OR_GREATER
+
+            // literals are all const string, in .NET 8 it is allocated in Non-GC Heap so can compare by address.
+            // https://devblogs.microsoft.com/dotnet/performance-improvements-in-net-8/#non-gc-heap
+            static ReadOnlySpan<byte> AsBytes(ReadOnlySpan<string?> literals)
+            {
+                return MemoryMarshal.CreateSpan(
+                    ref Unsafe.As<string?, byte>(ref MemoryMarshal.GetReference(literals)),
+                    literals.Length * Unsafe.SizeOf<string>());
+            }
+
             public override int GetHashCode()
             {
-                var span = CollectionsMarshal.AsSpan(literals);
-                // https://github.com/Cyan4973/xxHash/issues/453
-                // XXH3 64bit -> 32bit, okay to simple cast answered by XXH3 author.
-                var source = AsBytes(span);
-                return unchecked((int)System.IO.Hashing.XxHash3.HashToUInt64(source));
+                return unchecked((int)XxHash3.HashToUInt64(AsBytes(CollectionsMarshal.AsSpan(literals))));
             }
 
             public bool Equals(LiteralList other)
@@ -297,22 +305,52 @@ namespace ZLogger
                 return AsBytes(xs).SequenceEqual(AsBytes(ys));
             }
 
-            // convert const strings as address sequence
-            static ReadOnlySpan<byte> AsBytes(ReadOnlySpan<string?> literals)
+#else
+
+            [ThreadStatic]
+            static XxHash3? xxhash;
+
+            public override int GetHashCode()
             {
-#if NETSTANDARD2_0
-                if (literals.IsEmpty)
-                    return default;
-                
-                return Shims.CreateSpan(
-                    ref Unsafe.As<string?, byte>(ref Unsafe.AsRef(in literals[0])),
-                    literals.Length * Unsafe.SizeOf<string>());
-#else                
-                return MemoryMarshal.CreateSpan(
-                    ref Unsafe.As<string?, byte>(ref MemoryMarshal.GetReference(literals)),
-                    literals.Length * Unsafe.SizeOf<string>());
-#endif
+                var h = xxhash;
+                if (h == null)
+                {
+                    h = xxhash = new XxHash3();
+                }
+                else
+                {
+                    h.Reset();
+                }
+
+                var span = CollectionsMarshal.AsSpan(literals);
+                foreach (var item in span)
+                {
+                    h.Append(MemoryMarshal.AsBytes(item.AsSpan()));
+                }
+
+                // https://github.com/Cyan4973/xxHash/issues/453
+                // XXH3 64bit -> 32bit, okay to simple cast answered by XXH3 author.
+                return unchecked((int)h.GetCurrentHashAsUInt64());
             }
+
+            public bool Equals(LiteralList other)
+            {
+                var xs = CollectionsMarshal.AsSpan(literals);
+                var ys = CollectionsMarshal.AsSpan(other.literals);
+
+                if (xs.Length == ys.Length)
+                {
+                    for (int i = 0; i < xs.Length; i++)
+                    {
+                        if (xs[i] != ys[i]) return false;
+                    }
+                    return true;
+                }
+
+                return false;
+            }
+
+#endif
         }
     }
 

@@ -32,7 +32,7 @@ namespace ZLogger.LogStates
         InterpolatedStringLogState()
         {
             this.magicalBoxStorage = new byte[1024];
-            this.parameters = new InterpolatedStringParameter[32];
+            this.parameters = new InterpolatedStringParameter[24];
         }
 
         public static InterpolatedStringLogState Create(int formattedCount)

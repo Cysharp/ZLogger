@@ -16,27 +16,22 @@ using ZLogger.Internal;
 using ZLogger.Providers;
 using System.Numerics;
 using System.Text.Json;
+using System.IO.Hashing;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 var factory = LoggerFactory.Create(logging =>
 {
     logging.AddZLogger(zLogger =>
     {
-        zLogger.AddConsole(console =>
+        zLogger.AddFile("foo.log", option =>
         {
-            console.InternalErrorLogger = ex => Console.WriteLine(ex);
+            option.InternalErrorLogger = ex => Console.WriteLine(ex);
 
-            console.ConfigureEnableAnsiEscapeCode = true;
-            console.OutputEncodingToUtf8 = true;
-            console.UseJsonFormatter(formatter =>
+            option.UsePlainTextFormatter(formatter =>
             {
-                formatter.IncludeProperties = IncludeProperties.None;
-
+                formatter.SetPrefixFormatter($"{0:timeonly} | {1:short} | ", (template, info) => template.Format(info.Timestamp, info.LogLevel));
             });
-
-            //console.UsePlainTextFormatter(formatter =>
-            //{
-            //    formatter.SetPrefixFormatter($"{0:timeonly} | {1:short} | ", (template, info) => template.Format(info.Timestamp, info.LogLevel));
-            //});
         });
     });
 });
@@ -44,16 +39,29 @@ var factory = LoggerFactory.Create(logging =>
 var logger = factory.CreateLogger<Program>();
 
 
-var v3 = new MyVector3 { X = 10.2f, Y = 999.99f, Z = 32.1f };
+var x = 10;
+var y = 20;
+var z = 30;
+logger.ZLogInformation($"x={x} y={y} z={z}");
+//while (true)
+//{
+//    for (int i = 0; i < 100000; i++)
+//    {
+//        logger.ZLogInformation($"x={x} y={y} z={z}");
+//    }
 
-logger.ZLogInformation($"foo = {v3}");
+//    Thread.Sleep(TimeSpan.FromSeconds(4));
+//}
 
-
+var hoge = "hugahuga";
+Console.WriteLine(GC.GetGeneration(hoge)); // int.MaxValue
 
 factory.Dispose();
 
 
-
+var test = new LiteralList(new List<string?> { "hoge", null, "huga" });
+test.GetHashCode();
+test.Equals(test);
 
 
 
@@ -105,5 +113,58 @@ public class InMemoryLogProcessor : IAsyncLogProcessor
     public ValueTask DisposeAsync()
     {
         return default;
+    }
+}
+
+readonly struct LiteralList : IEquatable<LiteralList>
+{
+    readonly List<string?> literals;
+
+    public LiteralList(List<string?> literals)
+    {
+        this.literals = literals;
+    }
+
+    [ThreadStatic]
+    static XxHash3? xxhash;
+
+    public override int GetHashCode()
+    {
+        var h = xxhash;
+        if (h == null)
+        {
+            h = xxhash = new XxHash3();
+        }
+        else
+        {
+            h.Reset();
+        }
+
+        var span = CollectionsMarshal.AsSpan(literals);
+        foreach (var item in span)
+        {
+            h.Append(MemoryMarshal.AsBytes(item.AsSpan()));
+        }
+
+        // https://github.com/Cyan4973/xxHash/issues/453
+        // XXH3 64bit -> 32bit, okay to simple cast answered by XXH3 author.
+        return unchecked((int)h.GetCurrentHashAsUInt64());
+    }
+
+    public bool Equals(LiteralList other)
+    {
+        var xs = CollectionsMarshal.AsSpan(literals);
+        var ys = CollectionsMarshal.AsSpan(other.literals);
+
+        if (xs.Length == ys.Length)
+        {
+            for (int i = 0; i < xs.Length; i++)
+            {
+                if (xs[i] != ys[i]) return false;
+            }
+            return true;
+        }
+
+        return false;
     }
 }
