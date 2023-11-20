@@ -42,29 +42,31 @@ var logger = factory.CreateLogger<Program>();
 var x = 10;
 var y = 20;
 var z = 30;
-logger.ZLogInformation($"x={x} y={y} z={z}");
-//while (true)
-//{
-//    for (int i = 0; i < 100000; i++)
-//    {
-//        logger.ZLogInformation($"x={x} y={y} z={z}");
-//    }
 
-//    Thread.Sleep(TimeSpan.FromSeconds(4));
-//}
+var c = 0;
+while (c++ < 3)
+{
+    for (int i = 0; i < 100000; i++)
+    {
+        logger.ZLogInformation($"x={x} y={y} z={z}");
+    }
 
-var hoge = "hugahuga";
-Console.WriteLine(GC.GetGeneration(hoge)); // int.MaxValue
+    Thread.Sleep(TimeSpan.FromSeconds(4));
+}
+
 
 factory.Dispose();
 
 
-var test = new LiteralList(new List<string?> { "hoge", null, "huga" });
-test.GetHashCode();
-test.Equals(test);
+unsafe
+{
+    var obj = new string[] { "hoge", "huga" };
 
+    var p = new IntPtr(Unsafe.AsPointer(ref obj[0]));
 
-
+    var xx = p.ToInt64();
+    MemoryMarshal.CreateSpan(ref xx, sizeof(long));
+}
 
 public struct MyVector3
 {

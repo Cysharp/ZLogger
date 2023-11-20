@@ -5,25 +5,25 @@ namespace ZLogger
 {
     public sealed class ZLoggerLogger : ILogger
     {
-        public IExternalScopeProvider? ScopeProvider { get; set; }
-
         readonly LogCategory category;
         readonly IAsyncLogProcessor logProcessor;
         readonly TimeProvider? timeProvider;
+        readonly IExternalScopeProvider? scopeProvider;
 
-        public ZLoggerLogger(string categoryName, IAsyncLogProcessor logProcessor, ZLoggerOptions options)
+        public ZLoggerLogger(string categoryName, IAsyncLogProcessor logProcessor, ZLoggerOptions options, IExternalScopeProvider? scopeProvider)
         {
             this.category = new LogCategory(categoryName);
             this.logProcessor = logProcessor;
             this.timeProvider = options.TimeProvider;
+            this.scopeProvider = scopeProvider;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception);
 
-            var scopeState = ScopeProvider != null
-                ? LogScopeState.Create(ScopeProvider)
+            var scopeState = scopeProvider != null
+                ? LogScopeState.Create(scopeProvider)
                 : null;
 
             var entry = state is IZLoggerEntryCreatable
@@ -43,7 +43,7 @@ namespace ZLogger
         public IDisposable BeginScope<TState>(TState state)
             where TState : notnull
         {
-            return ScopeProvider?.Push(state) ?? NullDisposable.Instance;
+            return scopeProvider?.Push(state) ?? NullDisposable.Instance;
         }
 
         public bool IsEnabled(LogLevel logLevel)

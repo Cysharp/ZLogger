@@ -27,12 +27,7 @@ namespace ZLogger.Providers
 
         public ILogger CreateLogger(string categoryName)
         {
-            var logger = new ZLoggerLogger(categoryName, streamWriter, options);
-            if (options.IncludeScopes)
-            {
-                logger.ScopeProvider = scopeProvider;
-            }
-            return logger;
+            return new ZLoggerLogger(categoryName, streamWriter, options, options.IncludeScopes ? scopeProvider : null);
         }
 
         public void Dispose()

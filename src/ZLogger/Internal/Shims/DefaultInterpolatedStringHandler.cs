@@ -1,4 +1,6 @@
 #if !NET6_0_OR_GREATER
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+
 using System.Buffers;
 using System.Diagnostics;
 using System.Globalization;
