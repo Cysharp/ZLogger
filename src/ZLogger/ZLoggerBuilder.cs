@@ -46,7 +46,8 @@ public class ZLoggerBuilder(ILoggingBuilder loggingBuilder)
     }
 
     public ZLoggerBuilder AddInMemory(Action<InMemoryObservableLogProcessor> configureProcessor) => AddInMemory(null, (_, _) => { }, configureProcessor);
-    public ZLoggerBuilder AddInMemory(Action<ZLoggerOptions> configure, Action<InMemoryObservableLogProcessor> configureProcessor) => AddInMemory(null, (o, _) => configure(o), configureProcessor);
+    // for IntelliSense, remove this overload
+    // public ZLoggerBuilder AddInMemory(Action<ZLoggerOptions> configure, Action<InMemoryObservableLogProcessor> configureProcessor) => AddInMemory(null, (o, _) => configure(o), configureProcessor);
     public ZLoggerBuilder AddInMemory(Action<ZLoggerOptions, IServiceProvider> configure, Action<InMemoryObservableLogProcessor> configureProcessor) => AddInMemory(null, configure, configureProcessor);
     public ZLoggerBuilder AddInMemory(object? processorKey, Action<ZLoggerOptions> configure, Action<InMemoryObservableLogProcessor> configureProcessor) => AddInMemory(processorKey, (o, _) => configure(o), configureProcessor);
     public ZLoggerBuilder AddInMemory(object? processorKey, Action<ZLoggerOptions, IServiceProvider> configure, Action<InMemoryObservableLogProcessor> configureProcessor)

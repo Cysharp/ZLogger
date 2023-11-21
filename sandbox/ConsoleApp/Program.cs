@@ -32,6 +32,11 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 var f = LoggerFactory.Create(logging =>
 {
+    logging.SetMinimumLevel(LogLevel.Trace);
+
+    logging.AddFilter<ZLoggerInMemoryLoggerProvider>(x => x is LogLevel.Warning or LogLevel.Trace);
+
+
     // logging.AddProvider(
 
 
@@ -39,13 +44,23 @@ var f = LoggerFactory.Create(logging =>
 
     logging.AddZLogger(zlogger =>
     {
-
+        zlogger.AddConsole();
         zlogger.AddInMemory(processor =>
         {
+            //processor = TimeSpan.FromSeconds(1);
             processor.Subscribe(new LoggingObserver());
+
+            
+            
+            
         });
 
-        
+        zlogger.AddInMemory("foo", (x,i) =>
+        {
+            
+        }, _ => { });
+
+
 
     });
 
@@ -60,13 +75,59 @@ var f = LoggerFactory.Create(logging =>
 
 var l = f.CreateLogger("my");
 
-l.ZLogInformation($"foobarbaz");
+l.ZLogTrace($"foobarbaz");
 
 f.Dispose();
 
 // p.GetService<TakoYakiX>();
 
 //return;
+
+
+
+// Action<B>呼んでることになる
+Test.Call(x =>
+{
+    
+    x.BMethod();
+
+    // Aの候補がIntelliSenseに出てきてとぅらぃ
+    // (AMethod()を選択すると当然コンパイルエラー）
+    
+
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+public static class Test
+{
+    public static void Call(Action<A> action) { }
+    public static void Call(Action<B> action) { }
+}
+
+public class A
+{
+    public void AMethod() { }
+}
+
+
+public class B
+{
+    public void BMethod() { }
+}
+
+
+
 
 
 //var sp = new ServiceCollection().AddLogging(logging =>
@@ -119,7 +180,7 @@ class LoggingObserver : IObserver<string>
 {
     public void OnCompleted()
     {
-        Console.WriteLine(  "END");
+        // Console.WriteLine(  "END");
     }
 
     public void OnError(Exception error)
@@ -129,7 +190,7 @@ class LoggingObserver : IObserver<string>
 
     public void OnNext(string value)
     {
-        Console.WriteLine("YEAH:!!!" + value);
+        Console.WriteLine("Observer: " + value);
     }
 }
 
