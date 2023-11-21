@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 using ZLogger;
 using ZLogger.Formatters;
 
@@ -16,11 +11,11 @@ public static class CloudLoggingExtensions
 {
     // Cloud Logging Json Field
     // https://cloud.google.com/logging/docs/structured-logging?hl=en
-    public static void UseCloudLoggingJsonFormat(this ZLoggerOptions options)
+    public static ZLoggerOptions UseCloudLoggingJsonFormat(this ZLoggerOptions options)
     {
-        _ = options.UseJsonFormatter(formatter =>
+        return options.UseJsonFormatter(formatter =>
         {
-            // Category is manually write in AdditionalFormatter at labels
+            // Category and ScopeValues is manually write in AdditionalFormatter at labels so remove from include properties.
             formatter.IncludeProperties = Timestamp | LogLevel | Message | PropertyKeyValues;
 
             formatter.JsonPropertyNames = JsonPropertyNames.Default with
