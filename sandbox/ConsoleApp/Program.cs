@@ -24,47 +24,88 @@ using System.Net.Http;
 using System.Buffers;
 using System.Reflection.PortableExecutable;
 using System.Net.Mail;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 
 
 
-var sp = new ServiceCollection().AddLogging(logging =>
+var f = LoggerFactory.Create(logging =>
 {
-    logging.AddZLogger(zLogger =>
+    // logging.AddProvider(
+
+
+    // logging.Services.TryAddEnumerable
+
+    logging.AddZLogger(zlogger =>
     {
-        zLogger.AddInMemory();
 
+        zlogger.AddInMemory(processor =>
+        {
+            processor.Subscribe(new LoggingObserver());
+        });
 
-        //zLogger.AddFile("foo.log", option =>
-        //{
-        //    option.InternalErrorLogger = ex => Console.WriteLine(ex);
+        
 
-        //    option.UsePlainTextFormatter(formatter =>
-        //    {
-        //        formatter.SetPrefixFormatter($"{0:timeonly} | {1:short} | ", (template, info) => template.Format(info.Timestamp, info.LogLevel));
-        //    });
-        //});
     });
-}).BuildServiceProvider();
-
-var inmemory = sp.GetRequiredService<InMemoryObservableLogProcessor>();
-inmemory.Subscribe(new LoggingObserver());
-
-var factory = sp.GetRequiredService<ILoggerFactory>();
 
 
-var logger = factory.CreateLogger<Program>();
 
 
-var x = 10;
-var y = 20;
-var z = 30;
-var v3 = new MyVector3 { X = 1.0f, Y = 2.2f, Z = 9.9f };
+    // sc.AddTransient<IOptionsMonitor<ZLoggerConsoleOptions>>();
+    //logging.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerConsoleLoggerProvider>(x => new ZLoggerConsoleLoggerProvider("foo", x.GetRequiredService<IOptionsMonitor<ZLoggerConsoleOptions>>())));
+    //logging.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerConsoleLoggerProvider>(x => new ZLoggerConsoleLoggerProvider("foo", x.GetRequiredService<IOptionsMonitor<ZLoggerConsoleOptions>>())));
 
-logger.ZLogInformation($"v3 = {v3:json} is dead.");
+});
+
+var l = f.CreateLogger("my");
+
+l.ZLogInformation($"foobarbaz");
+
+f.Dispose();
+
+// p.GetService<TakoYakiX>();
+
+//return;
 
 
-factory.Dispose();
+//var sp = new ServiceCollection().AddLogging(logging =>
+//{
+//    logging.AddZLogger(zLogger =>
+//    {
+//        zLogger.AddInMemory();
+
+
+//        //zLogger.AddFile("foo.log", option =>
+//        //{
+//        //    option.InternalErrorLogger = ex => Console.WriteLine(ex);
+
+//        //    option.UsePlainTextFormatter(formatter =>
+//        //    {
+//        //        formatter.SetPrefixFormatter($"{0:timeonly} | {1:short} | ", (template, info) => template.Format(info.Timestamp, info.LogLevel));
+//        //    });
+//        //});
+//    });
+//}).BuildServiceProvider();
+
+//var inmemory = sp.GetRequiredService<InMemoryObservableLogProcessor>();
+//inmemory.Subscribe(new LoggingObserver());
+
+//var factory = sp.GetRequiredService<ILoggerFactory>();
+
+
+//var logger = factory.CreateLogger<Program>();
+
+
+//var x = 10;
+//var y = 20;
+//var z = 30;
+//var v3 = new MyVector3 { X = 1.0f, Y = 2.2f, Z = 9.9f };
+
+//logger.ZLogInformation($"v3 = {v3:json} is dead.");
+
+
+//factory.Dispose();
 
 public struct MyVector3
 {
@@ -78,7 +119,7 @@ class LoggingObserver : IObserver<string>
 {
     public void OnCompleted()
     {
-        throw new NotImplementedException();
+        Console.WriteLine(  "END");
     }
 
     public void OnError(Exception error)
@@ -92,6 +133,14 @@ class LoggingObserver : IObserver<string>
     }
 }
 
+
+class TakoYakiX
+{
+    public TakoYakiX(int one)
+    {
+        Console.WriteLine("ctor called:" + one);
+    }
+}
 public class InMemoryLogProcessor : IAsyncLogProcessor
 {
     ConcurrentQueue<IZLoggerEntry> queue = new ConcurrentQueue<IZLoggerEntry>();

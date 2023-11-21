@@ -1,27 +1,18 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System.Collections.Immutable;
 
 namespace ZLogger.Providers
 {
-    [ProviderAlias("ZLoggerInMemory")]
     public class ZLoggerInMemoryLoggerProvider : ILoggerProvider, ISupportExternalScope, IAsyncDisposable
     {
-        internal const string DefaultOptionName = "ZLoggerInMemory.Default";
-
         readonly ZLoggerOptions options;
         readonly InMemoryObservableLogProcessor processor;
         IExternalScopeProvider? scopeProvider;
 
-        public ZLoggerInMemoryLoggerProvider(InMemoryObservableLogProcessor processor, IOptionsMonitor<ZLoggerOptions> options)
-            : this(processor, DefaultOptionName, options)
-        {
-        }
-
-        public ZLoggerInMemoryLoggerProvider(InMemoryObservableLogProcessor processor, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
+        public ZLoggerInMemoryLoggerProvider(InMemoryObservableLogProcessor processor, ZLoggerOptions options)
         {
             this.processor = processor;
-            this.options = options.Get(optionName ?? DefaultOptionName);
+            this.options = options;
         }
 
         public ILogger CreateLogger(string categoryName)
@@ -48,7 +39,7 @@ namespace ZLogger.Providers
 
 namespace ZLogger
 {
-    public class InMemoryObservableLogProcessor : IAsyncLogProcessor, IObservable<string>
+    public class InMemoryObservableLogProcessor : IAsyncLogProcessor, IObservable<string>, IDisposable
     {
         bool isDisposed;
         ImmutableArray<IObserver<string>> observers = ImmutableArray<IObserver<string>>.Empty;
@@ -80,6 +71,11 @@ namespace ZLogger
             }
             ImmutableInterlocked.Update(ref observers, (xs) => xs.Clear());
             return default;
+        }
+
+        void IDisposable.Dispose()
+        {
+            (this as IAsyncDisposable).DisposeAsync().AsTask().Wait();
         }
 
         sealed class Subscription(InMemoryObservableLogProcessor parent, IObserver<string> observer) : IDisposable

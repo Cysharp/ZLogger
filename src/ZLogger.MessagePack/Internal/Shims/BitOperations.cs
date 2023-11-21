@@ -3,7 +3,6 @@ namespace System.Numerics;
 
 public class BitOperations
 {
-    [CLSCompliant(false)]
     public static int PopCount(uint value)
     {
         // if (Popcnt.IsSupported)

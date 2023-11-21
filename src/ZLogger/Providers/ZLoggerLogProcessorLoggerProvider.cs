@@ -1,26 +1,17 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace ZLogger.Providers
 {
-    [ProviderAlias("ZLoggerLogProcessor")]
     public class ZLoggerLogProcessorLoggerProvider : ILoggerProvider, ISupportExternalScope, IAsyncDisposable
     {
-        internal const string DefaultOptionName = "ZLoggerLogProcessor.Default";
-        
         readonly ZLoggerOptions options;
         readonly IAsyncLogProcessor processor;
         IExternalScopeProvider? scopeProvider;
 
-        public ZLoggerLogProcessorLoggerProvider(IAsyncLogProcessor processor, IOptionsMonitor<ZLoggerOptions> options)
-            : this(processor, DefaultOptionName, options)
-        {
-        }
-
-        public ZLoggerLogProcessorLoggerProvider(IAsyncLogProcessor processor, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
+        public ZLoggerLogProcessorLoggerProvider(IAsyncLogProcessor processor, ZLoggerOptions options)
         {
             this.processor = processor;
-            this.options = options.Get(optionName ?? DefaultOptionName);
+            this.options = options;
         }
 
         public ILogger CreateLogger(string categoryName)

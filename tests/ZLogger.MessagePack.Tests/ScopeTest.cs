@@ -17,17 +17,17 @@ namespace ZLogger.MessagePack.Tests
                 IncludeScopes = true
             };
             options.UseMessagePackFormatter();
-            
+
             processor = new TestProcessor(options);
 
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor, options => options.IncludeScopes = true));
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(_ => processor, options => options.IncludeScopes = true));
             });
             logger = loggerFactory.CreateLogger("test");
         }
-        
+
         [Fact]
         public void BeginScope_FormattedLogValuesToMessagePack()
         {
@@ -44,7 +44,7 @@ namespace ZLogger.MessagePack.Tests
             ((string?)msgpack["Y"]).Should().Be(null);
 
         }
-        
+
         [Fact]
         public void BeginScope_KeyValuePairToJson()
         {
@@ -59,7 +59,7 @@ namespace ZLogger.MessagePack.Tests
             ((string)msgpack["Message"]).Should().Be("FooBar100 NanoNano200");
             ((string)msgpack["Hoge"]).Should().Be("AAA");
         }
-        
+
         [Fact]
         public void BeginScope_AnyScopeValueToJson()
         {
@@ -74,7 +74,7 @@ namespace ZLogger.MessagePack.Tests
             ((string)msgpack["Message"]).Should().Be("FooBar100 NanoNano200");
             ((int)msgpack["Scope"]["x"]).Should().Be(999);
         }
-        
+
         [Fact]
         public void BeginScope_NestedToJson()
         {

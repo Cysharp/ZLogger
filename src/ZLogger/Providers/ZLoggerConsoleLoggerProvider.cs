@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace ZLogger.Providers
 {
@@ -9,30 +8,23 @@ namespace ZLogger.Providers
         public bool ConfigureEnableAnsiEscapeCode { get; set; } = false;
         public LogLevel LogToStandardErrorThreshold { get; set; } = LogLevel.None;
     }
-    
-    [ProviderAlias("ZLoggerConsole")]
+
     public class ZLoggerConsoleLoggerProvider : ILoggerProvider, ISupportExternalScope, IAsyncDisposable
     {
-        internal const string DefaultOptionName = "ZLoggerConsole.Default";
-
-        readonly ZLoggerOptions options;
+        readonly ZLoggerConsoleOptions options;
         readonly IAsyncLogProcessor processor;
-        IExternalScopeProvider? scopeProvider; 
+        IExternalScopeProvider? scopeProvider;
 
-        public ZLoggerConsoleLoggerProvider(IOptionsMonitor<ZLoggerOptions> options)
-            : this(DefaultOptionName, options)
+        public ZLoggerConsoleLoggerProvider(ZLoggerConsoleOptions options)
         {
-        }
-
-        public ZLoggerConsoleLoggerProvider(string optionName, IOptionsMonitor<ZLoggerOptions> options, LogLevel logToStandardErrorThreshold = LogLevel.None)
-        {
-            this.options = options.Get(optionName);
-            if (logToStandardErrorThreshold == LogLevel.None)
+            this.options = options;
+            if (options.LogToStandardErrorThreshold == LogLevel.None)
             {
                 processor = new AsyncStreamLineMessageWriter(Console.OpenStandardOutput(), this.options);
             }
             else
             {
+                var logToStandardErrorThreshold = options.LogToStandardErrorThreshold;
                 processor = new CompositeAsyncLogProcessor(
                      new AsyncStreamLineMessageWriter(Console.OpenStandardOutput(), this.options, level => level < logToStandardErrorThreshold),
                      new AsyncStreamLineMessageWriter(Console.OpenStandardError(), this.options, level => level >= logToStandardErrorThreshold));

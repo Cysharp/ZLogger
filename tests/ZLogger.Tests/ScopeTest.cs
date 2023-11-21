@@ -27,7 +27,7 @@ namespace ZLogger.Tests
                 x.SetMinimumLevel(LogLevel.Debug);
                 x.AddZLogger(zLogger =>
                 {
-                    zLogger.AddLogProcessor(processor, options =>
+                    zLogger.AddLogProcessor(_ => processor, options =>
                     {
                         options.IncludeScopes = true;
                     });

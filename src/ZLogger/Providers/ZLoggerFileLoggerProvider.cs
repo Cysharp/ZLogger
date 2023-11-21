@@ -1,24 +1,14 @@
-﻿using System.IO;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
 
 namespace ZLogger.Providers
 {
-    [ProviderAlias("ZLoggerFile")]
     public class ZLoggerFileLoggerProvider : ILoggerProvider, ISupportExternalScope, IAsyncDisposable
     {
-        internal const string DefaultOptionName = "ZLoggerFile.Default";
-
         readonly ZLoggerOptions options;
         readonly AsyncStreamLineMessageWriter streamWriter;
         IExternalScopeProvider? scopeProvider;
 
-        public ZLoggerFileLoggerProvider(string filePath, IOptionsMonitor<ZLoggerOptions> options)
-            : this(filePath, DefaultOptionName, options)
-        {
-        }
-
-        public ZLoggerFileLoggerProvider(string filePath, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
+        public ZLoggerFileLoggerProvider(string filePath, ZLoggerOptions options)
         {
             var di = new FileInfo(filePath).Directory;
             if (!di!.Exists)
@@ -26,7 +16,7 @@ namespace ZLogger.Providers
                 di.Create();
             }
 
-            this.options = options.Get(optionName ?? DefaultOptionName);
+            this.options = options;
 
             // useAsync:false, use sync(in thread) processor, don't use FileStream buffer(use buffer size = 1).
             var stream = new FileStream(filePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 1, false);
