@@ -34,8 +34,10 @@ namespace ZLogger
         EventIdName = 1 << 4,
         Message = 1 << 5,
         Exception = 1 << 6,
-        Default = Timestamp | LogLevel | CategoryName | Message | Exception,
-        All = Timestamp | LogLevel | CategoryName | EventIdValue | EventIdName | Message | Exception
+        ScopeKeyValues = 1 << 7,
+        PropertyKeyValues = 1 << 8,
+        Default = Timestamp | LogLevel | CategoryName | Message | Exception | ScopeKeyValues | PropertyKeyValues,
+        All = Timestamp | LogLevel | CategoryName | EventIdValue | EventIdName | Message | Exception | ScopeKeyValues | PropertyKeyValues
     }
 }
 
@@ -103,9 +105,10 @@ namespace ZLogger.Formatters
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
 
-        public Action<Utf8JsonWriter>? AdditionalFormatter { get; set; }
-        public JsonEncodedText? ParametersObjectName { get; set; }
+        public Action<Utf8JsonWriter, LogInfo>? AdditionalFormatter { get; set; }
+        public JsonEncodedText? PropertyKeyValuesObjectName { get; set; } // if null(default), non nested.
         public IKeyNameMutator? KeyNameMutator { get; set; }
+        public bool UseUtcTimestamp { get; set; } // default is false, use Local.
 
         Utf8JsonWriter? jsonWriter;
 
@@ -128,41 +131,47 @@ namespace ZLogger.Formatters
             }
 
             // Scope
-            if (entry.ScopeState is { IsEmpty: false } scopeState)
+            if ((IncludeProperties & IncludeProperties.ScopeKeyValues) != 0)
             {
-                var properties = scopeState.Properties;
-                for (var i = 0; i < properties.Length; i++)
+                if (entry.ScopeState is { IsEmpty: false } scopeState)
                 {
-                    var x = properties[i];
-                    // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
-                    if (x.Key == "{OriginalFormat}") continue;
-
-                    WriteMutatedJsonKeyName(x.Key.AsSpan(), jsonWriter, KeyNameMutator);
-
-                    if (x.Value is { } value)
+                    var properties = scopeState.Properties;
+                    for (var i = 0; i < properties.Length; i++)
                     {
-                        JsonSerializer.Serialize(jsonWriter, value, JsonSerializerOptions);
-                    }
-                    else
-                    {
-                        jsonWriter.WriteNullValue();
+                        var x = properties[i];
+                        // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
+                        if (x.Key == "{OriginalFormat}") continue;
+
+                        WriteMutatedJsonKeyName(x.Key.AsSpan(), jsonWriter, KeyNameMutator);
+
+                        if (x.Value is { } value)
+                        {
+                            JsonSerializer.Serialize(jsonWriter, value, JsonSerializerOptions);
+                        }
+                        else
+                        {
+                            jsonWriter.WriteNullValue();
+                        }
                     }
                 }
             }
 
             // Additional
-            AdditionalFormatter?.Invoke(jsonWriter);
+            AdditionalFormatter?.Invoke(jsonWriter, entry.LogInfo);
 
             // Params
-            if (ParametersObjectName == null)
+            if ((IncludeProperties & IncludeProperties.PropertyKeyValues) != 0)
             {
-                entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, KeyNameMutator);
-            }
-            else
-            {
-                jsonWriter.WriteStartObject(ParametersObjectName.Value);
-                entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, KeyNameMutator);
-                jsonWriter.WriteEndObject();
+                if (PropertyKeyValuesObjectName == null)
+                {
+                    entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, KeyNameMutator);
+                }
+                else
+                {
+                    jsonWriter.WriteStartObject(PropertyKeyValuesObjectName.Value);
+                    entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, KeyNameMutator);
+                    jsonWriter.WriteEndObject();
+                }
             }
 
             jsonWriter.WriteEndObject();
@@ -197,7 +206,7 @@ namespace ZLogger.Formatters
             var flag = IncludeProperties;
             if ((flag & IncludeProperties.Timestamp) != 0)
             {
-                jsonWriter.WriteString(JsonPropertyNames.Timestamp, info.Timestamp.Local); // use Local
+                jsonWriter.WriteString(JsonPropertyNames.Timestamp, UseUtcTimestamp ? info.Timestamp.Utc : info.Timestamp.Local);
             }
             if ((flag & IncludeProperties.LogLevel) != 0)
             {

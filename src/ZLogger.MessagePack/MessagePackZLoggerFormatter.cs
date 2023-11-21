@@ -75,20 +75,29 @@ namespace ZLogger.MessagePack
         public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
         {
             var messagePackWriter = new MessagePackWriter(writer);
-            var propCount = BitOperations.PopCount((uint)IncludeProperties) + entry.ParameterCount;
+            var propCount = BitOperations.PopCount((uint)IncludeProperties);
+
+            if ((IncludeProperties & IncludeProperties.PropertyKeyValues) != 0)
+            {
+                propCount--;
+                propCount += entry.ParameterCount;
+            }
             if (entry.LogInfo.Exception == null && ((IncludeProperties & IncludeProperties.Exception) != 0))
             {
                 propCount--;
             }
-
-            if (entry.ScopeState != null)
+            if ((IncludeProperties & IncludeProperties.ScopeKeyValues) != 0)
             {
-                var scopeProperties = entry.ScopeState.Properties;
-                for (var i = 0; i < scopeProperties.Length; i++)
+                propCount--;
+                if (entry.ScopeState != null)
                 {
-                    if (scopeProperties[i].Key != "{OriginalFormat}")
+                    var scopeProperties = entry.ScopeState.Properties;
+                    for (var i = 0; i < scopeProperties.Length; i++)
                     {
-                        propCount++;
+                        if (scopeProperties[i].Key != "{OriginalFormat}")
+                        {
+                            propCount++;
+                        }
                     }
                 }
             }
@@ -142,43 +151,47 @@ namespace ZLogger.MessagePack
             }
 
             // Scope
-
-            if (entry.ScopeState != null)
+            if ((flag & IncludeProperties.ScopeKeyValues) != 0)
             {
-                var scopeProperties = entry.ScopeState.Properties;
-                for (var i = 0; i < scopeProperties.Length; i++)
+                if (entry.ScopeState != null)
                 {
-                    var (key, value) = scopeProperties[i];
-                    // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
-                    if (key == "{OriginalFormat}") continue;
+                    var scopeProperties = entry.ScopeState.Properties;
+                    for (var i = 0; i < scopeProperties.Length; i++)
+                    {
+                        var (key, value) = scopeProperties[i];
+                        // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
+                        if (key == "{OriginalFormat}") continue;
 
-                    WriteKeyName(ref messagePackWriter, key);
-                    if (value == null)
-                    {
-                        messagePackWriter.WriteNil();
-                    }
-                    else
-                    {
-                        MessagePackSerializer.Serialize(value.GetType(), ref messagePackWriter, value, MessagePackSerializerOptions);
+                        WriteKeyName(ref messagePackWriter, key);
+                        if (value == null)
+                        {
+                            messagePackWriter.WriteNil();
+                        }
+                        else
+                        {
+                            MessagePackSerializer.Serialize(value.GetType(), ref messagePackWriter, value, MessagePackSerializerOptions);
+                        }
                     }
                 }
             }
 
             // Params
-
-            for (var i = 0; i < entry.ParameterCount; i++)
+            if ((flag & IncludeProperties.PropertyKeyValues) != 0)
             {
-                if (entry.IsSupportUtf8ParameterKey)
+                for (var i = 0; i < entry.ParameterCount; i++)
                 {
-                    var key = entry.GetParameterKey(i);
-                    messagePackWriter.Write(key);
-                }
-                else
-                {
-                    WriteKeyName(ref messagePackWriter, entry, i);
-                }
+                    if (entry.IsSupportUtf8ParameterKey)
+                    {
+                        var key = entry.GetParameterKey(i);
+                        messagePackWriter.Write(key);
+                    }
+                    else
+                    {
+                        WriteKeyName(ref messagePackWriter, entry, i);
+                    }
 
-                WriteParameterValue(ref messagePackWriter, entry, entry.GetParameterType(i), i);
+                    WriteParameterValue(ref messagePackWriter, entry, entry.GetParameterType(i), i);
+                }
             }
 
 

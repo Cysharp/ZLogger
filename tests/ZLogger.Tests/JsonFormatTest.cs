@@ -29,7 +29,7 @@ namespace ZLogger.Tests
 
                         options.UseJsonFormatter(formatter =>
                         {
-                            formatter.AdditionalFormatter = (writer) =>
+                            formatter.AdditionalFormatter = (writer, _) =>
                             {
                                 writer.WriteString(hashProp, sourceCodeHash);
                             };
@@ -233,7 +233,7 @@ namespace ZLogger.Tests
             options.UseJsonFormatter(formatter =>
             {
                 formatter.KeyNameMutator = KeyNameMutator.LastMemberName;
-                formatter.ParametersObjectName = JsonEncodedText.Encode("Payload");
+                formatter.PropertyKeyValuesObjectName = JsonEncodedText.Encode("Payload");
             });
 
             var processor = new TestProcessor(options);
