@@ -11,12 +11,12 @@ namespace ZLogger
 {
     public static class ZLoggerOptionsSystemTextJsonExtensions
     {
-        public static ZLoggerOptions UseJsonFormatter(this ZLoggerOptions options, Action<SystemTextJsonZLoggerFormatter>? jsonConfigure = null)
+        public static ZLoggerOptions UseJsonFormatter(this ZLoggerOptions options, Action<SystemTextJsonZLoggerFormatter>? configure = null)
         {
             return options.UseFormatter(() =>
             {
                 var formatter = new SystemTextJsonZLoggerFormatter();
-                jsonConfigure?.Invoke(formatter);
+                configure?.Invoke(formatter);
                 return formatter;
             });
         }

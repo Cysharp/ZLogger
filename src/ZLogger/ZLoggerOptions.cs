@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using ZLogger.Formatters;
 
 namespace ZLogger
@@ -19,17 +20,12 @@ namespace ZLogger
             return this;
         }
 
-        public ZLoggerOptions UsePlainTextFormatter()
-        {
-            return UsePlainTextFormatter(_ => { });
-        }
-
-        public ZLoggerOptions UsePlainTextFormatter(Action<PlainTextZLoggerFormatter> formatterConfigure)
+        public ZLoggerOptions UsePlainTextFormatter(Action<PlainTextZLoggerFormatter>? configure)
         {
             UseFormatter(() =>
             {
                 var formatter = new PlainTextZLoggerFormatter();
-                formatterConfigure.Invoke(formatter);
+                configure?.Invoke(formatter);
                 return formatter;
             });
             return this;

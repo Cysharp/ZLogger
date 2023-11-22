@@ -1,3 +1,40 @@
+ZLogger v2 ReadMe(TBD)
+
+
+
+
+
+
+
+
+## ZLoggerOptions
+
+
+| Name   | Description |
+| ---- | ---- |
+| `bool IncludeScopes { get; set; }` | Enable `ILogger.BeginScope`, default is `false`. |
+| `TimeProvider? TimeProvider { get; set; }` | NANTOKA , default is `null`. |
+| `TimeSpan? FlushRate { get; set; }` | NANTOKA, default is `null`. |
+| `Action<Exception>? InternalErrorLogger { get; set; }` | NANTOKA, default is `null`. |
+| `CreateFormatter()` | TD |
+| `UseFormatter()` | TD |
+| `UsePlainTextFormatter(Action<PlainTextZLoggerFormatter>? configure = null)` | TD |
+| `UseJsonFormatter(Action<SystemTextJsonZLoggerFormatter>? configure = null)` | TD |
+
+TODO:...
+default formatter is PlaintTextFormatter.
+
+## TODO: Formatter Configurations....
+
+
+## TODO: ZLoggerBuilder
+
+
+# -----------------------------
+
+v1.
+
+
 ZLogger
 ===
 [![GitHub Actions](https://github.com/Cysharp/ZLogger/workflows/Build-Debug/badge.svg)](https://github.com/Cysharp/ZLogger/actions) [![Releases](https://img.shields.io/github/release/Cysharp/ZLogger.svg)](https://github.com/Cysharp/ZLogger/releases)
