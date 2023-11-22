@@ -7,7 +7,7 @@ using ZLogger.Internal;
 
 namespace ZLogger
 {
-    public class AsyncStreamLineMessageWriter : IAsyncLogProcessor, IAsyncDisposable
+    public sealed class AsyncStreamLineMessageWriter : IAsyncLogProcessor, IAsyncDisposable
     {
         readonly byte[] newLine;
         readonly bool crlf;
@@ -21,7 +21,14 @@ namespace ZLogger
         readonly Func<LogLevel, bool>? levelFilter;
         readonly CancellationTokenSource cancellationTokenSource;
 
-        public AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options, Func<LogLevel, bool>? levelFilter = null)
+        public AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options)
+            : this(stream, options, null)
+        {
+        }
+
+        // handling `Func<LogLevel, bool>? levelFilter` correctly is very context dependent.
+        // so only allows internal provider.
+        internal AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options, Func<LogLevel, bool>? levelFilter = null)
         {
             this.newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
             this.cancellationTokenSource = new CancellationTokenSource();

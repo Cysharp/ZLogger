@@ -2,14 +2,14 @@
 
 namespace ZLogger.Providers;
 
-public class ZLoggerConsoleOptions : ZLoggerOptions
+public sealed class ZLoggerConsoleOptions : ZLoggerOptions
 {
     public bool OutputEncodingToUtf8 { get; set; } = true;
     public bool ConfigureEnableAnsiEscapeCode { get; set; } = false;
     public LogLevel LogToStandardErrorThreshold { get; set; } = LogLevel.None;
 }
 
-public class ZLoggerConsoleLoggerProvider : ILoggerProvider, ISupportExternalScope, IAsyncDisposable
+public sealed class ZLoggerConsoleLoggerProvider : ILoggerProvider, ISupportExternalScope, IAsyncDisposable
 {
     readonly ZLoggerConsoleOptions options;
     readonly IAsyncLogProcessor processor;
@@ -51,10 +51,12 @@ public class ZLoggerConsoleLoggerProvider : ILoggerProvider, ISupportExternalSco
         this.scopeProvider = scopeProvider;
     }
 
-    sealed class DualAsyncLogProcessor(IAsyncLogProcessor processor1, IAsyncLogProcessor processor2) : IAsyncLogProcessor
+    sealed class DualAsyncLogProcessor(AsyncStreamLineMessageWriter processor1, AsyncStreamLineMessageWriter processor2) : IAsyncLogProcessor
     {
         public void Post(IZLoggerEntry log)
         {
+            // Post two entry is dangerous for log-state reference count cache.
+            // However filtered reader-loop does not call Return so ok to post multiple.
             processor1.Post(log);
             processor2.Post(log);
         }

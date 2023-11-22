@@ -51,11 +51,7 @@ var f = LoggerFactory.Create(logging =>
             options.OutputEncodingToUtf8 = true;
             options.ConfigureEnableAnsiEscapeCode = true;
 
-            options.UseJsonFormatter(formatter =>
-            {
-                formatter.KeyNameMutator = KeyNameMutator.LastMemberName;
-            });
-
+            options.LogToStandardErrorThreshold = LogLevel.Error;
         });
 
 
@@ -71,13 +67,17 @@ var f = LoggerFactory.Create(logging =>
 
 });
 
-//var l = f.CreateLogger("my");
-//var x = 10;
-//var y = 20;
-//var z = 30;
-//l.ZLogTrace($"foo: {("tako.", x)} bar: {y} baz: {z}");
+var l = f.CreateLogger("my");
+var x = 10;
+var y = 20;
+var z = 30;
 
-//f.Dispose();
+
+Console.Error.WriteLine("ERROR");
+// l.ZLogTrace($"foo: {("tako.", x)} bar: {y} baz: {z}");
+// l.ZLogError($"foo: {("tako.", x)} bar: {y} baz: {z}");
+
+f.Dispose();
 
 //// p.GetService<TakoYakiX>();
 
@@ -86,23 +86,23 @@ var f = LoggerFactory.Create(logging =>
 
 
 
-Foo(100); // 100
-Foo((((((((100)))))))); // 100
+//Foo(100); // 100
+//Foo((((((((100)))))))); // 100
 
-var bar = new { X = 100 };
-Foo(bar.X); // bar.X
+//var bar = new { X = 100 };
+//Foo(bar.X); // bar.X
 
-Foo(((((bar.X))))); // bar.X
+//Foo(((((bar.X))))); // bar.X
 
-Foo(new { X = 100 }.X); // new { X = 100 }.X
+//Foo(new { X = 100 }.X); // new { X = 100 }.X
 
-Foo((100, 200).Item1); // (100, 200).Item1
+//Foo((100, 200).Item1); // (100, 200).Item1
 
 
-static void Foo(int x, [CallerArgumentExpression("x")] string? caller = null)
-{
-    Console.WriteLine(caller);
-}
+//static void Foo(int x, [CallerArgumentExpression("x")] string? caller = null)
+//{
+//    Console.WriteLine(caller);
+//}
 
 
 
