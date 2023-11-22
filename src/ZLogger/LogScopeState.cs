@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ZLogger
 {
-    public class LogScopeState
+    public sealed class LogScopeState
     {
         const string DefaultScopeKeyName = "Scope";
         static readonly ConcurrentQueue<LogScopeState> cache = new();
