@@ -50,14 +50,14 @@ var f = LoggerFactory.Create(logging =>
             //processor = TimeSpan.FromSeconds(1);
             processor.Subscribe(new LoggingObserver());
 
-            
-            
-            
+
+
+
         });
 
-        zlogger.AddInMemory("foo", (x,i) =>
+        zlogger.AddInMemory("foo", (x, i) =>
         {
-            
+
         }, _ => { });
 
 
@@ -74,8 +74,10 @@ var f = LoggerFactory.Create(logging =>
 });
 
 var l = f.CreateLogger("my");
-
-l.ZLogTrace($"foobarbaz");
+var x = 10;
+var y = 20;
+var z = 30;
+l.ZLogTrace($"foo: {x} bar: {y} baz: {z}");
 
 f.Dispose();
 
@@ -88,12 +90,12 @@ f.Dispose();
 // Action<B>呼んでることになる
 Test.Call(x =>
 {
-    
+
     x.BMethod();
 
     // Aの候補がIntelliSenseに出てきてとぅらぃ
     // (AMethod()を選択すると当然コンパイルエラー）
-    
+
 
 });
 

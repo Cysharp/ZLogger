@@ -35,9 +35,9 @@ namespace ZLogger
         Message = 1 << 5,
         Exception = 1 << 6,
         ScopeKeyValues = 1 << 7,
-        PropertyKeyValues = 1 << 8,
-        Default = Timestamp | LogLevel | CategoryName | Message | Exception | ScopeKeyValues | PropertyKeyValues,
-        All = Timestamp | LogLevel | CategoryName | EventIdValue | EventIdName | Message | Exception | ScopeKeyValues | PropertyKeyValues
+        ParameterKeyValues = 1 << 8,
+        Default = Timestamp | LogLevel | CategoryName | Message | Exception | ScopeKeyValues | ParameterKeyValues,
+        All = Timestamp | LogLevel | CategoryName | EventIdValue | EventIdName | Message | Exception | ScopeKeyValues | ParameterKeyValues
     }
 }
 
@@ -160,7 +160,7 @@ namespace ZLogger.Formatters
             AdditionalFormatter?.Invoke(jsonWriter, entry.LogInfo);
 
             // Params
-            if ((IncludeProperties & IncludeProperties.PropertyKeyValues) != 0)
+            if ((IncludeProperties & IncludeProperties.ParameterKeyValues) != 0)
             {
                 if (PropertyKeyValuesObjectName == null)
                 {

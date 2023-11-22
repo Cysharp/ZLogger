@@ -16,7 +16,7 @@ public static class CloudLoggingExtensions
         return options.UseJsonFormatter(formatter =>
         {
             // Category and ScopeValues is manually write in AdditionalFormatter at labels so remove from include properties.
-            formatter.IncludeProperties = Timestamp | LogLevel | Message | PropertyKeyValues;
+            formatter.IncludeProperties = Timestamp | LogLevel | Message | ParameterKeyValues;
 
             formatter.JsonPropertyNames = JsonPropertyNames.Default with
             {

@@ -6,7 +6,7 @@ using ZLogger.Internal;
 
 namespace ZLogger.LogStates
 {
-    internal class InterpolatedStringLogState : IZLoggerFormattable, IReferenceCountable, IObjectPoolNode<InterpolatedStringLogState>
+    internal sealed class InterpolatedStringLogState : IZLoggerFormattable, IReferenceCountable, IObjectPoolNode<InterpolatedStringLogState>
     {
         static readonly ObjectPool<InterpolatedStringLogState> cache = new();
 
@@ -31,8 +31,8 @@ namespace ZLogger.LogStates
 
         InterpolatedStringLogState()
         {
-            this.magicalBoxStorage = new byte[1024];
-            this.parameters = new InterpolatedStringParameter[24];
+            this.magicalBoxStorage = new byte[256];
+            this.parameters = new InterpolatedStringParameter[16];
         }
 
         public static InterpolatedStringLogState Create(int formattedCount)
