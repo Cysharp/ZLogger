@@ -46,8 +46,6 @@ public class ZLoggerBuilder(ILoggingBuilder loggingBuilder)
     }
 
     public ZLoggerBuilder AddInMemory(Action<InMemoryObservableLogProcessor> configureProcessor) => AddInMemory(null, (_, _) => { }, configureProcessor);
-    // for IntelliSense, remove this overload
-    // public ZLoggerBuilder AddInMemory(Action<ZLoggerOptions> configure, Action<InMemoryObservableLogProcessor> configureProcessor) => AddInMemory(null, (o, _) => configure(o), configureProcessor);
     public ZLoggerBuilder AddInMemory(Action<ZLoggerOptions, IServiceProvider> configure, Action<InMemoryObservableLogProcessor> configureProcessor) => AddInMemory(null, configure, configureProcessor);
     public ZLoggerBuilder AddInMemory(object? processorKey, Action<ZLoggerOptions> configure, Action<InMemoryObservableLogProcessor> configureProcessor) => AddInMemory(processorKey, (o, _) => configure(o), configureProcessor);
     public ZLoggerBuilder AddInMemory(object? processorKey, Action<ZLoggerOptions, IServiceProvider> configure, Action<InMemoryObservableLogProcessor> configureProcessor)
@@ -67,18 +65,13 @@ public class ZLoggerBuilder(ILoggingBuilder loggingBuilder)
         return this;
     }
 
-    public ZLoggerBuilder AddLogProcessor(IAsyncLogProcessor logProcessor) => AddLogProcessor((_, _) => logProcessor, (_, _) => { });
-    public ZLoggerBuilder AddLogProcessor(Func<ZLoggerOptions, IAsyncLogProcessor> logProcessorFactory) => AddLogProcessor((o, _) => logProcessorFactory(o), (_, _) => { });
-    public ZLoggerBuilder AddLogProcessor(Func<ZLoggerOptions, IServiceProvider, IAsyncLogProcessor> logProcessorFactory) => AddLogProcessor(logProcessorFactory, (_, _) => { });
-    public ZLoggerBuilder AddLogProcessor(Func<ZLoggerOptions, IAsyncLogProcessor> logProcessorFactory, Action<ZLoggerOptions> configure) => AddLogProcessor((o, _) => logProcessorFactory(o), (o, _) => configure(o));
-    public ZLoggerBuilder AddLogProcessor(Func<ZLoggerOptions, IServiceProvider, IAsyncLogProcessor> logProcessorFactory, Action<ZLoggerOptions> configure) => AddLogProcessor(logProcessorFactory, (o, _) => configure(o));
-    public ZLoggerBuilder AddLogProcessor(Func<ZLoggerOptions, IServiceProvider, IAsyncLogProcessor> logProcessorFactory, Action<ZLoggerOptions, IServiceProvider> configure)
+    public ZLoggerBuilder AddLogProcessor(IAsyncLogProcessor logProcessor) => AddLogProcessor((_, _) => logProcessor);
+    public ZLoggerBuilder AddLogProcessor(Func<ZLoggerOptions, IAsyncLogProcessor> logProcessorFactory) => AddLogProcessor((o, _) => logProcessorFactory(o));
+    public ZLoggerBuilder AddLogProcessor(Func<ZLoggerOptions, IServiceProvider, IAsyncLogProcessor> logProcessorFactory)
     {
         loggingBuilder.Services.AddSingleton<ILoggerProvider, ZLoggerLogProcessorLoggerProvider>(serviceProvider =>
         {
             var options = new ZLoggerOptions();
-            configure(options, serviceProvider);
-
             var processor = logProcessorFactory(options, serviceProvider);
             return new ZLoggerLogProcessorLoggerProvider(processor, options);
         });
@@ -86,16 +79,14 @@ public class ZLoggerBuilder(ILoggingBuilder loggingBuilder)
         return this;
     }
 
-    public ZLoggerBuilder AddStream(Stream stream) => AddStream((_, _) => stream, (_, _) => { });
-    public ZLoggerBuilder AddStream(Stream stream, Action<ZLoggerOptions> configure) => AddStream((_, _) => stream, (o, _) => configure(o));
-    public ZLoggerBuilder AddStream(Stream stream, Action<ZLoggerOptions, IServiceProvider> configure) => AddStream((_, _) => stream, configure);
-    public ZLoggerBuilder AddStream(Func<ZLoggerOptions, IServiceProvider, Stream> streamFactory, Action<ZLoggerOptions, IServiceProvider> configure)
+    public ZLoggerBuilder AddStream(Stream stream) => AddStream((_, _) => stream);
+    public ZLoggerBuilder AddStream(Stream stream, Action<ZLoggerOptions> configure) => AddStream((o, _) => { configure(o); return stream; });
+    public ZLoggerBuilder AddStream(Stream stream, Action<ZLoggerOptions, IServiceProvider> configure) => AddStream((o, p) => { configure(o, p); return stream; });
+    public ZLoggerBuilder AddStream(Func<ZLoggerOptions, IServiceProvider, Stream> streamFactory)
     {
         loggingBuilder.Services.AddSingleton<ILoggerProvider, ZLoggerStreamLoggerProvider>(serviceProvider =>
         {
             var options = new ZLoggerOptions();
-            configure(options, serviceProvider);
-
             var stream = streamFactory(options, serviceProvider);
             return new ZLoggerStreamLoggerProvider(stream, options);
         });
@@ -103,16 +94,14 @@ public class ZLoggerBuilder(ILoggingBuilder loggingBuilder)
         return this;
     }
 
-    public ZLoggerBuilder AddFile(string fileName) => AddFile((_, _) => fileName, (_, _) => { });
-    public ZLoggerBuilder AddFile(string fileName, Action<ZLoggerOptions> configure) => AddFile((_, _) => fileName, (o, _) => configure(o));
-    public ZLoggerBuilder AddFile(string fileName, Action<ZLoggerOptions, IServiceProvider> configure) => AddFile((_, _) => fileName, configure);
-    public ZLoggerBuilder AddFile(Func<ZLoggerOptions, IServiceProvider, string> fileNameFactory, Action<ZLoggerOptions, IServiceProvider> configure)
+    public ZLoggerBuilder AddFile(string fileName) => AddFile((_, _) => fileName);
+    public ZLoggerBuilder AddFile(string fileName, Action<ZLoggerOptions> configure) => AddFile((o, _) => { configure(o); return fileName; });
+    public ZLoggerBuilder AddFile(string fileName, Action<ZLoggerOptions, IServiceProvider> configure) => AddFile((o, p) => { configure(o, p); return fileName; });
+    public ZLoggerBuilder AddFile(Func<ZLoggerOptions, IServiceProvider, string> fileNameFactory)
     {
         loggingBuilder.Services.AddSingleton<ILoggerProvider, ZLoggerFileLoggerProvider>(serviceProvider =>
         {
             var options = new ZLoggerOptions();
-            configure(options, serviceProvider);
-
             var fileName = fileNameFactory(options, serviceProvider);
             return new ZLoggerFileLoggerProvider(fileName, options);
         });

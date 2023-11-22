@@ -30,84 +30,49 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 
 
-var f = LoggerFactory.Create(logging =>
+
+var zLoggerFactory = LoggerFactory.Create(logging =>
 {
-    logging.SetMinimumLevel(LogLevel.Trace);
-
-    //logging.AddFilter<ZLoggerInMemoryLoggerProvider>(x => x is LogLevel.Warning or LogLevel.Trace);
-
-
-    // logging.AddProvider(
-
-
-    // logging.Services.TryAddEnumerable
-
-    logging.AddZLogger(zlogger =>
+    logging.AddZLogger(zLogger =>
     {
-        zlogger.AddConsole(options =>
-        {
-
-
-            options.OutputEncodingToUtf8 = true;
-            options.ConfigureEnableAnsiEscapeCode = true;
-
-            options.LogToStandardErrorThreshold = LogLevel.Error;
-        });
-
-
-
+        zLogger.AddLogProcessor(new EmptyLogProcessor());
     });
-
-
-
-
-    // sc.AddTransient<IOptionsMonitor<ZLoggerConsoleOptions>>();
-    //logging.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerConsoleLoggerProvider>(x => new ZLoggerConsoleLoggerProvider("foo", x.GetRequiredService<IOptionsMonitor<ZLoggerConsoleOptions>>())));
-    //logging.Services.Add(ServiceDescriptor.Singleton<ILoggerProvider, ZLoggerConsoleLoggerProvider>(x => new ZLoggerConsoleLoggerProvider("foo", x.GetRequiredService<IOptionsMonitor<ZLoggerConsoleOptions>>())));
-
 });
 
-var l = f.CreateLogger("my");
-var x = 10;
-var y = 20;
-var z = 30;
+var zLogger = zLoggerFactory.CreateLogger("my");
+
+Log(zLogger);
+
+GC.Collect();
+GC.WaitForPendingFinalizers();
+GC.Collect();
+
+Log(zLogger);
 
 
-Console.Error.WriteLine("ERROR");
-// l.ZLogTrace($"foo: {("tako.", x)} bar: {y} baz: {z}");
-// l.ZLogError($"foo: {("tako.", x)} bar: {y} baz: {z}");
-
-f.Dispose();
-
-//// p.GetService<TakoYakiX>();
-
-////return;
+Console.ReadLine();
 
 
+void Log(ILogger logger)
+{
+    var x = 10;
+    var y = 20;
+    var z = 30;
+    logger.ZLogInformation($"foo{x} bar{y} nazo{z}");
+}
 
+class EmptyLogProcessor : IAsyncLogProcessor
+{
+    public ValueTask DisposeAsync()
+    {
+        return default;
+    }
 
-//Foo(100); // 100
-//Foo((((((((100)))))))); // 100
-
-//var bar = new { X = 100 };
-//Foo(bar.X); // bar.X
-
-//Foo(((((bar.X))))); // bar.X
-
-//Foo(new { X = 100 }.X); // new { X = 100 }.X
-
-//Foo((100, 200).Item1); // (100, 200).Item1
-
-
-//static void Foo(int x, [CallerArgumentExpression("x")] string? caller = null)
-//{
-//    Console.WriteLine(caller);
-//}
-
-
-
-
-
+    public void Post(IZLoggerEntry log)
+    {
+        log.Return();
+    }
+}
 
 
 
