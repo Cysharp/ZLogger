@@ -29,7 +29,7 @@ public class TimestampTest
         {
             builder.AddZLogger(zlogger =>
             {
-                zlogger.AddLogProcessor(_ =>processor, options =>
+                zlogger.AddLogProcessor(options =>
                 {
                     options.TimeProvider = new FakeTime();
                     options.UsePlainTextFormatter(formatter =>
@@ -37,6 +37,8 @@ public class TimestampTest
                         formatter.SetPrefixFormatter(prefixTemplate, (template, info) => template.Format(info.Timestamp));
                     });
                     processor.SetOptions(options);
+                    
+                    return processor;
                 });
             });
         });

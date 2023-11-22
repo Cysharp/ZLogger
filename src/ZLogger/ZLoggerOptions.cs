@@ -20,7 +20,7 @@ namespace ZLogger
             return this;
         }
 
-        public ZLoggerOptions UsePlainTextFormatter(Action<PlainTextZLoggerFormatter>? configure)
+        public ZLoggerOptions UsePlainTextFormatter(Action<PlainTextZLoggerFormatter>? configure = null)
         {
             UseFormatter(() =>
             {
