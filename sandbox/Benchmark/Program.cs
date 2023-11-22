@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics.Metrics;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,8 @@ using ZLogger;
 
 BenchmarkSwitcher.FromAssembly(Assembly.GetEntryAssembly()!).Run(args);
 //BenchmarkRunner.Run<WriteJsonToFile>(args: args);
+
+
 
 #else
 

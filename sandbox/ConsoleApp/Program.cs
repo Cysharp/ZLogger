@@ -34,7 +34,7 @@ var f = LoggerFactory.Create(logging =>
 {
     logging.SetMinimumLevel(LogLevel.Trace);
 
-    logging.AddFilter<ZLoggerInMemoryLoggerProvider>(x => x is LogLevel.Warning or LogLevel.Trace);
+    //logging.AddFilter<ZLoggerInMemoryLoggerProvider>(x => x is LogLevel.Warning or LogLevel.Trace);
 
 
     // logging.AddProvider(
@@ -44,21 +44,19 @@ var f = LoggerFactory.Create(logging =>
 
     logging.AddZLogger(zlogger =>
     {
-        zlogger.AddConsole();
-        zlogger.AddInMemory(processor =>
+        zlogger.AddConsole(options =>
         {
-            //processor = TimeSpan.FromSeconds(1);
-            processor.Subscribe(new LoggingObserver());
 
 
+            options.OutputEncodingToUtf8 = true;
+            options.ConfigureEnableAnsiEscapeCode = true;
 
+            options.UseJsonFormatter(formatter =>
+            {
+                formatter.KeyNameMutator = KeyNameMutator.LastMemberName;
+            });
 
         });
-
-        zlogger.AddInMemory("foo", (x, i) =>
-        {
-
-        }, _ => { });
 
 
 
@@ -73,34 +71,38 @@ var f = LoggerFactory.Create(logging =>
 
 });
 
-var l = f.CreateLogger("my");
-var x = 10;
-var y = 20;
-var z = 30;
-l.ZLogTrace($"foo: {x} bar: {y} baz: {z}");
+//var l = f.CreateLogger("my");
+//var x = 10;
+//var y = 20;
+//var z = 30;
+//l.ZLogTrace($"foo: {("tako.", x)} bar: {y} baz: {z}");
 
-f.Dispose();
+//f.Dispose();
 
-// p.GetService<TakoYakiX>();
+//// p.GetService<TakoYakiX>();
 
-//return;
+////return;
 
 
 
-// Action<B>呼んでることになる
-Test.Call(x =>
+
+Foo(100); // 100
+Foo((((((((100)))))))); // 100
+
+var bar = new { X = 100 };
+Foo(bar.X); // bar.X
+
+Foo(((((bar.X))))); // bar.X
+
+Foo(new { X = 100 }.X); // new { X = 100 }.X
+
+Foo((100, 200).Item1); // (100, 200).Item1
+
+
+static void Foo(int x, [CallerArgumentExpression("x")] string? caller = null)
 {
-
-    x.BMethod();
-
-    // Aの候補がIntelliSenseに出てきてとぅらぃ
-    // (AMethod()を選択すると当然コンパイルエラー）
-
-
-});
-
-
-
+    Console.WriteLine(caller);
+}
 
 
 

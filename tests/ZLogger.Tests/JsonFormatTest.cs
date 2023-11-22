@@ -295,5 +295,47 @@ namespace ZLogger.Tests
             doc.TryGetProperty("EventNAME", out _).Should().BeTrue();
             doc.TryGetProperty("CAT", out _).Should().BeTrue();
         }
+
+
+        [Fact]
+        public void KeyNameMutator_CallMethod()
+        {
+            var options = new ZLoggerOptions
+            {
+                IncludeScopes = true
+            };
+            options.UseJsonFormatter(formatter =>
+            {
+                formatter.KeyNameMutator = KeyNameMutator.LastMemberName;
+            });
+
+            var processor = new TestProcessor(options);
+
+            using var loggerFactory = LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Debug);
+                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
+            });
+            var logger = loggerFactory.CreateLogger("test");
+
+            var Tako = 100;
+            var Yaki = "あいうえお";
+            var anon = new { Tako, Yaki };
+            var mc = new MyClass();
+            logger.ZLogDebug($"tako: {mc.Call(10, anon.Tako)} yaki: {(((mc.Call2(1, 2))))}");
+
+            var json = processor.Dequeue();
+            var doc = JsonDocument.Parse(json).RootElement;
+
+            doc.GetProperty("Call").GetInt32().Should().Be(110);
+            doc.GetProperty("Call2").GetInt32().Should().Be(3);
+        }
+
+        class MyClass
+        {
+            public int Call(int x, int y) => x + y;
+            public int Call2(int x, int y) => x + y;
+        }
+
     }
 }

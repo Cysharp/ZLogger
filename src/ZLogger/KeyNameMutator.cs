@@ -1,3 +1,5 @@
+using System.Data.Common;
+
 namespace ZLogger;
 
 public interface IKeyNameMutator
@@ -38,6 +40,12 @@ internal sealed class LastMemberNameMutator : IKeyNameMutator
 
     public ReadOnlySpan<char> Slice(ReadOnlySpan<char> source)
     {
+        var firstOpenParentheses = source.IndexOf('(');
+        if (firstOpenParentheses != -1)
+        {
+            source = source.Slice(0, firstOpenParentheses);
+        }
+
         var lastDot = source.LastIndexOf('.');
         if (lastDot != -1)
         {
