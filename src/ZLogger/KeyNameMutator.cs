@@ -11,10 +11,25 @@ public interface IKeyNameMutator
 
 public static class KeyNameMutator
 {
+    /// <summary>
+    /// Returns the last member name of the source.
+    /// </summary>
     public static readonly IKeyNameMutator LastMemberName = new LastMemberNameMutator();
+    /// <summary>
+    /// The first character converted to lowercase.
+    /// </summary>
     public static readonly IKeyNameMutator LowerFirstCharacter = new LowerFirstCharacterMutator();
+    /// <summary>
+    /// The first character converted to uppercase.
+    /// </summary>
     public static readonly IKeyNameMutator UpperFirstCharacter = new UpperFirstCharacterMutator();
+    /// <summary>
+    /// Returns the last member name of the source with the first character converted to lowercase.
+    /// </summary>
     public static readonly IKeyNameMutator LastMemberNameLowerFirstCharacter = new CombineMutator(LastMemberName, LowerFirstCharacter);
+    /// <summary>
+    /// Returns the last member name of the source with the first character converted to uppercase.
+    /// </summary>
     public static readonly IKeyNameMutator LastMemberNameUpperFirstCharacter = new CombineMutator(LastMemberName, UpperFirstCharacter);
 }
 
