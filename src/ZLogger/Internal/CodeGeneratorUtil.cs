@@ -67,6 +67,22 @@ namespace ZLogger.Internal
             utf8JsonWriter.Reset();
         }
 
+        public static void WriteJsonEnum<T>(Utf8JsonWriter writer, JsonEncodedText key, T value)
+        {
+            var enumValue = EnumLookup<T>.GetJsonEncodedName(value);
+            if (enumValue == null)
+            {
+                // fallback write srring
+                var s = value!.ToString();
+                writer.WriteString(key, s);
+            }
+            else
+            {
+                writer.WriteString(key, enumValue.Value);
+            }
+            
+        }
+
         public static void ThrowArgumentOutOfRangeException()
         {
             throw new ArgumentOutOfRangeException();

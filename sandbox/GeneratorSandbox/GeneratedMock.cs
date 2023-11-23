@@ -71,17 +71,17 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
         
         stringWriter.Flush();
     }
-
-
-
-    // NOTE: keyNameMutator is only affects Interpolated String.
+    
+    // NOTE: keyNameMutator is only affects Interpolated String(perf reason).
     public void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions, IKeyNameMutator? keyNameMutator = null)
     {
         writer.WriteString(_jsonParameter_hostName, this.hostName);
         writer.WriteNumber(_jsonParameter_ipAddress, this.ipAddress);
 
         // TODO: serialize pattern, check format = "json"
-        
+
+        // writer.WriteString(_jsonParameter_hostName, EnumLookup<LogLevel>.GetJsonEncodedName(LogLevel.Information));
+
         // writer.WritePropertyName(_jsonParameter_ipAddress); JsonSerializer.Serialize(writer, this.ipAddress, jsonSerializerOptions);
     }
 

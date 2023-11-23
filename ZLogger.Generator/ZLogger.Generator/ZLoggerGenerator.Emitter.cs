@@ -70,8 +70,6 @@ public partial class ZLoggerGenerator
             sb.AppendLine($$"""
     readonly struct {{stateTypeName}} : IZLoggerFormattable
     {
-        const int _parameterCount = {{parameterCount}};
-
 {{jsonParameters}}
 
 {{fieldParameters}}
@@ -97,58 +95,56 @@ public partial class ZLoggerGenerator
         {
             var stateTypeName = $"{method.TargetMethod.Name}State";
             var methodParameters = method.MethodParameters.Where(x => x.IsParameter).ToArray();
-            var messageSegmentWithIndex = method.MessageSegments.Select((segment, index) => (segment, index)).ToArray();
+
+            // UTF8 Encoded literal length
+            var literalLength = method.MessageSegments.Where(x => x.Kind == MessageSegmentKind.Text).Sum(x => Encoding.UTF8.GetByteCount(x.TextSegment));
+            var formattedCount = methodParameters.Length;
 
             //int ParameterCount { get; }
             //bool IsSupportStructuredLogging { get; }
             //string ToString();
             sb.AppendLine($$"""
-        public int ParameterCount => _parameterCount;
+        public int ParameterCount => {{formattedCount}};
         public bool IsSupportUtf8ParameterKey => true;
         public override string ToString() => $"{{string.Concat(method.MessageSegments.Select(x => x.ToString()))}}";
 
 """);
             //void ToString(IBufferWriter<byte> writer);
             {
-                var chunks = messageSegmentWithIndex
-                    .Where(x => x.segment.Kind == MessageSegmentKind.Text)
-                    .Select(x => $"            var chunk{x.index} = \"{x.segment.UnescapedTextSegment}\"u8;")
-                    .StringJoinNewLine();
-
-                // Text -> .Length, String -> GetStringMaxByteCount + GuessedParameterByteCount(Count - StringParameterCount)
-                var textChunkLength = messageSegmentWithIndex
-                    .Where(x => x.segment.Kind == MessageSegmentKind.Text)
-                    .Select(x => $"chunk{x.index}.Length")
-                    .StringJoin(" + ");
-
-                // TODO: Guess String and Parameter Count
-                var spanLength = textChunkLength;
-
-                var writeValues = messageSegmentWithIndex
+                var appendValues = method.MessageSegments
                     .Select(x =>
                     {
-                        // TODO: WriteValue Enumerable(Emit WriteValues?)
-                        var name = (x.segment.Kind == MessageSegmentKind.Text)
-                            ? $"chunk{x.index}"
-                            : x.segment.NameParameter;
-                        return $"            CodeGeneratorUtil.WriteValue(writer, {name}, ref dest, ref written);";
+                        if (x.Kind == MessageSegmentKind.Text)
+                        {
+                            return $"            stringWriter.AppendUtf8(\"{x.TextSegment}\"u8);";
+                        }
+                        else if (x.Kind == MessageSegmentKind.NameParameter)
+                        {
+                            var method = methodParameters.First(y => y.IsParameter && string.Equals(y.Symbol.Name, x.NameParameter, StringComparison.OrdinalIgnoreCase));
+                            if (method.IsEnumerable() || x.FormatString == "json")
+                            {
+                                return $"            CodeGeneratorUtil.AppendAsJson(ref stringWriter, {x.NameParameter});";
+                            }
+                            else
+                            {
+                                return $"            stringWriter.AppendFormatted({x.NameParameter}, {x.Alignment ?? "0"}, {x.FormatString ?? "null"});";
+                            }
+                        }
+                        else
+                        {
+                            throw new NotSupportedException();
+                        }
                     })
                     .StringJoinNewLine();
 
                 sb.AppendLine($$"""
         public void ToString(IBufferWriter<byte> writer)
         {
-{{chunks}}            
+            var stringWriter = new Utf8StringWriter<IBufferWriter<byte>>(literalLength: {{literalLength}}, formattedCount: {{formattedCount}}, bufferWriter: writer);
 
-            var dest = writer.GetSpan({{spanLength}});
-            var written = 0;
+{{appendValues}}            
 
-{{writeValues}}
-
-            if (written != 0)
-            {
-                writer.Advance(written);
-            }
+            stringWriter.Flush();
         }
 
 """);

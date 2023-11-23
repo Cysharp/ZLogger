@@ -18,7 +18,7 @@ internal sealed class EnumDictionary
         this.indexFor = buckets.Length - 1;
     }
 
-    public static EnumDictionary Create<T>()
+    internal static EnumDictionary Create<T>()
     {
         var type = typeof(T);
 
@@ -173,5 +173,25 @@ internal sealed class EnumDictionary
         {
             return Name;
         }
+    }
+}
+
+internal static class EnumLookup<T>
+{
+    static readonly EnumDictionary instance = EnumDictionary.Create<T>();
+
+    public static string? GetStringName(ReadOnlySpan<byte> value) => instance.GetStringName(value);
+
+    public static ReadOnlySpan<byte> GetUtf8Name(ReadOnlySpan<byte> value) => instance.GetUtf8Name(value);
+    public static JsonEncodedText? GetJsonEncodedName(ReadOnlySpan<byte> value) => instance.GetJsonEncodedName(value);
+
+    public static JsonEncodedText? GetJsonEncodedName(T value)
+    {
+#if NETSTANDARD2_0
+        var key = Shims.CreateReadOnlySpan(ref Unsafe.As<T, byte>(ref value), Unsafe.SizeOf<T>());
+#else
+        var key = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<T, byte>(ref value), Unsafe.SizeOf<T>());
+#endif
+        return GetJsonEncodedName(key);
     }
 }

@@ -8,311 +8,345 @@ namespace ZLogger.Generator;
 
 public partial class ZLoggerGenerator
 {
-	public record ParseResult(
-		TypeDeclarationSyntax TargetTypeSyntax,
-		INamedTypeSymbol TargetTypeSymbol,
-		LogMethodDeclaration[] LogMethods);
+    public record ParseResult(
+        TypeDeclarationSyntax TargetTypeSyntax,
+        INamedTypeSymbol TargetTypeSymbol,
+        LogMethodDeclaration[] LogMethods);
 
-	public record LogMethodDeclaration(
-		ZLoggerMessageAttribute Attribute,
-		IMethodSymbol TargetMethod,
-		MethodDeclarationSyntax TargetSyntax,
-		MessageSegment[] MessageSegments,
-		MethodParameter[] MethodParameters);
+    public record LogMethodDeclaration(
+        ZLoggerMessageAttribute Attribute,
+        IMethodSymbol TargetMethod,
+        MethodDeclarationSyntax TargetSyntax,
+        MessageSegment[] MessageSegments,
+        MethodParameter[] MethodParameters);
 
-	public class MethodParameter
-	{
-		public required IParameterSymbol Symbol { get; init; }
-		public bool IsFirstLogger { get; init; }
-		public bool IsFirstLogLevel { get; init; }
-		public bool IsFirstException { get; init; }
+    public class MethodParameter
+    {
+        public required IParameterSymbol Symbol { get; init; }
+        public bool IsFirstLogger { get; init; }
+        public bool IsFirstLogLevel { get; init; }
+        public bool IsFirstException { get; init; }
 
-		public bool IsParameter => !IsFirstLogger && !IsFirstLogLevel && !IsFirstException;
+        public bool IsParameter => !IsFirstLogger && !IsFirstLogLevel && !IsFirstException;
 
-		// set from outside, if many segments was linked, use first-one.
-		public MessageSegment LinkedMessageSegment { get; set; } = default!;
+        // set from outside, if many segments was linked, use first-one.
+        public MessageSegment LinkedMessageSegment { get; set; } = default!;
 
-		public string ConvertJsonWriteMethod()
-		{
-			var type = Symbol.Type;
-			switch (type.SpecialType)
-			{
-				case SpecialType.System_Enum:
-					// TODO:Enum handling(Value or String, which should be default???)
-					return "";
-				case SpecialType.System_Boolean:
-					return $"writer.WriteBoolean(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{Symbol.Name});";
-				case SpecialType.System_SByte:
-				case SpecialType.System_Byte:
-				case SpecialType.System_Int16:
-				case SpecialType.System_UInt16:
-				case SpecialType.System_Int32:
-				case SpecialType.System_UInt32:
-				case SpecialType.System_Int64:
-				case SpecialType.System_UInt64:
-				case SpecialType.System_Decimal:
-				case SpecialType.System_Single:
-				case SpecialType.System_Double:
-					return $"writer.WriteNumber(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{Symbol.Name});";
-				case SpecialType.System_String:
-					return $"writer.WriteString(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{Symbol.Name});";
-				default:
-					return $"writer.WritePropertyName(_jsonParameter_{LinkedMessageSegment.NameParameter}); JsonSerializer.Serialize(writer, this.{Symbol.Name});";
-			}
-		}
-	}
+        public string ConvertJsonWriteMethod()
+        {
+            return ConvertJsonWriteMethodCore(Symbol.Type);
+        }
 
-	public class Parser
-	{
-		SourceProductionContext context;
-		ImmutableArray<GeneratorAttributeSyntaxContext> sources;
+        string ConvertJsonWriteMethodCore(ITypeSymbol type)
+        {
+            switch (type.SpecialType)
+            {
+                case SpecialType.System_Enum:
+                    return $"CodeGeneratorUtil.WriteJsonEnum(writer, _jsonParameter_{LinkedMessageSegment.NameParameter}, this.{Symbol.Name});";
+                case SpecialType.System_Boolean:
+                    return $"writer.WriteBoolean(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{Symbol.Name});";
+                case SpecialType.System_SByte:
+                case SpecialType.System_Byte:
+                case SpecialType.System_Int16:
+                case SpecialType.System_UInt16:
+                case SpecialType.System_Int32:
+                case SpecialType.System_UInt32:
+                case SpecialType.System_Int64:
+                case SpecialType.System_UInt64:
+                case SpecialType.System_Decimal:
+                case SpecialType.System_Single:
+                case SpecialType.System_Double:
+                    return $"writer.WriteNumber(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{Symbol.Name});";
+                case SpecialType.System_String:
+                case SpecialType.System_DateTime:
+                    // DateTime, DateTimeOffset, Guid
+                    return $"writer.WriteString(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{Symbol.Name});";
+                case SpecialType.System_Nullable_T:
+                    // TODO:does not come here????
+                    // if (type is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType)
+                    {
 
-		INamedTypeSymbol loggerSymbol;
-		INamedTypeSymbol logLevelSymbol;
-		INamedTypeSymbol exceptionSymbol;
+                    }
+                    break;
+                    
+                default:
+                    // TODO: DateTimeOffset, Guid => writeString
 
-		public Parser(SourceProductionContext context, ImmutableArray<GeneratorAttributeSyntaxContext> sources)
-		{
-			this.context = context;
-			this.sources = sources;
+                    if (type is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType && namedTypeSymbol.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T)
+                    {
+                        return ConvertJsonWriteMethodCore(namedTypeSymbol.TypeArguments[0]);
+                    }
 
-			var compilation = sources[0].SemanticModel.Compilation;
-			this.loggerSymbol = GetTypeByMetadataName(compilation, "Microsoft.Extensions.Logging.ILogger");
-			this.logLevelSymbol = GetTypeByMetadataName(compilation, "Microsoft.Extensions.Logging.LogLevel");
-			this.exceptionSymbol = GetTypeByMetadataName(compilation, "System.Exception");
-		}
+                    
 
-		static INamedTypeSymbol GetTypeByMetadataName(Compilation compilation, string metadataName)
-		{
-			var symbol = compilation.GetTypeByMetadataName(metadataName);
-			if (symbol == null)
-			{
-				throw new InvalidOperationException($"Type {metadataName} is not found in compilation.");
-			}
-			return symbol;
-		}
+                    break;
+            }
 
-		public ParseResult[] Parse()
-		{
-			var list = new List<ParseResult>();
+            // final fallback, use Serialize
+            return $"writer.WritePropertyName(_jsonParameter_{LinkedMessageSegment.NameParameter}); JsonSerializer.Serialize(writer, this.{Symbol.Name});";
+        }
 
-			// grouping by type(TypeDeclarationSyntax)
-			foreach (var item in sources.GroupBy(x => x.TargetNode.Parent))
-			{
-				if (item.Key == null) continue;
-				var targetType = (TypeDeclarationSyntax)item.Key;
+        public bool IsEnumerable()
+        {
+            if (!IsParameter) return false;
 
-				var logMethods = new List<LogMethodDeclaration>();
+            if (Symbol.Type.SpecialType == SpecialType.System_String) return false;
 
-				foreach (var source in item)
-				{
-					var method = (IMethodSymbol)source.TargetSymbol;
-					var (attr, setLogLevel) = GetAttribute(source);
-					var msg = attr.Message;
+            return Symbol.Type.AllInterfaces.Any(y => y.SpecialType == SpecialType.System_Collections_IEnumerable);
+        }
+    }
 
-					if (!MessageParser.TryParseFormat(attr.Message, out var segments))
-					{
-						// TODO:Verify
-						continue;
-					}
+    public class Parser
+    {
+        SourceProductionContext context;
+        ImmutableArray<GeneratorAttributeSyntaxContext> sources;
 
-					var parameters = GetMethodParameters(method, setLogLevel);
+        INamedTypeSymbol loggerSymbol;
+        INamedTypeSymbol logLevelSymbol;
+        INamedTypeSymbol exceptionSymbol;
 
-					// Set LinkedParameters
-					foreach (var p in parameters.Where(x => x.IsParameter))
-					{
-						p.LinkedMessageSegment = segments
-							.Where(x => x.Kind == MessageSegmentKind.NameParameter)
-							.FirstOrDefault(x => x.NameParameter.Equals(p.Symbol.Name, StringComparison.OrdinalIgnoreCase));
-					}
+        public Parser(SourceProductionContext context, ImmutableArray<GeneratorAttributeSyntaxContext> sources)
+        {
+            this.context = context;
+            this.sources = sources;
 
-					if (!Verify())
-					{
-						continue;
-					}
+            var compilation = sources[0].SemanticModel.Compilation;
+            this.loggerSymbol = GetTypeByMetadataName(compilation, "Microsoft.Extensions.Logging.ILogger");
+            this.logLevelSymbol = GetTypeByMetadataName(compilation, "Microsoft.Extensions.Logging.LogLevel");
+            this.exceptionSymbol = GetTypeByMetadataName(compilation, "System.Exception");
+        }
 
-					var methodDecl = new LogMethodDeclaration(
-						Attribute: attr,
-						TargetMethod: (IMethodSymbol)source.TargetSymbol,
-						TargetSyntax: (MethodDeclarationSyntax)source.TargetNode,
-						MessageSegments: segments,
-						MethodParameters: parameters);
+        static INamedTypeSymbol GetTypeByMetadataName(Compilation compilation, string metadataName)
+        {
+            var symbol = compilation.GetTypeByMetadataName(metadataName);
+            if (symbol == null)
+            {
+                throw new InvalidOperationException($"Type {metadataName} is not found in compilation.");
+            }
+            return symbol;
+        }
 
-					logMethods.Add(methodDecl);
-				}
+        public ParseResult[] Parse()
+        {
+            var list = new List<ParseResult>();
 
-				var symbol = item.First().SemanticModel.GetDeclaredSymbol(targetType);
-				var result = new ParseResult(targetType, symbol!, logMethods.ToArray());
-				list.Add(result);
-			}
+            // grouping by type(TypeDeclarationSyntax)
+            foreach (var item in sources.GroupBy(x => x.TargetNode.Parent))
+            {
+                if (item.Key == null) continue;
+                var targetType = (TypeDeclarationSyntax)item.Key;
 
-			return list.ToArray();
-		}
+                var logMethods = new List<LogMethodDeclaration>();
 
-		static (ZLoggerMessageAttribute attr, bool setLogLevel) GetAttribute(GeneratorAttributeSyntaxContext source)
-		{
-			// TODO: Attribute verify.
+                foreach (var source in item)
+                {
+                    var method = (IMethodSymbol)source.TargetSymbol;
+                    var (attr, setLogLevel) = GetAttribute(source);
+                    var msg = attr.Message;
 
-			var attributeData = source.Attributes[0];
+                    if (!MessageParser.TryParseFormat(attr.Message, out var segments))
+                    {
+                        // TODO:Verify
+                        continue;
+                    }
 
-			int eventId = -1;
-			string? eventName = null;
-			LogLevel level = LogLevel.None;
-			string message = "";
-			bool skipEnabledCheck = false;
+                    var parameters = GetMethodParameters(method, setLogLevel);
 
-			// check logLevel is set for verify.
-			var setLogLevel = false;
-			var ctorItems = attributeData.ConstructorArguments;
+                    // Set LinkedParameters
+                    foreach (var p in parameters.Where(x => x.IsParameter))
+                    {
+                        p.LinkedMessageSegment = segments
+                            .Where(x => x.Kind == MessageSegmentKind.NameParameter)
+                            .FirstOrDefault(x => x.NameParameter.Equals(p.Symbol.Name, StringComparison.OrdinalIgnoreCase));
+                    }
 
-			switch (ctorItems.Length)
-			{
-				case 2:
-					// ZLoggerMessageAttribute(LogLevel level, string message)
-					setLogLevel = true;
-					level = ctorItems[0].IsNull ? LogLevel.None : (LogLevel)ctorItems[0].Value!;
-					message = ctorItems[1].IsNull ? "" : (string)ctorItems[1].Value!;
-					break;
+                    if (!Verify())
+                    {
+                        continue;
+                    }
 
-				case 3:
-					// ZLoggerMessageAttribute(int eventId, LogLevel level, string message)
-					setLogLevel = true;
-					eventId = ctorItems[0].IsNull ? -1 : (int)ctorItems[0].Value!;
-					level = ctorItems[1].IsNull ? LogLevel.None : (LogLevel)ctorItems[1].Value!;
-					message = ctorItems[2].IsNull ? "" : (string)ctorItems[2].Value!;
-					break;
-			}
+                    var methodDecl = new LogMethodDeclaration(
+                        Attribute: attr,
+                        TargetMethod: (IMethodSymbol)source.TargetSymbol,
+                        TargetSyntax: (MethodDeclarationSyntax)source.TargetNode,
+                        MessageSegments: segments,
+                        MethodParameters: parameters);
 
-			if (attributeData.NamedArguments.Any())
-			{
-				foreach (var namedArgument in attributeData.NamedArguments)
-				{
-					var typedConstant = namedArgument.Value;
-					if (typedConstant.Kind == TypedConstantKind.Error)
-					{
-						break;
-					}
-					else
-					{
-						var value = namedArgument.Value;
-						switch (namedArgument.Key)
-						{
-							case "EventId":
-								eventId = (int)value.Value!;
-								break;
-							case "Level":
-								setLogLevel = !value.IsNull;
-								level = value.IsNull ? LogLevel.None : (LogLevel)value.Value!;
-								break;
-							case "SkipEnabledCheck":
-								skipEnabledCheck = (bool)value.Value!;
-								break;
-							case "EventName":
-								eventName = (string?)value.Value;
-								break;
-							case "Message":
-								message = value.IsNull ? "" : (string)value.Value!;
-								break;
-						}
-					}
-				}
-			}
+                    logMethods.Add(methodDecl);
+                }
 
-			return (new ZLoggerMessageAttribute()
-			{
-				EventId = eventId,
-				EventName = eventName,
-				Level = level,
-				Message = message,
-				SkipEnabledCheck = skipEnabledCheck,
-			}, setLogLevel);
-		}
+                var symbol = item.First().SemanticModel.GetDeclaredSymbol(targetType);
+                var result = new ParseResult(targetType, symbol!, logMethods.ToArray());
+                list.Add(result);
+            }
 
-		MethodParameter[] GetMethodParameters(IMethodSymbol method, bool setLogLevel)
-		{
-			var result = new MethodParameter[method.Parameters.Length];
+            return list.ToArray();
+        }
 
-			var foundFirstLogger = false;
-			var foundFirstLogLevel = false;
-			var foundFirstException = false;
+        static (ZLoggerMessageAttribute attr, bool setLogLevel) GetAttribute(GeneratorAttributeSyntaxContext source)
+        {
+            // TODO: Attribute verify.
 
-			if (setLogLevel)
-			{
-				// If LogLevel is set from Attribute, does not use LogLevel on method parameter.
-				foundFirstLogLevel = true;
-			}
+            var attributeData = source.Attributes[0];
 
-			for (int i = 0; i < method.Parameters.Length; i++)
-			{
-				var p = method.Parameters[i];
+            int eventId = -1;
+            string? eventName = null;
+            LogLevel level = LogLevel.None;
+            string message = "";
+            bool skipEnabledCheck = false;
 
-				if (!foundFirstLogger)
-				{
-					var isLogger = p.Type.AllInterfaces.Concat(new[] { p.Type }).Any(x => SymbolEqualityComparer.Default.Equals(x, loggerSymbol));
-					if (isLogger)
-					{
-						foundFirstLogger = true;
-						result[i] = new MethodParameter
-						{
-							Symbol = p,
-							IsFirstLogger = true,
-						};
-						continue;
-					}
-				}
-				if (!foundFirstLogLevel)
-				{
-					var isLogLevel = SymbolEqualityComparer.Default.Equals(p.Type, logLevelSymbol);
-					if (isLogLevel)
-					{
-						foundFirstLogLevel = true;
-						result[i] = new MethodParameter
-						{
-							Symbol = p,
-							IsFirstLogLevel = true,
-						};
-						continue;
-					}
-				}
-				if (!foundFirstException)
-				{
-					var isException = SymbolEqualityComparer.Default.Equals(p.Type, exceptionSymbol);
-					if (isException)
-					{
-						foundFirstException = true;
-						result[i] = new MethodParameter
-						{
-							Symbol = p,
-							IsFirstException = true,
-						};
-						continue;
-					}
-				}
+            // check logLevel is set for verify.
+            var setLogLevel = false;
+            var ctorItems = attributeData.ConstructorArguments;
 
-				result[i] = new MethodParameter { Symbol = p };
-			}
+            switch (ctorItems.Length)
+            {
+                case 2:
+                    // ZLoggerMessageAttribute(LogLevel level, string message)
+                    setLogLevel = true;
+                    level = ctorItems[0].IsNull ? LogLevel.None : (LogLevel)ctorItems[0].Value!;
+                    message = ctorItems[1].IsNull ? "" : (string)ctorItems[1].Value!;
+                    break;
 
-			return result;
-		}
+                case 3:
+                    // ZLoggerMessageAttribute(int eventId, LogLevel level, string message)
+                    setLogLevel = true;
+                    eventId = ctorItems[0].IsNull ? -1 : (int)ctorItems[0].Value!;
+                    level = ctorItems[1].IsNull ? LogLevel.None : (LogLevel)ctorItems[1].Value!;
+                    message = ctorItems[2].IsNull ? "" : (string)ctorItems[2].Value!;
+                    break;
+            }
 
-		bool Verify()
-		{
-			// LogLevel not found
-			// must retrun void
-			// missing ILogger
-			// Must be static
-			// Must be partial
-			// generic is not supported
-			// template has no corrresponding argument
-			// argument has no corresponding template
-			// invalid template
-			// alow in, ref qualifier(out is fail)
-			// primitives or IUtf8Formattbale
-			// TODO:exception
-			// TODO:logLevel from paramter?
+            if (attributeData.NamedArguments.Any())
+            {
+                foreach (var namedArgument in attributeData.NamedArguments)
+                {
+                    var typedConstant = namedArgument.Value;
+                    if (typedConstant.Kind == TypedConstantKind.Error)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        var value = namedArgument.Value;
+                        switch (namedArgument.Key)
+                        {
+                            case "EventId":
+                                eventId = (int)value.Value!;
+                                break;
+                            case "Level":
+                                setLogLevel = !value.IsNull;
+                                level = value.IsNull ? LogLevel.None : (LogLevel)value.Value!;
+                                break;
+                            case "SkipEnabledCheck":
+                                skipEnabledCheck = (bool)value.Value!;
+                                break;
+                            case "EventName":
+                                eventName = (string?)value.Value;
+                                break;
+                            case "Message":
+                                message = value.IsNull ? "" : (string)value.Value!;
+                                break;
+                        }
+                    }
+                }
+            }
 
-			// check Duplicate EventId(allow -1)
-			return true;
-		}
-	}
+            return (new ZLoggerMessageAttribute()
+            {
+                EventId = eventId,
+                EventName = eventName,
+                Level = level,
+                Message = message,
+                SkipEnabledCheck = skipEnabledCheck,
+            }, setLogLevel);
+        }
+
+        MethodParameter[] GetMethodParameters(IMethodSymbol method, bool setLogLevel)
+        {
+            var result = new MethodParameter[method.Parameters.Length];
+
+            var foundFirstLogger = false;
+            var foundFirstLogLevel = false;
+            var foundFirstException = false;
+
+            if (setLogLevel)
+            {
+                // If LogLevel is set from Attribute, does not use LogLevel on method parameter.
+                foundFirstLogLevel = true;
+            }
+
+            for (int i = 0; i < method.Parameters.Length; i++)
+            {
+                var p = method.Parameters[i];
+
+                if (!foundFirstLogger)
+                {
+                    var isLogger = p.Type.AllInterfaces.Concat(new[] { p.Type }).Any(x => SymbolEqualityComparer.Default.Equals(x, loggerSymbol));
+                    if (isLogger)
+                    {
+                        foundFirstLogger = true;
+                        result[i] = new MethodParameter
+                        {
+                            Symbol = p,
+                            IsFirstLogger = true,
+                        };
+                        continue;
+                    }
+                }
+                if (!foundFirstLogLevel)
+                {
+                    var isLogLevel = SymbolEqualityComparer.Default.Equals(p.Type, logLevelSymbol);
+                    if (isLogLevel)
+                    {
+                        foundFirstLogLevel = true;
+                        result[i] = new MethodParameter
+                        {
+                            Symbol = p,
+                            IsFirstLogLevel = true,
+                        };
+                        continue;
+                    }
+                }
+                if (!foundFirstException)
+                {
+                    var isException = SymbolEqualityComparer.Default.Equals(p.Type, exceptionSymbol);
+                    if (isException)
+                    {
+                        foundFirstException = true;
+                        result[i] = new MethodParameter
+                        {
+                            Symbol = p,
+                            IsFirstException = true,
+                        };
+                        continue;
+                    }
+                }
+
+                result[i] = new MethodParameter { Symbol = p };
+            }
+
+            return result;
+        }
+
+        bool Verify()
+        {
+            // LogLevel not found
+            // must retrun void
+            // missing ILogger
+            // Must be static
+            // Must be partial
+            // generic is not supported
+            // template has no corrresponding argument
+            // argument has no corresponding template
+            // invalid template
+            // alow in, ref qualifier(out is fail)
+            // primitives or IUtf8Formattbale
+            // TODO:exception
+            // TODO:logLevel from paramter?
+
+            // check Duplicate EventId(allow -1)
+            return true;
+        }
+    }
 }

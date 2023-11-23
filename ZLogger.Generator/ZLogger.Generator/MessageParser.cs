@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using Microsoft.CodeAnalysis;
+using System.Text;
+using static ZLogger.Generator.ZLoggerGenerator;
 
 namespace ZLogger.Generator;
 

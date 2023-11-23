@@ -11,7 +11,6 @@ public partial class ZLoggerGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // TODO: Error FieldNames from AdditionalText.
         var source = context.SyntaxProvider.ForAttributeWithMetadataName(
             "ZLogger.ZLoggerMessageAttribute",
             static (node, token) => node is MethodDeclarationSyntax,
