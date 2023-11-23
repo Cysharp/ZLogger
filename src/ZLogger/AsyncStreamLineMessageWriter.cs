@@ -1,8 +1,7 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Channels;
-using Microsoft.Extensions.Logging;
 using ZLogger.Internal;
 
 namespace ZLogger
@@ -19,7 +18,6 @@ namespace ZLogger
         readonly Task writeLoop;
         readonly ZLoggerOptions options;
         readonly Func<LogLevel, bool>? levelFilter;
-        readonly CancellationTokenSource cancellationTokenSource;
 
         public AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options)
             : this(stream, options, null)
@@ -31,7 +29,6 @@ namespace ZLogger
         internal AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options, Func<LogLevel, bool>? levelFilter = null)
         {
             this.newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
-            this.cancellationTokenSource = new CancellationTokenSource();
             if (newLine.Length == 1)
             {
                 // cr or lf
@@ -87,6 +84,7 @@ namespace ZLogger
             {
                 var span = writer.GetSpan(newLine.Length);
                 newLine.CopyTo(span);
+                writer.Advance(2);
             }
         }
 
@@ -96,9 +94,7 @@ namespace ZLogger
             var formatter = options.CreateFormatter();
             var withLineBreak = formatter.WithLineBreak;
             var requireFilterCheck = levelFilter != null;
-            var requireFlushCheck = options.FlushRate != null;
             var reader = channel.Reader;
-            var sw = Stopwatch.StartNew();
             try
             {
                 while (await reader.WaitToReadAsync().ConfigureAwait(false))
@@ -119,34 +115,14 @@ namespace ZLogger
                             {
                                 value.Return();
                             }
+
                             if (withLineBreak)
                             {
                                 AppendLine(writer);
                             }
                         }
 
-                        if (requireFlushCheck && !cancellationTokenSource.IsCancellationRequested)
-                        {
-                            sw.Stop();
-                            var sleepTime = options.FlushRate!.Value - sw.Elapsed;
-                            if (sleepTime > TimeSpan.Zero)
-                            {
-                                try
-                                {
-                                    await Task.Delay(sleepTime, cancellationTokenSource.Token).ConfigureAwait(false);
-                                }
-                                catch (OperationCanceledException)
-                                {
-                                }
-                            }
-                            writer.Flush(); // flush before wait.
-                            sw.Reset();
-                            sw.Start();
-                        }
-                        else
-                        {
-                            writer.Flush(); // flush before wait.
-                        }
+                        writer.Flush(); // flush before wait.
                     }
                     catch (Exception ex)
                     {
@@ -179,7 +155,6 @@ namespace ZLogger
             try
             {
                 channel.Writer.Complete();
-                cancellationTokenSource.Cancel();
                 await writeLoop.ConfigureAwait(false);
             }
             finally
