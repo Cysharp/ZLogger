@@ -294,6 +294,7 @@ using ZLogger.Internal;
 using System.Buffers;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Utf8StringInterpolation;
 """);
 
             var ns = targetSymbol.ContainingNamespace;

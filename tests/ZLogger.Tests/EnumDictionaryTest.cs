@@ -7,57 +7,44 @@ using System.Text;
 using System.Text.Json;
 using ZLogger.Internal;
 
+
 namespace ZLogger.Tests
 {
-    public class EnumDictionaryTest
+    public unsafe class EnumDictionaryTest
     {
         [Fact]
         public void Lookup()
         {
-            var foo = EnumDictionary.Create<Foo>();
-            var more = EnumDictionary.Create<More>();
-            var flags = EnumDictionary.Create<FlagsEnum>();
-            var duplicate = EnumDictionary.Create<Duplicate>();
+            EnumDictionary<Foo>.GetStringName(Foo.AAA).Should().Be("AAA");
+            EnumDictionary<Foo>.GetStringName(Foo.BBB).Should().Be("BBB");
+            EnumDictionary<Foo>.GetStringName(Foo.CCC).Should().Be("CCC");
+            EnumDictionary<Foo>.GetStringName((Foo)33).Should().BeNull();
 
-            foo.GetStringName(ToBytes(Foo.AAA)).Should().Be("AAA");
-            foo.GetStringName(ToBytes(Foo.BBB)).Should().Be("BBB");
-            foo.GetStringName(ToBytes(Foo.CCC)).Should().Be("CCC");
-            foo.GetStringName(ToBytes((Foo)33)).Should().BeNull();
+            EnumDictionary<More>.GetStringName(More.AAA).Should().Be("AAA");
+            EnumDictionary<More>.GetStringName(More.BBB).Should().Be("BBB");
+            EnumDictionary<More>.GetStringName(More.CCC).Should().Be("CCC");
+            EnumDictionary<More>.GetStringName((More)33).Should().BeNull();
 
-            more.GetStringName(ToBytes(More.AAA)).Should().Be("AAA");
-            more.GetStringName(ToBytes(More.BBB)).Should().Be("BBB");
-            more.GetStringName(ToBytes(More.CCC)).Should().Be("CCC");
-            more.GetStringName(ToBytes((More)33)).Should().BeNull();
+            EnumDictionary<FlagsEnum>.GetStringName(FlagsEnum.A).Should().Be("A");
+            EnumDictionary<FlagsEnum>.GetStringName(FlagsEnum.D).Should().Be("D");
+            EnumDictionary<FlagsEnum>.GetStringName(FlagsEnum.All).Should().Be("All");
+            EnumDictionary<FlagsEnum>.GetStringName(FlagsEnum.None).Should().Be("None");
+            EnumDictionary<FlagsEnum>.GetStringName(FlagsEnum.A | FlagsEnum.D).Should().BeNull();
 
-            flags.GetStringName(ToBytes(FlagsEnum.A)).Should().Be("A");
-            flags.GetStringName(ToBytes(FlagsEnum.D)).Should().Be("D");
-            flags.GetStringName(ToBytes(FlagsEnum.All)).Should().Be("All");
-            flags.GetStringName(ToBytes(FlagsEnum.None)).Should().Be("None");
-            flags.GetStringName(ToBytes(FlagsEnum.A | FlagsEnum.D)).Should().BeNull();
-
-            duplicate.GetStringName(ToBytes(Duplicate.Foo)).Should().Be("Foo");
-            (duplicate.GetStringName(ToBytes(Duplicate.Bar)) is "MoreBar" or "Bar").Should().BeTrue();
-            duplicate.GetStringName(ToBytes(Duplicate.Baz)).Should().Be("Baz");
-            (duplicate.GetStringName(ToBytes(Duplicate.MoreBar)) is "MoreBar" or "Bar").Should().BeTrue();
-            duplicate.GetStringName(ToBytes(Duplicate.End)).Should().Be("End");
+            EnumDictionary<Duplicate>.GetStringName(Duplicate.Foo).Should().Be("Foo");
+            (EnumDictionary<Duplicate>.GetStringName(Duplicate.Bar) is "MoreBar" or "Bar").Should().BeTrue();
+            EnumDictionary<Duplicate>.GetStringName(Duplicate.Baz).Should().Be("Baz");
+            (EnumDictionary<Duplicate>.GetStringName(Duplicate.MoreBar) is "MoreBar" or "Bar").Should().BeTrue();
+            EnumDictionary<Duplicate>.GetStringName(Duplicate.End).Should().Be("End");
         }
 
         [Fact]
         public void HttpStatusCodeTest()
         {
-            var statuscode = EnumDictionary.Create<System.Net.HttpStatusCode>();
-            statuscode.GetStringName(ToBytes(HttpStatusCode.InternalServerError)).Should().Be("InternalServerError");
-            statuscode.GetStringName(ToBytes(HttpStatusCode.RequestEntityTooLarge)).Should().Be("RequestEntityTooLarge");
-            statuscode.GetUtf8Name(ToBytes(HttpStatusCode.NetworkAuthenticationRequired)).ToArray().Should().Equal(Encoding.UTF8.GetBytes("NetworkAuthenticationRequired"));
-            statuscode.GetJsonEncodedName(ToBytes(HttpStatusCode.UnprocessableEntity)).Should().Be(JsonEncodedText.Encode("UnprocessableEntity"));
-        }
-
-        byte[] ToBytes<T>(T e)
-            where T : struct, Enum
-        {
-            Span<byte> s = stackalloc byte[Unsafe.SizeOf<T>()];
-            Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(s), e);
-            return s.ToArray();
+            EnumDictionary<HttpStatusCode>.GetStringName(HttpStatusCode.InternalServerError).Should().Be("InternalServerError");
+            EnumDictionary<HttpStatusCode>.GetStringName(HttpStatusCode.RequestEntityTooLarge).Should().Be("RequestEntityTooLarge");
+            EnumDictionary<HttpStatusCode>.GetUtf8Name(HttpStatusCode.NetworkAuthenticationRequired).ToArray().Should().Equal(Encoding.UTF8.GetBytes("NetworkAuthenticationRequired"));
+            EnumDictionary<HttpStatusCode>.GetJsonEncodedName(HttpStatusCode.UnprocessableEntity).Should().Be(JsonEncodedText.Encode("UnprocessableEntity"));
         }
     }
 

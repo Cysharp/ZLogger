@@ -99,18 +99,13 @@ namespace ZLogger.LogStates
                 ref var p = ref parameters[i];
                 SystemTextJsonZLoggerFormatter.WriteMutatedJsonKeyName(p.Name.AsSpan(), jsonWriter, keyNameMutator);
 
-                if (magicalBox.TryReadTo(p.Type, p.BoxOffset, jsonWriter))
+                if (magicalBox.TryReadTo(p.Type, p.BoxOffset, jsonWriter, jsonSerializerOptions))
                 {
                     continue;
                 }
-
-                var value = magicalBox.Read(p.Type, p.BoxOffset);
-                if (value != null)
-                {
-                    JsonSerializer.Serialize(jsonWriter, value, p.Type, jsonSerializerOptions);
-                }
                 else
                 {
+                    // use BoxedValue
                     JsonSerializer.Serialize(jsonWriter, p.BoxedValue, p.Type, jsonSerializerOptions);
                 }
             }
@@ -129,7 +124,7 @@ namespace ZLogger.LogStates
         public object? GetParameterValue(int index)
         {
             ref var p = ref parameters[index];
-            var value = magicalBox.Read(p.Type, p.BoxOffset);
+            var value = magicalBox.ReadBoxed(p.Type, p.BoxOffset);
             if (value != null) return value;
 
             return p.BoxedValue;

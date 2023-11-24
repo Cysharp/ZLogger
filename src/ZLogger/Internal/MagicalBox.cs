@@ -1,7 +1,6 @@
 ﻿using System.Buffers;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using Utf8StringInterpolation;
 
@@ -19,8 +18,6 @@ internal unsafe partial struct MagicalBox
 
     public int Written => written;
 
-    public ReadOnlySpan<byte> AsSpan() => storage.AsSpan(0, written);
-
     public bool TryWrite<T>(T value, out int offset)
     {
         if (!IsSupportedType<T>())
@@ -36,8 +33,8 @@ internal unsafe partial struct MagicalBox
             return false;
         }
 
-        // NOTE: use in ZLoggerInterpolatedStringHandler, alwayus called TryWrite before Read operations so make Read operation in write.
-        ReaderCache<T>.Register();
+        // NOTE: use in ZLoggerInterpolatedStringHandler, always called TryWrite before Read operations so make Read operation in write.
+        ReaderCache.Register<T>();
 
         Unsafe.WriteUnaligned(ref storage[written], value);
         offset = written;
@@ -59,7 +56,8 @@ internal unsafe partial struct MagicalBox
         return true;
     }
 
-    public T Read<T>(int offset)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    T Read<T>(int offset)
     {
         if (!TryRead<T>(offset, out var value))
         {
@@ -68,16 +66,9 @@ internal unsafe partial struct MagicalBox
         return value;
     }
 
-    public object? Read(Type type, int offset)
+    public object? ReadBoxed(Type type, int offset)
     {
-        if (offset < 0) return null;
-        return ReaderCache.GetReadMethod(type)?.Invoke(this, offset);
-    }
-
-    public ReadOnlySpan<byte> ReadRawEnumValue(Type type, int offset)
-    {
-        var (_, size, _) = ReaderCache.GetEnumDictionaryAndValueSize(type);
-        return storage.AsSpan(offset, size);
+        return ReaderCache.ReadBoxed(type, this, offset);
     }
 
     public bool TryReadTo(Type type, int offset, int alignment, string? format, ref Utf8StringWriter<IBufferWriter<byte>> handler)
@@ -133,58 +124,7 @@ internal unsafe partial struct MagicalBox
                 break;
         }
 
-        if (type.IsEnum)
-        {
-            var (dict, size, converter) = ReaderCache.GetEnumDictionaryAndValueSize(type);
-            var rawValue = storage.AsSpan(offset, size);
-            var name = dict.GetUtf8Name(rawValue);
-            if (name == null)
-            {
-                handler.AppendLiteral(converter(name));
-            }
-            else
-            {
-                handler.AppendUtf8(name);
-            }
-            return true;
-        }
-
-        if (type == typeof(Guid))
-        {
-            handler.AppendFormatted(Read<Guid>(offset), alignment, format);
-            return true;
-        }
-        else if (type == typeof(DateTimeOffset))
-        {
-            handler.AppendFormatted(Read<DateTimeOffset>(offset), alignment, format);
-            return true;
-        }
-        else if (type == typeof(TimeSpan))
-        {
-            handler.AppendFormatted(Read<TimeSpan>(offset), alignment, format);
-            return true;
-        }
-#if NET6_0_OR_GREATER
-        else if (type == typeof(TimeOnly))
-        {
-            handler.AppendFormatted(Read<TimeOnly>(offset), alignment, format);
-            return true;
-        }
-        else if (type == typeof(DateOnly))
-        {
-            handler.AppendFormatted(Read<DateOnly>(offset), alignment, format);
-            return true;
-        }
-#endif
-
-        var boxedValue = ReaderCache.GetReadMethod(type)?.Invoke(this, offset);
-        if (boxedValue != null)
-        {
-            handler.AppendFormatted(boxedValue, alignment, format);
-            return true;
-        }
-
-        return false;
+        return ReaderCache.TryReadTo(type, this, offset, ref handler, alignment, format);
     }
 
     public bool TryReadTo(Type type, int offset, int alignment, string? format, ref DefaultInterpolatedStringHandler handler)
@@ -240,61 +180,10 @@ internal unsafe partial struct MagicalBox
                 break;
         }
 
-        if (type.IsEnum)
-        {
-            var (dict, size, converter) = ReaderCache.GetEnumDictionaryAndValueSize(type);
-            var rawValue = storage.AsSpan(offset, size);
-            var name = dict.GetStringName(rawValue);
-            if (name == null)
-            {
-                handler.AppendLiteral(converter(rawValue));
-            }
-            else
-            {
-                handler.AppendLiteral(name);
-            }
-            return true;
-        }
-
-        if (type == typeof(Guid))
-        {
-            handler.AppendFormatted(Read<Guid>(offset), alignment, format);
-            return true;
-        }
-        else if (type == typeof(DateTimeOffset))
-        {
-            handler.AppendFormatted(Read<DateTimeOffset>(offset), alignment, format);
-            return true;
-        }
-        else if (type == typeof(TimeSpan))
-        {
-            handler.AppendFormatted(Read<TimeSpan>(offset), alignment, format);
-            return true;
-        }
-#if NET6_0_OR_GREATER        
-        else if (type == typeof(TimeOnly))
-        {
-            handler.AppendFormatted(Read<TimeOnly>(offset), alignment, format);
-            return true;
-        }
-        else if (type == typeof(DateOnly))
-        {
-            handler.AppendFormatted(Read<DateOnly>(offset), alignment, format);
-            return true;
-        }
-#endif
-
-        var boxedValue = ReaderCache.GetReadMethod(type)?.Invoke(this, offset);
-        if (boxedValue != null)
-        {
-            handler.AppendFormatted(boxedValue, alignment, format);
-            return true;
-        }
-
-        return false;
+        return ReaderCache.TryReadTo(type, this, offset, ref handler, alignment, format);
     }
 
-    public bool TryReadTo(Type type, int offset, Utf8JsonWriter jsonWriter)
+    public bool TryReadTo(Type type, int offset, Utf8JsonWriter jsonWriter, JsonSerializerOptions? options)
     {
         if (offset < 0) return false;
 
@@ -350,58 +239,7 @@ internal unsafe partial struct MagicalBox
                 break;
         }
 
-        if (type.IsEnum)
-        {
-            var (dict, size, converter) = ReaderCache.GetEnumDictionaryAndValueSize(type);
-            var rawValue = storage.AsSpan(offset, size);
-            var name = dict.GetJsonEncodedName(rawValue);
-            if (name == null)
-            {
-                jsonWriter.WriteStringValue(converter(rawValue));
-            }
-            else
-            {
-                jsonWriter.WriteStringValue(name.Value);
-            }
-            return true;
-        }
-
-        if (type == typeof(Guid))
-        {
-            jsonWriter.WriteStringValue(Read<Guid>(offset));
-            return true;
-        }
-        else if (type == typeof(DateTimeOffset))
-        {
-            jsonWriter.WriteStringValue(Read<DateTimeOffset>(offset));
-            return true;
-        }
-        else if (type == typeof(TimeSpan))
-        {
-            JsonSerializer.Serialize(jsonWriter, Read<TimeSpan>(offset));
-            return true;
-        }
-#if NET6_0_OR_GREATER        
-        else if (type == typeof(TimeOnly))
-        {
-            JsonSerializer.Serialize(jsonWriter, Read<TimeOnly>(offset));
-            return true;
-        }
-        else if (type == typeof(DateOnly))
-        {
-            JsonSerializer.Serialize(jsonWriter, Read<DateOnly>(offset));
-            return true;
-        }
-#endif
-
-        var boxedValue = ReaderCache.GetReadMethod(type)?.Invoke(this, offset);
-        if (boxedValue != null)
-        {
-            JsonSerializer.Serialize(jsonWriter, boxedValue, type);
-            return true;
-        }
-
-        return true;
+        return ReaderCache.TryReadTo(type, this, offset, jsonWriter, options);
     }
 
     static bool IsSupportedType<T>()
@@ -442,55 +280,218 @@ internal unsafe partial struct MagicalBox
         throw new ArgumentOutOfRangeException();
     }
 
-    delegate string RawEnumValueToString(ReadOnlySpan<byte> rawEnumValue);
-
     static class ReaderCache
     {
-        internal static readonly ConcurrentDictionary<Type, Func<MagicalBox, int, object?>?> readCache = new();
-        internal static readonly ConcurrentDictionary<Type, (EnumDictionary, int, RawEnumValueToString)> enumCache = new();
+        delegate bool TryReadToUtf8JsonWriter(MagicalBox box, int offset, Utf8JsonWriter writer, JsonSerializerOptions? options);
+        delegate bool TryReadToDefaultInterpolatedStringHandler(MagicalBox box, int offset, ref DefaultInterpolatedStringHandler handler, int alignment, string? format);
+        delegate bool TryReadToUtf8StringWriter(MagicalBox box, int offset, ref Utf8StringWriter<IBufferWriter<byte>> writer, int alignment, string? format);
+        delegate object? ReadBoxedValue(MagicalBox box, int offset);
+        readonly record struct Handlers(TryReadToUtf8JsonWriter Utf8JsonWriter, TryReadToDefaultInterpolatedStringHandler StringHandler, TryReadToUtf8StringWriter Utf8StringWriter, ReadBoxedValue ReadBoxed);
 
-        // Enum
+        static readonly ConcurrentDictionary<Type, Handlers> cache = new();
 
-        public static Func<MagicalBox, int, object?>? GetReadMethod(Type type)
-        {
-            return readCache.TryGetValue(type, out var value) ? value : null;
-        }
+        public static bool TryReadTo(Type type, MagicalBox box, int offset, Utf8JsonWriter jsonWriter, JsonSerializerOptions? options) => cache.TryGetValue(type, out var value) ? value.Utf8JsonWriter(box, offset, jsonWriter, options) : false;
+        public static bool TryReadTo(Type type, MagicalBox box, int offset, ref DefaultInterpolatedStringHandler handler, int alignment, string? format) => cache.TryGetValue(type, out var value) ? value.StringHandler(box, offset, ref handler, alignment, format) : false;
+        public static bool TryReadTo(Type type, MagicalBox box, int offset, ref Utf8StringWriter<IBufferWriter<byte>> writer, int alignment, string? format) => cache.TryGetValue(type, out var value) ? value.Utf8StringWriter(box, offset, ref writer, alignment, format) : false;
+        public static object? ReadBoxed(Type type, MagicalBox box, int offset) => cache.TryGetValue(type, out var value) ? value.ReadBoxed(box, offset) : null;
 
-        public static (EnumDictionary, int, RawEnumValueToString) GetEnumDictionaryAndValueSize(Type type)
-        {
-            return enumCache.TryGetValue(type, out var value) ? value : default!;
-        }
-    }
-
-    static class ReaderCache<T>
-    {
-        static ReaderCache()
+        public static void Register<T>()
         {
             if (!IsSupportedType<T>())
             {
-                ReaderCache.readCache.TryAdd(typeof(T), null);
                 return;
             }
 
-            ReaderCache.readCache.TryAdd(typeof(T), static (box, offset) =>
+            ReadBoxedValue readBoxed = static (box, offset) =>
             {
-                return box.Read<T>(offset);
-            });
+                if (box.TryRead<T>(offset, out var v))
+                {
+                    return (object?)v;
+                }
+                return null;
+            };
 
             if (typeof(T).IsEnum)
             {
-                RawEnumValueToString converter = static x =>
+                TryReadToUtf8JsonWriter jsonWriter = static (box, offset, writer, options) =>
                 {
-                    var v = Unsafe.ReadUnaligned<T>(ref MemoryMarshal.GetReference(x));
-                    return v?.ToString() ?? "";
-                };
-                ReaderCache.enumCache.TryAdd(typeof(T), (EnumDictionary.Create<T>(), Unsafe.SizeOf<T>(), converter));
-            }
-        }
+                    if (box.TryRead<T>(offset, out var v))
+                    {
+                        unsafe
+                        {
+                            var name = EnumDictionary<T>.GetJsonEncodedName(v);
+                            if (name != null)
+                            {
+                                writer.WriteStringValue(name.Value);
+                            }
+                            else
+                            {
+                                writer.WriteStringValue(v!.ToString());
+                            }
+                        }
+                        return true;
+                    }
 
-        public static void Register()
-        {
-            // do nothing(call cctor)
+                    return false;
+                };
+
+                TryReadToDefaultInterpolatedStringHandler stringWriter = static (MagicalBox box, int offset, ref DefaultInterpolatedStringHandler handler, int alignment, string? format) =>
+                {
+                    if (box.TryRead<T>(offset, out var v))
+                    {
+                        unsafe
+                        {
+                            var name = EnumDictionary<T>.GetStringName(v);
+                            if (name != null)
+                            {
+                                handler.AppendFormatted(name, alignment, format);
+                            }
+                            else
+                            {
+                                handler.AppendFormatted(v, alignment, format);
+                            }
+                        }
+                        return true;
+                    }
+
+                    return false;
+                };
+
+                TryReadToUtf8StringWriter utf8StringWriter = static (MagicalBox box, int offset, ref Utf8StringWriter<IBufferWriter<byte>> writer, int alignment, string? format) =>
+                {
+                    if (box.TryRead<T>(offset, out var v))
+                    {
+                        unsafe
+                        {
+                            var name = EnumDictionary<T>.GetUtf8Name(v);
+                            if (name.Length != 0)
+                            {
+                                writer.AppendUtf8(name);
+                            }
+                            else
+                            {
+                                writer.AppendFormatted(v, alignment, format);
+                            }
+                        }
+                        return true;
+                    }
+
+                    return false;
+                };
+
+                cache.TryAdd(typeof(T), new Handlers(jsonWriter, stringWriter, utf8StringWriter, readBoxed));
+            }
+            else if (typeof(T) == typeof(Guid))
+            {
+                TryReadToUtf8JsonWriter jsonWriter = static (box, offset, writer, options) =>
+                {
+                    if (box.TryRead<Guid>(offset, out var v))
+                    {
+                        writer.WriteStringValue(v);
+                        return true;
+                    }
+
+                    return false;
+                };
+
+                TryReadToDefaultInterpolatedStringHandler stringWriter = static (MagicalBox box, int offset, ref DefaultInterpolatedStringHandler handler, int alignment, string? format) =>
+                {
+                    if (box.TryRead<Guid>(offset, out var v))
+                    {
+                        handler.AppendFormatted(v, alignment, format);
+                        return true;
+                    }
+
+                    return false;
+                };
+
+                TryReadToUtf8StringWriter utf8StringWriter = static (MagicalBox box, int offset, ref Utf8StringWriter<IBufferWriter<byte>> writer, int alignment, string? format) =>
+                {
+                    if (box.TryRead<Guid>(offset, out var v))
+                    {
+                        writer.AppendFormatted(v, alignment, format);
+                        return true;
+                    }
+
+                    return false;
+                };
+
+                cache.TryAdd(typeof(Guid), new Handlers(jsonWriter, stringWriter, utf8StringWriter, readBoxed));
+            }
+            else if (typeof(T) == typeof(DateTimeOffset))
+            {
+                TryReadToUtf8JsonWriter jsonWriter = static (box, offset, writer, options) =>
+                {
+                    if (box.TryRead<DateTimeOffset>(offset, out var v))
+                    {
+                        writer.WriteStringValue(v);
+                        return true;
+                    }
+
+                    return false;
+                };
+
+                TryReadToDefaultInterpolatedStringHandler stringWriter = static (MagicalBox box, int offset, ref DefaultInterpolatedStringHandler handler, int alignment, string? format) =>
+                {
+                    if (box.TryRead<DateTimeOffset>(offset, out var v))
+                    {
+                        handler.AppendFormatted(v, alignment, format);
+                        return true;
+                    }
+
+                    return false;
+                };
+
+                TryReadToUtf8StringWriter utf8StringWriter = static (MagicalBox box, int offset, ref Utf8StringWriter<IBufferWriter<byte>> writer, int alignment, string? format) =>
+                {
+                    if (box.TryRead<DateTimeOffset>(offset, out var v))
+                    {
+                        writer.AppendFormatted(v, alignment, format);
+                        return true;
+                    }
+
+                    return false;
+                };
+
+                cache.TryAdd(typeof(DateTimeOffset), new Handlers(jsonWriter, stringWriter, utf8StringWriter, readBoxed));
+            }
+            else
+            {
+                TryReadToUtf8JsonWriter jsonWriter = static (box, offset, writer, options) =>
+                {
+                    if (box.TryRead<T>(offset, out var v))
+                    {
+                        JsonSerializer.Serialize(writer, v, options);
+                        return true;
+                    }
+
+                    return false;
+                };
+
+                TryReadToDefaultInterpolatedStringHandler stringWriter = static (MagicalBox box, int offset, ref DefaultInterpolatedStringHandler handler, int alignment, string? format) =>
+                {
+                    if (box.TryRead<T>(offset, out var v))
+                    {
+                        handler.AppendFormatted(v, alignment, format);
+                        return true;
+                    }
+
+                    return false;
+                };
+
+                TryReadToUtf8StringWriter utf8StringWriter = static (MagicalBox box, int offset, ref Utf8StringWriter<IBufferWriter<byte>> writer, int alignment, string? format) =>
+                {
+                    if (box.TryRead<T>(offset, out var v))
+                    {
+                        writer.AppendFormatted(v, alignment, format);
+                        return true;
+                    }
+
+                    return false;
+                };
+
+                cache.TryAdd(typeof(T), new Handlers(jsonWriter, stringWriter, utf8StringWriter, readBoxed));
+            }
         }
     }
 }

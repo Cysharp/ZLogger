@@ -67,9 +67,9 @@ namespace ZLogger.Internal
             utf8JsonWriter.Reset();
         }
 
-        public static void WriteJsonEnum<T>(Utf8JsonWriter writer, JsonEncodedText key, T value)
+        public static unsafe void WriteJsonEnum<T>(Utf8JsonWriter writer, JsonEncodedText key, T value)
         {
-            var enumValue = EnumLookup<T>.GetJsonEncodedName(value);
+            var enumValue = EnumDictionary<T>.GetJsonEncodedName(value);
             if (enumValue == null)
             {
                 // fallback write srring
