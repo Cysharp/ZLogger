@@ -1,5 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
-using System.Collections.Immutable;
+﻿using System.Text;
+using Microsoft.Extensions.Logging;
+using ZLogger.Internal;
 
 namespace ZLogger.Providers
 {
@@ -39,65 +40,50 @@ namespace ZLogger.Providers
 
 namespace ZLogger
 {
-    public class InMemoryObservableLogProcessor : IAsyncLogProcessor, IObservable<string>, IDisposable
+    public class InMemoryObservableLogProcessor : IAsyncLogProcessor, IDisposable
     {
+        public event Action<string>? MessageReceived;
+        public IZLoggerFormatter Formatter { get; internal set; } = default!;
+        
         bool isDisposed;
-        ImmutableArray<IObserver<string>> observers = ImmutableArray<IObserver<string>>.Empty;
 
         void IAsyncLogProcessor.Post(IZLoggerEntry log)
         {
             if (isDisposed) return;
-            var msg = log.ToString();
-            log.Return();
-            foreach (var item in observers)
-            {
-                item.OnNext(msg);
-            }
-        }
 
-        public IDisposable Subscribe(IObserver<string> observer)
-        {
-            if (isDisposed) return NullDisposable.Instance;
-            ImmutableInterlocked.Update(ref observers, (xs, arg) => xs.Add(arg), observer);
-            return new Subscription(this, observer);
+            string msg;
+            var buffer = ArrayBufferWriterPool.Rent();
+            try
+            {
+                Formatter.FormatLogEntry(buffer, log);
+                msg = Encoding.UTF8.GetString(buffer.WrittenSpan);
+            }
+            finally
+            {
+                log.Return();
+                ArrayBufferWriterPool.Return(buffer);
+            }
+            MessageReceived?.Invoke(msg);
         }
 
         ValueTask IAsyncDisposable.DisposeAsync()
         {
             isDisposed = true;
-            foreach (var item in observers)
+            
+            if (MessageReceived != null)
             {
-                item.OnCompleted();
+                var invocationList = MessageReceived.GetInvocationList();
+                foreach (var d in invocationList)
+                {
+                    MessageReceived -= (Action<string>)d;
+                }
             }
-            ImmutableInterlocked.Update(ref observers, (xs) => xs.Clear());
             return default;
         }
 
         void IDisposable.Dispose()
         {
             (this as IAsyncDisposable).DisposeAsync().AsTask().Wait();
-        }
-
-        sealed class Subscription(InMemoryObservableLogProcessor parent, IObserver<string> observer) : IDisposable
-        {
-            public void Dispose()
-            {
-                if (parent != null)
-                {
-                    ImmutableInterlocked.Update(ref parent.observers, (xs, arg) => xs.Remove(arg), observer);
-                }
-                parent = null!;
-                observer = null!;
-            }
-        }
-
-        sealed class NullDisposable : IDisposable
-        {
-            public static readonly IDisposable Instance = new NullDisposable();
-
-            public void Dispose()
-            {
-            }
         }
     }
 }
