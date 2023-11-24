@@ -156,7 +156,7 @@ file sealed class DistinctEqualityComparer<T> : IEqualityComparer<(T, EnumName)>
     }
 }
 
-sealed class EnumName(string name, byte[] utf8Name, JsonEncodedText jsonEncoded)
+file sealed class EnumName(string name, byte[] utf8Name, JsonEncodedText jsonEncoded)
 {
     public readonly string Name = name;
     public readonly byte[] Utf8Name = utf8Name;
