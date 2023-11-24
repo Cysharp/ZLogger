@@ -16,12 +16,15 @@ internal static partial class Shims
             }
         }
     }
-
-    public static unsafe Span<T> CreateSpan<T>(ref T value, int length) where T : unmanaged
+    
+    public static string GetString(this Encoding encoding, ReadOnlySpan<byte> bytes)
     {
-        fixed (T* pointer = &value)
+        unsafe
         {
-            return new Span<T>(pointer, length);
+            fixed (byte* bytesPtr = &bytes[0])
+            {
+                return encoding.GetString(bytesPtr, bytes.Length);
+            }
         }
     }
 
