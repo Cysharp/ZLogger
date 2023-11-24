@@ -29,7 +29,7 @@ public static class CloudLoggingExtensions
                 LogLevelError = Encode("ERROR"),
                 LogLevelCritical = Encode("CRITICAL"),
 
-                Message = Encode("messsage"),
+                Message = Encode("message"),
                 Timestamp = Encode("timestamp"),
             };
 
