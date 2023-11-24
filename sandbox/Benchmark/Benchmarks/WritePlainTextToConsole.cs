@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
@@ -10,9 +8,7 @@ using NLog.Extensions.Logging;
 using NLog.Targets.Wrappers;
 using Serilog;
 using Serilog.Formatting.Display;
-using Utf8StringInterpolation;
 using ZLogger;
-using ZLogger.Formatters;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Benchmark.Benchmarks;
