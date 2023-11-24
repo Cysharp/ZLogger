@@ -282,11 +282,17 @@ internal unsafe partial struct MagicalBox
 
     static class ReaderCache
     {
-        readonly record struct Handlers(
-            delegate* managed<MagicalBox, int, Utf8JsonWriter, JsonSerializerOptions?, bool> Utf8JsonWriter,
-            delegate* managed<MagicalBox, int, ref DefaultInterpolatedStringHandler, int, string?, bool> StringHandler, // box, offset, handler, alignment, format
-            delegate* managed<MagicalBox, int, ref Utf8StringWriter<IBufferWriter<byte>>, int, string?, bool> Utf8StringWriter,
-            delegate* managed<MagicalBox, int, object?> ReadBoxed);
+        sealed class Handlers(
+            delegate* managed<MagicalBox, int, Utf8JsonWriter, JsonSerializerOptions?, bool> utf8JsonWriter,
+            delegate* managed<MagicalBox, int, ref DefaultInterpolatedStringHandler, int, string?, bool> stringHandler, // box, offset, handler, alignment, format
+            delegate* managed<MagicalBox, int, ref Utf8StringWriter<IBufferWriter<byte>>, int, string?, bool> utf8StringWriter,
+            delegate* managed<MagicalBox, int, object?> readBoxed)
+        {
+            public readonly delegate* managed<MagicalBox, int, Utf8JsonWriter, JsonSerializerOptions?, bool> Utf8JsonWriter = utf8JsonWriter;
+            public readonly delegate* managed<MagicalBox, int, ref DefaultInterpolatedStringHandler, int, string?, bool> StringHandler = stringHandler;
+            public readonly delegate* managed<MagicalBox, int, ref Utf8StringWriter<IBufferWriter<byte>>, int, string?, bool> Utf8StringWriter = utf8StringWriter;
+            public readonly delegate* managed<MagicalBox, int, object?> ReadBoxed = readBoxed;
+        }
 
         static readonly ConcurrentDictionary<Type, Handlers> cache = new();
 

@@ -17,7 +17,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\ZLogger\ZLogger.csproj" />
-		<ProjectReference Include="..\..\ZLogger.Generator\ZLogger.Generator\ZLogger.Generator.csproj" />
+		<ProjectReference Include="..\..\src\ZLogger.Generator\ZLogger.Generator.csproj" />
 	</ItemGroup>
 
 </Project>
