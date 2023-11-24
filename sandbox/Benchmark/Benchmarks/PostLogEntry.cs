@@ -58,7 +58,6 @@ file class NullProcessor : IAsyncLogProcessor
 
     public NullProcessor()
     {
-
         this.channel = Channel.CreateUnbounded<IZLoggerEntry>(new UnboundedChannelOptions
         {
             AllowSynchronousContinuations = false, // always should be in async loop.
@@ -89,10 +88,10 @@ public class PostLogEntry
     ILogger serilogMsExtLogger = default!;
     ILogger nLogMsExtLogger = default!;
 
-    Serilog.ILogger serilogLogger = default!;
+    Serilog.Core.Logger serilogLogger = default!;
     NLog.Logger nLogLogger = default!;
 
-    List<IDisposable> disposables = new List<IDisposable>();
+    List<IDisposable> disposables = new();
 
     [GlobalSetup]
     public void SetUp()
@@ -119,8 +118,6 @@ public class PostLogEntry
 
         zLogger = zLoggerFactory.CreateLogger<PostLogEntry>();
 
-
-
         // Microsoft.Extensions.Logging.Console
 
         var msExtConsoleLoggerFactory = LoggerFactory.Create(logging =>
@@ -141,6 +138,7 @@ public class PostLogEntry
         serilogLogger = new LoggerConfiguration()
             .WriteTo.Async(a => a.TextWriter(TextWriter.Null))
             .CreateLogger();
+        disposables.Add(serilogLogger);
 
         var serilogMsExtLoggerFactory = LoggerFactory.Create(logging =>
         {
@@ -208,39 +206,42 @@ public class PostLogEntry
     [Benchmark]
     public void ZLogger_ZLog()
     {
-        const int x = 100;
-        const int y = 200;
-        const int z = 300;
-        zLogger.ZLogInformation($"foo{x} bar{y} nazo{z}");
+        zLogger.ZLogInformation($"Hello, {MessageSample.Arg1} lives in {MessageSample.Arg2} {MessageSample.Arg3} years old");
     }
 
     [Benchmark]
     public void MsExtConsole_Log()
     {
-        msExtConsoleLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
+        msExtConsoleLogger.LogInformation(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
+    }
+
+    [Benchmark]
+    public void MsExtConsole_SourceGenerator_Log()
+    {
+        msExtConsoleLogger.GeneratedLog(MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
     }
 
     [Benchmark]
     public void SerilogMsExt_Log()
     {
-        serilogMsExtLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
+        serilogMsExtLogger.LogInformation(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
     }
 
     [Benchmark]
     public void NLogMsExt_Log()
     {
-        nLogMsExtLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
+        nLogMsExtLogger.LogInformation(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
     }
 
     [Benchmark]
     public void Serilog_Log()
     {
-        serilogLogger.Information("x={X} y={Y} z={Z}", 100, 200, 300);
+        serilogLogger.Information(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
     }
 
     [Benchmark]
     public void NLog_Log()
     {
-        nLogLogger.Info("x={X} y={Y} z={Z}", 100, 200, 300);
+        nLogLogger.Info(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
     }
 }
