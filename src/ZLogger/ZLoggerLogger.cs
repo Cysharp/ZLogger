@@ -20,17 +20,15 @@ namespace ZLogger
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception);
-
             var scopeState = scopeProvider != null
                 ? LogScopeState.Create(scopeProvider)
                 : null;
+            
+            var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState);
 
             var entry = state is IZLoggerEntryCreatable
                 ? ((IZLoggerEntryCreatable)state).CreateEntry(info) // constrained call avoiding boxing for value types
                 : new StringFormatterLogState<TState>(state, exception, formatter).CreateEntry(info); // standard `log`
-
-            entry.ScopeState = scopeState;
 
             if (state is IReferenceCountable)
             {

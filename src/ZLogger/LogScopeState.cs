@@ -11,9 +11,20 @@ namespace ZLogger
 
         public bool IsEmpty => properties.Count <= 0;
 
-        public ReadOnlySpan<KeyValuePair<string, object?>> Properties => CollectionsMarshal.AsSpan(properties);
+        public ReadOnlySpan<KeyValuePair<string, object?>> Properties
+        {
+            get
+            {
+                ValidateVersion();
+                return CollectionsMarshal.AsSpan(properties);
+            }
+        }
 
         readonly List<KeyValuePair<string, object?>> properties = new();
+        
+        // pool safety token
+        short version;
+        short snapshotVersion;
 
         internal static LogScopeState Create(IExternalScopeProvider scopeProvider)
         {
@@ -28,6 +39,7 @@ namespace ZLogger
         internal void Return()
         {
             Clear();
+            unchecked { version++; }
             cache.Enqueue(this);
         }
 
@@ -55,6 +67,16 @@ namespace ZLogger
                         break;
                 }
             }, properties);
+
+            snapshotVersion = version;
+        }
+
+        void ValidateVersion()
+        {
+            if (version != snapshotVersion)
+            {
+                throw new InvalidOperationException("ZLogger scope snapshot version is unmatched. The reason is that ZLogger does not support continued outside ownership of LogInfo.");                
+            }
         }
     }
 }

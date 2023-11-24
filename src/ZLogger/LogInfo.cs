@@ -4,22 +4,14 @@ using System.Text.Json;
 
 namespace ZLogger;
 
-public readonly struct LogInfo
+public readonly struct LogInfo(LogCategory category, Timestamp timestamp, LogLevel logLevel, EventId eventId, Exception? exception, LogScopeState? scopeState)
 {
-    public readonly LogCategory Category;
-    public readonly Timestamp Timestamp;
-    public readonly LogLevel LogLevel;
-    public readonly EventId EventId;
-    public readonly Exception? Exception;
-
-    public LogInfo(LogCategory category, Timestamp timestamp, LogLevel logLevel, EventId eventId, Exception? exception)
-    {
-        Category = category;
-        Timestamp = timestamp;
-        EventId = eventId;
-        LogLevel = logLevel;
-        Exception = exception;
-    }
+    public readonly LogCategory Category = category;
+    public readonly Timestamp Timestamp = timestamp;
+    public readonly LogLevel LogLevel = logLevel;
+    public readonly EventId EventId = eventId;
+    public readonly Exception? Exception = exception;
+    public readonly LogScopeState? ScopeState = scopeState;
 }
 
 public readonly struct LogCategory

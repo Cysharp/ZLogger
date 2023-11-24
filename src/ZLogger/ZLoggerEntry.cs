@@ -1,5 +1,4 @@
 ﻿using System.Buffers;
-using System.Text;
 using System.Text.Json;
 using ZLogger.Internal;
 
@@ -9,7 +8,6 @@ namespace ZLogger
     public interface IZLoggerEntry : IZLoggerFormattable
     {
         LogInfo LogInfo { get; }
-        LogScopeState? ScopeState { get; set; }
         void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter);
         void Return();
     }
@@ -18,8 +16,6 @@ namespace ZLogger
         where TState : IZLoggerFormattable
     {
         static readonly ObjectPool<ZLoggerEntry<TState>> cache = new();
-
-        public LogScopeState? ScopeState { get; set; }
 
         ZLoggerEntry<TState>? next;
         ref ZLoggerEntry<TState>? IObjectPoolNode<ZLoggerEntry<TState>>.NextNode => ref next;
@@ -80,11 +76,11 @@ namespace ZLogger
             {
                 ((IReferenceCountable)state).Release();
             }
-
             state = default!;
+
+            logInfo.ScopeState?.Return();
             logInfo = default!;
-            ScopeState?.Return();
-            ScopeState = default;
+            
             cache.TryPush(this);
         }
     }

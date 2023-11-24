@@ -89,9 +89,9 @@ namespace ZLogger.MessagePack
             if ((IncludeProperties & IncludeProperties.ScopeKeyValues) != 0)
             {
                 propCount--;
-                if (entry.ScopeState != null)
+                if (entry.LogInfo.ScopeState != null)
                 {
-                    var scopeProperties = entry.ScopeState.Properties;
+                    var scopeProperties = entry.LogInfo.ScopeState.Properties;
                     for (var i = 0; i < scopeProperties.Length; i++)
                     {
                         if (scopeProperties[i].Key != "{OriginalFormat}")
@@ -153,12 +153,11 @@ namespace ZLogger.MessagePack
             // Scope
             if ((flag & IncludeProperties.ScopeKeyValues) != 0)
             {
-                if (entry.ScopeState != null)
+                if (entry.LogInfo.ScopeState is { Properties: var scopeProperties })
                 {
-                    var scopeProperties = entry.ScopeState.Properties;
-                    for (var i = 0; i < scopeProperties.Length; i++)
+                    foreach (var t in scopeProperties)
                     {
-                        var (key, value) = scopeProperties[i];
+                        var (key, value) = t;
                         // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
                         if (key == "{OriginalFormat}") continue;
 
