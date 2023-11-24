@@ -133,7 +133,7 @@ namespace ZLogger.Formatters
             // Scope
             if ((IncludeProperties & IncludeProperties.ScopeKeyValues) != 0)
             {
-                if (entry.ScopeState is { IsEmpty: false } scopeState)
+                if (entry.LogInfo.ScopeState is { IsEmpty: false } scopeState)
                 {
                     var properties = scopeState.Properties;
                     for (var i = 0; i < properties.Length; i++)
