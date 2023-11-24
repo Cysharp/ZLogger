@@ -247,17 +247,6 @@ public class WriteJsonToFile
         serilogLoggerDefault.Dispose();
         serilogMsExtLoggerFactoryDefault.Dispose();
     }
-    
-    [Benchmark]
-    public void Serilog_Default_SourceGenerator_MsExt_JsonFile()
-    {
-        for (var i = 0; i < N; i++)
-        {
-            serilogMsExtLoggerDefault.GeneratedLog(MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
-        }
-        serilogLoggerDefault.Dispose();
-        serilogMsExtLoggerFactoryDefault.Dispose();
-    }
 
     [Benchmark]
     public void Serilog_Default_JsonFile()
@@ -307,17 +296,6 @@ public class WriteJsonToFile
         for (var i = 0; i < N; i++)
         {
             nLogMsExtLoggerDefault.LogInformation(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
-        }
-        nLogConfigDefault.LogFactory.Shutdown();
-        nLogMsExtLoggerFactoryDefault.Dispose();
-    }
-
-    [Benchmark]
-    public void NLog_Default_MsExt_SourceGenerator_JsonFile()
-    {
-        for (var i = 0; i < N; i++)
-        {
-            nLogMsExtLoggerDefault.GeneratedLog(MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
         }
         nLogConfigDefault.LogFactory.Shutdown();
         nLogMsExtLoggerFactoryDefault.Dispose();
