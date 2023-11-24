@@ -21,7 +21,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Compile Include="..\..\src\ZLogger\ZLoggerMessageAttribtue.cs" Link="ZLoggerMessageAttribtue.cs" />
+		<Compile Include="..\ZLogger\ZLoggerMessageAttribtue.cs" Link="ZLoggerMessageAttribtue.cs" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="../../Icon.png" Pack="true" PackagePath="/" />

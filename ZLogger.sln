@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZLogger.MessagePack", "src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZLogger.MessagePack.Tests", "tests\ZLogger.MessagePack.Tests\ZLogger.MessagePack.Tests.csproj", "{35FFEF10-C4B9-4E6C-B00F-BC32AB0F81C4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZLogger.Generator", "ZLogger.Generator\ZLogger.Generator\ZLogger.Generator.csproj", "{2F75085C-9DFE-495F-8D11-F6AFFED22FA5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZLogger.Generator", "src\ZLogger.Generator\ZLogger.Generator.csproj", "{2F75085C-9DFE-495F-8D11-F6AFFED22FA5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GeneratorSandbox", "sandbox\GeneratorSandbox\GeneratorSandbox.csproj", "{18D196D4-6582-4903-BF82-BEF3014C0B3F}"
 EndProject
