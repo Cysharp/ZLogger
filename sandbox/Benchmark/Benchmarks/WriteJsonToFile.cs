@@ -11,7 +11,6 @@ using NLog.Targets.Wrappers;
 using Serilog;
 using Serilog.Formatting.Json;
 using ZLogger;
-using ZLogger.Formatters;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Benchmark.Benchmarks;
@@ -33,20 +32,27 @@ public class WriteJsonToFile
 
     ILogger zLogger = default!;
     ILogger serilogMsExtLogger = default!;
+    ILogger serilogMsExtLoggerDefault = default!;
     ILogger nLogMsExtLogger = default!;
+    ILogger nLogMsExtLoggerDefault = default!;
 
     ILoggerFactory zLoggerFactory;
     ILoggerFactory serilogMsExtLoggerFactory;
+    ILoggerFactory serilogMsExtLoggerFactoryDefault;
     ILoggerFactory nLogMsExtLoggerFactory;
+    ILoggerFactory nLogMsExtLoggerFactoryDefault;
 
     Serilog.Core.Logger serilogLogger = default!;
-    Serilog.Core.Logger serilogLoggerForMsExt = default!;
+    Serilog.Core.Logger serilogLoggerDefault = default!;
 
     NLog.Logger nLogLogger = default!;
+    NLog.Logger nLogLoggerDefault = default!;
     NLog.Config.LoggingConfiguration nLogConfig = default!;
-    NLog.Config.LoggingConfiguration nLogConfigForMsExt = default!;
+    NLog.Config.LoggingConfiguration nLogConfigDefault = default!;
 
     static string tempDir = default!;
+    
+    static string GetLogFilePath(string filename) => Path.Join(tempDir, filename);
 
     [IterationSetup]
     public void SetUpLogger()
@@ -87,12 +93,21 @@ public class WriteJsonToFile
             .WriteTo.Async(a => a.File(serilogFormatter, GetLogFilePath("serilog.log"), buffered: true, flushToDiskInterval: TimeSpan.Zero), bufferSize: N)
             .CreateLogger();
 
-        serilogLoggerForMsExt = new Serilog.LoggerConfiguration()
-            .WriteTo.Async(a => a.File(serilogFormatter, GetLogFilePath("serilog_msext.log"), buffered: true, flushToDiskInterval: TimeSpan.Zero), bufferSize: N)
+        serilogMsExtLoggerFactory = LoggerFactory.Create(logging =>
+        {
+            logging.AddSerilog(serilogLogger, true);
+        });
+        serilogMsExtLogger = serilogMsExtLoggerFactory.CreateLogger<WritePlainTextToFile>();
+
+        serilogLoggerDefault = new Serilog.LoggerConfiguration()
+            .WriteTo.File("serilog_default.log")
             .CreateLogger();
 
-        serilogMsExtLoggerFactory = LoggerFactory.Create(logging => logging.AddSerilog(serilogLoggerForMsExt, true));
-        serilogMsExtLogger = serilogMsExtLoggerFactory.CreateLogger<WritePlainTextToFile>();
+        serilogMsExtLoggerFactoryDefault = LoggerFactory.Create(logging =>
+        {
+            logging.AddSerilog(serilogLoggerDefault, true);
+        });
+        serilogMsExtLoggerDefault = serilogMsExtLoggerFactory.CreateLogger<WritePlainTextToFile>();
 
         // NLog
 
@@ -126,54 +141,66 @@ public class WriteJsonToFile
             nLogConfig.LogFactory.Configuration = nLogConfig;
 
             nLogLogger = nLogConfig.LogFactory.GetLogger(nameof(WritePlainTextToFile));
-        }
-        {
+            
             nLogMsExtLoggerFactory = LoggerFactory.Create(logging =>
             {
-                nLogConfigForMsExt = new NLog.Config.LoggingConfiguration(new LogFactory());
-                var target2 = new NLog.Targets.FileTarget("FileMsExt")
-                {
-                    FileName = GetLogFilePath("nlog_msext.log"),
-                    Layout = nLogLayout,
-                    KeepFileOpen = true,
-                    ConcurrentWrites = false,
-                    AutoFlush = true
-                };
-                var asyncTarget2 = new NLog.Targets.Wrappers.AsyncTargetWrapper(target2, 10000, AsyncTargetWrapperOverflowAction.Grow)
-                {
-                    TimeToSleepBetweenBatches = 0
-                };
-                nLogConfigForMsExt.AddTarget(asyncTarget2);
-                nLogConfigForMsExt.AddRuleForAllLevels(asyncTarget2);
-                nLogConfigForMsExt.LogFactory.Configuration = nLogConfigForMsExt;
-                logging.AddNLog(nLogConfigForMsExt);
+                logging.AddNLog(nLogConfig);
             });
+            nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<WritePlainTextToFile>();
         }
-
-        nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<WritePlainTextToFile>();
+        {
+            nLogConfigDefault = new NLog.Config.LoggingConfiguration(new LogFactory());
+            var target = new NLog.Targets.FileTarget("FileDefault")
+            {
+                FileName = GetLogFilePath("nlog_default.log"),
+                Layout = nLogLayout
+            };
+            nLogConfigDefault.AddTarget(target);
+            nLogConfigDefault.AddRuleForAllLevels(target);
+            nLogConfigDefault.LogFactory.Configuration = nLogConfigDefault;
+            nLogLoggerDefault = nLogConfigDefault.LogFactory.GetLogger(nameof(WritePlainTextToFile));
+            
+            nLogMsExtLoggerFactoryDefault = LoggerFactory.Create(logging =>
+            {
+                logging.AddNLog(nLogConfigDefault);
+            });
+            nLogMsExtLoggerDefault = nLogMsExtLoggerFactoryDefault.CreateLogger<WritePlainTextToFile>();
+        }
     }
 
     [IterationCleanup]
     public void Cleanup()
     {
         zLoggerFactory.Dispose();
-        serilogLoggerForMsExt.Dispose();
         serilogMsExtLoggerFactory.Dispose();
-        serilogLogger.Dispose();
-        nLogConfigForMsExt.LogFactory.Shutdown();
+        serilogMsExtLoggerFactoryDefault.Dispose();
         nLogMsExtLoggerFactory.Dispose();
-        nLogConfig.LogFactory.Shutdown(); 
+        nLogMsExtLoggerFactoryDefault.Dispose();
+
+        serilogLogger.Dispose();
+        serilogLoggerDefault.Dispose();
+
+        nLogConfig.LogFactory.Shutdown();
+        nLogConfigDefault.LogFactory.Shutdown();
     }
 
     [Benchmark]
     public void ZLogger_JsonFile()
     {
-        var x = 100;
-        var y = 200;
-        var z = 300;
         for (var i = 0; i < N; i++)
         {
-            zLogger.ZLogInformation($"x={x} y={y} z={z}");
+            zLogger.ZLogInformation($"Hello, {MessageSample.Arg1} lives in {MessageSample.Arg2} {MessageSample.Arg3} years old");
+        }
+        zLoggerFactory.Dispose();
+    }
+
+    [Benchmark]
+    public void ZLogger_SourceGenerator_JsonFile()
+    {
+        for (var i = 0; i < N; i++)
+        {
+            // TODO: Use ZLogger.Generator
+            zLogger.GeneratedLog(MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3); 
         }
         zLoggerFactory.Dispose();
     }
@@ -183,9 +210,20 @@ public class WriteJsonToFile
     {
         for (var i = 0; i < N; i++)
         {
-            serilogMsExtLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
+            serilogMsExtLogger.LogInformation(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
         }
-        serilogLoggerForMsExt.Dispose();
+        serilogLogger.Dispose();
+        serilogMsExtLoggerFactory.Dispose();
+    }
+
+    [Benchmark]
+    public void Serilog_MsExt_SourceGenerator_JsonFile()
+    {
+        for (var i = 0; i < N; i++)
+        {
+            serilogMsExtLogger.GeneratedLog(MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
+        }
+        serilogLogger.Dispose();
         serilogMsExtLoggerFactory.Dispose();
     }
 
@@ -194,9 +232,30 @@ public class WriteJsonToFile
     {
         for (var i = 0; i < N; i++)
         {
-            serilogLogger.Information("x={X} y={Y} z={Z}", 100, 200, 300);
+            serilogLogger.Information(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
         }
         serilogLogger.Dispose();
+    }
+
+    [Benchmark]
+    public void Serilog_Default_MsExt_JsonFile()
+    {
+        for (var i = 0; i < N; i++)
+        {
+            serilogMsExtLoggerDefault.LogInformation(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
+        }
+        serilogLoggerDefault.Dispose();
+        serilogMsExtLoggerFactoryDefault.Dispose();
+    }
+
+    [Benchmark]
+    public void Serilog_Default_JsonFile()
+    {
+        for (var i = 0; i < N; i++)
+        {
+            serilogLoggerDefault.Information(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
+        }
+        serilogLoggerDefault.Dispose();
     }
 
     [Benchmark]
@@ -204,9 +263,20 @@ public class WriteJsonToFile
     {
         for (var i = 0; i < N; i++)
         {
-            nLogMsExtLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
+            nLogMsExtLogger.LogInformation(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
         }
-        nLogConfigForMsExt.LogFactory.Shutdown();
+        nLogConfig.LogFactory.Shutdown();
+        nLogMsExtLoggerFactory.Dispose();
+    }
+
+    [Benchmark]
+    public void NLog_MsExt_SourceGenerator_JsonFile()
+    {
+        for (var i = 0; i < N; i++)
+        {
+            nLogMsExtLogger.GeneratedLog(MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
+        }
+        nLogConfig.LogFactory.Shutdown();
         nLogMsExtLoggerFactory.Dispose();
     }
 
@@ -215,10 +285,29 @@ public class WriteJsonToFile
     {
         for (var i = 0; i < N; i++)
         {
-            nLogLogger.Info("x={X} y={Y} z={Z}", 100, 200, 300);
+            nLogLogger.Info(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
         }
         nLogConfig.LogFactory.Shutdown();
     }
 
-    string GetLogFilePath(string filename) => Path.Join(tempDir, filename);
+    [Benchmark]
+    public void NLog_Default_MsExt_JsonFile()
+    {
+        for (var i = 0; i < N; i++)
+        {
+            nLogMsExtLoggerDefault.LogInformation(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
+        }
+        nLogConfigDefault.LogFactory.Shutdown();
+        nLogMsExtLoggerFactoryDefault.Dispose();
+    }
+
+    [Benchmark]
+    public void NLog_Default_JsonFile()
+    {
+        for (var i = 0; i < N; i++)
+        {
+            nLogLoggerDefault.Info(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
+        }
+        nLogConfigDefault.LogFactory.Shutdown();
+    }
 }

@@ -41,8 +41,7 @@ public class LogWritesPerSecond : IColumn
             var n = (int)nField.GetValue(null)!;
             var statistics = summary[benchmarkCase].ResultStatistics;
             var mean = TimeInterval.FromNanoseconds(statistics.Mean);
-            var ms = TimeInterval.FromMilliseconds(1);
-            return (ms.ToMilliseconds() / (mean.ToMilliseconds() / n) * 1000).ToString("F3");
+            return (1.0 / (mean.ToSeconds() / n)).ToString("F3");
         }
         return "-";
     }
