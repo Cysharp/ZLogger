@@ -57,6 +57,7 @@ public class ZLoggerBuilder(ILoggingBuilder loggingBuilder)
             configure(options, serviceProvider);
 
             var processor = serviceProvider.GetRequiredKeyedService<InMemoryObservableLogProcessor>(processorKey);
+            processor.Formatter = options.CreateFormatter();
             configureProcessor(processor);
 
             return new ZLoggerInMemoryLoggerProvider(processor, options);
