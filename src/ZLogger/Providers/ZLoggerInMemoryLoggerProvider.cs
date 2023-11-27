@@ -4,6 +4,7 @@ using ZLogger.Internal;
 
 namespace ZLogger.Providers
 {
+    [ProviderAlias("ZLoggerInMemory")]
     public class ZLoggerInMemoryLoggerProvider : ILoggerProvider, ISupportExternalScope, IAsyncDisposable
     {
         readonly ZLoggerOptions options;

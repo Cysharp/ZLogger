@@ -9,6 +9,7 @@ public sealed class ZLoggerConsoleOptions : ZLoggerOptions
     public LogLevel LogToStandardErrorThreshold { get; set; } = LogLevel.None;
 }
 
+[ProviderAlias("ZLoggerConsole")]
 public sealed class ZLoggerConsoleLoggerProvider : ILoggerProvider, ISupportExternalScope, IAsyncDisposable
 {
     readonly ZLoggerConsoleOptions options;
