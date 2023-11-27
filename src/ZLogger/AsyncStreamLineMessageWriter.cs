@@ -95,58 +95,45 @@ namespace ZLogger
             var withLineBreak = formatter.WithLineBreak;
             var requireFilterCheck = levelFilter != null;
             var reader = channel.Reader;
-            try
-            {
-                while (await reader.WaitToReadAsync().ConfigureAwait(false))
-                {
-                    try
-                    {
-                        while (reader.TryRead(out var value))
-                        {
-                            if (requireFilterCheck && levelFilter!.Invoke(value.LogInfo.LogLevel) == false)
-                            {
-                                continue;
-                            }
-                            try
-                            {
-                                value.FormatUtf8(writer, formatter);
-                            }
-                            finally
-                            {
-                                value.Return();
-                            }
 
-                            if (withLineBreak)
-                            {
-                                AppendLine(writer);
-                            }
-                        }
-
-                        writer.Flush(); // flush before wait.
-                    }
-                    catch (Exception ex)
-                    {
-                        try
-                        {
-                            if (options.InternalErrorLogger != null)
-                            {
-                                options.InternalErrorLogger(ex);
-                            }
-                        }
-                        catch { }
-                    }
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            finally
+            while (await reader.WaitToReadAsync().ConfigureAwait(false))
             {
                 try
                 {
-                    writer.Flush();
+                    while (reader.TryRead(out var value))
+                    {
+                        if (requireFilterCheck && levelFilter!.Invoke(value.LogInfo.LogLevel) == false)
+                        {
+                            continue;
+                        }
+                        try
+                        {
+                            value.FormatUtf8(writer, formatter);
+                        }
+                        finally
+                        {
+                            value.Return();
+                        }
+
+                        if (withLineBreak)
+                        {
+                            AppendLine(writer);
+                        }
+                    }
+
+                    writer.Flush(); // flush before wait.
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    try
+                    {
+                        if (options.InternalErrorLogger != null)
+                        {
+                            options.InternalErrorLogger(ex);
+                        }
+                    }
+                    catch { }
+                }
             }
         }
 

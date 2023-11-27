@@ -4,11 +4,15 @@ using ZLogger.Internal;
 
 namespace ZLogger
 {
-    // Cachable(Returnable) state holder, store struct state to heap for AsyncLogProcessor.
-    public interface IZLoggerEntry : IZLoggerFormattable
+    public interface INonReturnableZLoggerEntry : IZLoggerFormattable
     {
         LogInfo LogInfo { get; }
         void FormatUtf8(IBufferWriter<byte> writer, IZLoggerFormatter formatter);
+    }
+
+    // Cachable(Returnable) state holder, store struct state to heap for AsyncLogProcessor.
+    public interface IZLoggerEntry : INonReturnableZLoggerEntry
+    {
         void Return();
     }
 
