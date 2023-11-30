@@ -67,7 +67,7 @@ public class BatchingHttpLogProcessor : BatchingAsyncLogProcessor
         formatter = options.CreateFormatter();
     }
 
-    public override async ValueTask ProcessAsync(IReadOnlyList<INonReturnableZLoggerEntry> list)
+    protected override async ValueTask ProcessAsync(IReadOnlyList<INonReturnableZLoggerEntry> list)
     {
         foreach (var item in list)
         {
@@ -80,7 +80,7 @@ public class BatchingHttpLogProcessor : BatchingAsyncLogProcessor
         bufferWriter.Clear();
     }
 
-    public override ValueTask DisposeAsyncCore()
+    protected override ValueTask DisposeAsyncCore()
     {
         httpClient.Dispose();
         return default;

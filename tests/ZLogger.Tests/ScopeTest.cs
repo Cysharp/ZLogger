@@ -1,115 +1,159 @@
+using System;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Text.Json;
-using Xunit;
-using ZLogger.Formatters;
+using System.Threading.Tasks;
 
-namespace ZLogger.Tests
+namespace ZLogger.Tests;
+
+public class ScopeTest
 {
-    public class ScopeTest
+    TestProcessor processor;
+    ILogger logger;
+
+    public ScopeTest()
     {
-        TestProcessor processor;
-        ILogger logger;
-
-        public ScopeTest()
+        var options = new ZLoggerOptions
         {
-            var options = new ZLoggerOptions
-            {
-                IncludeScopes = true
-            };
-            options.UseJsonFormatter();
+            IncludeScopes = true
+        };
+        options.UseJsonFormatter();
             
-            processor = new TestProcessor(options);
+        processor = new TestProcessor(options);
 
-            var loggerFactory = LoggerFactory.Create(x =>
+        var loggerFactory = LoggerFactory.Create(x =>
+        {
+            x.SetMinimumLevel(LogLevel.Debug);
+            x.AddZLogger(zLogger =>
             {
-                x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLogger(zLogger =>
+                zLogger.AddLogProcessor(options =>
                 {
-                    zLogger.AddLogProcessor(options =>
-                    {
-                        options.IncludeScopes = true;
-                        return processor;
-                    });
+                    options.IncludeScopes = true;
+                    return processor;
                 });
             });
-            logger = loggerFactory.CreateLogger("test");
-        }
+        });
+        logger = loggerFactory.CreateLogger("test");
+    }
         
-        [Fact]
-        public void BeginScope_FormattedLogValuesToJson()
+    [Fact]
+    public void BeginScope_FormattedLogValuesToJson()
+    {
+        using (logger.BeginScope("({X}, {Y})", 111, null))
         {
-            using (logger.BeginScope("({X}, {Y})", 111, null))
-            {
-                var x = 333;
-                var y = 444;
-                logger.ZLogInformation($"FooBar{x} NanoNano{y}");
-            }
-
-            var doc = JsonDocument.Parse(processor.Dequeue()).RootElement;
-            doc.GetProperty("Message").GetString().Should().Be("FooBar333 NanoNano444");
-            doc.GetProperty("X").GetInt32().Should().Be(111);
-            doc.GetProperty("Y").ValueKind.Should().Be(JsonValueKind.Null);
+            var x = 333;
+            var y = 444;
+            logger.ZLogInformation($"FooBar{x} NanoNano{y}");
         }
+
+        var doc = JsonDocument.Parse(processor.Dequeue()).RootElement;
+        doc.GetProperty("Message").GetString().Should().Be("FooBar333 NanoNano444");
+        doc.GetProperty("X").GetInt32().Should().Be(111);
+        doc.GetProperty("Y").ValueKind.Should().Be(JsonValueKind.Null);
+    }
         
-        [Fact]
-        public void BeginScope_KeyValuePairToJson()
+    [Fact]
+    public void BeginScope_KeyValuePairToJson()
+    {
+        using (logger.BeginScope(new KeyValuePair<string, object>("Hoge", "AAA")))
         {
-            using (logger.BeginScope(new KeyValuePair<string, object>("Hoge", "AAA")))
-            {
-                var x = 100;
-                var y = 200;
-                logger.ZLogInformation($"FooBar{x} NanoNano{y}");
-            }
-
-            var doc = JsonDocument.Parse(processor.Dequeue()).RootElement;
-
-            doc.GetProperty("Message").GetString().Should().Be("FooBar100 NanoNano200");
-            doc.GetProperty("Hoge").GetString().Should().Be("AAA");
+            var x = 100;
+            var y = 200;
+            logger.ZLogInformation($"FooBar{x} NanoNano{y}");
         }
-        
-        [Fact]
-        public void BeginScope_AnyScopeValueToJson()
-        {
-            using (logger.BeginScope(new TestState { X = 999 }))
-            {
-                var x = 100;
-                var y = 200;
-                logger.ZLogInformation($"FooBar{x} NanoNano{y}");
-            }
 
-            var json = processor.Dequeue();
-            var doc = JsonDocument.Parse(json).RootElement;
-            doc.GetProperty("Message").GetString().Should().Be("FooBar100 NanoNano200");
+        var doc = JsonDocument.Parse(processor.Dequeue()).RootElement;
+
+        doc.GetProperty("Message").GetString().Should().Be("FooBar100 NanoNano200");
+        doc.GetProperty("Hoge").GetString().Should().Be("AAA");
+    }
+        
+    [Fact]
+    public void BeginScope_AnyScopeValueToJson()
+    {
+        using (logger.BeginScope(new TestState { X = 999 }))
+        {
+            var x = 100;
+            var y = 200;
+            logger.ZLogInformation($"FooBar{x} NanoNano{y}");
+        }
+
+        var json = processor.Dequeue();
+        var doc = JsonDocument.Parse(json).RootElement;
+        doc.GetProperty("Message").GetString().Should().Be("FooBar100 NanoNano200");
             
-            var scope = doc.GetProperty("Scope");
-            scope.GetProperty("X").GetInt32().Should().Be(999);
-        }
+        var scope = doc.GetProperty("Scope");
+        scope.GetProperty("X").GetInt32().Should().Be(999);
+    }
         
-        [Fact]
-        public void BeginScope_NestedToJson()
+    [Fact]
+    public void BeginScope_NestedToJson()
+    {
+        using (logger.BeginScope("X={X}", 111))
         {
-            using (logger.BeginScope("X={X}", 111))
+            logger.ZLogInformation($"Message 1");
+
+            using (logger.BeginScope("Y={Y}", 222))
             {
-                logger.ZLogInformation($"Message 1");
-
-                using (logger.BeginScope("Y={Y}", 222))
-                {
-                    logger.ZLogInformation($"Message 2");
-                }
+                logger.ZLogInformation($"Message 2");
             }
+        }
 
-            var log1 = JsonDocument.Parse(processor.Dequeue()).RootElement;
-            var log2 = JsonDocument.Parse(processor.Dequeue()).RootElement;
+        var log1 = JsonDocument.Parse(processor.Dequeue()).RootElement;
+        var log2 = JsonDocument.Parse(processor.Dequeue()).RootElement;
 
-            log1.GetProperty("Message").GetString().Should().Be("Message 1");
-            log1.GetProperty("X").GetInt32().Should().Be(111);
-            log1.TryGetProperty("Y", out _).Should().BeFalse();
+        log1.GetProperty("Message").GetString().Should().Be("Message 1");
+        log1.GetProperty("X").GetInt32().Should().Be(111);
+        log1.TryGetProperty("Y", out _).Should().BeFalse();
 
-            log2.GetProperty("Message").GetString().Should().Be("Message 2");
-            log2.GetProperty("X").GetInt32().Should().Be(111);
-            log2.GetProperty("Y").GetInt32().Should().Be(222);
+        log2.GetProperty("Message").GetString().Should().Be("Message 2");
+        log2.GetProperty("X").GetInt32().Should().Be(111);
+        log2.GetProperty("Y").GetInt32().Should().Be(222);
+    }
+
+    [Fact]
+    public void VersionMismatch()
+    {
+        var invalidScopeStateOwner = new InvalidScopeStateOwner();
+        var loggerFactory = LoggerFactory.Create(x =>
+        {
+            x.AddZLogger(zLogger =>
+            {
+                zLogger.AddLogProcessor(options =>
+                {
+                    options.IncludeScopes = true;
+                    return invalidScopeStateOwner;
+                });
+            });
+        });
+        logger = loggerFactory.CreateLogger("test");
+
+        using (logger.BeginScope("X={X}", 123))
+        {
+            logger.LogInformation($"AAAAAAA");
+        }
+        using (logger.BeginScope("X={X}", 456))
+        {
+            logger.LogInformation($"BBBBBBBB");
+        }
+
+        Assert.Throws<InvalidOperationException>(() =>
+        {
+            _ = invalidScopeStateOwner.LogInfos[0].ScopeState!.Properties;
+        });
+    }
+
+    class InvalidScopeStateOwner : IAsyncLogProcessor
+    {
+        public List<LogInfo> LogInfos { get; private set; } = [];
+
+        public ValueTask DisposeAsync() => default;
+
+        public void Post(IZLoggerEntry entry)
+        {
+            LogInfos.Add(entry.LogInfo);
+            entry.Return();
         }
     }
 }

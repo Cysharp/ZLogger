@@ -2,9 +2,7 @@ using Microsoft.Extensions.Logging;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
-using System.IO;
 using System.IO.Hashing;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -343,18 +341,12 @@ namespace ZLogger
         }
     }
 
-    internal readonly struct MessageSequenceSegment
+    internal readonly struct MessageSequenceSegment(string? literal, byte[] utf8Bytes)
     {
         public bool IsLiteral => Literal != null;
 
-        public readonly string Literal;
-        public readonly byte[] Utf8Bytes;
-
-        public MessageSequenceSegment(string? literal, byte[] utf8Bytes)
-        {
-            this.Literal = literal!;
-            this.Utf8Bytes = utf8Bytes;
-        }
+        public readonly string Literal = literal!;
+        public readonly byte[] Utf8Bytes = utf8Bytes;
 
         public override string ToString()
         {
@@ -362,23 +354,13 @@ namespace ZLogger
         }
     }
 
-    internal readonly struct InterpolatedStringParameter
+    internal readonly struct InterpolatedStringParameter(Type type, string name, int alignment, string? format, int boxOffset, object? boxedValue)
     {
-        public readonly Type Type;
-        public readonly string Name;
-        public readonly int Alignment;
-        public readonly string? Format;
-        public readonly int BoxOffset;  // if -1, use boxed value
-        public readonly object? BoxedValue;
-
-        public InterpolatedStringParameter(Type type, string name, int alignment, string? format, int boxOffset, object? boxedValue)
-        {
-            Type = type;
-            Name = name;
-            Alignment = alignment;
-            Format = format;
-            BoxOffset = boxOffset;
-            BoxedValue = boxedValue;
-        }
+        public readonly Type Type = type;
+        public readonly string Name = name;
+        public readonly int Alignment = alignment;
+        public readonly string? Format = format;
+        public readonly int BoxOffset = boxOffset;  // if -1, use boxed value
+        public readonly object? BoxedValue = boxedValue;
     }
 }

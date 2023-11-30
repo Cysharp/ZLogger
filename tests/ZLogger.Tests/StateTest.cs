@@ -28,7 +28,6 @@ namespace ZLogger.Tests
 
             Assert.Throws<InvalidOperationException>(() => formatter.Format());
         }
-
     }
 
     file class MyProvider : ILoggerProvider
