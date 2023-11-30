@@ -42,9 +42,9 @@ public partial class ZLoggerGenerator
             switch (type.SpecialType)
             {
                 case SpecialType.System_Enum:
-                    return $"CodeGeneratorUtil.WriteJsonEnum(writer, _jsonParameter_{LinkedMessageSegment.NameParameter}, this.{Symbol.Name});";
+                    return $"CodeGeneratorUtil.WriteJsonEnum(writer, _jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter});";
                 case SpecialType.System_Boolean:
-                    return $"writer.WriteBoolean(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{Symbol.Name});";
+                    return $"writer.WriteBoolean(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter});";
                 case SpecialType.System_SByte:
                 case SpecialType.System_Byte:
                 case SpecialType.System_Int16:
@@ -56,11 +56,11 @@ public partial class ZLoggerGenerator
                 case SpecialType.System_Decimal:
                 case SpecialType.System_Single:
                 case SpecialType.System_Double:
-                    return $"writer.WriteNumber(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{Symbol.Name});";
+                    return $"writer.WriteNumber(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter});";
                 case SpecialType.System_String:
                 case SpecialType.System_DateTime:
                     // DateTime, DateTimeOffset, Guid
-                    return $"writer.WriteString(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{Symbol.Name});";
+                    return $"writer.WriteString(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter});";
                 case SpecialType.System_Nullable_T:
                     // TODO:does not come here????
                     // if (type is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType)
@@ -83,7 +83,7 @@ public partial class ZLoggerGenerator
             }
 
             // final fallback, use Serialize
-            return $"writer.WritePropertyName(_jsonParameter_{LinkedMessageSegment.NameParameter}); JsonSerializer.Serialize(writer, this.{Symbol.Name});";
+            return $"writer.WritePropertyName(_jsonParameter_{LinkedMessageSegment.NameParameter}); JsonSerializer.Serialize(writer, this.{LinkedMessageSegment.NameParameter});";
         }
 
         public bool IsEnumerable()

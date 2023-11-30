@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using ZLogger;
 
 namespace Benchmark;
 
@@ -11,5 +12,9 @@ public static partial class MessageSample
 
     [LoggerMessage(LogLevel.Information, Message = Message)]
     public static partial void GeneratedLog(this ILogger logger, string name, string city, int age);
+
+
+    [ZLoggerMessage(LogLevel.Information, Message)]
+    public static partial void GeneratedZLog(this ILogger logger, string name, string city, int age);
 }
 

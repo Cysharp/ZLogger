@@ -24,10 +24,13 @@ public partial class ZLoggerGenerator
             // per class
             foreach (var parseResult in result)
             {
+                sb.Clear();
+
                 var keyword = parseResult.TargetTypeSyntax.Keyword.ToString();
                 var typeName = parseResult.TargetTypeSyntax.Identifier.ToString();
+                var staticKey = parseResult.TargetTypeSyntax.Modifiers.Any(x => x.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.StaticKeyword)) ? "static " : "";
 
-                sb.AppendLine($"partial {keyword} {typeName}");
+                sb.AppendLine($"{staticKey}partial {keyword} {typeName}");
                 sb.AppendLine("{");
                 sb.AppendLine("");
 
@@ -56,7 +59,7 @@ public partial class ZLoggerGenerator
                 .StringJoinNewLine();
 
             var fieldParameters = methodParameters
-                .Select(x => $"        readonly {x.Symbol.Type.ToFullyQualifiedFormatString()} {x.Symbol.Name};")
+                .Select(x => $"        readonly {x.Symbol.Type.ToFullyQualifiedFormatString()} {x.LinkedMessageSegment.NameParameter};")
                 .StringJoinNewLine();
 
             var constructorParameters = methodParameters
@@ -64,7 +67,7 @@ public partial class ZLoggerGenerator
                 .StringJoinComma();
 
             var constructorBody = methodParameters
-                .Select(x => $"            this.{x.Symbol.Name} = {x.Symbol.Name};")
+                .Select(x => $"            this.{x.LinkedMessageSegment.NameParameter} = {x.Symbol.Name};")
                 .StringJoinNewLine();
 
             sb.AppendLine($$"""
@@ -197,7 +200,7 @@ public partial class ZLoggerGenerator
         {
             switch (index)
             {
-{{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return Unsafe.As<{x.Symbol.Type.ToFullyQualifiedFormatString()}, T>(ref Unsafe.AsRef(this.{x.LinkedMessageSegment.NameParameter}));")}}
+{{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return Unsafe.As<{x.Symbol.Type.ToFullyQualifiedFormatString()}, T>(ref Unsafe.AsRef(in this.{x.LinkedMessageSegment.NameParameter}));")}}
             }
             CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
             return default!;

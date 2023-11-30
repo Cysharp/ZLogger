@@ -22,5 +22,9 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\ZLogger\ZLogger.csproj" />
+		<ProjectReference Include="..\..\src\ZLogger.Generator\ZLogger.Generator.csproj">
+			<OutputItemType>Analyzer</OutputItemType>
+			<ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+		</ProjectReference>
 	</ItemGroup>
 </Project>

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.VisualBasic;
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
@@ -10,7 +11,7 @@ namespace GeneratorSandbox;
 
 
 
-public static class Log22
+public static partial class Log22
 {
     // [ZLoggerMessage(Information, "Could not open socket to {hostName} {ipAddress}.")]
     public static void CouldNotOpenSocket(this ILogger<FooBarBaz> logger, string hostName, int ipAddress)
@@ -27,6 +28,8 @@ public static class Log22
 
 
 
+    [ZLoggerMessage(LogLevel.Information, "Could not open socket to {hostName} {ipAddress}.")]
+    public static partial void CouldNotOpenSocket3(this ILogger<FooBarBaz> logger, string hostName, int ipAddress);
 
 
 
@@ -68,10 +71,10 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
         // CodeGeneratorUtil.AppendAsJson(ref stringWriter, this.ipAddress);
 
         stringWriter.AppendUtf8("."u8);
-        
+
         stringWriter.Flush();
     }
-    
+
     // NOTE: keyNameMutator is only affects Interpolated String(perf reason).
     public void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions, IKeyNameMutator? keyNameMutator = null)
     {
@@ -122,8 +125,8 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
     {
         switch (index)
         {
-            case 0: return Unsafe.As<string, T>(ref Unsafe.AsRef(this.hostName));
-            case 1: return Unsafe.As<int, T>(ref Unsafe.AsRef(this.ipAddress));
+            case 0: return Unsafe.As<string, T>(ref Unsafe.AsRef(in this.hostName));
+            case 1: return Unsafe.As<int, T>(ref Unsafe.AsRef(in this.ipAddress));
         }
         CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
         return default!;
