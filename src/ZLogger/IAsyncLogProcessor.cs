@@ -35,8 +35,8 @@ public abstract class BatchingAsyncLogProcessor : IAsyncLogProcessor
         channel.Writer.TryWrite(log);
     }
 
-    public abstract ValueTask ProcessAsync(IReadOnlyList<INonReturnableZLoggerEntry> list);
-    public abstract ValueTask DisposeAsyncCore();
+    protected abstract ValueTask ProcessAsync(IReadOnlyList<INonReturnableZLoggerEntry> list);
+    protected abstract ValueTask DisposeAsyncCore();
 
     async Task WriteLoop()
     {
@@ -49,30 +49,31 @@ public abstract class BatchingAsyncLogProcessor : IAsyncLogProcessor
             {
                 while (reader.TryRead(out var value))
                 {
+                    list.Add(value);
                     if (batchSize < list.Count)
                     {
                         break;
                     }
-                    list.Add(value);
                 }
 
-                await ProcessAsync(list).ConfigureAwait(false);
-
-                foreach (var item in list)
+                try
                 {
-                    item.Return();
+                    await ProcessAsync(list).ConfigureAwait(false);
                 }
-
-                list.Clear();
+                finally
+                {
+                    foreach (var item in list)
+                    {
+                        item.Return();
+                    }
+                    list.Clear();
+                }
             }
             catch (Exception ex)
             {
                 try
                 {
-                    if (options.InternalErrorLogger != null)
-                    {
-                        options.InternalErrorLogger(ex);
-                    }
+                    options.InternalErrorLogger?.Invoke(ex);
                 }
                 catch { }
             }

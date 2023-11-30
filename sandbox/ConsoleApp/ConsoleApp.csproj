@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="ConsoleAppFramework" Version="2.1.0" />
+        <PackageReference Include="ConsoleAppFramework" Version="4.2.4" />
         <PackageReference Include="JetBrains.Profiler.Api" Version="1.4.0" />
         <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="2.9.8">
             <PrivateAssets>all</PrivateAssets>
