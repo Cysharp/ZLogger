@@ -79,11 +79,21 @@ public class MyClass
         // logging...
         logger.ZLogInformation($"Hello, {name} lives in {city} {age} years old.");
     
-        // text output:
-        // Hello, Bill lives in Kumamoto 21 years old.
-        //
-        // json output:
-        // {"Timestamp":"2023-11-30T17:28:35.869211+09:00","LogLevel":"Information","Category":"Program","Message":"Hello, Bill lives in Kumamoto 21 years old.","name":"Bill","city":"Kumamoto","age":21}
+        // > text output:
+        // > Hello, Bill lives in Kumamoto 21 years old.
+        // > 
+        // > json output:
+        // > {"Timestamp":"2023-11-30T17:28:35.869211+09:00","LogLevel":"Information","Category":"MyClass","Message":"Hello, Bill lives in Kumamoto 21 years old.","name":"Bill","city":"Kumamoto","age":21}
+
+
+        // Explicit property name        
+        logger.ZLogInformation($"Hello, {("username", name)} id:{("id", 100)} {age} years old.");
+    
+        // > text output:
+        // > Hello, Bill id:100 21 years old.
+        // > 
+        // > json output:
+        // > {"Timestamp":"2023-11-30T17:28:35.869211+09:00","LogLevel":"Information","Category":"MyClass","Message":"Hello, Bill id:100 21 years old.","username":"Bill","id":100,"age":21}
     }
 }
 ```
@@ -106,11 +116,70 @@ See [KeyNameMutator](#key-name-mutator)
 
 
 
+TODO: Formatter Configurations....
+----
 
 
 
-Output Providers
+### PlainTextZLoggerFormatter
+
+
+| Name                                                                                             | Description |
+|:-------------------------------------------------------------------------------------------------|:------------|
+| `SetPrefixFormatter(MessageTemplateHandler format, Action<MessageTemplate, LogInfo> formatter)`  |             |
+| `SetSuffixFormatter(MessageTemplateHandler format, Action<MessageTemplate, LogInfo> formatter)`  |             |
+| `SetExceptionFormatter(Action<IBufferWriter<byte>, Exception> formatter)`                        |             |
+
+
+### SystemTextJsonZLoggerFormatter
+
+
+| Name                                                                | Description                                                          |
+|:--------------------------------------------------------------------|:---------------------------------------------------------------------|
+| `JsonPropertyNames JsonPropertyNames`                               | Specify the name of each key in the output JSON                      |
+| `IncludeProperties IncludeProperties`                               | Flags that can specify properties to be output. (default: `Timestamp | LogLevel | CategoryName | Message | Exception | ScopeKeyValues | ParameterKeyValues`) |
+| `JsonSerializerOptions JsonSerializerOptions`                       | The options of `System.Text.Json`                                      |
+| `Action<Utf8JsonWriter, LogInfo>? AdditionalFormatter`              | Action when rendering additional properties based on `LogInfo`.                                                                     |
+| `JsonEncodedText? PropertyKeyValuesObjectName`                      |                                                                      |
+| `IKeyNameMutator? KeyNameMutator`                                   |                                                                      |
+| `bool UseUtcTimestamp`                                              |                                                                      |
+
+
+
+TODO: LogInfo ?
 ---
+
+| Name                        | Description                                                                                              |
+|:----------------------------|:---------------------------------------------------------------------------------------------------------|
+| `LogCategory Category`      | The category name set for each logger. And holds JsonEncodedText and utf8 byte sequence representations. |
+| `Timestamp Timestamp`       | Timestamp                                                                                                |
+| `LogLevel LogLevel`         | LogLevel  of `Microsoft.Extensions.Logging`                                                              |
+| `EventId EventId`           | EventId of `Microsoft.Extensions.Logging`                                                                |
+| `Exception? Exception`      | Exception given as argument when logging.                                                                |
+| `LogScopeState? ScopeState` | Additional properties set by `ILogger.BeginScope(...)` (if ZLoggerOptions.IncludeScopes = true)          |
+
+
+TODO: KeyNameMutator
+---
+
+
+| Name                                  | Description                                                                                               |
+|:--------------------------------------|:----------------------------------------------------------------------------------------------------------|
+| `LastMemberName`                      | Returns the last member name of the source.                                                               |
+| `LowerFirstCharacter`                 | The first character converted to lowercase.                                                               |
+| `UpperFirstCharacter`                 | The first character converted to uppercase.                                                               |
+| `LastMemberNameLowerFirstCharacter`   | Returns the last member name of the source with the first character converted to lowercase.               |
+| `LastMemberNameUpperFirstCharacter`   | Returns the last member name of the source with the first character converted to uppercase.               |                              
+
+
+
+
+
+
+
+TODO: ZLoggerBuilder
+----
+
 ZLogger has the following providers.
 
 | Type                                   | Alias               | Builder Extension |
@@ -123,11 +192,8 @@ ZLogger has the following providers.
 | ZLoggerInMemoryProcessorLoggerProvider | ZLoggerInMemory     | AddInMemory       |
 
 
-
-
-
-
-for example:
+If you are using `Microsoft.Extensions.Configuration`, you can set the log level through configuration.
+In this case, alias of Provider can be used.  for example:
 
 ```json
 {
@@ -144,76 +210,132 @@ for example:
 }
 ```
 
+### Console
+
+If you are using `ZLoggerConsoleLoggerProvider`, the following additional options are available
+
+| Name                                    | Description                                                                                                                               |
+|:----------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------|
+| `bool OutputEncodingToUtf8`             | Set `Console.OutputEncoding = new UTF8Encoding(false)` when the provider is created.  (default: true)                                     | |
+| `bool ConfigureEnableAnsiEscapeCode`    | If set true, then configure console option on execution and enable virtual terminal processing(enable ANSI escape code). (default: false) |
+| `LogLevel LogToStandardErrorThreshold`  | If set, logs at a higher level than the value will be output to standard error. (default: LogLevel.None)                                  |
+
+
+```cs
+builder.Logging
+    .ClearProviders()
+    .AddZLogger(zlogger => 
+    {
+        // Default
+        zlogger.AddConsole();
+        
+        // Configure options
+        zlogger.AddConsole(options => 
+        {
+            options.LogToStandardErrorThreshold = LogLevel.Error;
+        });
+        
+        // Configure options with service provider
+        zlogger.AddConsole((options, services) => 
+        {
+            options.TimeProvider = services.GetService<YourCustomTimeProvider>();
+        });
+    });
+```
+
+### File
+
+```cs
+builder.Logging
+    .ClearProviders()
+    .AddZLogger(zlogger => 
+    {
+        // Default
+        zlogger.AddFile(filePath);
+        
+        // Configure options
+        zlogger.AddFile(filePath, options => 
+        {
+            // ...
+        });
+        
+        // Configure options with service provider
+        zlogger.AddFile(filePath, (options, services) => 
+        {
+            // ...
+        });
+
+        // Configure file path dynamically
+        zlogger.AddFile((options, services) =>
+        {
+            return pathToFile;
+        });
+    });
+```
+
+### RollingFile
+
+```csharp
+
+```
+
+### Stream
+
+```cs
+builder.Logging
+    .ClearProviders()
+    .AddZLogger(zlogger => 
+    {
+        // Default
+        zlogger.AddStream(stream);
+        
+        // Configure options
+        zlogger.AddStream(stream, options => 
+        {
+            // ...
+        });
+        
+        // Configure options with service provider
+        zlogger.AddFile(filePath, (options, services) => 
+        {
+            // ...
+        });
+
+        // Configure file path dynamically
+        zlogger.AddStream((options, services) =>
+        {
+            // ...
+            return yourCustomStream;
+        });
+    });
+
+```
+
+### In-Memory
+
+todo
+
+### Custom LogProcessor
+
+todo
+
+
 ZLoggerOptions
 ---
 
 
-| Name   | Description |
-| ---- | ---- |
-| `bool IncludeScopes { get; set; }` | Enable `ILogger.BeginScope`, default is `false`. |
-| `TimeProvider? TimeProvider { get; set; }` | Gets or sets the time provider for the logger. The Timestamp of LogInfo is generated by TimeProvider's GetUtcNow() and LocalTimeZone when TimeProvider is set. The default value is null, which means use the system standard. |
-| `Action<Exception>? InternalErrorLogger { get; set; }` | `InternalErrorLogger` is a delegate that is called when an exception occurs in the log writing process (such as a serialization error). The default value is `null`, which means errors are ignored. |
-| `CreateFormatter()` | Create an formatter to use in ZLoggerProvider. |
-| `UseFormatter(Func<IZLoggerFormatter> formatterFactory)` |  |
-| `UsePlainTextFormatter(Action<PlainTextZLoggerFormatter>? configure = null)` |  |
-| `UseJsonFormatter(Action<SystemTextJsonZLoggerFormatter>? configure = null)` |  |
+| Name                                                                         | Description                                                                                                                                                                                                                    |
+|:-----------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `bool IncludeScopes { get; set; }`                                           | Enable `ILogger.BeginScope`, default is `false`.                                                                                                                                                                               |
+| `TimeProvider? TimeProvider { get; set; }`                                   | Gets or sets the time provider for the logger. The Timestamp of LogInfo is generated by TimeProvider's GetUtcNow() and LocalTimeZone when TimeProvider is set. The default value is null, which means use the system standard. |
+| `Action<Exception>? InternalErrorLogger { get; set; }`                       | `InternalErrorLogger` is a delegate that is called when an exception occurs in the log writing process (such as a serialization error). The default value is `null`, which means errors are ignored.                           |
+| `CreateFormatter()`                                                          | Create an formatter to use in ZLoggerProvider.                                                                                                                                                                                 |
+| `UseFormatter(Func<IZLoggerFormatter> formatterFactory)`                     | Set the formatter that defines the output format of the log.                                                                                                                                                                   |
+| `UsePlainTextFormatter(Action<PlainTextZLoggerFormatter>? configure = null)` | Use the built-in plain text formatter.                                                                                                                                                                                         |
+| `UseJsonFormatter(Action<SystemTextJsonZLoggerFormatter>? configure = null)` | Use the built-in json formatter. (implementation of `System.Text.Json`)                                                                                                                                                        |
 
 TODO:...
 default formatter is PlaintTextFormatter.
-
-### ZLoggerConsoleOptions
-
-If you are using `ZLoggerConsoleLoggerProvider`, the following additional options are available
-
-| Name                                   | Description |
-|----------------------------------------| --------  |
-| `bool OutputEncodingToUtf8`            |           |
-| `bool ConfigureEnableAnsiEscapeCode`   |           |
-| `LogLevel LogToStandardErrorThreshold` |           |
-| 
-
-
-## TODO: Formatter Configurations....
-
-
-
-### PlainTextZLoggerFormatter
-
-
-| Name                                                                                            | Description |
-|-------------------------------------------------------------------------------------------------| --------  |
-| `SetPrefixFormatter(MessageTemplateHandler format, Action<MessageTemplate, LogInfo> formatter)` |           |
-| `SetSuffixFormatter(MessageTemplateHandler format, Action<MessageTemplate, LogInfo> formatter)` |           |
-| `SetExceptionFormatter(Action<IBufferWriter<byte>, Exception> formatter)`                       |           |
-
-
-### SystemTextJsonZLoggerProvider
-
-
-| Name                                                   | Description                                         |
-|--------------------------------------------------------|-----------------------------------------------------|
-| `JsonPropertyNames JsonPropertyNames`                  | Specify the name of each key in the output JSON                                            |
-| `IncludeProperties IncludeProperties`                  |                                             |
-| `JsonSerializerOptions JsonSerializerOptions`          |                                             |
-| `Action<Utf8JsonWriter, LogInfo>? AdditionalFormatter` |                                             |
-| ``                                                     |                                             |
-
-
-TODO: LogInfo ?
----
-
-TODO: KeyNameMutator
----
-
-
-| Name                                  | Description                                         |
-|---------------------------------------|-----------------------------------------------------|
-|  |                                             |
-
-
-
-TODO: ZLoggerBuilder
-----
 
 
 # -----------------------------
