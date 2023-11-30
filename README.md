@@ -1,13 +1,151 @@
 ZLogger v2 ReadMe(TBD)
 
 
+Getting Started
+---
+
+> PM> Install-Package [ZLogger](https://www.nuget.org/packages/ZLogger)
+
+
+```csharp
+using ZLogger;
+
+var builder = Host.CreateApplicationBuilder();
+
+builder.Logging
+    // optional(MS.E.Logging):clear default providers.        
+    .ClearProviders()
+    .AddZLogger(zlogger =>
+    {
+        // Add to output to console
+        zlogger.AddConsole();
+
+        // Add to output to the file
+        zlogger.AddFile("/path/to/file.log");
+        
+        // Add to output the file that rotates at constant intervals.
+        zlogger.AddRollingFile((dt, x) => $"logs/{dt.ToLocalTime():yyyy-MM-dd}_{x:000}.log", x => x.ToLocalTime().Date, 1024);
+        
+        // Add to output of simple rendered strings into memory. You can subscribe to this and use it.
+        zlogger.AddInMemory(processor =>
+        {
+            processor.MessageReceived += logMessageString => { /* ...  */ };
+        });
+        
+        // Add output to any steram (`System.IO.Stream`)
+        zlogger.AddStream(stream);
+
+        // Add custom output
+        zlogger.AddLogProcessor(new YourCustomLogExporter());
+        
+        // Format as json
+        zlogger.AddConsole(options =>
+        {
+            options.UseJsonFormatter();
+        });
+
+        // Further settings
+        zlogger.AddConsole(options =>
+        {
+            // Enable scope
+            options.IncludeScopes = true;
+            
+            // 
+            options.TimeProvider = 
+        });
+    });
+```
+
+```cs
+using Microsoft.Extensions.Logging;
+using ZLogger;
+
+public class MyClass
+{
+    readonly ILogger<MyClass> logger;
+    
+    public MyClass(ILogger<MyClass> logger)
+    {
+        this.logger = logger;
+    }
+    
+    public void Foo()
+    {
+        // Any variables...
+        var name = "Bill";
+        var city = "Kumamoto";
+        var age = 21;
+        
+        // logging...
+        logger.ZLogInformation($"Hello, {name} lives in {city} {age} years old.");
+    
+        // text output:
+        // Hello, Bill lives in Kumamoto 21 years old.
+        //
+        // json output:
+        // {"Timestamp":"2023-11-30T17:28:35.869211+09:00","LogLevel":"Information","Category":"Program","Message":"Hello, Bill lives in Kumamoto 21 years old.","name":"Bill","city":"Kumamoto","age":21}
+    }
+}
+```
+
+
+ZLogger is built on top of [Microsoft.Extensions.Logging](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/), but adds `ZLog*` method family that are faster than basic Log calls.
+
+All logging methods are completely similar as [Microsoft.Extensions.Logging.LoggerExtensions](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.loggerextensions), but it has **Z** prefix overload to avoid allocation of boxing.
+
+
+
+
+
+The ZLog* method uses [InterpolatedStringHandler](https://learn.microsoft.com/ja-jp/dotnet/csharp/whats-new/tutorials/interpolated-string-handler) in .NET and prepare the template at compile time.
+
+Note that the arguments always use `$""` literals.
+
+Also, by default, expressions (variable names) in literals are parsed and used as keys for structured logging.
+See [KeyNameMutator](#key-name-mutator)
 
 
 
 
 
 
-## ZLoggerOptions
+Output Providers
+---
+ZLogger has the following providers.
+
+| Type                                   | Alias               | Builder Extension |
+|----------------------------------------|---------------------|-------------------|
+| ZLoggerConsoleLoggerProvider           | ZLoggerConsole      | AddConsole        |
+| ZLoggerFileLoggerProvider              | ZLoggerFile         | AddFile           |
+| ZLoggerRollingFileLoggerProvider       | ZLoggerRollingFile  | AddRollingFile    |
+| ZLoggerStreamLoggerProvider            | ZLoggerStream       | AddStream         |
+| ZLoggerLogProcessorLoggerProvider      | ZLoggerLogProcessor | AddLogProcessor   |
+| ZLoggerInMemoryProcessorLoggerProvider | ZLoggerInMemory     | AddInMemory       |
+
+
+
+
+
+
+for example:
+
+```json
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information"
+    },
+    "ZLoggerConsoleLoggerProvider": {
+      "LogLevel": {
+        "Default": "Debug"
+      }
+    }
+  }
+}
+```
+
+ZLoggerOptions
+---
 
 
 | Name   | Description |
@@ -23,10 +161,59 @@ ZLogger v2 ReadMe(TBD)
 TODO:...
 default formatter is PlaintTextFormatter.
 
+### ZLoggerConsoleOptions
+
+If you are using `ZLoggerConsoleLoggerProvider`, the following additional options are available
+
+| Name                                   | Description |
+|----------------------------------------| --------  |
+| `bool OutputEncodingToUtf8`            |           |
+| `bool ConfigureEnableAnsiEscapeCode`   |           |
+| `LogLevel LogToStandardErrorThreshold` |           |
+| 
+
+
 ## TODO: Formatter Configurations....
 
 
-## TODO: ZLoggerBuilder
+
+### PlainTextZLoggerFormatter
+
+
+| Name                                                                                            | Description |
+|-------------------------------------------------------------------------------------------------| --------  |
+| `SetPrefixFormatter(MessageTemplateHandler format, Action<MessageTemplate, LogInfo> formatter)` |           |
+| `SetSuffixFormatter(MessageTemplateHandler format, Action<MessageTemplate, LogInfo> formatter)` |           |
+| `SetExceptionFormatter(Action<IBufferWriter<byte>, Exception> formatter)`                       |           |
+
+
+### SystemTextJsonZLoggerProvider
+
+
+| Name                                                   | Description                                         |
+|--------------------------------------------------------|-----------------------------------------------------|
+| `JsonPropertyNames JsonPropertyNames`                  | Specify the name of each key in the output JSON                                            |
+| `IncludeProperties IncludeProperties`                  |                                             |
+| `JsonSerializerOptions JsonSerializerOptions`          |                                             |
+| `Action<Utf8JsonWriter, LogInfo>? AdditionalFormatter` |                                             |
+| ``                                                     |                                             |
+
+
+TODO: LogInfo ?
+---
+
+TODO: KeyNameMutator
+---
+
+
+| Name                                  | Description                                         |
+|---------------------------------------|-----------------------------------------------------|
+|  |                                             |
+
+
+
+TODO: ZLoggerBuilder
+----
 
 
 # -----------------------------
