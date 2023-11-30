@@ -9,42 +9,87 @@ namespace ZLogger.Tests;
 public class BatchingAsyncLogProcessorTest
 {
     [Fact]
-    public void Batch()
+    public void LessThanBatchSize()
+    {
+        var options = new ZLoggerOptions();
+        var batchingProcessor = new TestBatchingProcessor(10, options);
+
+        using (var loggerFactory = LoggerFactory.Create(x =>
+               {
+                   x.AddZLogger(zLogger => zLogger.AddLogProcessor(batchingProcessor));
+               }))
+        {
+            var logger = loggerFactory.CreateLogger("test");
+
+            for (var i = 0; i < 5; i++)
+            {
+                logger.ZLogInformation($"{i}");
+            }
+        }
+
+        batchingProcessor.Records.Count.Should().Be(5);
+        batchingProcessor.DisposeCalled.Should().BeTrue();
+    }
+    
+    [Fact]
+    public void OverflowBatchSize()
     {
         var options = new ZLoggerOptions();
         var batchingProcessor = new TestBatchingProcessor(3, options);
 
-        var loggerFactory = LoggerFactory.Create(x =>
+        using (var loggerFactory = LoggerFactory.Create(x =>
+               {
+                   x.AddZLogger(zLogger => zLogger.AddLogProcessor(batchingProcessor));
+               }))
         {
-            x.AddZLogger(zLogger => zLogger.AddLogProcessor(batchingProcessor));
-        });
+            var logger = loggerFactory.CreateLogger("test");
 
-        var logger = loggerFactory.CreateLogger("test");
-        for (var i = 0; i < 6; i++)
-        {
-            logger.LogInformation($"i={i}");
+            for (var i = 0; i < 10; i++)
+            {
+                logger.ZLogInformation($"{i}");
+            }
         }
 
-        batchingProcessor.Records.Count.Should().Be(6);
-        
-        loggerFactory.Dispose();
+        batchingProcessor.Records.Count.Should().Be(10);
+        batchingProcessor.DisposeCalled.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ErrorProcess()
+    {
+        var options = new ZLoggerOptions();
+        var batchingProcessor = new ErrorBatchingProcessor(1, options);
+
+        using (var loggerFactory = LoggerFactory.Create(x =>
+               {
+                   x.AddZLogger(zLogger => zLogger.AddLogProcessor(batchingProcessor));
+               }))
+        {
+            var logger = loggerFactory.CreateLogger("test");
+            logger.ZLogInformation($"hehehe");
+            logger.ZLogInformation($"ahahah");
+        }
+
+        batchingProcessor.Records[0].Should().Be("hehehe");
+        batchingProcessor.Records[1].Should().Be("ahahah");
         batchingProcessor.DisposeCalled.Should().BeTrue();
     }
 }
 
-file class ErrorBatchingProcessor(int batchSize, ZLoggerOptions options) : BatchingAsyncLogProcessor(batchSize, options)
+file class TestBatchingProcessor(int batchSize, ZLoggerOptions options) : BatchingAsyncLogProcessor(batchSize, options)
 {
-    public List<INonReturnableZLoggerEntry> Records { get; private set; }
+    public List<string> Records { get; private set; } = [];
+    public int ProcessCalls { get; private set; }
     public bool DisposeCalled { get; private set; }
 
-    protected override ValueTask ProcessAsync(IReadOnlyList<INonReturnableZLoggerEntry> list)
+    protected override async ValueTask ProcessAsync(IReadOnlyList<INonReturnableZLoggerEntry> list)
     {
-        Records.AddRange(list);
-        if (Records.Count is > 3 and <= 4)
+        ProcessCalls++;
+        foreach (var x in list)
         {
-            throw new InvalidOperationException();
+            Records.Add(x.ToString());
         }
-        return default;
+        await Task.Delay(100);
     }
 
     protected override ValueTask DisposeAsyncCore()
@@ -54,15 +99,23 @@ file class ErrorBatchingProcessor(int batchSize, ZLoggerOptions options) : Batch
     }
 }
 
-file class TestBatchingProcessor(int batchSize, ZLoggerOptions options) : BatchingAsyncLogProcessor(batchSize, options)
+file class ErrorBatchingProcessor(int batchSize, ZLoggerOptions options) : BatchingAsyncLogProcessor(batchSize, options)
 {
-    public List<INonReturnableZLoggerEntry> Records { get; private set; } = [];
+    public List<string> Records { get; private set; } = [];
+    public int ProcessCalls { get; private set; }
     public bool DisposeCalled { get; private set; }
 
-    protected override ValueTask ProcessAsync(IReadOnlyList<INonReturnableZLoggerEntry> list)
+    protected override async ValueTask ProcessAsync(IReadOnlyList<INonReturnableZLoggerEntry> list)
     {
-        Records.AddRange(list);
-        return default;
+        ProcessCalls++;
+        
+        foreach (var x in list)
+        {
+            Records.Add(x.ToString());
+        }
+        await Task.Delay(100);
+        
+        throw new InvalidOperationException();
     }
 
     protected override ValueTask DisposeAsyncCore()
