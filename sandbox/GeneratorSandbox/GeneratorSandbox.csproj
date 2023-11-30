@@ -4,7 +4,7 @@
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<LangVersion>11</LangVersion>
+		<LangVersion>12</LangVersion>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
