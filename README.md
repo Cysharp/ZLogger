@@ -15,44 +15,55 @@ var builder = Host.CreateApplicationBuilder();
 builder.Logging
     // optional(MS.E.Logging):clear default providers.        
     .ClearProviders()
-    .AddZLogger(zlogger =>
+    
+    // Add to output to console
+    .AddZLoggerConsole();
+
+    // Add to output to the file
+    .AddZLoggerFile("/path/to/file.log")
+    
+    // Add to output the file that rotates at constant intervals.
+    .AddZLoggerRollingFile(options =>
     {
-        // Add to output to console
-        zlogger.AddConsole();
-
-        // Add to output to the file
-        zlogger.AddFile("/path/to/file.log");
+        // File name determined by parameters to be rotated
+        options.FilePathSelector = (timestamp, sequenceNumber) => $"logs/{timestamp.ToLocalTime():yyyy-MM-dd}_{sequenceNumber:000}.log";
         
-        // Add to output the file that rotates at constant intervals.
-        zlogger.AddRollingFile((dt, x) => $"logs/{dt.ToLocalTime():yyyy-MM-dd}_{x:000}.log", RollingInterval.Day, 1024);
+        // The period of time for which you want to rotate files at time intervals.
+        options.RollingInterval = RollingInterval.Day;
         
-        // Add to output of simple rendered strings into memory. You can subscribe to this and use it.
-        zlogger.AddInMemory(processor =>
+        // Limit of size if you want to rotate by file size. (KB)
+        options.RollingSizeKB = 1024;        
+    })    
+    
+    // Add to output of simple rendered strings into memory. You can subscribe to this and use it.
+    .AddZLoggerInMemory(processor =>
+    {
+        processor.MessageReceived += renderedLogString => 
         {
-            processor.MessageReceived += logMessageString => { /* ...  */ };
-        });
-        
-        // Add output to any steram (`System.IO.Stream`)
-        zlogger.AddStream(stream);
+            System.Console.WriteLine(renderedLogString);    
+        };
+    })
+    
+    // Add output to any steram (`System.IO.Stream`)
+    .AddZLoggerStream(stream);
 
-        // Add custom output
-        zlogger.AddLogProcessor(new YourCustomLogExporter());
-        
-        // Format as json
-        zlogger.AddConsole(options =>
-        {
-            options.UseJsonFormatter();
-        });
+    // Add custom output
+    .AddZLoggerLogProcessor(new YourCustomLogExporter());
+    
+    // Format as json
+    .AddZLoggerConsole(options =>
+    {
+        options.UseJsonFormatter();
+    })
 
-        // Further settings
-        zlogger.AddConsole(options =>
-        {
-            // Enable scope
-            options.IncludeScopes = true;
-            
-            // 
-            options.TimeProvider = 
-        });
+    // Further common settings
+    .AddZLoggerConsole(options =>
+    {
+        // Enable LoggerExtensions.BeginScope
+        options.IncludeScopes = true;
+        
+        // Set TimeProvider
+        options.TimeProvider = yourTimeProvider
     });
 ```
 
@@ -138,66 +149,62 @@ TODO: Formatter Configurations....
 ### PlainText
 
 ```cs
-builder.Logging.AddZLogger(zlogger =>
+builder.Logging.AddZLoggerConsole(options =>
 {
-    zlogger.AddConsole(options =>
+    // Text format
+    // e.g) "2023-12-01 16:41:55.775|Information|This is log message. (MyNamespace.MyApp)
+    options.UsePlainTextFormatter(formatter => 
     {
-        // Text format
-        // e.g) "2023-12-01 16:41:55.775|Information|aaa aaaa aaa (MyNamespace.MyApp)
-        options.UsePlainTextFormatter(formatter => 
-        {
-            formatter.SetPrefixFormatter($"{0}|{1}|", (template, info) => template.Format(info.Timestamp, info.LogLevel));
-            formatter.SetSuffixFormatter($" ({0})", (formatter, info) => formatter.Format(info.Category));
-            formatter.SetExceptionFormatter((writer, ex) => Utf8String.Format(writer, $"{ex.Message}"));
-        });
+        formatter.SetPrefixFormatter($"{0}|{1}|", (template, info) => template.Format(info.Timestamp, info.LogLevel));
+        formatter.SetSuffixFormatter($" ({0})", (formatter, info) => formatter.Format(info.Category));
+        formatter.SetExceptionFormatter((writer, ex) => Utf8String.Format(writer, $"{ex.Message}"));
+    });
         
-        // Using various variable formats.
-        // e.g) "2023-12-01T16:47:15+09:00|INF|aaa aaaa aaa"
-        formatter.SetPrefixFormatter($"{0:yyyy-MM-dd'T'HH:mm:sszzz}|{1:short}|", (writer, info) =>
+    // Using various variable formats.
+    // e.g) "2023-12-01T16:47:15+09:00|INF|This is log message"
+    formatter.SetPrefixFormatter($"{0:yyyy-MM-dd'T'HH:mm:sszzz}|{1:short}|", (writer, info) =>
+    {
+        var escapeSequence = "";
+        // if (info.LogLevel >= LogLevel.Error)
+        // {
+        //     escapeSequence = "\u001b[31m";
+        // }
+        // else if (!info.Category.Name.Contains("MyApp"))
+        // {
+        //     escapeSequence = "\u001b[38;5;08m";
+        // }
+    
+        writer.Format(info.Timestamp, info.LogLevel);
+    });
+        
+    // Console coloring example
+    options.UsePlainTextFormatter(formatter =>
+    {
+        // \u001b[31m => Red(ANSI Escape Code)
+        // \u001b[0m => Reset
+        // \u001b[38;5;***m => 256 Colors(08 is Gray)
+        formatter.SetPrefixFormatter($"{0}{1}|{2:short}|", (writer, info) =>
         {
             var escapeSequence = "";
-            // if (info.LogLevel >= LogLevel.Error)
-            // {
-            //     escapeSequence = "\u001b[31m";
-            // }
-            // else if (!info.Category.Name.Contains("MyApp"))
-            // {
-            //     escapeSequence = "\u001b[38;5;08m";
-            // }
+            if (info.LogLevel >= LogLevel.Error)
+            {
+                escapeSequence = "\u001b[31m";
+            }
+            else if (!info.Category.Name.Contains("MyApp"))
+            {
+                escapeSequence = "\u001b[38;5;08m";
+            }
         
-            writer.Format(info.Timestamp, info.LogLevel);
+            writer.Format(escapeSequence, info.Timestamp, info.LogLevel);
         });
-        
-        // Console coloring example
-        options.UsePlainTextFormatter(formatter =>
+
+        formatter.SetSuffixFormatter($"{0}", (writer, info) =>
         {
-            // \u001b[31m => Red(ANSI Escape Code)
-            // \u001b[0m => Reset
-            // \u001b[38;5;***m => 256 Colors(08 is Gray)
-            formatter.SetPrefixFormatter($"{0}{1}|{2:short}|", (writer, info) =>
+            if (info.LogLevel == LogLevel.Error || !info.Category.Name.Contains("MyApp"))
             {
-                var escapeSequence = "";
-                if (info.LogLevel >= LogLevel.Error)
-                {
-                    escapeSequence = "\u001b[31m";
-                }
-                else if (!info.Category.Name.Contains("MyApp"))
-                {
-                    escapeSequence = "\u001b[38;5;08m";
-                }
-            
-                writer.Format(escapeSequence, info.Timestamp, info.LogLevel);
-            });
-    
-            formatter.SetSuffixFormatter($"{0}", (writer, info) =>
-            {
-                if (info.LogLevel == LogLevel.Error || !info.Category.Name.Contains("MyApp"))
-                {
-                    writer.Format("\u001b[0m");
-                }
-            });
+                writer.Format("\u001b[0m");
+            }
         });
-        
     });
 });
 ```
@@ -222,35 +229,35 @@ Note: For format strings available for various variables:
 ### JSON
 
 
-| Name                                                                | Description                                                          |
-|:--------------------------------------------------------------------|:---------------------------------------------------------------------|
-| `JsonPropertyNames JsonPropertyNames`                               | Specify the name of each key in the output JSON                      |
-| `IncludeProperties IncludeProperties`                               | Flags that can specify properties to be output. (default: `Timestamp | LogLevel | CategoryName | Message | Exception | ScopeKeyValues | ParameterKeyValues`) |
-| `JsonSerializerOptions JsonSerializerOptions`                       | The options of `System.Text.Json`                                      |
-| `Action<Utf8JsonWriter, LogInfo>? AdditionalFormatter`              | Action when rendering additional properties based on `LogInfo`.                                                                     |
-| `JsonEncodedText? PropertyKeyValuesObjectName`                      |                                                                      |
-| `IKeyNameMutator? KeyNameMutator`                                   |                                                                      |
-| `bool UseUtcTimestamp`                                              |                                                                      |
+| Name                                                                | Description                                                                       |
+|:--------------------------------------------------------------------|:----------------------------------------------------------------------------------|
+| `JsonPropertyNames JsonPropertyNames`                               | Specify the name of each key in the output JSON                                   |
+| `IncludeProperties IncludeProperties`                               | Flags that can specify properties to be output. (default: `Timestamp              | LogLevel | CategoryName | Message | Exception | ScopeKeyValues | ParameterKeyValues`) |
+| `JsonSerializerOptions JsonSerializerOptions`                       | The options of `System.Text.Json`                                                 |
+| `Action<Utf8JsonWriter, LogInfo>? AdditionalFormatter`              | Action when rendering additional properties based on `LogInfo`.                   |
+| `JsonEncodedText? PropertyKeyValuesObjectName`                      | If set, the key/value properties is nested under the specified key name.          |
+| `IKeyNameMutator? KeyNameMutator`                                   | You can set the naming convention if you want to automatically convert key names. |
+| `bool UseUtcTimestamp`                                              | If true, timestamp is output in utc. (default: false)                             |
 
 
 ### MessagePack
 
 
-| Name                                                                | Description                                                          |
-|:--------------------------------------------------------------------|:---------------------------------------------------------------------|
-| `JsonPropertyNames JsonPropertyNames`                               | Specify the name of each key in the output JSON                      |
-| `IncludeProperties IncludeProperties`                               | Flags that can specify properties to be output. (default: `Timestamp | LogLevel | CategoryName | Message | Exception | ScopeKeyValues | ParameterKeyValues`) |
-| `JsonSerializerOptions JsonSerializerOptions`                       | The options of `System.Text.Json`                                      |
-| `Action<Utf8JsonWriter, LogInfo>? AdditionalFormatter`              | Action when rendering additional properties based on `LogInfo`.                                                                     |
-| `JsonEncodedText? PropertyKeyValuesObjectName`                      |                                                                      |
-| `IKeyNameMutator? KeyNameMutator`                                   |                                                                      |
-| `bool UseUtcTimestamp`                                              |                                                                      |
+Formats using messagepack are supported in an additional package.
 
+[MessagePack-CSharp](https://github.com/MessagePack-CSharp/MessagePack-CSharp)
+
+> PM> Install-Package [ZLogger.MessagePack](https://www.nuget.org/packages/ZLogger.MessagePack)
+
+| Name                                                               | Description                                                        |
+|:-------------------------------------------------------------------|:-------------------------------------------------------------------|
+| `MessagePackSerializerOptions MessagePackSerializerOptions`        | The options of `MessagePack-CSharp`.                               |
+| `IncludeProperties IncludeProperties`                              | Flags that can specify properties to be output. (default: `Timestamp| LogLevel | CategoryName | Message | Exception | ScopeKeyValues | ParameterKeyValues`) |
+| `IKeyNameMutator? KeyNameMutator`                                   | You can set the naming convention if you want to automatically convert key names. |
 
 ### Custom Formatter 
 
-```cs
-```
+todo
 
 TODO: LogInfo ?
 ---
@@ -288,14 +295,14 @@ TODO: ZLoggerBuilder
 
 ZLogger has the following providers.
 
-| Type                                   | Alias               | Builder Extension |
-|----------------------------------------|---------------------|-------------------|
-| ZLoggerConsoleLoggerProvider           | ZLoggerConsole      | AddConsole        |
-| ZLoggerFileLoggerProvider              | ZLoggerFile         | AddFile           |
-| ZLoggerRollingFileLoggerProvider       | ZLoggerRollingFile  | AddRollingFile    |
-| ZLoggerStreamLoggerProvider            | ZLoggerStream       | AddStream         |
-| ZLoggerLogProcessorLoggerProvider      | ZLoggerLogProcessor | AddLogProcessor   |
-| ZLoggerInMemoryProcessorLoggerProvider | ZLoggerInMemory     | AddInMemory       |
+| Type                                   | Alias               | Builder Extension      |
+|----------------------------------------|---------------------|------------------------|
+| ZLoggerConsoleLoggerProvider           | ZLoggerConsole      | AddZLoggerConsole      |
+| ZLoggerFileLoggerProvider              | ZLoggerFile         | AddZLoggerFile         |
+| ZLoggerRollingFileLoggerProvider       | ZLoggerRollingFile  | AddZLoggerRollingFile  |
+| ZLoggerStreamLoggerProvider            | ZLoggerStream       | AddZLoggerStream       |
+| ZLoggerLogProcessorLoggerProvider      | ZLoggerLogProcessor | AddZLoggerLogProcessor |
+| ZLoggerInMemoryProcessorLoggerProvider | ZLoggerInMemory     | AddZLoggerInMemory     |
 
 
 If you are using `Microsoft.Extensions.Configuration`, you can set the log level through configuration.
@@ -321,22 +328,18 @@ All Providers can take an Action that sets ZLoggerOptions as the last argument. 
 ```cs
 builder.Logging
     .ClearProviders()
-    .AddZLogger(zlogger => 
+    // Configure options
+    .AddZLoggerConsole(options => 
     {
-        // Configure options
-        zlogger.AddConsole(options => 
-        {
-            options.LogToStandardErrorThreshold = LogLevel.Error;
-        });
-        
-        // Configure options with service provider
-        zlogger.AddConsole((options, services) => 
-        {
-            options.TimeProvider = services.GetService<YourCustomTimeProvider>();
-        });
+        options.LogToStandardErrorThreshold = LogLevel.Error;
+    });
+    
+    // Configure options with service provider
+    .AddZLoggerConsole((options, services) => 
+    {
+        options.TimeProvider = services.GetService<YourCustomTimeProvider>();
     });
 ```
-
 
 
 ### Console
@@ -354,28 +357,10 @@ If you are using `ZLoggerConsoleLoggerProvider`, the following additional option
 ### File
 
 
-
-| Name                                   | Description                                                                                                                               |
-|:---------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------|
-| `string fileName`                      | Path of the file to write the log to                                     | |
-
 ### RollingFile
 
 
-```cs
-builder.Logging
-    .ClearProviders()
-    .AddZLogger(zlogger => 
-    {
-        zlogger.AddRollingFile(
-            // /path/to/my-app_2023-12-31.01.log"
-            (timestamp, sequenceNumber) => $"/path/to/my-app_{timestamp:yyyy-MM-dd}.{sequenceNumber:D2}}.log",
-            // Recreate files every day after midnight.    
-            RollingInterval.Day,
-            // 512MB limit per file    
-            512 * 1024);
-    });
-```
+If you are using `ZLoggerRollingFileLoggerProvider`, the following additional options are available:
 
 | Name                                                                              | Description                                                                                                        |
 |:----------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------|
@@ -404,20 +389,14 @@ builder.Logging
 
 ```
 
-
-| Name            | Description                                                                                                        |
-|:----------------|:-------------------------------------------------------------------------------------------------------------------|
-| `Stream stream` |        | |
-| `Func<ZLoggerOptions, IServiceProvider, Stream> streamFactory`  |                                                                    | |
-
-
 ### In-Memory
 
-| Name | Description |
-|:----- |:------------|
-| `Action<InMemoryObservableLogProcessor> configureProcessor` | aa          |
-| `Action<ZLoggerOptions, IServiceProvider> configure, Action<InMemoryObservableLogProcessor> configureProcessor` | asaaa       |
-| `object? processorKey` | aa          |
+
+
+| Name                                                                                                            | Description |
+|:----------------------------------------------------------------------------------------------------------------|:------------|
+| `string processorKey`                                                                                           |  If specified, `InMemoryObservableLogProcessor` is registered in the DI container as a keyed service and can be retrieved by name.           |
+| `Action<InMemoryObservableLogProcessor> configureProcessor`                                                     |  Custom actions can be added that use processors instead of DI containers.           |
 
 
 
@@ -486,9 +465,6 @@ public class BatchingHttpLogProcessor : BatchingAsyncLogProcessor
         return default;
     }
 }
-
-
-
 ```
 
 
