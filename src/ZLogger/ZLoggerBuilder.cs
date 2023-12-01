@@ -111,25 +111,25 @@ public class ZLoggerBuilder(ILoggingBuilder loggingBuilder)
     }
 
     /// <param name="fileNameSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
-    /// <param name="timestampPattern">DateTimeOffset is write time of message(UTC). If pattern is different previously then roll new file.</param>
+    /// <param name="rollInterval">Interval to automatically rotate files</param>
     /// <param name="rollSizeKB">Limit size of single file.</param>
-    public ZLoggerBuilder AddRollingFile(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB) => AddRollingFile(fileNameSelector, timestampPattern, rollSizeKB, (_, _) => { });
+    public ZLoggerBuilder AddRollingFile(Func<DateTimeOffset, int, string> fileNameSelector, RollingInterval rollInterval, int rollSizeKB) => AddRollingFile(fileNameSelector, rollInterval, rollSizeKB, (_, _) => { });
 
     /// <param name="fileNameSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
-    /// <param name="timestampPattern">DateTimeOffset is write time of message(UTC). If pattern is different previously then roll new file.</param>
+    /// <param name="rollInterval">Interval to automatically rotate files</param>
     /// <param name="rollSizeKB">Limit size of single file.</param>
-    public ZLoggerBuilder AddRollingFile(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, Action<ZLoggerOptions> configure) => AddRollingFile(fileNameSelector, timestampPattern, rollSizeKB, (o, _) => configure(o));
+    public ZLoggerBuilder AddRollingFile(Func<DateTimeOffset, int, string> fileNameSelector, RollingInterval rollInterval, int rollSizeKB, Action<ZLoggerOptions> configure) => AddRollingFile(fileNameSelector, rollInterval, rollSizeKB, (o, _) => configure(o));
 
     /// <param name="fileNameSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
-    /// <param name="timestampPattern">DateTimeOffset is write time of message(UTC). If pattern is different previously then roll new file.</param>
+    /// <param name="rollInterval">Interval to automatically rotate files</param>
     /// <param name="rollSizeKB">Limit size of single file.</param>
-    public ZLoggerBuilder AddRollingFile(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, Action<ZLoggerOptions, IServiceProvider> configure)
+    public ZLoggerBuilder AddRollingFile(Func<DateTimeOffset, int, string> fileNameSelector, RollingInterval rollInterval, int rollSizeKB, Action<ZLoggerOptions, IServiceProvider> configure)
     {
         loggingBuilder.Services.AddSingleton<ILoggerProvider, ZLoggerRollingFileLoggerProvider>(serviceProvider =>
         {
             var options = new ZLoggerOptions();
             configure(options, serviceProvider);
-            return new ZLoggerRollingFileLoggerProvider(fileNameSelector, timestampPattern, rollSizeKB, options);
+            return new ZLoggerRollingFileLoggerProvider(fileNameSelector, rollInterval, rollSizeKB, options);
         });
 
         return this;
