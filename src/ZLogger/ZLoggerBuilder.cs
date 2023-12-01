@@ -98,31 +98,51 @@ public static class ZLoggerBuilderExtensions
         });
         return builder;
     }
+    
+    /// <param name="filePathSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
+    /// <param name="rollInterval">Interval to automatically rotate files</param>
+    public static ILoggingBuilder AddZLoggerRollingFile(this ILoggingBuilder builder, Func<DateTimeOffset, int, string> filePathSelector, RollingInterval rollInterval) => 
+        builder.AddZLoggerRollingFile((o, _) =>
+        {
+            o.FilePathSelector = filePathSelector;
+            o.RollingInterval = rollInterval;
+            o.RollingSizeKB = int.MaxValue;
+        });
+    
 
+    /// <param name="filePathSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
+    /// <param name="rollSizeKB">Limit size of single file.</param>
+    public static ILoggingBuilder AddZLoggerRollingFile(this ILoggingBuilder builder, Func<DateTimeOffset, int, string> filePathSelector, int rollSizeKB) => 
+        builder.AddZLoggerRollingFile((o, _) =>
+        {
+            o.FilePathSelector = filePathSelector;
+            o.RollingInterval = RollingInterval.Infinite;
+            o.RollingSizeKB = rollSizeKB;
+        });
+    
     /// <param name="filePathSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
     /// <param name="rollInterval">Interval to automatically rotate files</param>
     /// <param name="rollSizeKB">Limit size of single file.</param>
     public static ILoggingBuilder AddZLoggerRollingFile(this ILoggingBuilder builder, Func<DateTimeOffset, int, string> filePathSelector, RollingInterval rollInterval, int rollSizeKB) => 
-        builder.AddZLoggerRollingFile(filePathSelector, rollInterval, rollSizeKB, (_, _) => { });
+        builder.AddZLoggerRollingFile((o, _) =>
+        {
+            o.FilePathSelector = filePathSelector;
+            o.RollingInterval = rollInterval;
+            o.RollingSizeKB = rollSizeKB;
+        });
 
-    /// <param name="filePathSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
-    /// <param name="rollInterval">Interval to automatically rotate files</param>
-    /// <param name="rollSizeKB">Limit size of single file.</param>
-    public static ILoggingBuilder AddZLoggerRollingFile(this ILoggingBuilder builder, Func<DateTimeOffset, int, string> filePathSelector, RollingInterval rollInterval, int rollSizeKB, Action<ZLoggerOptions> configure) => 
-        builder.AddZLoggerRollingFile(filePathSelector, rollInterval, rollSizeKB, (o, _) => configure(o));
+    public static ILoggingBuilder AddZLoggerRollingFile(this ILoggingBuilder builder, Action<ZLoggerRollingFileOptions> configure) => 
+        builder.AddZLoggerRollingFile((o, _) => configure(o));
 
-    /// <param name="filePathSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
-    /// <param name="rollInterval">Interval to automatically rotate files</param>
-    /// <param name="rollSizeKB">Limit size of single file.</param>
-    public static ILoggingBuilder AddZLoggerRollingFile(this ILoggingBuilder builder, Func<DateTimeOffset, int, string> filePathSelector, RollingInterval rollInterval, int rollSizeKB, Action<ZLoggerOptions, IServiceProvider> configure)
+    public static ILoggingBuilder AddZLoggerRollingFile(this ILoggingBuilder builder, Action<ZLoggerRollingFileOptions, IServiceProvider> configure)
     {
         builder.Services.AddSingleton<ILoggerProvider, ZLoggerRollingFileLoggerProvider>(serviceProvider =>
         {
-            var options = new ZLoggerOptions();
+            var options = new ZLoggerRollingFileOptions();
             configure(options, serviceProvider);
-            return new ZLoggerRollingFileLoggerProvider(filePathSelector, rollInterval, rollSizeKB, options);
+            return new ZLoggerRollingFileLoggerProvider(options);
         });
         return builder;
     }
-
 }
+
