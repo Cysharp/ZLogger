@@ -19,10 +19,10 @@ public class ZLoggerRollingFileLoggerProvider : ILoggerProvider, ISupportExterna
     readonly AsyncStreamLineMessageWriter streamWriter;
     IExternalScopeProvider? scopeProvider;
 
-    public ZLoggerRollingFileLoggerProvider(Func<DateTimeOffset, int, string> fileNameSelector, RollingInterval rollInterval, int rollSizeKB, ZLoggerOptions options)
+    public ZLoggerRollingFileLoggerProvider(Func<DateTimeOffset, int, string> filePathSelector, RollingInterval rollInterval, int rollSizeKB, ZLoggerOptions options)
     {
         this.options = options;
-        var stream = new RollingFileStream(fileNameSelector, rollInterval, rollSizeKB, options.TimeProvider);
+        var stream = new RollingFileStream(filePathSelector, rollInterval, rollSizeKB, options.TimeProvider);
         this.streamWriter = new AsyncStreamLineMessageWriter(stream, this.options);
     }
 

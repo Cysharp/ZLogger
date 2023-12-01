@@ -1,6 +1,5 @@
 ﻿using System;
 using FluentAssertions;
-using MessagePack;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
