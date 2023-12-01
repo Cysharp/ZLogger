@@ -27,19 +27,16 @@ public class TimestampTest
         LogProcessor processor = new();
         var factory = LoggerFactory.Create(builder =>
         {
-            builder.AddZLogger(zlogger =>
+            builder.AddZLoggerLogProcessor(options =>
             {
-                zlogger.AddLogProcessor(options =>
+                options.TimeProvider = new FakeTime();
+                options.UsePlainTextFormatter(formatter =>
                 {
-                    options.TimeProvider = new FakeTime();
-                    options.UsePlainTextFormatter(formatter =>
-                    {
-                        formatter.SetPrefixFormatter(prefixTemplate, (template, info) => template.Format(info.Timestamp));
-                    });
-                    processor.SetOptions(options);
-                    
-                    return processor;
+                    formatter.SetPrefixFormatter(prefixTemplate, (template, info) => template.Format(info.Timestamp));
                 });
+                processor.SetOptions(options);
+
+                return processor;
             });
         });
 

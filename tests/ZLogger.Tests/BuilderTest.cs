@@ -22,7 +22,7 @@ public class BuilderTest
         using var loggerFactory = LoggerFactory.Create(x =>
         {
             x.AddConfiguration(configuration.GetSection("Logging"));
-            x.AddZLogger(logging => logging.AddConsole());
+            x.AddZLoggerConsole();
         });
 
         var logger = loggerFactory.CreateLogger<BuilderTest>();
@@ -44,23 +44,17 @@ public class BuilderTest
                 new("Logging:ZLoggerInMemory:LogLevel:Default", "Error")
             })
             .Build();
-        
-        using var loggerFactory = LoggerFactory.Create(x =>
-        {
-            x.AddConfiguration(configuration.GetSection("Logging"));
-            x.AddZLogger(logging =>
-            {
-                logging.AddConsole();
-                logging.AddInMemory(
-                    "Foo",
-                    (options, services) => { },
-                    processor =>
-                    {
-                        processor.MessageReceived += msg => messages.Add(msg);
-                    });
 
-            });
-        });
+        using var loggerFactory = LoggerFactory.Create(x => x
+            .AddConfiguration(configuration.GetSection("Logging"))
+            .AddZLoggerConsole()
+            .AddZLoggerInMemory(
+                "Foo",
+                (options, services) => { },
+                processor =>
+                {
+                    processor.MessageReceived += msg => messages.Add(msg);
+                }));
 
         var logger = loggerFactory.CreateLogger<BuilderTest>();
 

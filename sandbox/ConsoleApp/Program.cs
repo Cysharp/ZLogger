@@ -1,42 +1,20 @@
-﻿using ConsoleAppFramework;
-using ZLogger;
+﻿using ZLogger;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
 using System;
-using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Channels;
-using Utf8StringInterpolation;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using JetBrains.Profiler.Api;
-using System.Threading;
-using ZLogger.Formatters;
-using ZLogger.Internal;
-using ZLogger.Providers;
-using System.Numerics;
-using System.Text.Json;
 using System.IO.Hashing;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Net.Sockets;
 using System.Net.Http;
 using System.Buffers;
-using System.Reflection.PortableExecutable;
-using System.Net.Mail;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-
-
-
 
 
 var zLoggerFactory = LoggerFactory.Create(logging =>
 {
-    logging.AddZLogger(zLogger =>
-    {
-        zLogger.AddLogProcessor(new EmptyLogProcessor());
-    });
+    logging.AddZLoggerLogProcessor(new EmptyLogProcessor());
 });
 
 var zLogger = zLoggerFactory.CreateLogger("my");

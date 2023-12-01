@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using ZLogger.Internal;
 using ZLogger.Providers;
 
@@ -9,21 +9,11 @@ namespace ZLogger;
 
 public static class ZLoggerBuilderExtensions
 {
-    public static ILoggingBuilder AddZLogger(this ILoggingBuilder loggingBuilder, Action<ZLoggerBuilder> configure)
+    public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder) => builder.AddZLoggerConsole((_, _) => { });
+    public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, Action<ZLoggerConsoleOptions> configure) => builder.AddZLoggerConsole((options, _) => configure(options));
+    public static ILoggingBuilder AddZLoggerConsole(this ILoggingBuilder builder, Action<ZLoggerConsoleOptions, IServiceProvider> configure)
     {
-        var builder = new ZLoggerBuilder(loggingBuilder);
-        configure.Invoke(builder);
-        return loggingBuilder;
-    }
-}
-
-public class ZLoggerBuilder(ILoggingBuilder loggingBuilder)
-{
-    public ZLoggerBuilder AddConsole() => AddConsole((_, _) => { });
-    public ZLoggerBuilder AddConsole(Action<ZLoggerConsoleOptions> configure) => AddConsole((options, _) => configure(options));
-    public ZLoggerBuilder AddConsole(Action<ZLoggerConsoleOptions, IServiceProvider> configure)
-    {
-        loggingBuilder.Services.AddSingleton<ILoggerProvider, ZLoggerConsoleLoggerProvider>(serviceProvider =>
+        builder.Services.AddSingleton<ILoggerProvider, ZLoggerConsoleLoggerProvider>(serviceProvider =>
         {
             var options = new ZLoggerConsoleOptions();
             configure(options, serviceProvider);
@@ -42,16 +32,18 @@ public class ZLoggerBuilder(ILoggingBuilder loggingBuilder)
 
             return new ZLoggerConsoleLoggerProvider(options);
         });
-        return this;
+        return builder;
     }
 
-    public ZLoggerBuilder AddInMemory(Action<InMemoryObservableLogProcessor> configureProcessor) => AddInMemory(null, (_, _) => { }, configureProcessor);
-    public ZLoggerBuilder AddInMemory(Action<ZLoggerOptions, IServiceProvider> configure, Action<InMemoryObservableLogProcessor> configureProcessor) => AddInMemory(null, configure, configureProcessor);
-    public ZLoggerBuilder AddInMemory(object? processorKey, Action<ZLoggerOptions> configure, Action<InMemoryObservableLogProcessor> configureProcessor) => AddInMemory(processorKey, (o, _) => configure(o), configureProcessor);
-    public ZLoggerBuilder AddInMemory(object? processorKey, Action<ZLoggerOptions, IServiceProvider> configure, Action<InMemoryObservableLogProcessor> configureProcessor)
+    // TODO:空のやつ追加!!Q!!
+    // TODO: ZloggerOptionsのやつだけ!!
+    public static ILoggingBuilder AddZLoggerInMemory(this ILoggingBuilder builder, Action<InMemoryObservableLogProcessor> configureProcessor) => AddZLoggerInMemory(null, (_, _) => { }, configureProcessor);
+    public static ILoggingBuilder AddZLoggerInMemory(this ILoggingBuilder builder, Action<ZLoggerOptions, IServiceProvider> configure, Action<InMemoryObservableLogProcessor> configureProcessor) => builder.AddZLoggerInMemory(null, configure, configureProcessor);
+    public static ILoggingBuilder AddZLoggerInMemory(this ILoggingBuilder builder, object? processorKey, Action<ZLoggerOptions> configure, Action<InMemoryObservableLogProcessor> configureProcessor) => builder.AddZLoggerInMemory(processorKey, (o, _) => configure(o), configureProcessor);
+    public static ILoggingBuilder AddZLoggerInMemory(this ILoggingBuilder builder, object? processorKey, Action<ZLoggerOptions, IServiceProvider> configure, Action<InMemoryObservableLogProcessor> configureProcessor)
     {
-        loggingBuilder.Services.AddKeyedSingleton(processorKey, (_, _) => new InMemoryObservableLogProcessor());
-        loggingBuilder.Services.AddSingleton<ILoggerProvider, ZLoggerInMemoryLoggerProvider>(serviceProvider =>
+        builder.Services.AddKeyedSingleton(processorKey, (_, _) => new InMemoryObservableLogProcessor());
+        builder.Services.AddSingleton<ILoggerProvider, ZLoggerInMemoryLoggerProvider>(serviceProvider =>
         {
             var options = new ZLoggerOptions();
             configure(options, serviceProvider);
@@ -63,76 +55,76 @@ public class ZLoggerBuilder(ILoggingBuilder loggingBuilder)
             return new ZLoggerInMemoryLoggerProvider(processor, options);
         });
 
-        return this;
+        return builder;
     }
 
-    public ZLoggerBuilder AddLogProcessor(IAsyncLogProcessor logProcessor) => AddLogProcessor((_, _) => logProcessor);
-    public ZLoggerBuilder AddLogProcessor(Func<ZLoggerOptions, IAsyncLogProcessor> logProcessorFactory) => AddLogProcessor((o, _) => logProcessorFactory(o));
-    public ZLoggerBuilder AddLogProcessor(Func<ZLoggerOptions, IServiceProvider, IAsyncLogProcessor> logProcessorFactory)
+    public static ILoggingBuilder AddZLoggerLogProcessor(this ILoggingBuilder builder, IAsyncLogProcessor logProcessor) => builder.AddZLoggerLogProcessor((_, _) => logProcessor);
+    public static ILoggingBuilder AddZLoggerLogProcessor(this ILoggingBuilder builder, Func<ZLoggerOptions, IAsyncLogProcessor> logProcessorFactory) => builder.AddZLoggerLogProcessor((o, _) => logProcessorFactory(o));
+    public static ILoggingBuilder AddZLoggerLogProcessor(this ILoggingBuilder builder, Func<ZLoggerOptions, IServiceProvider, IAsyncLogProcessor> logProcessorFactory)
     {
-        loggingBuilder.Services.AddSingleton<ILoggerProvider, ZLoggerLogProcessorLoggerProvider>(serviceProvider =>
+        builder.Services.AddSingleton<ILoggerProvider, ZLoggerLogProcessorLoggerProvider>(serviceProvider =>
         {
             var options = new ZLoggerOptions();
             var processor = logProcessorFactory(options, serviceProvider);
             return new ZLoggerLogProcessorLoggerProvider(processor, options);
         });
-
-        return this;
+        return builder;
     }
 
-    public ZLoggerBuilder AddStream(Stream stream) => AddStream((_, _) => stream);
-    public ZLoggerBuilder AddStream(Stream stream, Action<ZLoggerOptions> configure) => AddStream((o, _) => { configure(o); return stream; });
-    public ZLoggerBuilder AddStream(Stream stream, Action<ZLoggerOptions, IServiceProvider> configure) => AddStream((o, p) => { configure(o, p); return stream; });
-    public ZLoggerBuilder AddStream(Func<ZLoggerOptions, IServiceProvider, Stream> streamFactory)
+    public static ILoggingBuilder AddZLoggerStream(this ILoggingBuilder builder, Stream stream) => builder.AddZLoggerStream((_, _) => stream);
+    public static ILoggingBuilder AddZLoggerStream(this ILoggingBuilder builder, Stream stream, Action<ZLoggerOptions> configure) => builder.AddZLoggerStream((o, _) => { configure(o); return stream; });
+    public static ILoggingBuilder AddZLoggerStream(this ILoggingBuilder builder, Stream stream, Action<ZLoggerOptions, IServiceProvider> configure) => builder.AddZLoggerStream((o, p) => { configure(o, p); return stream; });
+    public static ILoggingBuilder AddZLoggerStream(this ILoggingBuilder builder, Func<ZLoggerOptions, IServiceProvider, Stream> streamFactory)
     {
-        loggingBuilder.Services.AddSingleton<ILoggerProvider, ZLoggerStreamLoggerProvider>(serviceProvider =>
+        builder.Services.AddSingleton<ILoggerProvider, ZLoggerStreamLoggerProvider>(serviceProvider =>
         {
             var options = new ZLoggerOptions();
             var stream = streamFactory(options, serviceProvider);
             return new ZLoggerStreamLoggerProvider(stream, options);
         });
-
-        return this;
+        return builder;
     }
 
-    public ZLoggerBuilder AddFile(string fileName) => AddFile((_, _) => fileName);
-    public ZLoggerBuilder AddFile(string fileName, Action<ZLoggerOptions> configure) => AddFile((o, _) => { configure(o); return fileName; });
-    public ZLoggerBuilder AddFile(string fileName, Action<ZLoggerOptions, IServiceProvider> configure) => AddFile((o, p) => { configure(o, p); return fileName; });
-    public ZLoggerBuilder AddFile(Func<ZLoggerOptions, IServiceProvider, string> fileNameFactory)
+    // TODO: filePathにする
+    public static ILoggingBuilder AddZLoggerFile(this ILoggingBuilder builder, string fileName) => builder.AddZLoggerFile((_, _) => fileName);
+    public static ILoggingBuilder AddZLoggerFile(this ILoggingBuilder builder, string fileName, Action<ZLoggerOptions> configure) => builder.AddZLoggerFile((o, _) => { configure(o); return fileName; });
+    public static ILoggingBuilder AddZLoggerFile(this ILoggingBuilder builder, string fileName, Action<ZLoggerOptions, IServiceProvider> configure) => builder.AddZLoggerFile((o, p) => { configure(o, p); return fileName; });
+    public static ILoggingBuilder AddZLoggerFile(this ILoggingBuilder builder, Func<ZLoggerOptions, IServiceProvider, string> fileNameFactory)
     {
-        loggingBuilder.Services.AddSingleton<ILoggerProvider, ZLoggerFileLoggerProvider>(serviceProvider =>
+        builder.Services.AddSingleton<ILoggerProvider, ZLoggerFileLoggerProvider>(serviceProvider =>
         {
             var options = new ZLoggerOptions();
             var fileName = fileNameFactory(options, serviceProvider);
             return new ZLoggerFileLoggerProvider(fileName, options);
         });
-
-        return this;
+        return builder;
     }
 
-    /// <param name="fileNameSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
+    // TODO: optionsのやつ追加
+    /// <param name="filePathSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
     /// <param name="rollInterval">Interval to automatically rotate files</param>
     /// <param name="rollSizeKB">Limit size of single file.</param>
-    public ZLoggerBuilder AddRollingFile(Func<DateTimeOffset, int, string> fileNameSelector, RollingInterval rollInterval, int rollSizeKB) => AddRollingFile(fileNameSelector, rollInterval, rollSizeKB, (_, _) => { });
+    public static ILoggingBuilder AddZLoggerRollingFile(this ILoggingBuilder builder, Func<DateTimeOffset, int, string> filePathSelector, RollingInterval rollInterval, int rollSizeKB) => 
+        builder.AddZLoggerRollingFile(filePathSelector, rollInterval, rollSizeKB, (_, _) => { });
 
-    /// <param name="fileNameSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
+    /// <param name="filePathSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
     /// <param name="rollInterval">Interval to automatically rotate files</param>
     /// <param name="rollSizeKB">Limit size of single file.</param>
-    public ZLoggerBuilder AddRollingFile(Func<DateTimeOffset, int, string> fileNameSelector, RollingInterval rollInterval, int rollSizeKB, Action<ZLoggerOptions> configure) => AddRollingFile(fileNameSelector, rollInterval, rollSizeKB, (o, _) => configure(o));
+    public static ILoggingBuilder AddZLoggerRollingFile(this ILoggingBuilder builder, Func<DateTimeOffset, int, string> filePathSelector, RollingInterval rollInterval, int rollSizeKB, Action<ZLoggerOptions> configure) => 
+        builder.AddZLoggerRollingFile(filePathSelector, rollInterval, rollSizeKB, (o, _) => configure(o));
 
-    /// <param name="fileNameSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
+    /// <param name="filePathSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
     /// <param name="rollInterval">Interval to automatically rotate files</param>
     /// <param name="rollSizeKB">Limit size of single file.</param>
-    public ZLoggerBuilder AddRollingFile(Func<DateTimeOffset, int, string> fileNameSelector, RollingInterval rollInterval, int rollSizeKB, Action<ZLoggerOptions, IServiceProvider> configure)
+    public static ILoggingBuilder AddZLoggerRollingFile(this ILoggingBuilder builder, Func<DateTimeOffset, int, string> filePathSelector, RollingInterval rollInterval, int rollSizeKB, Action<ZLoggerOptions, IServiceProvider> configure)
     {
-        loggingBuilder.Services.AddSingleton<ILoggerProvider, ZLoggerRollingFileLoggerProvider>(serviceProvider =>
+        builder.Services.AddSingleton<ILoggerProvider, ZLoggerRollingFileLoggerProvider>(serviceProvider =>
         {
             var options = new ZLoggerOptions();
             configure(options, serviceProvider);
-            return new ZLoggerRollingFileLoggerProvider(fileNameSelector, rollInterval, rollSizeKB, options);
+            return new ZLoggerRollingFileLoggerProvider(filePathSelector, rollInterval, rollSizeKB, options);
         });
-
-        return this;
+        return builder;
     }
 
 }

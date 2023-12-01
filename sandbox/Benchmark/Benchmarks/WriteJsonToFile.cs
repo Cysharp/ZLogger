@@ -72,16 +72,11 @@ public class WriteJsonToFile
 
         // ZLogger
 
-        zLoggerFactory = LoggerFactory.Create(logging =>
-        {
-            logging.AddZLogger(builder =>
+        zLoggerFactory = LoggerFactory.Create(logging => logging
+            .AddZLoggerFile(GetLogFilePath("zlogger.log"), options =>
             {
-                builder.AddFile(GetLogFilePath("zlogger.log"), options =>
-                {
-                    options.UseJsonFormatter();
-                });
-            });
-        });
+                options.UseJsonFormatter();
+            }));
 
         zLogger = zLoggerFactory.CreateLogger<WritePlainTextToFile>();
 

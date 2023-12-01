@@ -14,10 +14,7 @@ public class BatchingAsyncLogProcessorTest
         var options = new ZLoggerOptions();
         var batchingProcessor = new TestBatchingProcessor(10, options);
 
-        using (var loggerFactory = LoggerFactory.Create(x =>
-               {
-                   x.AddZLogger(zLogger => zLogger.AddLogProcessor(batchingProcessor));
-               }))
+        using (var loggerFactory = LoggerFactory.Create(x => x.AddZLoggerLogProcessor(batchingProcessor)))
         {
             var logger = loggerFactory.CreateLogger("test");
 
@@ -37,10 +34,7 @@ public class BatchingAsyncLogProcessorTest
         var options = new ZLoggerOptions();
         var batchingProcessor = new TestBatchingProcessor(3, options);
 
-        using (var loggerFactory = LoggerFactory.Create(x =>
-               {
-                   x.AddZLogger(zLogger => zLogger.AddLogProcessor(batchingProcessor));
-               }))
+        using (var loggerFactory = LoggerFactory.Create(x => x.AddZLoggerLogProcessor(batchingProcessor)))
         {
             var logger = loggerFactory.CreateLogger("test");
 
@@ -60,10 +54,7 @@ public class BatchingAsyncLogProcessorTest
         var options = new ZLoggerOptions();
         var batchingProcessor = new ErrorBatchingProcessor(1, options);
 
-        using (var loggerFactory = LoggerFactory.Create(x =>
-               {
-                   x.AddZLogger(zLogger => zLogger.AddLogProcessor(batchingProcessor));
-               }))
+        using (var loggerFactory = LoggerFactory.Create(x => x.AddZLoggerLogProcessor(batchingProcessor)))
         {
             var logger = loggerFactory.CreateLogger("test");
             logger.ZLogInformation($"hehehe");
