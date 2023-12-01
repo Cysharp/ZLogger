@@ -35,9 +35,9 @@ public static class ZLoggerBuilderExtensions
         return builder;
     }
 
-    // TODO:空のやつ追加!!Q!!
-    // TODO: ZloggerOptionsのやつだけ!!
-    public static ILoggingBuilder AddZLoggerInMemory(this ILoggingBuilder builder, Action<InMemoryObservableLogProcessor> configureProcessor) => AddZLoggerInMemory(null, (_, _) => { }, configureProcessor);
+    public static ILoggingBuilder AddZLoggerInMemory(this ILoggingBuilder builder) => builder.AddZLoggerInMemory(null, (_, _) => { }, _ => { });
+    public static ILoggingBuilder AddZLoggerInMemory(this ILoggingBuilder builder, Action<InMemoryObservableLogProcessor> configureProcessor) => builder.AddZLoggerInMemory(null, (_, _) => { }, configureProcessor);
+    public static ILoggingBuilder AddZLoggerInMemory(this ILoggingBuilder builder, Action<ZLoggerOptions> configure, Action<InMemoryObservableLogProcessor> configureProcessor) => builder.AddZLoggerInMemory(null, configure, configureProcessor);
     public static ILoggingBuilder AddZLoggerInMemory(this ILoggingBuilder builder, Action<ZLoggerOptions, IServiceProvider> configure, Action<InMemoryObservableLogProcessor> configureProcessor) => builder.AddZLoggerInMemory(null, configure, configureProcessor);
     public static ILoggingBuilder AddZLoggerInMemory(this ILoggingBuilder builder, object? processorKey, Action<ZLoggerOptions> configure, Action<InMemoryObservableLogProcessor> configureProcessor) => builder.AddZLoggerInMemory(processorKey, (o, _) => configure(o), configureProcessor);
     public static ILoggingBuilder AddZLoggerInMemory(this ILoggingBuilder builder, object? processorKey, Action<ZLoggerOptions, IServiceProvider> configure, Action<InMemoryObservableLogProcessor> configureProcessor)
@@ -99,7 +99,6 @@ public static class ZLoggerBuilderExtensions
         return builder;
     }
 
-    // TODO: optionsのやつ追加
     /// <param name="filePathSelector">DateTimeOffset is date of file open time(UTC), int is number sequence.</param>
     /// <param name="rollInterval">Interval to automatically rotate files</param>
     /// <param name="rollSizeKB">Limit size of single file.</param>
