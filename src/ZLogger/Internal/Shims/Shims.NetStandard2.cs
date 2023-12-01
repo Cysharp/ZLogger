@@ -16,7 +16,7 @@ internal static partial class Shims
             }
         }
     }
-    
+
     public static string GetString(this Encoding encoding, ReadOnlySpan<byte> bytes)
     {
         unsafe
@@ -28,12 +28,10 @@ internal static partial class Shims
         }
     }
 
-    public static unsafe ReadOnlySpan<T> CreateReadOnlySpan<T>(ref T value, int length) where T : unmanaged
+    public static bool StartsWith(this string str, char value)
     {
-        fixed (T* pointer = &value)
-        {
-            return new ReadOnlySpan<T>(pointer, length);
-        }
+        return str.Length != 0 && str[0] == value;
     }
 }
+
 #endif

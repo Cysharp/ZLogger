@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO.Hashing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -16,6 +17,8 @@ namespace ZLogger
     [InterpolatedStringHandler]
     public ref struct ZLoggerInterpolatedStringHandler
     {
+        static readonly ConcurrentDictionary<string, (string name, string? format)> alternateNameCache = new();
+
         [ThreadStatic]
         static List<string?>? literalPool;
 
@@ -65,12 +68,53 @@ namespace ZLogger
             // Add for MessageSequence
             literals.Add(null);
 
+            int offset;
+            if (format == null)
+            {
+                // branch first
+            }
+            else if (format.StartsWith('@'))
+            {
+                if (alternateNameCache.TryGetValue(format, out var altNameFormat))
+                {
+                    // overwrite
+                    argumentName = altNameFormat.name;
+                    format = altNameFormat.format;
+                }
+                else
+                {
+                    // parse alt format
+                    var moreFormat = format.IndexOf(':');
+                    if (moreFormat == -1)
+                    {
+                        var altName = format.AsSpan(1, format.Length - 1).ToString();
+                        alternateNameCache.TryAdd(format, (altName, null));
+                        argumentName = altName;
+                        format = null;
+                    }
+                    else
+                    {
+                        var altName = format.AsSpan(1, moreFormat - 1).ToString();
+                        var altFormat = format.AsSpan(moreFormat + 1, format.Length - moreFormat - 1).ToString();
+                        alternateNameCache.TryAdd(format, (altName, altFormat));
+                        argumentName = altName;
+                        format = altFormat;
+                    }
+                }
+            }
+            else if (format == "json")
+            {
+                offset = -1;
+                goto SKIP_MAGICALBOX_WRITE;
+            }
+
             // Use MagicalBox(set value without boxing)
-            if (format == "json" || !state.magicalBox.TryWrite(value, out var offset))
+            if (!state.magicalBox.TryWrite(value, out offset))
             {
                 offset = -1;
             }
 
+        SKIP_MAGICALBOX_WRITE:
             var parameter = new InterpolatedStringParameter(typeof(T), argumentName ?? "", alignment, format, offset, (offset == -1) ? (object?)value : null);
             state.parameters[parameterWritten++] = parameter;
         }
@@ -91,6 +135,7 @@ namespace ZLogger
             }
         }
 
+        // TODO: remove this.
         public void AppendFormatted<T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
         {
             AppendFormatted(namedValue.Item2, alignment, format, namedValue.Item1);

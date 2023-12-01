@@ -41,6 +41,20 @@ var zLoggerFactory = LoggerFactory.Create(logging =>
 
 var zLogger = zLoggerFactory.CreateLogger("my");
 
+var tako = new { tako = 100, yaki = 300 };
+
+zLogger.ZLogInformation($"hogemogehugahuga{("now", DateTime.Now)} hoge {("yaki", tako.yaki)} is nani");
+
+
+zLogger.ZLogInformation($"hogemogehugahuga{DateTime.Now,-10:@timestamp:yyyy-mm-dd} hoge {tako.yaki:@yaki} is nani");
+
+
+
+
+
+
+
+
 Log(zLogger);
 
 GC.Collect();
