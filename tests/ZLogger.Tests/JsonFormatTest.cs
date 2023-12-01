@@ -18,25 +18,21 @@ namespace ZLogger.Tests
             var sourceCodeHash = Guid.NewGuid().ToString();
 
 
-            var loggerFactory = LoggerFactory.Create(x =>
-            {
-                x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLogger(zLogger =>
+            var loggerFactory = LoggerFactory.Create(x => x
+                .SetMinimumLevel(LogLevel.Debug)
+                .AddZLoggerStream(ms, options =>
                 {
-                    zLogger.AddStream(ms, options =>
-                    {
-                        var hashProp = JsonEncodedText.Encode("Hash");
+                    var hashProp = JsonEncodedText.Encode("Hash");
 
-                        options.UseJsonFormatter(formatter =>
+                    options.UseJsonFormatter(formatter =>
+                    {
+                        formatter.AdditionalFormatter = (writer, _) =>
                         {
-                            formatter.AdditionalFormatter = (writer, _) =>
-                            {
-                                writer.WriteString(hashProp, sourceCodeHash);
-                            };
-                        });
+                            writer.WriteString(hashProp, sourceCodeHash);
+                        };
                     });
-                });
-            });
+                }));
+            
             var logger = loggerFactory.CreateLogger("test");
 
             var tako = 100;
@@ -75,7 +71,7 @@ namespace ZLogger.Tests
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
+                x.AddZLoggerLogProcessor(processor);
             });
             var logger = loggerFactory.CreateLogger("test");
 
@@ -106,7 +102,7 @@ namespace ZLogger.Tests
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
+                x.AddZLoggerLogProcessor(processor);
             });
             var logger = loggerFactory.CreateLogger("test");
 
@@ -141,7 +137,7 @@ namespace ZLogger.Tests
             using var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
+                x.AddZLoggerLogProcessor(processor);
             });
             var logger = loggerFactory.CreateLogger("test");
 
@@ -174,7 +170,7 @@ namespace ZLogger.Tests
             using var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
+                x.AddZLoggerLogProcessor(processor);
             });
             var logger = loggerFactory.CreateLogger("test");
 
@@ -207,7 +203,7 @@ namespace ZLogger.Tests
             using var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
+                x.AddZLoggerLogProcessor(processor);
             });
             var logger = loggerFactory.CreateLogger("test");
 
@@ -241,7 +237,7 @@ namespace ZLogger.Tests
             using var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
+                x.AddZLoggerLogProcessor(processor);
             });
             var logger = loggerFactory.CreateLogger("test");
 
@@ -279,7 +275,7 @@ namespace ZLogger.Tests
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
+                x.AddZLoggerLogProcessor(processor);
             });
             var logger = loggerFactory.CreateLogger("test");
 
@@ -314,7 +310,7 @@ namespace ZLogger.Tests
             using var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLogger(zLogger => zLogger.AddLogProcessor(processor));
+                x.AddZLoggerLogProcessor(processor);
             });
             var logger = loggerFactory.CreateLogger("test");
 

@@ -55,14 +55,12 @@ public class WritePlainTextToConsole
     {
         zLoggerFactory = LoggerFactory.Create(logging =>
         {
-            logging.AddZLogger(builder =>
+            logging.AddZLoggerConsole(console =>
             {
-                builder.AddConsole(console =>
+                console.UsePlainTextFormatter(formatter =>
                 {
-                    console.UsePlainTextFormatter(formatter =>
-                    {
-                        formatter.SetPrefixFormatter($"{0} [{1}]", (template, info) => template.Format(info.Timestamp, info.LogLevel));
-                    });
+                    formatter.SetPrefixFormatter($"{0} [{1}]",
+                        (template, info) => template.Format(info.Timestamp, info.LogLevel));
                 });
             });
         });

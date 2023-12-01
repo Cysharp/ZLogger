@@ -61,7 +61,7 @@ namespace Benchmark
                 var serviceCollection = new ServiceCollection();
                 serviceCollection.AddLogging(logging =>
                 {
-                    logging.AddZLogger(zLogger => zLogger.AddFile("ZLogger.log"));
+                    logging.AddZLoggerFile("ZLogger.log");
                     //options.AddZLoggerConsole();
                 });
                 var serviceProvider = serviceCollection.BuildServiceProvider();

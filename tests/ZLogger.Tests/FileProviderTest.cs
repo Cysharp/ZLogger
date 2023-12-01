@@ -15,7 +15,7 @@ public class FileProviderTest
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLogger(zLogger => zLogger.AddFile(Path));
+                x.AddZLoggerFile(Path);
             });
 
             var logger = loggerFactory.CreateLogger("mytest");
@@ -41,7 +41,7 @@ public class FileProviderTest
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLogger(zLogger => zLogger.AddFile(Path));
+                x.AddZLoggerFile(Path);
             });
 
             var logger = loggerFactory.CreateLogger("mytest");

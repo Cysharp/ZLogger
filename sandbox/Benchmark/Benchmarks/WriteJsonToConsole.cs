@@ -60,12 +60,9 @@ public class WriteJsonToConsole
 
         zLoggerFactory = LoggerFactory.Create(logging =>
         {
-            logging.AddZLogger(builder =>
+            logging.AddZLoggerConsole(console =>
             {
-                builder.AddConsole(console =>
-                {
-                    console.UseJsonFormatter();
-                });
+                console.UseJsonFormatter();
             });
         });
 
