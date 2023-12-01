@@ -36,11 +36,11 @@ public class RollingFileProviderTest
         var loggerFactory = LoggerFactory.Create(x =>
         {
             x.SetMinimumLevel(LogLevel.Debug);
-            x.AddZLogger(zLogger => zLogger.AddRollingFile(
+            x.AddZLoggerRollingFile(
                 (dt, seq) => Path.Join(directory, $"ZLoggerRollingTest_{dt:yyyy-MM-dd}-{seq}.log"),
                 RollingInterval.Day,
                 5,
-                options => options.TimeProvider = timeProvider));
+                options => options.TimeProvider = timeProvider);
         });
         
         File.Exists(path1).Should().Be(true);
@@ -93,11 +93,11 @@ public class RollingFileProviderTest
         var loggerFactory = LoggerFactory.Create(x =>
         {
             x.SetMinimumLevel(LogLevel.Debug);
-            x.AddZLogger(zLogger => zLogger.AddRollingFile(
+            x.AddZLoggerRollingFile(
                 (dt, seq) => Path.Join(directory, $"ZLoggerRollingTest_{dt:yyyy-MM-dd}-{seq}.log"),
                 RollingInterval.Day,
                 5,
-                options => options.TimeProvider = timeProvider));
+                options => options.TimeProvider = timeProvider);
         });
         
         File.Exists(path1).Should().Be(true);
