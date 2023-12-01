@@ -89,38 +89,27 @@ public class EmptyLogging
 
         zLoggerFactory = LoggerFactory.Create(logging =>
         {
-            logging.AddZLogger(zLogger =>
-            {
-                zLogger.AddLogProcessor(new EmptyLogProcessor());
-            });
+            logging.AddZLoggerLogProcessor(new EmptyLogProcessor());
         });
 
         zLogger = zLoggerFactory.CreateLogger<EmptyLogging>();
 
         zLoggerFactory2 = LoggerFactory.Create(logging =>
         {
-            logging.AddZLogger(z =>
-            {
-                z.AddLogProcessor(options => new WriteUtf8LogProcessor(options));
-            });
+            logging.AddZLoggerLogProcessor(options => new WriteUtf8LogProcessor(options));
         });
 
         zLogger2 = zLoggerFactory2.CreateLogger<EmptyLogging>();
 
         zLoggerFactory3 = LoggerFactory.Create(logging =>
         {
-            logging.AddZLogger(z =>
+            logging.AddZLoggerLogProcessor(options =>
             {
-                z.AddLogProcessor(options =>
+                options.UsePlainTextFormatter(formatter =>
                 {
-                    options.UsePlainTextFormatter(formatter =>
-                    {
-                        formatter.SetPrefixFormatter($"{0} [{1}]", (template, info) => template.Format(info.Timestamp, info.LogLevel));
-                    });
-
-                    return new WriteUtf8LogProcessor(options);
+                    formatter.SetPrefixFormatter($"{0} [{1}]", (template, info) => template.Format(info.Timestamp, info.LogLevel));
                 });
-
+                return new WriteUtf8LogProcessor(options);
             });
         });
 

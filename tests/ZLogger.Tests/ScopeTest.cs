@@ -25,13 +25,10 @@ public class ScopeTest
         var loggerFactory = LoggerFactory.Create(x =>
         {
             x.SetMinimumLevel(LogLevel.Debug);
-            x.AddZLogger(zLogger =>
+            x.AddZLoggerLogProcessor(options =>
             {
-                zLogger.AddLogProcessor(options =>
-                {
-                    options.IncludeScopes = true;
-                    return processor;
-                });
+                options.IncludeScopes = true;
+                return processor;
             });
         });
         logger = loggerFactory.CreateLogger("test");
@@ -118,13 +115,10 @@ public class ScopeTest
         var invalidScopeStateOwner = new InvalidScopeStateOwner();
         var loggerFactory = LoggerFactory.Create(x =>
         {
-            x.AddZLogger(zLogger =>
+            x.AddZLoggerLogProcessor(options =>
             {
-                zLogger.AddLogProcessor(options =>
-                {
-                    options.IncludeScopes = true;
-                    return invalidScopeStateOwner;
-                });
+                options.IncludeScopes = true;
+                return invalidScopeStateOwner;
             });
         });
         logger = loggerFactory.CreateLogger("test");

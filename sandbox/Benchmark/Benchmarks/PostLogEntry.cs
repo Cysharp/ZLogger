@@ -2,21 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
-using log4net.Repository.Hierarchy;
 using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Extensions.Logging;
 using NLog.Targets.Wrappers;
 using Serilog;
 using ZLogger;
-using ZLogger.Formatters;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Benchmark.Benchmarks;
@@ -106,16 +103,9 @@ public class PostLogEntry
 
         var zLoggerFactory = LoggerFactory.Create(logging =>
         {
-            logging.AddZLogger(builder =>
+            logging.AddZLoggerStream(Stream.Null, options =>
             {
-                //builder.AddLogProcessor(new NullProcessor());
-
-                //builder.AddStream(Stream.Null);
-
-                builder.AddStream(Stream.Null, options =>
-                {
-                    options.UsePlainTextFormatter(formatter => formatter.SetPrefixFormatter($"{0} [{1}]", (template, info) => template.Format(info.Timestamp, info.LogLevel)));
-                });
+                options.UsePlainTextFormatter(formatter => formatter.SetPrefixFormatter($"{0} [{1}]", (template, info) => template.Format(info.Timestamp, info.LogLevel)));
             });
         });
         disposables.Add(zLoggerFactory);
