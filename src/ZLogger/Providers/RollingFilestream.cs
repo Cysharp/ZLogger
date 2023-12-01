@@ -4,28 +4,34 @@ namespace ZLogger.Providers;
 
 internal partial class RollingFileStream : Stream
 {
-    [GeneratedRegex("(\\d)+$", RegexOptions.Compiled)]
-    private static partial Regex NumberRegex();
+#if NET7_0_OR_GREATER    
+     [GeneratedRegex("(\\d)+$", RegexOptions.Compiled)]
+     private static partial Regex NumberRegexCompiled();
+     static readonly Regex NumberRegex = NumberRegexCompiled();
+#else    
+    static readonly Regex NumberRegex = new("(\\d)+$", RegexOptions.Compiled);
+#endif
+    
 
-    readonly Func<DateTimeOffset, DateTimeOffset> timestampPattern;
     readonly Func<DateTimeOffset, int, string> fileNameSelector;
+    readonly RollingInterval rollInterval;
     readonly long rollSizeInBytes;
     readonly TimeProvider? timeProvider;
 
 #pragma warning disable CS8618
 
-    bool disposed = false;
+    bool disposed;
     int writtenLength;
     string fileName;
-    Stream innerStream;
-    DateTimeOffset currentTimestampPattern;
+    Stream? innerStream;
+    DateTimeOffset? nextCheckpoint;
 
-    public RollingFileStream(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, ZLoggerOptions options)
+    public RollingFileStream(Func<DateTimeOffset, int, string> fileNameSelector, RollingInterval rollInterval, int rollSizeKB, TimeProvider? timeProvider)
     {
-        this.timestampPattern = timestampPattern;
         this.fileNameSelector = fileNameSelector;
+        this.rollInterval = rollInterval;
         this.rollSizeInBytes = rollSizeKB * 1024;
-        this.timeProvider = options.TimeProvider;
+        this.timeProvider = timeProvider;
 
         ValidateFileNameSelector();
         TryChangeNewRollingFile();
@@ -39,13 +45,13 @@ internal partial class RollingFileStream : Stream
         var fileName1 = Path.GetFileNameWithoutExtension(fileNameSelector(now, 0));
         var fileName2 = Path.GetFileNameWithoutExtension(fileNameSelector(now, 1));
 
-        if (!NumberRegex().IsMatch(fileName1) || !NumberRegex().IsMatch(fileName2))
+        if (!NumberRegex.IsMatch(fileName1) || !NumberRegex.IsMatch(fileName2))
         {
             throw new ArgumentException("fileNameSelector is invalid format, must be int(sequence no) is last.");
         }
 
-        var seqStr1 = NumberRegex().Match(fileName1).Groups[0].Value;
-        var seqStr2 = NumberRegex().Match(fileName2).Groups[0].Value;
+        var seqStr1 = NumberRegex.Match(fileName1).Groups[0].Value;
+        var seqStr2 = NumberRegex.Match(fileName2).Groups[0].Value;
 
         if (!int.TryParse(seqStr1, out var seq1) || !int.TryParse(seqStr2, out var seq2))
         {
@@ -60,22 +66,14 @@ internal partial class RollingFileStream : Stream
 
     void TryChangeNewRollingFile()
     {
-        var now = (timeProvider == null) ? DateTimeOffset.UtcNow : timeProvider.GetUtcNow();
-        DateTimeOffset ts;
-        try
-        {
-            ts = timestampPattern(now);
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException("timestampPattern convert failed.", ex);
-        }
+        var now = timeProvider?.GetUtcNow() ?? DateTimeOffset.UtcNow;
+        var currentCheckpoint = GetCurrentCheckpoint(now);
 
         // needs to create next file
-        if (innerStream == null || ts != currentTimestampPattern || writtenLength >= rollSizeInBytes)
+        if (innerStream == null || currentCheckpoint >= nextCheckpoint || writtenLength >= rollSizeInBytes)
         {
-            int sequenceNo = 0;
-            if (innerStream != null && ts == currentTimestampPattern)
+            var sequenceNo = 0;
+            if (innerStream != null && currentCheckpoint < nextCheckpoint)
             {
                 sequenceNo = ExtractCurrentSequence(fileName) + 1;
             }
@@ -126,7 +124,7 @@ internal partial class RollingFileStream : Stream
             try
             {
                 fileName = fn!;
-                currentTimestampPattern = ts;
+                nextCheckpoint = GetNextCheckpoint(now);
                 if (File.Exists(fileName))
                 {
                     writtenLength = (int)new FileInfo(fileName).Length;
@@ -150,56 +148,84 @@ internal partial class RollingFileStream : Stream
             }
         }
     }
+    
+    DateTimeOffset? GetCurrentCheckpoint(DateTimeOffset instant) => rollInterval switch
+    {
+        RollingInterval.Infinite => null,
+        RollingInterval.Year => new DateTimeOffset(instant.Year, 1, 1, 0, 0, 0, instant.Offset),
+        RollingInterval.Month => new DateTimeOffset(instant.Year, instant.Month, 1, 0, 0, 0, instant.Offset),
+        RollingInterval.Day => new DateTimeOffset(instant.Year, instant.Month, instant.Day, 0, 0, 0, instant.Offset),
+        RollingInterval.Hour => new DateTimeOffset(instant.Year, instant.Month, instant.Day, instant.Hour, 0, 0, instant.Offset),
+        RollingInterval.Minute => new DateTimeOffset(instant.Year, instant.Month, instant.Day, instant.Hour, instant.Minute, 0, instant.Offset),
+        _ => throw new ArgumentOutOfRangeException()
+    };
+
+    DateTimeOffset? GetNextCheckpoint(DateTimeOffset instant)
+    {
+        var current = GetCurrentCheckpoint(instant);
+        if (current == null)
+            return null;
+
+        return rollInterval switch
+        {
+            RollingInterval.Year => current.Value.AddYears(1),
+            RollingInterval.Month => current.Value.AddMonths(1),
+            RollingInterval.Day => current.Value.AddDays(1),
+            RollingInterval.Hour => current.Value.AddHours(1),
+            RollingInterval.Minute => current.Value.AddMinutes(1),
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
 
     static int ExtractCurrentSequence(string fileName)
     {
         fileName = Path.GetFileNameWithoutExtension(fileName);
 
-        var sequenceString = NumberRegex().Match(fileName).Groups[0].Value;
+        var sequenceString = NumberRegex.Match(fileName).Groups[0].Value;
         return int.TryParse(sequenceString, out var seq) ? seq : 0;
     }
 
     #region override
 
-    public override bool CanRead => innerStream.CanRead;
+    public override bool CanRead => innerStream!.CanRead;
 
-    public override bool CanSeek => innerStream.CanSeek;
+    public override bool CanSeek => innerStream!.CanSeek;
 
-    public override bool CanWrite => innerStream.CanWrite;
+    public override bool CanWrite => innerStream!.CanWrite;
 
-    public override long Length => innerStream.Length;
+    public override long Length => innerStream!.Length;
 
-    public override long Position { get => innerStream.Position; set => innerStream.Position = value; }
+    public override long Position { get => innerStream!.Position; set => innerStream!.Position = value; }
 
     public override void Flush()
     {
-        innerStream.Flush();
+        innerStream!.Flush();
     }
 
     public override int Read(byte[] buffer, int offset, int count)
     {
-        return innerStream.Read(buffer, offset, count);
+        return innerStream!.Read(buffer, offset, count);
     }
 
     public override long Seek(long offset, SeekOrigin origin)
     {
-        return innerStream.Seek(offset, origin);
+        return innerStream!.Seek(offset, origin);
     }
     public override void SetLength(long value)
     {
-        innerStream.SetLength(value);
+        innerStream!.SetLength(value);
     }
 
     public override void Write(byte[] buffer, int offset, int count)
     {
         TryChangeNewRollingFile();
-        innerStream.Write(buffer, offset, count);
+        innerStream!.Write(buffer, offset, count);
         writtenLength += count;
     }
 
     protected override void Dispose(bool disposing)
     {
-        innerStream.Dispose();
+        innerStream!.Dispose();
         disposed = true;
     }
     #endregion
