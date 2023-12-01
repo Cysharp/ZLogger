@@ -37,7 +37,6 @@ public static class ZLoggerBuilderExtensions
 
     public static ILoggingBuilder AddZLoggerInMemory(this ILoggingBuilder builder) => builder.AddZLoggerInMemory(null, (_, _) => { }, _ => { });
     public static ILoggingBuilder AddZLoggerInMemory(this ILoggingBuilder builder, Action<InMemoryObservableLogProcessor> configureProcessor) => builder.AddZLoggerInMemory(null, (_, _) => { }, configureProcessor);
-    public static ILoggingBuilder AddZLoggerInMemory(this ILoggingBuilder builder, Action<ZLoggerOptions> configure, Action<InMemoryObservableLogProcessor> configureProcessor) => builder.AddZLoggerInMemory(null, configure, configureProcessor);
     public static ILoggingBuilder AddZLoggerInMemory(this ILoggingBuilder builder, Action<ZLoggerOptions, IServiceProvider> configure, Action<InMemoryObservableLogProcessor> configureProcessor) => builder.AddZLoggerInMemory(null, configure, configureProcessor);
     public static ILoggingBuilder AddZLoggerInMemory(this ILoggingBuilder builder, object? processorKey, Action<ZLoggerOptions> configure, Action<InMemoryObservableLogProcessor> configureProcessor) => builder.AddZLoggerInMemory(processorKey, (o, _) => configure(o), configureProcessor);
     public static ILoggingBuilder AddZLoggerInMemory(this ILoggingBuilder builder, object? processorKey, Action<ZLoggerOptions, IServiceProvider> configure, Action<InMemoryObservableLogProcessor> configureProcessor)
