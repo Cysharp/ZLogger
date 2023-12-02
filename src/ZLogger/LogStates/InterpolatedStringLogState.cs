@@ -67,11 +67,11 @@ namespace ZLogger.LogStates
         {
             if (Interlocked.Decrement(ref refCount) == 0)
             {
-                Dispose();
+                DisposeCore();
             }
         }
 
-        public void Dispose()
+        void DisposeCore()
         {
             parameters.AsSpan(0, ParameterCount).Clear();
             unchecked
@@ -106,7 +106,15 @@ namespace ZLogger.LogStates
                 else
                 {
                     // use BoxedValue
-                    JsonSerializer.Serialize(jsonWriter, p.BoxedValue, p.Type, jsonSerializerOptions);
+                    if (p.Type == typeof(string))
+                    {
+                        jsonWriter.WriteStringValue((string?)p.BoxedValue);
+                    }
+                    else
+                    {
+                        throw new Exception("no here!");
+                        JsonSerializer.Serialize(jsonWriter, p.BoxedValue, p.Type, jsonSerializerOptions);
+                    }
                 }
             }
         }

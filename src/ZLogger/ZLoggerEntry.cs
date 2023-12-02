@@ -1,6 +1,8 @@
 ﻿using System.Buffers;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using ZLogger.Internal;
+using ZLogger.LogStates;
 
 namespace ZLogger
 {
@@ -76,7 +78,11 @@ namespace ZLogger
 
         public void Return()
         {
-            if (state is IReferenceCountable)
+            if (state is VersionedLogState)
+            {
+                Unsafe.As<TState, VersionedLogState>(ref state).Release();
+            }
+            else if (state is IReferenceCountable)
             {
                 ((IReferenceCountable)state).Release();
             }
@@ -84,7 +90,7 @@ namespace ZLogger
 
             logInfo.ScopeState?.Return();
             logInfo = default!;
-            
+
             cache.TryPush(this);
         }
     }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Runtime.CompilerServices;
 using ZLogger.LogStates;
 
 namespace ZLogger
@@ -23,16 +24,28 @@ namespace ZLogger
             var scopeState = scopeProvider != null
                 ? LogScopeState.Create(scopeProvider)
                 : null;
-            
+
             var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState);
 
-            var entry = state is IZLoggerEntryCreatable
-                ? ((IZLoggerEntryCreatable)state).CreateEntry(info) // constrained call avoiding boxing for value types
-                : new StringFormatterLogState<TState>(state, exception, formatter).CreateEntry(info); // standard `log`
-
-            if (state is IReferenceCountable)
+            IZLoggerEntry entry;
+            if (state is VersionedLogState)
             {
-                ((IReferenceCountable)state).Retain();
+                var s = Unsafe.As<TState, VersionedLogState>(ref state);
+                entry = s.CreateEntry(info);
+                s.Retain();
+            }
+            else if (state is IZLoggerEntryCreatable)
+            {
+                entry = ((IZLoggerEntryCreatable)state).CreateEntry(info);
+                if (state is IReferenceCountable)
+                {
+                    ((IReferenceCountable)state).Retain();
+                }
+            }
+            else
+            {
+                // called from standard `logger.Log`
+                entry = new StringFormatterLogState<TState>(state, exception, formatter).CreateEntry(info);
             }
 
             logProcessor.Post(entry);

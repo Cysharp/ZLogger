@@ -4,6 +4,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Toolchains.InProcess.NoEmit;
 using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Extensions.Logging;
@@ -21,6 +22,8 @@ file class BenchmarkConfig : ManualConfig
     {
         AddDiagnoser(MemoryDiagnoser.Default);
         AddJob(Job.ShortRun.WithWarmupCount(1).WithIterationCount(1));
+
+        //AddJob(Job.ShortRun.WithWarmupCount(1).WithIterationCount(1).WithToolchain(InProcessNoEmitToolchain.Instance));
     }
 }
 
@@ -72,7 +75,6 @@ public class WritePlainTextToFile
         Directory.CreateDirectory(tempDir);
 
         // ZLogger
-
         zLoggerFactory = LoggerFactory.Create(logging =>
         {
             logging.AddZLoggerFile(GetLogFilePath("zlogger.log"), options =>
@@ -149,26 +151,33 @@ public class WritePlainTextToFile
     [IterationCleanup]
     public void Cleanup()
     {
-        zLoggerFactory.Dispose();
-        serilogMsExtLoggerFactory.Dispose();
-        serilogMsExtLoggerFactoryDefault.Dispose();
-        nLogMsExtLoggerFactory.Dispose();
-        nLogMsExtLoggerFactoryDefault.Dispose();
+        zLoggerFactory?.Dispose();
+        serilogMsExtLoggerFactory?.Dispose();
+        serilogMsExtLoggerFactoryDefault?.Dispose();
+        nLogMsExtLoggerFactory?.Dispose();
+        nLogMsExtLoggerFactoryDefault?.Dispose();
 
-        serilogLogger.Dispose();
-        serilogLoggerDefault.Dispose();
+        serilogLogger?.Dispose();
+        serilogLoggerDefault?.Dispose();
 
-        nLogConfig.LogFactory.Shutdown();
-        nLogConfigDefault.LogFactory.Shutdown();
+        nLogConfig?.LogFactory?.Shutdown();
+        nLogConfigDefault?.LogFactory?.Shutdown();
     }
+
+    //[Benchmark]
+    //public void Empty()
+    //{
+    //}
 
     [Benchmark]
     public void ZLogger_PlainTextFile()
     {
         for (var i = 0; i < N; i++)
         {
-            zLogger.ZLogInformation(
-                $"Hello, {MessageSample.Arg1} lives in {MessageSample.Arg2} {MessageSample.Arg3} years old");
+            var Name = MessageSample.Arg1;
+            var City = MessageSample.Arg2;
+            var Age = MessageSample.Arg3;
+            zLogger.ZLogInformation($"Hello, {Name} lives in {City} {Age} years old");
         }
 
         zLoggerFactory.Dispose();
@@ -190,7 +199,7 @@ public class WritePlainTextToFile
     {
         for (var i = 0; i < N; i++)
         {
-            serilogMsExtLogger.LogInformation("x={X} y={Y} z={Z}", 100, 200, 300);
+            serilogMsExtLogger.LogInformation(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
         }
 
         serilogLogger.Dispose();

@@ -190,7 +190,7 @@ public partial class ZLoggerGenerator
         {
             switch (index)
             {
-{{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return this.{x.LinkedMessageSegment.NameParameter};")}}
+{{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return this.{x.LinkedMessageSegment.NameParameter}!;")}}
             }
             CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
             return default!;
@@ -315,6 +315,66 @@ using Utf8StringInterpolation;
 
             var sourceCode = sb.ToString();
             context.AddSource($"{fullType}{fileExtension}", sourceCode);
+        }
+    }
+
+    public partial class MethodParameter
+    {
+        public string ConvertJsonWriteMethod()
+        {
+            return ConvertJsonWriteMethodCore(Symbol.Type, false);
+        }
+
+        string ConvertJsonWriteMethodCore(ITypeSymbol type, bool emitDotValue)
+        {
+            var emitDotValueString = emitDotValue ? ".Value" : string.Empty;
+            switch (type.SpecialType)
+            {
+                case SpecialType.System_Boolean:
+                    return $"writer.WriteBoolean(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter}{emitDotValueString});";
+                case SpecialType.System_SByte:
+                case SpecialType.System_Byte:
+                case SpecialType.System_Int16:
+                case SpecialType.System_UInt16:
+                case SpecialType.System_Int32:
+                case SpecialType.System_UInt32:
+                case SpecialType.System_Int64:
+                case SpecialType.System_UInt64:
+                case SpecialType.System_Decimal:
+                case SpecialType.System_Single:
+                case SpecialType.System_Double:
+                    return $"writer.WriteNumber(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter}{emitDotValueString});";
+                case SpecialType.System_String:
+                case SpecialType.System_DateTime:
+                    return $"writer.WriteString(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter}{emitDotValueString});";
+                default:
+                    if (type.TypeKind == TypeKind.Enum)
+                    {
+                        return $"CodeGeneratorUtil.WriteJsonEnum(writer, _jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter}{emitDotValueString});";
+                    }
+
+                    var fullString = type.ToFullyQualifiedFormatString();
+                    if (fullString is "global::System.DateTimeOffset" or "global::System.Guid")
+                    {
+                        return $"writer.WriteString(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter}{emitDotValueString});";
+                    }
+
+                    if (type is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+                    {
+                        var typeArgument = namedTypeSymbol.TypeArguments.First();
+
+                        var nullIf = $"if (this.{LinkedMessageSegment.NameParameter} == null) {{ writer.WriteNull(_jsonParameter_{LinkedMessageSegment.NameParameter}); }} else {{ ";
+                        var nullElse = ConvertJsonWriteMethodCore(typeArgument, true);
+                        var nullEnd = " }";
+
+                        return nullIf + nullElse + nullEnd;
+                    }
+
+                    break;
+            }
+
+            // final fallback, use Serialize
+            return $"writer.WritePropertyName(_jsonParameter_{LinkedMessageSegment.NameParameter}); JsonSerializer.Serialize(writer, this.{LinkedMessageSegment.NameParameter}{emitDotValueString});";
         }
     }
 }

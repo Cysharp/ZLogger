@@ -3,6 +3,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Toolchains.InProcess.NoEmit;
 using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Extensions.Logging;
@@ -19,7 +20,9 @@ file class BenchmarkConfig : ManualConfig
     public BenchmarkConfig()
     {
         AddDiagnoser(MemoryDiagnoser.Default);
-        AddJob(Job.ShortRun.WithWarmupCount(1).WithIterationCount(1));
+        //AddJob(Job.ShortRun.WithWarmupCount(1).WithIterationCount(1));
+        AddJob(Job.ShortRun.WithWarmupCount(1).WithIterationCount(1).WithToolchain(InProcessNoEmitToolchain.Instance));
+
     }
 }
 
@@ -27,7 +30,7 @@ file class BenchmarkConfig : ManualConfig
 [LogWritesPerSecond]
 public class WriteJsonToConsole
 {
-    const int N = 100_000;
+    const int N = 1;
 
     ILogger zLogger = default!;
     ILogger msExtConsoleLogger = default!;
@@ -54,7 +57,7 @@ public class WriteJsonToConsole
     [IterationSetup]
     public void SetUpLogger()
     {
-        System.Console.SetOut(TextWriter.Null);
+        // System.Console.SetOut(TextWriter.Null);
 
         // ZLogger
 
@@ -101,7 +104,7 @@ public class WriteJsonToConsole
             IncludeEventProperties = true,
             Attributes =
             {
-                new NLog.Layouts.JsonAttribute("date", "${longdate}"),
+                new NLog.Layouts.JsonAttribute("timestamp", "${longdate}"),
                 new NLog.Layouts.JsonAttribute("level", "${level}"),
                 new NLog.Layouts.JsonAttribute("message", "${message}"),
                 new NLog.Layouts.JsonAttribute("logger", "${logger}"),
@@ -121,8 +124,8 @@ public class WriteJsonToConsole
             nLogConfig.AddRuleForAllLevels(asyncTarget);
             nLogConfig.LogFactory.Configuration = nLogConfig;
 
-            nLogLogger = nLogConfig.LogFactory.GetLogger(nameof(WriteJsonToConsole));
-            
+            nLogLogger = nLogConfig.LogFactory.GetLogger("Benchmark.Benchmarks.WriteJsonToConsole");
+
             nLogMsExtLoggerFactory = LoggerFactory.Create(logging =>
             {
                 logging.AddNLog(nLogConfig);
@@ -138,17 +141,17 @@ public class WriteJsonToConsole
             nLogConfigDefault.AddTarget(target);
             nLogConfigDefault.AddRuleForAllLevels(target);
             nLogConfig.LogFactory.Configuration = nLogConfig;
-            nLogLoggerDefault = nLogConfigDefault.LogFactory.GetLogger(nameof(WriteJsonToConsole));
-            
+            nLogLoggerDefault = nLogConfigDefault.LogFactory.GetLogger("Benchmark.Benchmarks.WriteJsonToConsole");
+
             nLogMsExtLoggerFactoryDefault = LoggerFactory.Create(logging =>
             {
                 logging.AddNLog(nLogConfigDefault);
             });
             nLogMsExtLoggerDefault = nLogMsExtLoggerFactoryDefault.CreateLogger<WriteJsonToConsole>();
         }
-        
+
     }
-    
+
     [IterationCleanup]
     public void Cleanup()
     {
@@ -171,7 +174,10 @@ public class WriteJsonToConsole
     {
         for (var i = 0; i < N; i++)
         {
-            zLogger.ZLogInformation($"Hello, {MessageSample.Arg1} lives in {MessageSample.Arg2} {MessageSample.Arg3} years old");
+            var Name = MessageSample.Arg1;
+            var City = MessageSample.Arg2;
+            var Age = MessageSample.Arg3;
+            zLogger.ZLogInformation($"Hello, {Name} lives in {City} {Age} years old");
         }
         zLoggerFactory.Dispose();
     }
@@ -205,7 +211,7 @@ public class WriteJsonToConsole
         }
         msExtConsoleLoggerFactory.Dispose();
     }
-    
+
     [Benchmark]
     public void Serilog_MsExt_JsonConsole()
     {
@@ -216,7 +222,7 @@ public class WriteJsonToConsole
         serilogLogger.Dispose();
         serilogMsExtLoggerFactory.Dispose();
     }
-    
+
     [Benchmark]
     public void Serilog_MsExt_SourceGenerator_JsonConsole()
     {
@@ -247,7 +253,7 @@ public class WriteJsonToConsole
         }
         serilogLoggerDefault.Dispose();
     }
-    
+
     [Benchmark]
     public void Serilog_Default_MsExt_JsonConsole()
     {
@@ -268,7 +274,7 @@ public class WriteJsonToConsole
         }
         nLogMsExtLoggerFactory.Dispose();
     }
-    
+
     [Benchmark]
     public void NLog_MsExt_SourceGenerator_JsonConsole()
     {
@@ -288,7 +294,7 @@ public class WriteJsonToConsole
         }
         nLogConfig.LogFactory.Shutdown();
     }
-    
+
     [Benchmark]
     public void NLog_Default_JsonConsole()
     {

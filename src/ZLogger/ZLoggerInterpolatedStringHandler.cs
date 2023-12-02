@@ -55,6 +55,27 @@ namespace ZLogger
             this.IsLoggerEnabled = true;
         }
 
+        public static void PreAllocateEntry(int count)
+        {
+            var array = new InterpolatedStringLogState[count];
+            var entries = new IZLoggerEntry[count];
+            for (int i = 0; i < count; i++)
+            {
+                array[i] = InterpolatedStringLogState.Create(0);
+                entries[i] = array[i].CreateEntry(default);
+            }
+
+            foreach (var item in array)
+            {
+                item.Release();
+            }
+
+            foreach (var item in entries)
+            {
+                item.Return();
+            }
+        }
+
         public void AppendLiteral(string s)
         {
             literals.Add(s);
@@ -77,13 +98,13 @@ namespace ZLogger
                 format = altFormat;
                 if (format == "json")
                 {
-                    offset = -1;
+                    offset = -2; // "json" is offset = -2
                     goto SKIP_MAGICALBOX_WRITE;
                 }
             }
             else if (format == "json")
             {
-                offset = -1;
+                offset = -2;
                 goto SKIP_MAGICALBOX_WRITE;
             }
 
@@ -94,7 +115,7 @@ namespace ZLogger
             }
 
         SKIP_MAGICALBOX_WRITE:
-            var parameter = new InterpolatedStringParameter(typeof(T), argumentName ?? "", alignment, format, offset, (offset == -1) ? (object?)value : null);
+            var parameter = new InterpolatedStringParameter(typeof(T), argumentName ?? "", alignment, format, offset, (offset < 0) ? (object?)value : null);
             state.parameters[parameterWritten++] = parameter;
         }
 
@@ -220,7 +241,7 @@ namespace ZLogger
                 else
                 {
                     ref var p = ref parameters[parameterIndex++];
-                    if (p.Format == "json")
+                    if (p.BoxOffset == -2) // as "json"
                     {
                         CodeGeneratorUtil.AppendAsJson(ref stringWriter, p.BoxedValue, p.Type);
                     }
@@ -258,7 +279,7 @@ namespace ZLogger
                 else
                 {
                     ref var p = ref parameters[parameterIndex++];
-                    if (p.Format == "json")
+                    if (p.BoxOffset == -2) // as "json"
                     {
                         var jsonString = JsonSerializer.Serialize(p.BoxedValue, p.Type);
                         stringHandler.AppendLiteral(jsonString);

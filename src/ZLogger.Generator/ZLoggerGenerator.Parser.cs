@@ -20,7 +20,7 @@ public partial class ZLoggerGenerator
         MessageSegment[] MessageSegments,
         MethodParameter[] MethodParameters);
 
-    public class MethodParameter
+    public partial class MethodParameter
     {
         public required IParameterSymbol Symbol { get; init; }
         public bool IsFirstLogger { get; init; }
@@ -31,62 +31,6 @@ public partial class ZLoggerGenerator
 
         // set from outside, if many segments was linked, use first-one.
         public MessageSegment LinkedMessageSegment { get; set; } = default!;
-
-        public string ConvertJsonWriteMethod()
-        {
-            return ConvertJsonWriteMethodCore(Symbol.Type);
-        }
-
-        string ConvertJsonWriteMethodCore(ITypeSymbol type)
-        {
-            switch (type.SpecialType)
-            {
-                case SpecialType.System_Boolean:
-                    return $"writer.WriteBoolean(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter});";
-                case SpecialType.System_SByte:
-                case SpecialType.System_Byte:
-                case SpecialType.System_Int16:
-                case SpecialType.System_UInt16:
-                case SpecialType.System_Int32:
-                case SpecialType.System_UInt32:
-                case SpecialType.System_Int64:
-                case SpecialType.System_UInt64:
-                case SpecialType.System_Decimal:
-                case SpecialType.System_Single:
-                case SpecialType.System_Double:
-                    return $"writer.WriteNumber(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter});";
-                case SpecialType.System_String:
-                case SpecialType.System_DateTime:
-                    return $"writer.WriteString(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter});";
-                default:
-                    if (type.TypeKind == TypeKind.Enum)
-                    {
-                        return $"CodeGeneratorUtil.WriteJsonEnum(writer, _jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter});";
-                    }
-
-                    var fullString = type.ToFullyQualifiedFormatString();
-                    if (fullString is "global::System.DateTimeOffset" or "global::System.Guid")
-                    {
-                        return $"writer.WriteString(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter});";
-                    }
-
-                    if (type is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-                    {
-                        var typeArgument = namedTypeSymbol.TypeArguments.First();
-
-                        var nullIf = $"if (this.{LinkedMessageSegment.NameParameter} == null) {{ writer.WriteNull(_jsonParameter_{LinkedMessageSegment.NameParameter}); }} else {{ ";
-                        var nullElse = ConvertJsonWriteMethodCore(typeArgument);
-                        var nullEnd = " }";
-
-                        return nullIf + nullElse + nullEnd;
-                    }
-
-                    break;
-            }
-
-            // final fallback, use Serialize
-            return $"writer.WritePropertyName(_jsonParameter_{LinkedMessageSegment.NameParameter}); JsonSerializer.Serialize(writer, this.{LinkedMessageSegment.NameParameter});";
-        }
 
         public bool IsEnumerable()
         {

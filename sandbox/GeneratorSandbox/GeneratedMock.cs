@@ -81,7 +81,8 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
         writer.WriteString(_jsonParameter_hostName, this.hostName);
         writer.WriteNumber(_jsonParameter_ipAddress, this.ipAddress);
 
-
+        var datetime = DateTime.Now;
+        
         // writer.WriteString(_jsonParameter_hostName, EnumLookup<LogLevel>.GetJsonEncodedName(LogLevel.Information));
 
         // writer.WritePropertyName(_jsonParameter_ipAddress); JsonSerializer.Serialize(writer, this.ipAddress, jsonSerializerOptions);
@@ -144,3 +145,101 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
 
 }
 
+file readonly struct SamplerState2 : IZLoggerFormattable
+{
+    static readonly JsonEncodedText _jsonParameter_banana = JsonEncodedText.Encode("banana");
+    static readonly JsonEncodedText _jsonParameter_dt = JsonEncodedText.Encode("dt");
+
+    readonly global::System.Guid? banana;
+    readonly global::System.DateTime? dt;
+
+    public SamplerState2(global::System.Guid? banana, global::System.DateTime? dt)
+    {
+        this.banana = banana;
+        this.dt = dt;
+    }
+
+    public IZLoggerEntry CreateEntry(LogInfo info)
+    {
+        return ZLoggerEntry<SamplerState2>.Create(info, this);
+    }
+
+    public int ParameterCount => 2;
+    public bool IsSupportUtf8ParameterKey => true;
+    public override string ToString() => $"Could not open socket to {banana} {dt}.";
+
+    public void ToString(IBufferWriter<byte> writer)
+    {
+        var stringWriter = new Utf8StringWriter<IBufferWriter<byte>>(literalLength: 27, formattedCount: 2, bufferWriter: writer);
+
+        stringWriter.AppendUtf8("Could not open socket to "u8);
+        stringWriter.AppendFormatted(banana, 0, null);
+        stringWriter.AppendUtf8(" "u8);
+        stringWriter.AppendFormatted(dt, 0, null);
+        stringWriter.AppendUtf8("."u8);
+
+        stringWriter.Flush();
+    }
+
+    public void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions, IKeyNameMutator? keyNameMutator = null)
+    {
+        if (this.banana == null) { writer.WriteNull(_jsonParameter_banana); } else { writer.WriteString(_jsonParameter_banana, this.banana.Value); }
+        if (this.dt == null) { writer.WriteNull(_jsonParameter_dt); } else { writer.WriteString(_jsonParameter_dt, this.dt.Value); }
+    }
+
+    public ReadOnlySpan<byte> GetParameterKey(int index)
+    {
+        switch (index)
+        {
+            case 0: return "banana"u8;
+            case 1: return "dt"u8;
+        }
+        CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+        return default!;
+    }
+
+    public ReadOnlySpan<char> GetParameterKeyAsString(int index)
+    {
+        switch (index)
+        {
+            case 0: return "banana";
+            case 1: return "dt";
+        }
+        CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+        return default!;
+    }
+
+    public object GetParameterValue(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.banana!;
+            case 1: return this.dt!;
+        }
+        CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+        return default!;
+    }
+
+    public T GetParameterValue<T>(int index)
+    {
+        switch (index)
+        {
+            case 0: return Unsafe.As<global::System.Guid?, T>(ref Unsafe.AsRef(in this.banana));
+            case 1: return Unsafe.As<global::System.DateTime?, T>(ref Unsafe.AsRef(in this.dt));
+        }
+        CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+        return default!;
+    }
+
+    public Type GetParameterType(int index)
+    {
+        switch (index)
+        {
+            case 0: return typeof(global::System.Guid?);
+            case 1: return typeof(global::System.DateTime?);
+        }
+        CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+        return default!;
+    }
+
+}
