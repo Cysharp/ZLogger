@@ -33,7 +33,7 @@ public class RollingFileProviderTest
         var path1= Path.Join(directory, $"ZLoggerRollingTest_{timeProvider.GetUtcNow():yyyy-MM-dd}-0.log");
         if (File.Exists(path1)) File.Delete(path1);
 
-        var loggerFactory = LoggerFactory.Create(x =>
+        using var loggerFactory = LoggerFactory.Create(x =>
         {
             x.SetMinimumLevel(LogLevel.Debug);
             x.AddZLoggerRollingFile(options =>
@@ -92,7 +92,7 @@ public class RollingFileProviderTest
         var path1 = Path.Join(directory, $"ZLoggerRollingTest_{timeProvider.GetUtcNow():yyyy-MM-dd}-0.log");
         var path2 = Path.Join(directory, $"ZLoggerRollingTest_{timeProvider.GetUtcNow():yyyy-MM-dd}-1.log");
 
-        var loggerFactory = LoggerFactory.Create(x =>
+        using var loggerFactory = LoggerFactory.Create(x =>
         {
             x.SetMinimumLevel(LogLevel.Debug);
             x.AddZLoggerRollingFile(options =>

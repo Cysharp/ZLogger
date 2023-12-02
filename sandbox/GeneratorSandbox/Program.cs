@@ -1,4 +1,5 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿#nullable disable
+// See https://aka.ms/new-console-template for more information
 using GeneratorSandbox;
 using MessagePack;
 using Microsoft.Extensions.Logging;
@@ -18,7 +19,7 @@ Log($"hogemoge{i}");
 
 static void Log(LogInterpolatedStringHandler format)
 {
-    
+
 
 }
 
@@ -104,8 +105,18 @@ public static partial class Log2
 
 public static partial class LogZ
 {
+
+    [ZLoggerMessage(LogLevel.Information, "Could not open socket to {banana} {dt}.")]
+    public static partial void Sampler(this ILogger<FooBarBaz> logger, Nullable<Guid> banana, DateTime? dt);
+
     [ZLoggerMessage(LogLevel.Information, "Could not open socket to {hostName} {ipAddress}.")]
     public static partial void CouldNotOpenSocket(this ILogger<FooBarBaz> logger, string hostName, int ipAddress);
+}
+
+
+public enum Fruit
+{
+    Orange, Ringo, Banana
 }
 
 public class FooBarBaz
@@ -126,6 +137,7 @@ public struct MessagePackStructuredKeyValueWriter
 
     public void WriteKey(ReadOnlySpan<byte> key, MessagePackWriter writer)
     {
+
 
 
         throw new NotImplementedException();

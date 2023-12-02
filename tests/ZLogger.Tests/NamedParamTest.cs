@@ -13,7 +13,7 @@ namespace ZLogger.Tests
         {
             var options = new ZLoggerOptions();
             options.UseJsonFormatter();
-            
+
             var processor = new TestProcessor(options);
             using var loggerFactory = LoggerFactory.Create(x =>
             {
@@ -22,7 +22,7 @@ namespace ZLogger.Tests
             });
             var logger = loggerFactory.CreateLogger("test");
 
-            logger.ZLogInformation($"{("TAKO", 100)} {("YAKI", 200):D5} {("T", new DateTime(2023, 12, 31)),15:yyyy-MM-dd}");
+            logger.ZLogInformation($"{100:@TAKO} {200:@YAKI:D5} {new DateTime(2023, 12, 31),15:@T:yyyy-MM-dd}");
 
             var json = processor.EntryMessages.Dequeue();
             var doc = JsonDocument.Parse(json).RootElement;
@@ -32,5 +32,5 @@ namespace ZLogger.Tests
             doc.GetProperty("YAKI").GetInt32().Should().Be(200);
             doc.GetProperty("T").GetDateTime().Should().Be(new DateTime(2023, 12, 31));
         }
-    }    
+    }
 }

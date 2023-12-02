@@ -41,8 +41,6 @@ public partial class ZLoggerGenerator
         {
             switch (type.SpecialType)
             {
-                case SpecialType.System_Enum:
-                    return $"CodeGeneratorUtil.WriteJsonEnum(writer, _jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter});";
                 case SpecialType.System_Boolean:
                     return $"writer.WriteBoolean(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter});";
                 case SpecialType.System_SByte:
@@ -59,25 +57,29 @@ public partial class ZLoggerGenerator
                     return $"writer.WriteNumber(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter});";
                 case SpecialType.System_String:
                 case SpecialType.System_DateTime:
-                    // DateTime, DateTimeOffset, Guid
                     return $"writer.WriteString(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter});";
-                case SpecialType.System_Nullable_T:
-                    // TODO:does not come here????
-                    // if (type is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType)
-                    {
-
-                    }
-                    break;
-                    
                 default:
-                    // TODO: DateTimeOffset, Guid => writeString
-
-                    if (type is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType && namedTypeSymbol.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T)
+                    if (type.TypeKind == TypeKind.Enum)
                     {
-                        return ConvertJsonWriteMethodCore(namedTypeSymbol.TypeArguments[0]);
+                        return $"CodeGeneratorUtil.WriteJsonEnum(writer, _jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter});";
                     }
 
-                    
+                    var fullString = type.ToFullyQualifiedFormatString();
+                    if (fullString is "global::System.DateTimeOffset" or "global::System.Guid")
+                    {
+                        return $"writer.WriteString(_jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter});";
+                    }
+
+                    if (type is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+                    {
+                        var typeArgument = namedTypeSymbol.TypeArguments.First();
+
+                        var nullIf = $"if (this.{LinkedMessageSegment.NameParameter} == null) {{ writer.WriteNull(_jsonParameter_{LinkedMessageSegment.NameParameter}); }} else {{ ";
+                        var nullElse = ConvertJsonWriteMethodCore(typeArgument);
+                        var nullEnd = " }";
+
+                        return nullIf + nullElse + nullEnd;
+                    }
 
                     break;
             }

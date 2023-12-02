@@ -47,8 +47,17 @@ public static class CloudLoggingExtensions
                 writer.WriteString(category, logInfo.Category.JsonEncoded);
                 writer.WriteString(eventId, logInfo.EventId.Name);
 
-                // TODO: additional, get label(for example, userId)
-                writer.WriteString(userId, "get from scope...");
+                if (logInfo.ScopeState != null && !logInfo.ScopeState.IsEmpty)
+                {
+                    foreach (var item in logInfo.ScopeState.Properties)
+                    {
+                        if (item.Key == "userId")
+                        {
+                            writer.WriteString(userId, item.Value!.ToString());
+                            break;
+                        }
+                    }
+                }
                 writer.WriteEndObject();
             };
         });

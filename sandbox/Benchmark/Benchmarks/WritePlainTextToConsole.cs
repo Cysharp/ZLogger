@@ -165,8 +165,7 @@ public class WritePlainTextToConsole
     {
         for (var i = 0; i < N; i++)
         {
-            // TODO: ZLogger.Generator
-            zLogger.GeneratedLog(MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
+            zLogger.GeneratedZLog(MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
         }
         zLoggerFactory.Dispose();
     }

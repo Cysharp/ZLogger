@@ -206,8 +206,7 @@ public class PostLogEntry
     [Benchmark]
     public void ZLogger_GeneratedLog()
     {
-        // TODO: Use ZLogger.Generator
-        zLogger.GeneratedLog(MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
+        zLogger.GeneratedZLog(MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
     }
 
     [Benchmark]

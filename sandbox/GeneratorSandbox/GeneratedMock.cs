@@ -57,16 +57,16 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
 
     public int ParameterCount => 2;
     public bool IsSupportUtf8ParameterKey => true;
-    public override string ToString() => $"Could not open socket to {hostName} {ipAddress}."; // TODO:alignment, format
+    public override string ToString() => $"Could not open socket to {hostName} {ipAddress}.";
 
     public void ToString(IBufferWriter<byte> writer)
     {
         var stringWriter = new Utf8StringWriter<IBufferWriter<byte>>(literalLength: 33, formattedCount: 2, bufferWriter: writer);
 
         stringWriter.AppendUtf8("Could not open socket to "u8);
-        stringWriter.AppendFormatted(this.hostName, 0, null); // TODO: alignment, format
+        stringWriter.AppendFormatted(this.hostName, 0, null);
         stringWriter.AppendUtf8(" "u8);
-        stringWriter.AppendFormatted(this.ipAddress, 0, null); // TODO: when IEnumerable, or format is "json", JSON Serialize
+        stringWriter.AppendFormatted(this.ipAddress, 0, null);
 
         // CodeGeneratorUtil.AppendAsJson(ref stringWriter, this.ipAddress);
 
@@ -81,7 +81,6 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
         writer.WriteString(_jsonParameter_hostName, this.hostName);
         writer.WriteNumber(_jsonParameter_ipAddress, this.ipAddress);
 
-        // TODO: serialize pattern, check format = "json"
 
         // writer.WriteString(_jsonParameter_hostName, EnumLookup<LogLevel>.GetJsonEncodedName(LogLevel.Information));
 

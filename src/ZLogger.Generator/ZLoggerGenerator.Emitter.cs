@@ -237,7 +237,6 @@ public partial class ZLoggerGenerator
 
             var stateTypeName = $"{method.TargetMethod.Name}State";
 
-            // TODO: ref, out, in...?
             var methodArgument = method.MethodParameters
                 .Select(x => $"{x.Symbol.Type.ToFullyQualifiedFormatString()} {x.Symbol.Name}")
                 .StringJoinComma();
