@@ -99,6 +99,10 @@ namespace ZLogger.Tests.GeneratorTests
 """);
             }
         }
+
+        // TODO: SkipEnabledCheck test
+        // TODO: FirstExceptoin test
+        // TODO: FirstLogLevel test
     }
 
 
@@ -141,4 +145,14 @@ namespace ZLogger.Tests.GeneratorTests
         public int Y { get; set; }
         public int Z { get; set; }
     }
+
+    // not supported.
+    //public partial class GenericType<T>
+    //{
+    //    [ZLoggerMessage(Information, "Hello {name}")]
+    //    public static partial void Hello(ILogger logger, string name);
+
+    //    [ZLoggerMessage(Information, "Hello {name}")]
+    //    public static partial void GenericsParameter(ILogger logger, T name);
+    //}
 }

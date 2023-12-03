@@ -80,22 +80,54 @@ public partial class ZLoggerGenerator
             {
                 if (item.Key == null) continue;
                 var targetType = (TypeDeclarationSyntax)item.Key;
+                var symbol = item.First().SemanticModel.GetDeclaredSymbol(targetType);
+                if (symbol == null) continue;
+
+                // verify is partial
+                if (!IsPartial(targetType))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MustBePartial, targetType.Identifier.GetLocation(), symbol.Name));
+                    continue;
+                }
+
+                // nested is not allowed
+                if (IsNested(targetType))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.NestedNotAllow, targetType.Identifier.GetLocation(), symbol.Name));
+                    continue;
+                }
+
+                // verify is generis type
+                if (symbol.TypeParameters.Length > 0)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenericTypeNotSupported, targetType.Identifier.GetLocation(), symbol.Name));
+                    continue;
+                }
 
                 var logMethods = new List<LogMethodDeclaration>();
 
                 foreach (var source in item)
                 {
                     var method = (IMethodSymbol)source.TargetSymbol;
-                    var (attr, setLogLevel) = GetAttribute(source);
-                    var msg = attr.Message;
 
-                    if (!MessageParser.TryParseFormat(attr.Message, out var segments))
+                    // verify is partial
+                    if (!method.IsPartialDefinition)
                     {
-                        // TODO:Verify
+                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MethodMustBePartial, (source.TargetNode as MethodDeclarationSyntax)!.Identifier.GetLocation(), method.Name));
                         continue;
                     }
 
-                    var parameters = GetMethodParameters(method, setLogLevel);
+                    var (attr, setLogLevel) = GetAttribute(source);
+                    var msg = attr.Message;
+
+                    // parse and verify
+                    if (!MessageParser.TryParseFormat(attr.Message, out var segments))
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MessageTemplateParseFailed, (source.TargetNode as MethodDeclarationSyntax)!.Identifier.GetLocation(), method.Name));
+                        continue;
+                    }
+
+                    var (parameters, foundLogLevel) = GetMethodParameters(method, setLogLevel);
 
                     // Set LinkedParameters
                     foreach (var p in parameters.Where(x => x.IsParameter))
@@ -105,11 +137,6 @@ public partial class ZLoggerGenerator
                             .FirstOrDefault(x => x.NameParameter.Equals(p.Symbol.Name, StringComparison.OrdinalIgnoreCase));
                     }
 
-                    if (!Verify())
-                    {
-                        continue;
-                    }
-
                     var methodDecl = new LogMethodDeclaration(
                         Attribute: attr,
                         TargetMethod: (IMethodSymbol)source.TargetSymbol,
@@ -117,12 +144,25 @@ public partial class ZLoggerGenerator
                         MessageSegments: segments,
                         MethodParameters: parameters);
 
+                    if (!Verify(methodDecl, foundLogLevel, targetType, symbol))
+                    {
+                        continue;
+                    }
+
                     logMethods.Add(methodDecl);
                 }
 
-                var symbol = item.First().SemanticModel.GetDeclaredSymbol(targetType);
                 var result = new ParseResult(targetType, symbol!, logMethods.ToArray());
                 list.Add(result);
+            }
+
+            var duplicateEventIds = new HashSet<int>();
+            foreach (var item in list.SelectMany(x => x.LogMethods).Where(x => x.Attribute.EventId != -1))
+            {
+                if (!duplicateEventIds.Add(item.Attribute.EventId))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.DuplicateEventIdIsNotAllowed, item.TargetSyntax.Identifier.GetLocation(), item.TargetMethod.Name, item.Attribute.EventId));
+                }
             }
 
             return list.ToArray();
@@ -130,8 +170,6 @@ public partial class ZLoggerGenerator
 
         static (ZLoggerMessageAttribute attr, bool setLogLevel) GetAttribute(GeneratorAttributeSyntaxContext source)
         {
-            // TODO: Attribute verify.
-
             var attributeData = source.Attributes[0];
 
             int eventId = -1;
@@ -207,7 +245,7 @@ public partial class ZLoggerGenerator
             }, setLogLevel);
         }
 
-        MethodParameter[] GetMethodParameters(IMethodSymbol method, bool setLogLevel)
+        (MethodParameter[] parameters, bool foundLogLevel) GetMethodParameters(IMethodSymbol method, bool setLogLevel)
         {
             var result = new MethodParameter[method.Parameters.Length];
 
@@ -271,26 +309,82 @@ public partial class ZLoggerGenerator
                 result[i] = new MethodParameter { Symbol = p };
             }
 
-            return result;
+            return (result, foundFirstLogLevel);
         }
 
-        bool Verify()
+        static bool IsPartial(TypeDeclarationSyntax typeDeclaration)
         {
-            // LogLevel not found
-            // must retrun void
-            // missing ILogger
-            // Must be static
-            // Must be partial
-            // generic is not supported
-            // template has no corrresponding argument
-            // argument has no corresponding template
-            // invalid template
-            // alow in, ref qualifier(out is fail)
-            // primitives or IUtf8Formattbale
-            // TODO:exception
-            // TODO:logLevel from paramter?
+            return typeDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword));
+        }
 
-            // check Duplicate EventId(allow -1)
+        static bool IsNested(TypeDeclarationSyntax typeDeclaration)
+        {
+            return typeDeclaration.Parent is TypeDeclarationSyntax;
+        }
+
+        bool Verify(LogMethodDeclaration methodDeclaration, bool foundLogLevel, TypeDeclarationSyntax declaredTypeSyntax, INamedTypeSymbol declaredTypeSymbol)
+        {
+            var methodLocation = methodDeclaration.TargetSyntax.Identifier.GetLocation();
+            var methodName = methodDeclaration.TargetMethod.Name;
+
+            // must retrun void
+            if (methodDeclaration.TargetMethod.ReturnType.SpecialType != SpecialType.System_Void)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MustReturnVoid, methodLocation, methodName));
+                return false;
+            }
+
+            // generic is not supported
+            if (methodDeclaration.TargetMethod.TypeParameters.Length > 0)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenericNotSupported, methodLocation, methodName));
+                return false;
+            }
+
+            // LogLevel not found
+            if (!foundLogLevel)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.LogLevelNotFound, methodLocation, methodName));
+                return false;
+            }
+
+            // missing ILogger
+            if (!methodDeclaration.MethodParameters.Any(x => x.IsFirstLogger))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MissingLogger, methodLocation, methodName));
+                return false;
+            }
+
+            var templateParameters = methodDeclaration.MessageSegments.Where(x => x.Kind == MessageSegmentKind.NameParameter).ToArray();
+            var argumentParameters = methodDeclaration.MethodParameters.Where(x => x.IsParameter).ToArray();
+
+            foreach (var templateParameter in templateParameters)
+            {
+                // template parameter must match argument parameter
+                if (!argumentParameters.Any(x => x.Symbol.Name.Equals(templateParameter.NameParameter, StringComparison.OrdinalIgnoreCase)))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.TemplateHasNoCorrespondingArgument, methodLocation, methodName, templateParameter.NameParameter));
+                    return false;
+                }
+            }
+
+            foreach (var argumentParameter in argumentParameters)
+            {
+                // argument parameter must match template parameter
+                if (!templateParameters.Any(x => x.NameParameter.Equals(argumentParameter.Symbol.Name, StringComparison.OrdinalIgnoreCase)))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ArgumentHasNoCorrespondingTemplate, methodLocation, methodName, argumentParameter.Symbol.Name));
+                    return false;
+                }
+            }
+
+            // disallow ref, in, out in parameter
+            if (argumentParameters.Any(x => x.Symbol.RefKind != RefKind.None))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.RefKindNotSupported, methodLocation, methodName));
+                return false;
+            }
+
             return true;
         }
     }
