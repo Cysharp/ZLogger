@@ -1,4 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿#if ZLOGGER_GENERATOR
+using ZLogger.Generator;
+#else
+using Microsoft.Extensions.Logging;
+#endif
 using System;
 
 namespace ZLogger
@@ -29,7 +33,12 @@ namespace ZLogger
     /// ]]></format>
     /// </example>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public sealed class ZLoggerMessageAttribute : Attribute
+#if ZLOGGER_GENERATOR
+    internal
+#else
+    public
+#endif
+    sealed class ZLoggerMessageAttribute : Attribute
     {
         internal ZLoggerMessageAttribute()
         {

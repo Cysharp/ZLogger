@@ -1,8 +1,9 @@
 ﻿using System.ComponentModel;
 
-namespace Microsoft.Extensions.Logging
+// namespace Microsoft.Extensions.Logging
+namespace ZLogger.Generator // don't use same namespace for use compilation.GetTypeByMetadataName
 {
-    public enum LogLevel
+    internal enum LogLevel
     {
         Trace,
         Debug,

@@ -112,7 +112,6 @@ namespace ZLogger.LogStates
                     }
                     else
                     {
-                        throw new Exception("no here!");
                         JsonSerializer.Serialize(jsonWriter, p.BoxedValue, p.Type, jsonSerializerOptions);
                     }
                 }

@@ -2,7 +2,7 @@
   "profiles": {
     "Profile 1": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\..\\sandbox\\GeneratorSandbox\\GeneratorSandbox.csproj"
+      "targetProject": "..\\..\\tests\\ZLogger.Generator.Tests\\ZLogger.Generator.Tests.csproj"
     }
   }
 }

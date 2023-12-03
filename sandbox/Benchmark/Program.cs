@@ -50,10 +50,13 @@ bench.Cleanup();
 
 #else
 {
-    //var bench = new WriteJsonToFile();
-    //bench.SetUpLogger();
+    var bench = new WriteJsonToFile();
+    bench.SetUpLogger();
     //ZLoggerInterpolatedStringHandler.PreAllocateEntry(100_000);
 
+
+    bench.NLog_JsonFile();
+    //bench.ZLogger_JsonFile();
 
 
     //Thread.Sleep(5000);
@@ -69,47 +72,53 @@ bench.Cleanup();
 //var bench = new WriteJsonToFile();
 //bench.SetUpLogger();
 //ZLoggerInterpolatedStringHandler.PreAllocateEntry(100_000);
-{
+//{
 
-    var bench = new WriteJsonToConsole();
+//    var bench = new WriteJsonToConsole();
 
-    bench.SetUpLogger();
-    bench.ZLogger_JsonConsole();
-    bench.Cleanup();
+//    bench.SetUpLogger();
+//    bench.ZLogger_JsonConsole();
+//    bench.Cleanup();
 
-    bench.SetUpLogger();
-    bench.ZLogger_SourceGenerator_JsonConsole();
-    bench.Cleanup();
-
-
-
-    bench.SetUpLogger();
-    bench.NLog_JsonConsole();
-    bench.Cleanup();
-
-    bench.SetUpLogger();
-    bench.NLog_MsExt_JsonConsole();
-    bench.Cleanup();
-
-    bench.SetUpLogger();
-    bench.NLog_MsExt_SourceGenerator_JsonConsole();
-    bench.Cleanup();
+//    bench.SetUpLogger();
+//    bench.ZLogger_SourceGenerator_JsonConsole();
+//    bench.Cleanup();
 
 
-    bench.SetUpLogger();
-    bench.Serilog_JsonConsole();
-    bench.Cleanup();
 
-    bench.SetUpLogger();
-    bench.Serilog_MsExt_JsonConsole();
-    bench.Cleanup();
+//    bench.SetUpLogger();
+//    bench.NLog_JsonConsole();
+//    bench.Cleanup();
 
-    bench.SetUpLogger();
-    bench.Serilog_MsExt_SourceGenerator_JsonConsole();
-    bench.Cleanup();
+//    bench.SetUpLogger();
+//    bench.NLog_MsExt_JsonConsole();
+//    bench.Cleanup();
 
-    bench.Cleanup();
+//    bench.SetUpLogger();
+//    bench.NLog_MsExt_SourceGenerator_JsonConsole();
+//    bench.Cleanup();
 
-    Console.WriteLine("END");
-}
+
+//    bench.SetUpLogger();
+//    bench.Serilog_JsonConsole();
+//    bench.Cleanup();
+
+//    bench.SetUpLogger();
+//    bench.Serilog_MsExt_JsonConsole();
+//    bench.Cleanup();
+
+//    bench.SetUpLogger();
+//    bench.Serilog_MsExt_SourceGenerator_JsonConsole();
+//    bench.Cleanup();
+
+//    bench.Cleanup();
+
+//    Console.WriteLine("END");
+//}
+
+
+
+
+
+
 #endif

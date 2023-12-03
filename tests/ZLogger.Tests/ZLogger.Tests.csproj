@@ -28,5 +28,7 @@
 		<Using Include="Xunit" />
 		<Using Include="Xunit.Abstractions" />
 		<Using Include="ZLogger" />
+		<Using Include="FluentAssertions" />
+		<Using Include="Microsoft.Extensions.Logging" />
 	</ItemGroup>
 </Project>

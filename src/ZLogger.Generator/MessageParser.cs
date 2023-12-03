@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Collections.Concurrent;
+using System.Text;
 
 namespace ZLogger.Generator;
 
@@ -7,19 +8,22 @@ public enum MessageSegmentKind
     Text, IndexParameter, NameParameter
 }
 
-public struct MessageSegment
+public class MessageSegment
 {
     public required MessageSegmentKind Kind { get; init; }
 
     // Text
-    public string TextSegment { get; init; }
-    public string UnescapedTextSegment { get; init; }
+    public string TextSegment { get; init; } = default!;
+    public string UnescapedTextSegment { get; init; } = default!;
 
     // Parameter
     public int IndexParameter { get; init; }
-    public string NameParameter { get; init; }
+    public string NameParameter { get; init; } = default!;
+    public string? AlternativeName { get; init; }
     public string? Alignment { get; init; }
     public string? FormatString { get; init; }
+
+    public string GetPropertyName() => AlternativeName ?? NameParameter;
 
     public override string ToString()
     {
@@ -117,12 +121,12 @@ public static class MessageParser
                     for (int j = i + 1; j < span.Length; j++)
                     {
                         i = j;
-                        if (span[j] == ',')
+                        if (parameterState == ParameterParseState.IndexOrName && span[j] == ',')
                         {
                             parameterState = ParameterParseState.Alignment;
                             continue;
                         }
-                        else if (span[j] == ':')
+                        else if ((parameterState == ParameterParseState.IndexOrName || parameterState == ParameterParseState.Alignment) && span[j] == ':')
                         {
                             parameterState = ParameterParseState.FormatString;
                             continue;
@@ -139,13 +143,20 @@ public static class MessageParser
                                 return false;
                             }
 
+                            var formatStr = (formatString.Length != 0) ? formatString.ToString().Trim() : null;
+                            if (TryParseCustomFormat(formatStr, out var altName, out var altFormat))
+                            {
+                                formatStr = altFormat;
+                            }
+
                             list.Add(new MessageSegment
                             {
                                 Kind = isIndex ? MessageSegmentKind.IndexParameter : MessageSegmentKind.NameParameter,
                                 NameParameter = p,
                                 IndexParameter = index,
                                 Alignment = (alignment.Length != 0) ? alignment.ToString().Trim() : null,
-                                FormatString = (formatString.Length != 0) ? formatString.ToString().Trim() : null,
+                                AlternativeName = altName,
+                                FormatString = formatStr,
                             });
                             parameter.Clear();
                             alignment.Clear();
@@ -208,6 +219,29 @@ public static class MessageParser
         }
 
         segments = list.ToArray();
+        return true;
+    }
+
+    public static bool TryParseCustomFormat(string? format, out string? altName, out string? altFormat)
+    {
+        if (format == null || !format.StartsWith("@"))
+        {
+            altName = null;
+            altFormat = null;
+            return false;
+        }
+
+        var moreFormat = format.IndexOf(':');
+        if (moreFormat == -1)
+        {
+            altName = format.AsSpan(1, format.Length - 1).ToString();
+            altFormat = null;
+        }
+        else
+        {
+            altName = format.AsSpan(1, moreFormat - 1).ToString();
+            altFormat = format.AsSpan(moreFormat + 1, format.Length - moreFormat - 1).ToString();
+        }
         return true;
     }
 }

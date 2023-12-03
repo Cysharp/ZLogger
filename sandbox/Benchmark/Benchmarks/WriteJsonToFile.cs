@@ -113,7 +113,7 @@ public class WriteJsonToFile
             IncludeEventProperties = true,
             Attributes =
             {
-                new NLog.Layouts.JsonAttribute("timestamp", "${longdate}"),
+                new NLog.Layouts.JsonAttribute("timestamp", "${date:format=o}"),
                 new NLog.Layouts.JsonAttribute("level", "${level}"),
                 new NLog.Layouts.JsonAttribute("message", "${message}"),
                 new NLog.Layouts.JsonAttribute("logger", "${logger}"),

@@ -1,19 +1,18 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
 
 namespace ZLogger.Generator;
 
 public partial class ZLoggerGenerator
 {
-    public record ParseResult(
+    internal record ParseResult(
         TypeDeclarationSyntax TargetTypeSyntax,
         INamedTypeSymbol TargetTypeSymbol,
         LogMethodDeclaration[] LogMethods);
 
-    public record LogMethodDeclaration(
+    internal record LogMethodDeclaration(
         ZLoggerMessageAttribute Attribute,
         IMethodSymbol TargetMethod,
         MethodDeclarationSyntax TargetSyntax,
@@ -42,7 +41,7 @@ public partial class ZLoggerGenerator
         }
     }
 
-    public class Parser
+    internal class Parser
     {
         SourceProductionContext context;
         ImmutableArray<GeneratorAttributeSyntaxContext> sources;

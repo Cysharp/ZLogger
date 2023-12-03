@@ -6,7 +6,7 @@ namespace ZLogger.Generator;
 
 public partial class ZLoggerGenerator
 {
-    public class Emitter
+    internal class Emitter
     {
         SourceProductionContext context;
         ParseResult[] result;
@@ -55,7 +55,7 @@ public partial class ZLoggerGenerator
             var parameterCount = methodParameters.Length;
 
             var jsonParameters = methodParameters
-                .Select(x => $"        static readonly JsonEncodedText _jsonParameter_{x.LinkedMessageSegment.NameParameter} = JsonEncodedText.Encode(\"{x.LinkedMessageSegment.NameParameter}\");")
+                .Select(x => $"        static readonly JsonEncodedText _jsonParameter_{x.LinkedMessageSegment.NameParameter} = JsonEncodedText.Encode(\"{x.LinkedMessageSegment.GetPropertyName()}\");")
                 .StringJoinNewLine();
 
             var fieldParameters = methodParameters
@@ -123,14 +123,15 @@ public partial class ZLoggerGenerator
                         }
                         else if (x.Kind == MessageSegmentKind.NameParameter)
                         {
-                            var method = methodParameters.First(y => y.IsParameter && string.Equals(y.Symbol.Name, x.NameParameter, StringComparison.OrdinalIgnoreCase));
+                            var method = methodParameters.First(y => x == y.LinkedMessageSegment);
                             if (method.IsEnumerable() || x.FormatString == "json")
                             {
                                 return $"            CodeGeneratorUtil.AppendAsJson(ref stringWriter, {x.NameParameter});";
                             }
                             else
                             {
-                                return $"            stringWriter.AppendFormatted({x.NameParameter}, {x.Alignment ?? "0"}, {x.FormatString ?? "null"});";
+                                var format = x.FormatString == null ? "null" : $"\"{x.FormatString}\"";
+                                return $"            stringWriter.AppendFormatted({x.NameParameter}, {x.Alignment ?? "0"}, {format});";
                             }
                         }
                         else
@@ -170,7 +171,7 @@ public partial class ZLoggerGenerator
         {
             switch (index)
             {
-{{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return \"{x.LinkedMessageSegment.NameParameter}\"u8;")}}
+{{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return \"{x.LinkedMessageSegment.GetPropertyName()}\"u8;")}}
             }
             CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
             return default!;
@@ -180,7 +181,7 @@ public partial class ZLoggerGenerator
         {
             switch (index)
             {
-{{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return \"{x.LinkedMessageSegment.NameParameter}\";")}}
+{{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return \"{x.LinkedMessageSegment.GetPropertyName()}\";")}}
             }
             CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
             return default!;
