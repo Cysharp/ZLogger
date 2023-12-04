@@ -19,20 +19,20 @@ BenchmarkSwitcher.FromAssembly(Assembly.GetEntryAssembly()!).Run(args);
 //BenchmarkRunner.Run<WriteJsonToFile>(args: args);
 
 
-return;
-var bench = new WriteJsonToFile();
-bench.SetUpLogger();
-ZLoggerInterpolatedStringHandler.PreAllocateEntry(100_000);
+//return;
+//var bench = new WriteJsonToFile();
+//bench.SetUpLogger();
+//ZLoggerInterpolatedStringHandler.PreAllocateEntry(100_000);
 
 
 
-Thread.Sleep(5000);
+//Thread.Sleep(5000);
 
-bench.ZLogger_JsonFile();
+//bench.ZLogger_JsonFile();
 
-Thread.Sleep(5000);
+//Thread.Sleep(5000);
 
-bench.Cleanup();
+//bench.Cleanup();
 
 //var bench = new EmptyLogging();
 //bench.SetUpDirectory();
