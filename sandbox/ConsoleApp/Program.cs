@@ -58,12 +58,12 @@ public class MyClass
         // {"Timestamp":"2023-11-30T17:28:35.869211+09:00","LogLevel":"Information","Category":"MyClass","Message":"Hello, Bill id:100 21 years old.","username":"Bill","id":100,"age":21}
 
         // Dump variables as JSON
-        User[] users =
-        [
-            new User(1, "Alice"),
-            new User(1, "Bob"),
-        ];
-        logger.ZLogInformation($"users: {users:json}");
+        //var user =
+        //[
+        //    new User(1, "Alice"),
+        //    new User(1, "Bob"),
+        //];
+        //logger.ZLogInformation($"users: {users:json}");
 
         // plain-text:
         // users: [{"Id":1,"Name":"Alice"},{"Id":1,"Name":"Bob"}]
