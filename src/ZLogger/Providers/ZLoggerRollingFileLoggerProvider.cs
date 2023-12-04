@@ -1,40 +1,59 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Threading;
 
-namespace ZLogger.Providers
+namespace ZLogger.Providers;
+
+public enum RollingInterval
 {
-    [ProviderAlias("ZLoggerRollingFile")]
-    public class ZLoggerRollingFileLoggerProvider : ILoggerProvider
+    Infinite,
+    Year,
+    Month,
+    Day,
+    Hour,
+    Minute
+}
+
+public sealed class ZLoggerRollingFileOptions : ZLoggerOptions
+{
+    public Func<DateTimeOffset, int, string>? FilePathSelector { get; set; }
+    public RollingInterval RollingInterval { get; set; } = RollingInterval.Day;
+    public int RollingSizeKB { get; set; } = 512 * 1024;
+}
+
+[ProviderAlias("ZLoggerRollingFile")]
+public class ZLoggerRollingFileLoggerProvider : ILoggerProvider, ISupportExternalScope, IAsyncDisposable
+{
+    readonly ZLoggerRollingFileOptions options;
+    readonly AsyncStreamLineMessageWriter streamWriter;
+    IExternalScopeProvider? scopeProvider;
+
+    public ZLoggerRollingFileLoggerProvider(ZLoggerRollingFileOptions options)
     {
-        internal const string DefaultOptionName = "ZLoggerRollingFile.Default";
-
-        AsyncStreamLineMessageWriter streamWriter;
-
-        public ZLoggerRollingFileLoggerProvider(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, IOptionsMonitor<ZLoggerOptions> options)
-            : this(fileNameSelector, timestampPattern, rollSizeKB, DefaultOptionName, options)
+        if (options.FilePathSelector is null)
         {
+            throw new ArgumentException(nameof(options.FilePathSelector));
         }
+        this.options = options;
+        var stream = new RollingFileStream(options.FilePathSelector!, options.RollingInterval, options.RollingSizeKB, options.TimeProvider);
+        this.streamWriter = new AsyncStreamLineMessageWriter(stream, this.options);
+    }
 
-        public ZLoggerRollingFileLoggerProvider(Func<DateTimeOffset, int, string> fileNameSelector, Func<DateTimeOffset, DateTimeOffset> timestampPattern, int rollSizeKB, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
-        {
-            var opt = options.Get(optionName ?? DefaultOptionName);
-            var stream = new RollingFileStream(fileNameSelector, timestampPattern, rollSizeKB, opt);
-            this.streamWriter = new AsyncStreamLineMessageWriter(stream, opt);
-        }
+    public ILogger CreateLogger(string categoryName)
+    {
+        return new ZLoggerLogger(categoryName, streamWriter, options, options.IncludeScopes ? scopeProvider : null);
+    }
 
-        public ILogger CreateLogger(string categoryName)
-        {
-            return new AsyncProcessZLogger(categoryName, streamWriter);
-        }
+    public void Dispose()
+    {
+        streamWriter.DisposeAsync().AsTask().Wait();
+    }
 
-        public void Dispose()
-        {
-            streamWriter.DisposeAsync().AsTask().Wait();
-        }
+    public async ValueTask DisposeAsync()
+    {
+        await streamWriter.DisposeAsync().ConfigureAwait(false);
+    }
+
+    public void SetScopeProvider(IExternalScopeProvider scopeProvider)
+    {
+        this.scopeProvider = scopeProvider;
     }
 }

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Profile 1": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\..\\tests\\ZLogger.Generator.Tests\\ZLogger.Generator.Tests.csproj"
+    }
+  }
+}

@@ -1,0 +1,109 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#
+    // https://github.com/Cysharp/Utf8StringInterpolation/blob/main/src/Utf8StringInterpolation/Utf8String.AppendFormatted.tt
+    // without char and bool
+    var generateTypes = "byte,Decimal,Double,Guid,Int16,Int32,Int64,SByte,Single,UInt16,UInt32,UInt64,DateTime,DateTimeOffset,TimeSpan".Split(',');
+
+	string MakeT(int i) => string.Join(", ", Enumerable.Range(0, i).Select(x => $"T{x}"));
+	string MakeArg(int i) => string.Join(", ", Enumerable.Range(0, i).Select(x => $"T{x} arg{x}"));
+#>
+using Microsoft.Extensions.Logging;
+using System.Buffers;
+using System.Runtime.CompilerServices;
+using System.Text;
+using Utf8StringInterpolation;
+
+namespace ZLogger;
+
+public readonly partial struct MessageTemplate
+{
+<# for (var i = 1; i <= 16; i++ ) { #>
+	public void Format<<#= MakeT(i) #>>(<#= MakeArg(i) #>)
+	{
+	    var stringWriter = new Utf8StringWriter<IBufferWriter<byte>>(template.LiteralLength, template.FormattedCount, writer);
+
+        foreach (ref var item in template.TemplateChunk.AsSpan())
+        {
+            if (item.Index == -1)
+            {
+                stringWriter.AppendUtf8(item.Literal);
+            }
+            else
+            {
+                switch (item.Index)
+                {
+<# for (var j = 0; j < i; j++ ) { #>
+                    case <#= j #>:
+                        AppendFormatted(ref stringWriter, ref arg<#= j #>, ref item);
+                        break;
+<# } #>
+                    default:
+                        throw new FormatException("Index (zero based) must be greater than or equal to zero and less than the size of the argument list.");
+                }
+            }
+        }
+
+        stringWriter.Flush();
+	}
+
+<# } #>
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static void AppendFormatted<T>(ref Utf8StringWriter<IBufferWriter<byte>> writer, ref T value, ref MessageTemplateChunk chunk)
+    {
+        // JIT eliminates typeof(T) == typeof(...).
+        if (typeof(T) == typeof(LogLevel))
+        {
+            AppendLogLevel(ref writer, ref Unsafe.As<T, LogLevel>(ref value), ref chunk);
+        }
+        else if (typeof(T) == typeof(LogCategory))
+        {
+            AppendLogCategory(ref writer, ref Unsafe.As<T, LogCategory>(ref value), ref chunk);
+        }
+        else if (typeof(T) == typeof(Timestamp))
+        {
+            AppendTimestamp(ref writer, ref Unsafe.As<T, Timestamp>(ref value), ref chunk);
+        }
+        else if (typeof(T) == typeof(string))
+        {
+            writer.AppendFormatted(Unsafe.As<T, string>(ref value), chunk.Alignment, chunk.Format);
+        }
+        else if (typeof(T) == typeof(char))
+        {
+            writer.AppendFormatted(Unsafe.As<T, char>(ref value), chunk.Alignment, chunk.Format);
+        }
+        else if (typeof(T) == typeof(char?))
+        {
+            writer.AppendFormatted(Unsafe.As<T, char?>(ref value), chunk.Alignment, chunk.Format);
+        }
+        else if (typeof(T) == typeof(bool))
+        {
+            writer.AppendFormatted(Unsafe.As<T, bool>(ref value), chunk.Alignment, chunk.Format);
+        }
+        else if (typeof(T) == typeof(bool?))
+        {
+            writer.AppendFormatted(Unsafe.As<T, bool?>(ref value), chunk.Alignment, chunk.Format);
+        }
+#if !NET8_0_OR_GREATER
+<# foreach (var t in generateTypes) { #>
+        else if (typeof(T) == typeof(<#= t #>))
+        {
+            writer.AppendFormatted(Unsafe.As<T, <#= t #>>(ref value), chunk.Alignment, chunk.Format);
+        }
+        else if (typeof(T) == typeof(<#= t #>?))
+        {
+            writer.AppendFormatted(Unsafe.As<T, <#= t #>?>(ref value), chunk.Alignment, chunk.Format);
+        }
+<# } #>
+#endif
+        else
+        {
+            writer.AppendFormatted(value, chunk.Alignment, chunk.Format);
+        }
+    }
+}

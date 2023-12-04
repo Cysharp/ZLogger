@@ -1,24 +1,30 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-	  <TargetFramework>net6.0</TargetFramework>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
-    <ItemGroup>
-        <PackageReference Include="BenchmarkDotNet" Version="0.12.0" />
-        <PackageReference Include="log4net" Version="2.0.8" />
-        <PackageReference Include="NLog" Version="4.7.0" />
-        <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
-        <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
-        <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
-    </ItemGroup>
-    <ItemGroup>
-      <ProjectReference Include="..\..\src\ZLogger\ZLogger.csproj" />
-    </ItemGroup>
-    <ItemGroup>
-      <None Update="NLog.config">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net8.0</TargetFramework>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="BenchmarkDotNet" Version="0.13.10" />
+		<PackageReference Include="log4net" Version="2.0.15" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+		<PackageReference Include="NLog" Version="5.2.5" />
+		<PackageReference Include="NLog.Extensions.Logging" Version="5.3.5" />
+		<PackageReference Include="Serilog" Version="3.1.1" />
+		<PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
+		<PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="5.0.0" />
+		<PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
+		<PackageReference Include="Serilog.Sinks.TextWriter" Version="2.1.0" />
+		<PackageReference Include="System.IO.Hashing" Version="8.0.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\ZLogger\ZLogger.csproj" />
+		<ProjectReference Include="..\..\src\ZLogger.Generator\ZLogger.Generator.csproj">
+			<OutputItemType>Analyzer</OutputItemType>
+			<ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+		</ProjectReference>
+	</ItemGroup>
 </Project>

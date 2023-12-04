@@ -1,0 +1,48 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#
+    var logLevels = new[] { "Trace", "Debug", "Information", "Warning", "Error", "Critical" };
+#>
+using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging;
+using ZLogger.LogStates;
+
+namespace ZLogger;
+
+<# foreach(var logLevel in logLevels) { #>
+[InterpolatedStringHandler]
+public ref struct ZLogger<#= logLevel #>InterpolatedStringHandler
+{
+    internal ZLoggerInterpolatedStringHandler innerHandler;
+
+    public ZLogger<#= logLevel #>InterpolatedStringHandler(int literalLength, int formattedCount, ILogger logger, out bool enabled)
+    {
+        this.innerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, logger, LogLevel.<#= logLevel #>, out enabled);
+    }
+    public void AppendLiteral(string s)
+    {
+        this.innerHandler.AppendLiteral(s);
+    }
+
+    public void AppendFormatted<T>(T value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+    {
+        this.innerHandler.AppendFormatted(value, alignment, format, argumentName);
+    }
+
+    public void AppendFormatted<T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+        where T : struct
+    {
+        this.innerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
+    }
+
+    public void AppendFormatted<T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
+    {
+        this.innerHandler.AppendFormatted(namedValue, alignment, format);
+    }
+}
+
+<# } #>

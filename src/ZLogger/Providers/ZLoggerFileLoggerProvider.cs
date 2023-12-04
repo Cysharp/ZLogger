@@ -1,48 +1,46 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Threading;
 
-namespace ZLogger.Providers
+namespace ZLogger.Providers;
+
+[ProviderAlias("ZLoggerFile")]
+public class ZLoggerFileLoggerProvider : ILoggerProvider, ISupportExternalScope, IAsyncDisposable
 {
-    [ProviderAlias("ZLoggerFile")]
-    public class ZLoggerFileLoggerProvider : ILoggerProvider
+    readonly ZLoggerOptions options;
+    readonly AsyncStreamLineMessageWriter streamWriter;
+    IExternalScopeProvider? scopeProvider;
+
+    public ZLoggerFileLoggerProvider(string filePath, ZLoggerOptions options)
     {
-        internal const string DefaultOptionName = "ZLoggerFile.Default";
-
-        AsyncStreamLineMessageWriter streamWriter;
-
-        public ZLoggerFileLoggerProvider(string filePath, IOptionsMonitor<ZLoggerOptions> options)
-            : this(filePath, DefaultOptionName, options)
+        var di = new FileInfo(filePath).Directory;
+        if (!di!.Exists)
         {
+            di.Create();
         }
 
-        public ZLoggerFileLoggerProvider(string filePath, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
-        {
-            var di = new FileInfo(filePath).Directory;
-            if (!di!.Exists)
-            {
-                di.Create();
-            }
+        this.options = options;
 
-            var opt = options.Get(optionName ?? DefaultOptionName);
+        // useAsync:false, use sync(in thread) processor, don't use FileStream buffer(use buffer size = 1).
+        var stream = new FileStream(filePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 1, false);
+        this.streamWriter = new AsyncStreamLineMessageWriter(stream, this.options);
+    }
 
-            // useAsync:false, use sync(in thread) processor, don't use FileStream buffer(use buffer size = 1).
-            var stream = new FileStream(filePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 1, false);
-            this.streamWriter = new AsyncStreamLineMessageWriter(stream, opt);
-        }
+    public ILogger CreateLogger(string categoryName)
+    {
+        return new ZLoggerLogger(categoryName, streamWriter, options, options.IncludeScopes ? scopeProvider : null);
+    }
 
-        public ILogger CreateLogger(string categoryName)
-        {
-            return new AsyncProcessZLogger(categoryName, streamWriter);
-        }
+    public void Dispose()
+    {
+        streamWriter.DisposeAsync().AsTask().Wait();
+    }
 
-        public void Dispose()
-        {
-            streamWriter.DisposeAsync().AsTask().Wait();
-        }
+    public async ValueTask DisposeAsync()
+    {
+        await streamWriter.DisposeAsync().ConfigureAwait(false);
+    }
+
+    public void SetScopeProvider(IExternalScopeProvider scopeProvider)
+    {
+        this.scopeProvider = scopeProvider;
     }
 }

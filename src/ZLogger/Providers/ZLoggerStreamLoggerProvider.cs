@@ -1,36 +1,37 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System;
-using System.IO;
 
-namespace ZLogger.Providers
+namespace ZLogger.Providers;
+
+[ProviderAlias("ZLoggerStream")]
+public class ZLoggerStreamLoggerProvider : ILoggerProvider, ISupportExternalScope, IAsyncDisposable
 {
+    readonly ZLoggerOptions options;
+    readonly AsyncStreamLineMessageWriter streamWriter;
+    IExternalScopeProvider? scopeProvider;
 
-    [ProviderAlias("ZLoggerStream")]
-    public class ZLoggerStreamLoggerProvider : ILoggerProvider
+    public ZLoggerStreamLoggerProvider(Stream stream, ZLoggerOptions options)
     {
-        internal const string DefaultOptionName = "ZLoggerStream.Default";
+        this.options = options;
+        this.streamWriter = new AsyncStreamLineMessageWriter(stream, this.options);
+    }
 
-        AsyncStreamLineMessageWriter streamWriter;
+    public ILogger CreateLogger(string categoryName)
+    {
+        return new ZLoggerLogger(categoryName, streamWriter, options, options.IncludeScopes ? scopeProvider : null);
+    }
 
-        public ZLoggerStreamLoggerProvider(Stream stream, IOptionsMonitor<ZLoggerOptions> options)
-            : this(stream, DefaultOptionName, options)
-        {
-        }
+    public void Dispose()
+    {
+        streamWriter.DisposeAsync().AsTask().Wait();
+    }
 
-        public ZLoggerStreamLoggerProvider(Stream stream, string? optionName, IOptionsMonitor<ZLoggerOptions> options)
-        {
-            this.streamWriter = new AsyncStreamLineMessageWriter(stream, options.Get(optionName ?? DefaultOptionName));
-        }
+    public async ValueTask DisposeAsync()
+    {
+        await streamWriter.DisposeAsync().ConfigureAwait(false);
+    }
 
-        public ILogger CreateLogger(string categoryName)
-        {
-            return new AsyncProcessZLogger(categoryName, streamWriter);
-        }
-
-        public void Dispose()
-        {
-            streamWriter.DisposeAsync().AsTask().Wait();
-        }
+    public void SetScopeProvider(IExternalScopeProvider scopeProvider)
+    {
+        this.scopeProvider = scopeProvider;
     }
 }

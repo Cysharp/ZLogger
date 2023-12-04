@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFrameworks>netstandard2.1;net6.0;net8.0</TargetFrameworks>
+        <Nullable>enable</Nullable>
+        <LangVersion>12</LangVersion>
+
+        <!-- NuGet Packaging -->
+        <PackageTags>logging;messagepack;</PackageTags>
+        <Description>ZLogger plugin to format log results as messagepack.</Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="..\ZLogger\Icon.png" Pack="true" PackagePath="/" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <ProjectReference Include="..\ZLogger\ZLogger.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="MessagePack" Version="2.5.129" />
+        <PackageReference Include="PolySharp" Version="1.13.2">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+</Project>

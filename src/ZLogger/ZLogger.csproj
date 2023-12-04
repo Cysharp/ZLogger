@@ -1,92 +1,86 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;netstandard2.1;net6.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net8.0</TargetFrameworks>
 		<Nullable>enable</Nullable>
-		<LangVersion>8.0</LangVersion>
+		<LangVersion>12.0</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<NoWarn>1701;1702;1591;1573</NoWarn>
 
 		<!-- NuGet Packaging -->
-		<PackageVersion>$(Version)</PackageVersion>
-		<Company>Cysharp</Company>
-		<Authors>Cysharp</Authors>
-		<Copyright>© Cysharp, Inc.</Copyright>
 		<PackageTags>logging;</PackageTags>
 		<Description>Zero Allocation Text/Strcutured Logger for .NET Core, built on top of a Microsoft.Extensions.Logging.</Description>
-		<PackageProjectUrl>https://github.com/Cysharp/ZLogger</PackageProjectUrl>
-		<RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
-		<RepositoryType>git</RepositoryType>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageIcon>Icon.png</PackageIcon>
-		<SignAssembly>true</SignAssembly>
-		<AssemblyOriginatorKeyFile>../../opensource.snk</AssemblyOriginatorKeyFile>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="Icon.png" Pack="true" PackagePath="/" />
+		<None Include="../../Icon.png" Pack="true" PackagePath="/" />
+		<InternalsVisibleTo Include="ZLogger.Tests, PublicKey=00240000048000009400000006020000002400005253413100040000010001000144ec28f1e9ef7b17dacc47425a7a153aea0a7baa590743a2d1a86f4b3e10a8a12712c6e647966bfd8bd6e830048b23bd42bbc56f179585c15b8c19cf86c0eed1b73c993dd7a93a30051dd50fdda0e4d6b65e6874e30f1c37cf8bcbc7fe02c7f2e6a0a3327c0ccc1631bf645f40732521fa0b41a30c178d08f7dd779d42a1ee" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="6.0.0" />
-		<PackageReference Include="System.Text.Json" Version="6.0.6" />
-		<PackageReference Include="System.Threading.Channels" Version="6.0.0" />
-		<PackageReference Include="ZString" Version="2.5.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+		<PackageReference Include="System.Threading.Channels" Version="8.0.0" />
+		<PackageReference Include="System.IO.Hashing" Version="8.0.0" />
+		<PackageReference Include="Utf8StringInterpolation" Version="1.3.0" />
 	</ItemGroup>
 
-	<ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
-		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
+	<ItemGroup Condition="$(TargetFramework) == 'net6.0'">
+		<PackageReference Include="Microsoft.Bcl.TimeProvider" Version="8.0.0" />
+	</ItemGroup>
+
+	<ItemGroup Condition="$(TargetFramework) == 'netstandard2.0' Or $(TargetFramework) == 'netstandard2.1'">
+		<PackageReference Include="System.Text.Json" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Bcl.TimeProvider" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
+		<PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+		<PackageReference Include="PolySharp" Version="1.13.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<!-- Bundle SourceGenerator -->
+	<ItemGroup>
+		<ProjectReference Include="..\ZLogger.Generator\ZLogger.Generator.csproj" ReferenceOutputAssembly="false" />
+		<None Include="..\ZLogger.Generator\bin\$(Configuration)\netstandard2.0\ZLogger.Generator.dll" PackagePath="analyzers\dotnet\roslyn4.3\cs" Pack="true" Visible="false" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="Entries\FormatLogEntry.tt">
+		<None Update="MessageTemplate.Format.tt">
 			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>FormatLogEntry.cs</LastGenOutput>
-		</None>
-		<None Update="ZLoggerMessage.tt">
-			<Generator>TextTemplatingFileGenerator</Generator>
-			<LastGenOutput>ZLoggerMessage.cs</LastGenOutput>
+			<LastGenOutput>MessageTemplate.Format.cs</LastGenOutput>
 		</None>
 		<None Update="ZLoggerExtensions.tt">
 			<Generator>TextTemplatingFileGenerator</Generator>
 			<LastGenOutput>ZLoggerExtensions.cs</LastGenOutput>
 		</None>
+		<None Update="ZLoggerInterpolatedStringHandler.LogLevel.tt">
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>ZLoggerInterpolatedStringHandler.LogLevel.cs</LastGenOutput>
+		</None>
 	</ItemGroup>
 
 	<ItemGroup>
-		<Compile Update="Entries\FormatLogEntry.cs">
+		<Compile Update="MessageTemplate.Format.cs">
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
-			<DependentUpon>FormatLogEntry.tt</DependentUpon>
-		</Compile>
-		<Compile Update="ZLoggerMessage.cs">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>ZLoggerMessage.tt</DependentUpon>
+			<DependentUpon>MessageTemplate.Format.tt</DependentUpon>
 		</Compile>
 		<Compile Update="ZLoggerExtensions.cs">
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
 			<DependentUpon>ZLoggerExtensions.tt</DependentUpon>
 		</Compile>
+		<Compile Update="ZLoggerInterpolatedStringHandler.LogLevel.cs">
+			<AutoGen>True</AutoGen>
+			<DesignTime>True</DesignTime>
+			<DependentUpon>ZLoggerInterpolatedStringHandler.LogLevel.tt</DependentUpon>
+		</Compile>
 	</ItemGroup>
 
 	<ItemGroup>
 		<Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
 	</ItemGroup>
-
-	<!-- Copy files for Unity -->
-	<PropertyGroup>
-		<DestinationRoot>$(MSBuildProjectDirectory)\..\ZLogger.Unity\Assets\Scripts\ZLogger\</DestinationRoot>
-	</PropertyGroup>
-	<ItemGroup>
-		<TargetFiles1 Include="$(MSBuildProjectDirectory)\**\*.cs" Exclude="**\bin\**\*.*;**\obj\**\*.*;_InternalVisibleTo.cs" />
-	</ItemGroup>
-	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'net6.0'">
-		<Copy SourceFiles="@(TargetFiles1)" DestinationFiles="$(DestinationRoot)\%(RecursiveDir)%(Filename)%(Extension)" SkipUnchangedFiles="true" />
-
-		<!-- After copy, remove nullable reference -->
-		<Exec Command="dotnet run -c $(ConfigurationName) --project $(MSBuildProjectDirectory)\..\..\tools\CommandTools\CommandTools.csproj -- remove-nullable-reference $(DestinationRoot)" />
-	</Target>
 </Project>

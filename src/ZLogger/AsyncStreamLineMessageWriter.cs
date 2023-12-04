@@ -1,15 +1,12 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
+﻿using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading;
 using System.Threading.Channels;
-using System.Threading.Tasks;
+using ZLogger.Internal;
 
 namespace ZLogger
 {
-    public class AsyncStreamLineMessageWriter : IAsyncLogProcessor, IAsyncDisposable
+    public sealed class AsyncStreamLineMessageWriter : IAsyncLogProcessor, IAsyncDisposable
     {
         readonly byte[] newLine;
         readonly bool crlf;
@@ -20,12 +17,18 @@ namespace ZLogger
         readonly Channel<IZLoggerEntry> channel;
         readonly Task writeLoop;
         readonly ZLoggerOptions options;
-        readonly CancellationTokenSource cancellationTokenSource;
+        readonly Func<LogLevel, bool>? levelFilter;
 
         public AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options)
+            : this(stream, options, null)
+        {
+        }
+
+        // handling `Func<LogLevel, bool>? levelFilter` correctly is very context dependent.
+        // so only allows internal provider.
+        internal AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options, Func<LogLevel, bool>? levelFilter = null)
         {
             this.newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
-            this.cancellationTokenSource = new CancellationTokenSource();
             if (newLine.Length == 1)
             {
                 // cr or lf
@@ -43,6 +46,8 @@ namespace ZLogger
 
             this.options = options;
             this.stream = stream;
+            this.levelFilter = levelFilter;
+
             this.channel = Channel.CreateUnbounded<IZLoggerEntry>(new UnboundedChannelOptions
             {
                 AllowSynchronousContinuations = false, // always should be in async loop.
@@ -51,7 +56,6 @@ namespace ZLogger
             });
             this.writeLoop = Task.Run(WriteLoop);
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Post(IZLoggerEntry log)
@@ -80,100 +84,56 @@ namespace ZLogger
             {
                 var span = writer.GetSpan(newLine.Length);
                 newLine.CopyTo(span);
+                writer.Advance(2);
             }
         }
 
         async Task WriteLoop()
         {
             var writer = new StreamBufferWriter(stream);
+            var formatter = options.CreateFormatter();
+            var withLineBreak = formatter.WithLineBreak;
+            var requireFilterCheck = levelFilter != null;
             var reader = channel.Reader;
-            var sw = Stopwatch.StartNew();
-            try
-            {
-                while (await reader.WaitToReadAsync().ConfigureAwait(false))
-                {
-                    LogInfo info = default;
-                    try
-                    {
-                        while (reader.TryRead(out var value))
-                        {
-                            info = value.LogInfo;
 
-                            if (options.EnableStructuredLogging)
-                            {
-                                var jsonWriter = options.GetThreadStaticUtf8JsonWriter(writer);
-                                try
-                                {
-                                    jsonWriter.WriteStartObject();
-
-                                    value.FormatUtf8(writer, options, jsonWriter);
-                                    value.Return();
-
-                                    jsonWriter.WriteEndObject();
-                                    jsonWriter.Flush();
-                                }
-                                finally
-                                {
-                                    jsonWriter.Reset();
-                                }
-                            }
-                            else
-                            {
-                                value.FormatUtf8(writer, options, null);
-                                value.Return();
-                            }
-
-                            AppendLine(writer);
-                        }
-                        info = default;
-
-                        if (options.FlushRate != null && !cancellationTokenSource.IsCancellationRequested)
-                        {
-                            sw.Stop();
-                            var sleepTime = options.FlushRate.Value - sw.Elapsed;
-                            if (sleepTime > TimeSpan.Zero)
-                            {
-                                try
-                                {
-                                    await Task.Delay(sleepTime, cancellationTokenSource.Token).ConfigureAwait(false);
-                                }
-                                catch (OperationCanceledException)
-                                {
-                                }
-                            }
-                        }
-                        writer.Flush(); // flush before wait.
-
-                        sw.Reset();
-                        sw.Start();
-                    }
-                    catch (Exception ex)
-                    {
-                        try
-                        {
-                            if (options.InternalErrorLogger != null)
-                            {
-                                options.InternalErrorLogger(info, ex);
-                            }
-                            else
-                            {
-                                Console.WriteLine(ex);
-                            }
-                        }
-                        catch { }
-                    }
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            finally
+            while (await reader.WaitToReadAsync().ConfigureAwait(false))
             {
                 try
                 {
-                    writer.Flush();
+                    while (reader.TryRead(out var value))
+                    {
+                        if (requireFilterCheck && levelFilter!.Invoke(value.LogInfo.LogLevel) == false)
+                        {
+                            continue;
+                        }
+                        try
+                        {
+                            value.FormatUtf8(writer, formatter);
+                        }
+                        finally
+                        {
+                            value.Return();
+                        }
+
+                        if (withLineBreak)
+                        {
+                            AppendLine(writer);
+                        }
+                    }
+
+                    writer.Flush(); // flush before wait.
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    try
+                    {
+                        if (options.InternalErrorLogger != null)
+                        {
+                            options.InternalErrorLogger(ex);
+                        }
+                    }
+                    catch { }
+                }
             }
         }
 
@@ -182,7 +142,6 @@ namespace ZLogger
             try
             {
                 channel.Writer.Complete();
-                cancellationTokenSource.Cancel();
                 await writeLoop.ConfigureAwait(false);
             }
             finally

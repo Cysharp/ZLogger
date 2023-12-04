@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<LangVersion>11</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<AnalyzerLanguage>cs</AnalyzerLanguage>
+		<DefineConstants>ZLOGGER_GENERATOR</DefineConstants>
+		<Nullable>enable</Nullable>
+		<IsPackable>false</IsPackable>
+		<PackageId>ZLogger.Generator</PackageId>
+
+		<IsRoslynComponent>true</IsRoslynComponent>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<!-- We don't need to publish the package to NuGet. bundled with ZLogger  -->
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Include="..\ZLogger\ZLoggerMessageAttribtue.cs" Link="ZLoggerMessageAttribtue.cs" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="../../Icon.png" Pack="true" PackagePath="/" />
+		<None Include="ZLoggerGenerator.Emitter.cs" />
+		<None Include="ZLoggerGenerator.Parser.cs" />
+
+		<!-- https://learn.microsoft.com/en-us/visualstudio/extensibility/roslyn-version-support?view=vs-2022 -->
+		<!-- require to support SyntaxValueProvider.ForAttributeWithMetadataName(Roslyn 4.3.1, VS2022 17.3 -->
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.1" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+</Project>

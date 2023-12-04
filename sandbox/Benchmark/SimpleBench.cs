@@ -1,11 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using Serilog.Core;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using ZLogger;
 
 namespace Benchmark
@@ -62,9 +59,9 @@ namespace Benchmark
             protected override Microsoft.Extensions.Logging.ILogger GetLogger()
             {
                 var serviceCollection = new ServiceCollection();
-                serviceCollection.AddLogging(options =>
+                serviceCollection.AddLogging(logging =>
                 {
-                    options.AddZLoggerFile("ZLogger.log");
+                    logging.AddZLoggerFile("ZLogger.log");
                     //options.AddZLoggerConsole();
                 });
                 var serviceProvider = serviceCollection.BuildServiceProvider();
@@ -77,7 +74,7 @@ namespace Benchmark
 
             protected override void WriteLog(Microsoft.Extensions.Logging.ILogger logger, int x, int y, int z)
             {
-                logger.ZLogInformation("x:{0} y:{1} z:{2}", x, y, z);
+                logger.ZLogInformation($"x:{x} y:{y} z:{z}");
             }
 
             protected override void Stop()
