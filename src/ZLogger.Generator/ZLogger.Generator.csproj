@@ -7,18 +7,13 @@
 		<AnalyzerLanguage>cs</AnalyzerLanguage>
 		<DefineConstants>ZLOGGER_GENERATOR</DefineConstants>
 		<Nullable>enable</Nullable>
-
+		<IsPackable>false</IsPackable>
 		<PackageId>ZLogger.Generator</PackageId>
 
-		<TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PackBuildOutputs</TargetsForTfmSpecificContentInPackage>
-		<IncludeBuildOutput>false</IncludeBuildOutput>
-		<DevelopmentDependency>true</DevelopmentDependency>
-		<IncludeSymbols>false</IncludeSymbols>
-		<SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
 		<IsRoslynComponent>true</IsRoslynComponent>
-		<PackageTags>codegenerator</PackageTags>
-		<Description>ZLogger SourceGenerator.</Description>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<!-- We don't need to publish the package to NuGet. bundled with ZLogger  -->
+		<IsPackable>false</IsPackable>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -41,6 +41,12 @@
 		</PackageReference>
 	</ItemGroup>
 
+	<!-- Bundle SourceGenerator -->
+	<ItemGroup>
+		<ProjectReference Include="..\ZLogger.Generator\ZLogger.Generator.csproj" ReferenceOutputAssembly="false" />
+		<None Include="..\ZLogger.Generator\bin\$(Configuration)\netstandard2.0\ZLogger.Generator.dll" PackagePath="analyzers\dotnet\roslyn4.3\cs" Pack="true" Visible="false" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<None Update="MessageTemplate.Format.tt">
 			<Generator>TextTemplatingFileGenerator</Generator>
