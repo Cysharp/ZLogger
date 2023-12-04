@@ -6,45 +6,33 @@ on:
       tag:
         description: "tag: git tag you want create. (sample 1.0.0)"
         required: true
-      dry-run:
-        description: "dry-run: true will never create relase/nuget."
-        required: true
-        default: false
-        type: boolean
 
 env:
   GIT_TAG: ${{ github.event.inputs.tag }}
-  DRY_RUN: ${{ github.event.inputs.dry-run }}
-
+  
 jobs:
-  build-dotnet:
-    needs: [update-packagejson]
+  dotnet-build-and-push:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - run: echo ${{ needs.update-packagejson.outputs.sha }}
       - uses: actions/checkout@v3
-        with:
-          ref: ${{ needs.update-packagejson.outputs.sha }}
       - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
-      # build CommandTools first (use dotnet run command in ZLogger.csproj)
-      - run: dotnet build -c Release ./tools/CommandTools/CommandTools.csproj
-      - run: dotnet build -c Release -p:Version=${{ env.GIT_TAG }}
-      - run: dotnet test -c Release --no-build
-      - run: dotnet pack -c Release --no-build -p:Version=${{ env.GIT_TAG }} -o ./publish
-      # Store artifacts.
-      - uses: actions/upload-artifact@v2
         with:
-          name: nuget
-          path: ./publish/
+          dotnet-version: |
+            5.0.x
+            8.0.x
+      # pack nuget
+      - run: dotnet build -c Release -p:Version=${{ inputs.tag }}
+      - run: dotnet test -c Release --no-build
+      - run: dotnet pack -c Release --no-build -p:Version=${{ inputs.tag }} -o ./publish
+      - run: dotnet nuget push "./publish/*.nupkg" -s https://www.nuget.org/api/v2/package -k ${{ secrets.NUGET_KEY }}
 
+  # release
   create-release:
-    if: github.event.inputs.dry-run == 'false'
-    needs: [update-packagejson, build-dotnet, build-unity]
+    needs: [dotnet-build-and-push]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
       # Create Releases
       - uses: actions/create-release@v1
         id: create_release
@@ -53,26 +41,5 @@ jobs:
         with:
           tag_name: ${{ env.GIT_TAG }}
           release_name: Ver.${{ env.GIT_TAG }}
-          commitish: ${{ needs.update-packagejson.outputs.sha }}
           draft: true
           prerelease: false
-      # Download (All) Artifacts to current directory
-      - uses: actions/download-artifact@v2
-      # Upload to NuGet
-      - run: dotnet nuget push "./nuget/*.nupkg" --skip-duplicate -s https://www.nuget.org/api/v2/package -k ${{ secrets.NUGET_KEY }}
-      # Upload to Releases(unitypackage)
-      - uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./ZLogger.Unity.${{ env.GIT_TAG }}.unitypackage/ZLogger.Unity.${{ env.GIT_TAG }}.unitypackage
-          asset_name: ZLogger.Unity.${{ env.GIT_TAG }}.unitypackage
-          asset_content_type: application/octet-stream
-
-  cleanup:
-    if: needs.update-packagejson.outputs.is-branch-created == 'true'
-    needs: [update-packagejson, build-dotnet, build-unity]
-    uses: Cysharp/Actions/.github/workflows/clean-packagejson-branch.yaml@main
-    with:
-      branch: ${{ needs.update-packagejson.outputs.branch-name }}
