@@ -1,4 +1,7 @@
 ﻿#nullable disable
+#pragma warning disable SYSLIB1015
+#pragma warning disable SYSLIB1025
+
 // See https://aka.ms/new-console-template for more information
 using GeneratorSandbox;
 using MessagePack;
