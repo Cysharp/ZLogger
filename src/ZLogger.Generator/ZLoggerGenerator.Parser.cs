@@ -184,6 +184,25 @@ public partial class ZLoggerGenerator
 
             switch (ctorItems.Length)
             {
+                case 0:
+                    // public ZLoggerMessageAttribute() { }
+                    setLogLevel = false;
+                    message = "";
+                    break;
+                case 1:
+                    if (attributeData.AttributeConstructor!.Parameters[0].Type.SpecialType == SpecialType.System_String)
+                    {
+                        // public ZLoggerMessageAttribute(string message)
+                        setLogLevel = false;
+                        message = ctorItems[0].IsNull ? "" : (string)ctorItems[0].Value!;
+                    }
+                    else
+                    {
+                        // public ZLoggerMessageAttribute(LogLevel level)
+                        setLogLevel = true;
+                        level = ctorItems[0].IsNull ? LogLevel.None : (LogLevel)ctorItems[0].Value!;
+                    }
+                    break;
                 case 2:
                     // ZLoggerMessageAttribute(LogLevel level, string message)
                     setLogLevel = true;
@@ -324,6 +343,8 @@ public partial class ZLoggerGenerator
 
         bool Verify(LogMethodDeclaration methodDeclaration, bool foundLogLevel, TypeDeclarationSyntax declaredTypeSyntax, INamedTypeSymbol declaredTypeSymbol)
         {
+            var verifyResult = true;
+
             var methodLocation = methodDeclaration.TargetSyntax.Identifier.GetLocation();
             var methodName = methodDeclaration.TargetMethod.Name;
 
@@ -331,28 +352,28 @@ public partial class ZLoggerGenerator
             if (methodDeclaration.TargetMethod.ReturnType.SpecialType != SpecialType.System_Void)
             {
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MustReturnVoid, methodLocation, methodName));
-                return false;
+                verifyResult = false;
             }
 
             // generic is not supported
             if (methodDeclaration.TargetMethod.TypeParameters.Length > 0)
             {
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.GenericNotSupported, methodLocation, methodName));
-                return false;
+                verifyResult = false;
             }
 
             // LogLevel not found
             if (!foundLogLevel)
             {
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.LogLevelNotFound, methodLocation, methodName));
-                return false;
+                verifyResult = false;
             }
 
             // missing ILogger
             if (!methodDeclaration.MethodParameters.Any(x => x.IsFirstLogger))
             {
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MissingLogger, methodLocation, methodName));
-                return false;
+                verifyResult = false;
             }
 
             var templateParameters = methodDeclaration.MessageSegments.Where(x => x.Kind == MessageSegmentKind.NameParameter).ToArray();
@@ -364,7 +385,7 @@ public partial class ZLoggerGenerator
                 if (!argumentParameters.Any(x => x.Symbol.Name.Equals(templateParameter.NameParameter, StringComparison.OrdinalIgnoreCase)))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.TemplateHasNoCorrespondingArgument, methodLocation, methodName, templateParameter.NameParameter));
-                    return false;
+                    verifyResult = false;
                 }
             }
 
@@ -374,7 +395,7 @@ public partial class ZLoggerGenerator
                 if (!templateParameters.Any(x => x.NameParameter.Equals(argumentParameter.Symbol.Name, StringComparison.OrdinalIgnoreCase)))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ArgumentHasNoCorrespondingTemplate, methodLocation, methodName, argumentParameter.Symbol.Name));
-                    return false;
+                    verifyResult = false;
                 }
             }
 
@@ -382,10 +403,10 @@ public partial class ZLoggerGenerator
             if (argumentParameters.Any(x => x.Symbol.RefKind != RefKind.None))
             {
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.RefKindNotSupported, methodLocation, methodName));
-                return false;
+                verifyResult = false;
             }
 
-            return true;
+            return verifyResult;
         }
     }
 }

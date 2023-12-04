@@ -40,9 +40,11 @@ namespace ZLogger
 #endif
     sealed class ZLoggerMessageAttribute : Attribute
     {
-        internal ZLoggerMessageAttribute()
-        {
-        }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ZLoggerMessageAttribute"/> class
+        /// which is used to guide the production of a strongly-typed logging method.
+        /// </summary>
+        public ZLoggerMessageAttribute() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ZLoggerMessageAttribute"/> class
@@ -67,6 +69,25 @@ namespace ZLogger
         {
             EventId = eventId;
             Level = level;
+            Message = message;
+        }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ZLoggerMessageAttribute"/> class
+        /// which is used to guide the production of a strongly-typed logging method.
+        /// </summary>
+        /// <param name="level">The log level.</param>
+        public ZLoggerMessageAttribute(LogLevel level)
+        {
+            Level = level;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LoggerMessageAttribute"/> class
+        /// which is used to guide the production of a strongly-typed logging method.
+        /// </summary>
+        /// <param name="message">Format string of the log message.</param>
+        public ZLoggerMessageAttribute(string message)
+        {
             Message = message;
         }
 

@@ -95,7 +95,143 @@ public partial class Hoge
 """);
     }
 
+    [Fact]
+    public void ZLOG005_MustReturnVoid()
+    {
+        Compile(5, """
+using ZLogger;
+using Microsoft.Extensions.Logging;
 
+public partial class Hoge
+{
+    [ZLoggerMessage(LogLevel.Information, "{message}")]
+    public partial int Method(ILogger logger, string message);
+}
+""");
+    }
+
+    [Fact]
+    public void ZLOG006_GenericNotSupported()
+    {
+        Compile(6, """
+using ZLogger;
+using Microsoft.Extensions.Logging;
+
+public partial class Hoge
+{
+    [ZLoggerMessage(LogLevel.Information, "{message}")]
+    public partial void Method<T>(ILogger logger, T message);
+}
+""");
+    }
+
+    [Fact]
+    public void ZLOG007_LogLevelNotFound()
+    {
+        Compile(7, """
+using ZLogger;
+using Microsoft.Extensions.Logging;
+
+public partial class Hoge
+{
+    [ZLoggerMessage("{message}")]
+    public partial void Method(ILogger logger, string message);
+}
+""");
+    }
+
+    [Fact]
+    public void ZLOG008_MissingLogger()
+    {
+        Compile(8, """
+using ZLogger;
+using Microsoft.Extensions.Logging;
+
+public partial class Hoge
+{
+    [ZLoggerMessage(LogLevel.Information, "{message}")]
+    public partial void Method(string message);
+}
+""");
+    }
+
+    [Fact]
+    public void ZLOG009_TemplateHasNoCorrespondingArgument()
+    {
+        Compile(9, """
+using ZLogger;
+using Microsoft.Extensions.Logging;
+
+public partial class Hoge
+{
+    [ZLoggerMessage(LogLevel.Information, "{message}")]
+    public partial void Method(ILogger logger);
+}
+""");
+    }
+
+    [Fact]
+    public void ZLOG010_ArgumentHasNoCorrespondingTemplate()
+    {
+        Compile(10, """
+using ZLogger;
+using Microsoft.Extensions.Logging;
+
+public partial class Hoge
+{
+    [ZLoggerMessage(LogLevel.Information, "{message}")]
+    public partial void Method(ILogger logger, string message, int x);
+}
+""");
+    }
+
+    [Fact]
+    public void ZLOG011_RefKindNotSupported()
+    {
+        Compile(11, """
+using ZLogger;
+using Microsoft.Extensions.Logging;
+
+public partial class Hoge
+{
+    [ZLoggerMessage(LogLevel.Information, "{message}")]
+    public partial void Method(ILogger logger, ref string message);
+}
+""");
+    }
+
+    [Fact]
+    public void ZLOG012_GenericTypeNotSupported()
+    {
+        Compile(12, """
+using ZLogger;
+using Microsoft.Extensions.Logging;
+
+public partial class Hoge<T>
+{
+    [ZLoggerMessage(LogLevel.Information, "{message}")]
+    public partial void Method(ILogger logger, T message);
+}
+""");
+    }
+
+    [Fact]
+    public void ZLOG013_DuplicateEventIdIsNotAllowed()
+    {
+        Compile(13, """
+using ZLogger;
+using Microsoft.Extensions.Logging;
+
+public partial class Hoge
+{
+    [ZLoggerMessage(10, LogLevel.Information, "{message}")]
+    public partial void Method(ILogger logger, string message);
+    
+    [ZLoggerMessage(10, LogLevel.Information, "{message}")]
+    public partial void Method2(ILogger logger, string message);
+}
+""", allowMultipleError: true);
+    }
 
 
 
