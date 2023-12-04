@@ -1,11 +1,73 @@
-ZLogger v2 ReadMe(TBD)
+ZLogger
+===
+[![GitHub Actions](https://github.com/Cysharp/ZLogger/workflows/Build-Debug/badge.svg)](https://github.com/Cysharp/ZLogger/actions) [![Releases](https://img.shields.io/github/release/Cysharp/ZLogger.svg)](https://github.com/Cysharp/ZLogger/releases)
 
+**Z**ero Allocation Text/Structured **Logger** for .NET with StringInterpolation and Source Generator, built on top of a `Microsoft.Extensions.Logging`.
+
+The usual destinations for log output are `Console(Stream)`, `File(Stream)`, `Network(Stream)`, all in UTF8 format. However, since typical logging architectures are based on Strings (UTF16), this requires additional encoding costs. In ZLogger, we utilize the [String Interpolation Improvement of C# 10](https://devblogs.microsoft.com/dotnet/string-interpolation-in-c-10-and-net-6/) and by leveraging .NET 8's [IUtf8SpanFormattable](https://learn.microsoft.com/en-us/dotnet/api/system.iutf8spanformattable?view=net-8.0), we have managed to avoid the boxing of values and maintain high performance by consistently outputting directly in UTF8 from input to output.
+
+ZLogger is built directly on top of `Microsoft.Extensions.Logging`. `Microsoft.Extensions.Logging` is an official log abstraction used in many frameworks, such as ASP.NET Core and Generic Host. However, since regular loggers have their own systems, a bridge is required to connect these systems, and this is where a lot of overhead can be observed. ZLogger eliminates the need for this bridge, thereby completely avoiding overhead.
+
+![Alt text](docs/image.png)
+
+This benchmark is for writing to a file, but the default settings of typical loggers are very slow. This is because they flush after every write. In the benchmark, to ensure fairness, careful attention was paid to set the options in each logger for maximum speed. ZLogger is designed to be the fastest by default, so there is no need to worry about any settings.
+
+ZLogger focuses on the new syntax of C#, and fully adopts Interpolated Strings.
+
+![Alt text](docs/image-1.png)
+
+This allows for providing parameters to logs in the most convenient form. Also, by closely integrating with System.Text.Json's Utf8JsonWriter, it not only enables high-performance output of text logs but also makes it possible to efficiently output structured logs.
+
+ZLogger also emphasizes console output, which is crucial in cloud-native applications. By default, it outputs with performance that can withstand destinations in cloud log management. Of course, it supports both text logs and structured logs.
+
+ZLogger delivers its best performance with .NET 8 and above, but it is designed to maintain consistent performance with .NET Standard 2.0 and .NET 6 through a fallback to its own IUtf8SpanFormattable.
+
+As for standard logger features, it supports loading LogLevel from json, filtering by category, and scopes, as found in Microsoft.Extensions.Logging. In terms of output destinations, it is equipped with sufficient capabilities for `Console`, `File`, `RollingFile`, `InMemory`, `Stream`, and an `AsyncBatchingProcessor` for sending logs over HTTP and similar protocols.
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+## Table of Contents
+
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 Getting Started
 ---
+This library is distributed via NuGet, supporting `.NET Standard 2.0`, `.NET Standard 2.1`, `.NET 6(.NET 7)` and `.NET 8` or above.
 
 > PM> Install-Package [ZLogger](https://www.nuget.org/packages/ZLogger)
 
+In the simplest case, you generate a logger by adding ZLogger's Provider to Microsoft.Extensions.Logging's [LoggerFactory](https://learn.microsoft.com/en-us/dotnet/core/extensions/logging), and then use ZLogger's own ZLog method.
+
+```csharp
+using Microsoft.Extensions.Logging;
+using ZLogger;
+
+using var factory = LoggerFactory.Create(logging =>
+{
+    logging.SetMinimumLevel(LogLevel.Trace);
+
+    // Add ZLogger provider to ILoggingBuilder
+    logging.AddZLoggerConsole();
+    
+    // Output Structured Logging, setup options
+    // logging.AddZLoggerConsole(options => options.UseJsonFormatter());
+});
+
+var logger = factory.CreateLogger("Program");
+
+var name = "John";
+var age = 33;
+
+// Use **Z**Log method and string interpolation to log message
+logger.ZLogInformation($"Hello my name is {name}, {age} years old.");
+```
+
+Normally, you don't create LoggerFactory yourself. Instead, you set up a Generic Host and receive ILogger through dependency injection (DI).
+
+You can setup logger by [.NET Generic Host](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/host/generic-host?view=aspnetcore-8.0)(for ASP.NET Core) and if you want to use this in ConsoleApplication, we provides [ConsoleAppFramework](https://github.com/Cysharp/ConsoleAppFramework) to use hosting abstraction.
+
+Here is the showcase of providers.
 
 ```csharp
 using ZLogger;
@@ -13,8 +75,11 @@ using ZLogger;
 var builder = Host.CreateApplicationBuilder();
 
 builder.Logging
-    // optional(MS.E.Logging):clear default providers.        
+    // optional(MS.E.Logging):clear default providers(recommend to remove all)
     .ClearProviders()
+
+    // optional(MS.E.Logging):setup minimum log level
+    .SetMinimumLevel(LogLevel.Trace)
     
     // Add to output to console
     .AddZLoggerConsole();
@@ -55,6 +120,15 @@ builder.Logging
     {
         options.UseJsonFormatter();
     })
+    
+    // Format as json and configure output
+    .AddZLoggerConsole(options =>
+    {
+        options.UseJsonFormatter(formatter =>
+        {
+            formatter.IncludeProperties = IncludeProperties.ParameterKeyValues;
+        });
+    })
 
     // Further common settings
     .AddZLoggerConsole(options =>
@@ -73,6 +147,7 @@ using ZLogger;
 
 public class MyClass
 {
+    // get ILogger<T> from DI.
     readonly ILogger<MyClass> logger;
     
     public MyClass(ILogger<MyClass> logger)
@@ -80,70 +155,39 @@ public class MyClass
         this.logger = logger;
     }
     
-    public void Foo()
+    // name = "Bill", city = "Kumamoto", age = 21
+    public void Foo(string name, string city, int age)
     {
-        // Any variables...
-        var name = "Bill";
-        var city = "Kumamoto";
-        var age = 21;
-        
-        // logging...
-        logger.ZLogInformation($"Hello, {name} lives in {city} {age} years old.");
-    
         // plain-text:
         // Hello, Bill lives in Kumamoto 21 years old.
-        // 
         // json:
         // {"Timestamp":"2023-11-30T17:28:35.869211+09:00","LogLevel":"Information","Category":"MyClass","Message":"Hello, Bill lives in Kumamoto 21 years old.","name":"Bill","city":"Kumamoto","age":21}
-
-
-        // Explicit property name        
-        logger.ZLogInformation($"Hello, {("username", name)} id:{("id", 100)} {age} years old.");
+        // json(IncludeProperties.ParameterKeyValues):
+        // {"name":"Bill","city":"Kumamoto","age":21}
+        logger.ZLogInformation($"Hello, {name} lives in {city} {age} years old.");
     
-        // plain-text:
-        // Hello, Bill id:100 21 years old.
-        //  
-        // json:
-        // {"Timestamp":"2023-11-30T17:28:35.869211+09:00","LogLevel":"Information","Category":"MyClass","Message":"Hello, Bill id:100 21 years old.","username":"Bill","id":100,"age":21}
-        
-        // Dump variables as JSON
-        User[] users =
-        [
-            new User(1, "Alice"),
-            new User(1, "Bob"),
-        ];
-        logger.ZLogInformation($"users: {users:json}");
-        
-        // plain-text:
-        // users: [{"Id":1,"Name":"Alice"},{"Id":1,"Name":"Bob"}]
-        // 
-        // json:
-        // {"Timestamp":"2023-12-01T16:59:29.908126+09:00","LogLevel":"Information","Category":"my","Message":"users: [{\u0022Id\u0022:1,\u0022Name\u0022:\u0022Alice\u0022},{\u0022Id\u0022:1,\u0022Name\u0022:\u0022Bob\u0022}]","users":[{"Id":1,"Name":"Alice"},{"Id":1,"Name":"Bob"}]}
+        // Explicit property name, you can use custom format string start with '@'
+        logger.ZLogInformation($"Hello, {name:@user-name} id:{100:@id} {age} years old.");
+    
+        // Dump variables as JSON, you can use custom format string `json`
+        var user = new User(1, "Alice");
+
+        // user: {"Id":1,"Name":"Bob"}
+        logger.ZLogInformation($"user: {user:json}");
     }
 }
 ```
 
+All standard `.Log` methods are processed as strings by ZLogger's Provider. However, by using our unique `.ZLog*` methods, you can process them at high performance while remaining in UTF8. Additionally, these methods support both text logs and structured logs using String Interpolation syntax.
 
-ZLogger is built on top of [Microsoft.Extensions.Logging](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/), but adds `ZLog*` method family that are faster than basic Log calls.
+All logging methods are completely similar as [Microsoft.Extensions.Logging.LoggerExtensions](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.loggerextensions), but it has **Z** prefix overload.
 
-All logging methods are completely similar as [Microsoft.Extensions.Logging.LoggerExtensions](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.loggerextensions), but it has **Z** prefix overload to avoid allocation of boxing.
+The ZLog* method uses [InterpolatedStringHandler](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/tutorials/interpolated-string-handler) in .NET and prepare the template at compile time.
 
-
-
-
-
-The ZLog* method uses [InterpolatedStringHandler](https://learn.microsoft.com/ja-jp/dotnet/csharp/whats-new/tutorials/interpolated-string-handler) in .NET and prepare the template at compile time.
-
-Note that the arguments always use `$""` literals.
-
-Also, by default, expressions (variable names) in literals are parsed and used as keys for structured logging.
-See [KeyNameMutator](#key-name-mutator)
-
-
-
-TODO: Formatter Configurations....
+Formatter Configurations
 ----
 
+// TODO: still being written, please wait a little longer.
 
 
 ### PlainText
@@ -209,13 +253,11 @@ builder.Logging.AddZLoggerConsole(options =>
 });
 ```
 
-
 Formatting can be set using the String Interpolation Template, and lambda expression as shown above.
 
 Note: For format strings available for various variables:
 -`LogLevel` can be specially specified as `short`. This reduces the length of string to a fixed number of characters, such as `INFO`.
 - For other types, ZLogger uses [Cysharp/Utf8StringInterpolation](https://github.com/Cysharp/Utf8StringInterpolation) internally. Please see this.
-
 
 
 | Name                                                                                             | Description                                                          |
@@ -239,6 +281,77 @@ Note: For format strings available for various variables:
 | `IKeyNameMutator? KeyNameMutator`                                   | You can set the naming convention if you want to automatically convert key names. |
 | `bool UseUtcTimestamp`                                              | If true, timestamp is output in utc. (default: false)                             |
 
+
+Sample of Json Formatting customize
+
+```csharp
+using System.Text.Json;
+using ZLogger;
+using ZLogger.Formatters;
+
+namespace ConsoleApp;
+
+using static IncludeProperties;
+using static JsonEncodedText; // JsonEncodedText.Encode
+
+public static class CloudLoggingExtensions
+{
+    // Cloud Logging Json Field
+    // https://cloud.google.com/logging/docs/structured-logging?hl=en
+    public static ZLoggerOptions UseCloudLoggingJsonFormat(this ZLoggerOptions options)
+    {
+        return options.UseJsonFormatter(formatter =>
+        {
+            // Category and ScopeValues is manually write in AdditionalFormatter at labels so remove from include properties.
+            formatter.IncludeProperties = Timestamp | LogLevel | Message | ParameterKeyValues;
+
+            formatter.JsonPropertyNames = JsonPropertyNames.Default with
+            {
+                LogLevel = Encode("severity"),
+                LogLevelNone = Encode("DEFAULT"),
+                LogLevelTrace = Encode("DEBUG"),
+                LogLevelDebug = Encode("DEBUG"),
+                LogLevelInformation = Encode("INFO"),
+                LogLevelWarning = Encode("WARNING"),
+                LogLevelError = Encode("ERROR"),
+                LogLevelCritical = Encode("CRITICAL"),
+
+                Message = Encode("message"),
+                Timestamp = Encode("timestamp"),
+            };
+
+            formatter.PropertyKeyValuesObjectName = Encode("jsonPayload");
+
+            // cache JsonENcodedText outside of AdditionalFormatter
+            var labels = Encode("logging.googleapis.com/labels");
+            var category = Encode("category");
+            var eventId = Encode("eventId");
+            var userId = Encode("userId");
+
+            formatter.AdditionalFormatter = (writer, logInfo) =>
+            {
+                writer.WriteStartObject(labels);
+                writer.WriteString(category, logInfo.Category.JsonEncoded);
+                writer.WriteString(eventId, logInfo.EventId.Name);
+
+                if (logInfo.ScopeState != null && !logInfo.ScopeState.IsEmpty)
+                {
+                    foreach (var item in logInfo.ScopeState.Properties)
+                    {
+                        if (item.Key == "userId")
+                        {
+                            writer.WriteString(userId, item.Value!.ToString());
+                            break;
+                        }
+                    }
+                }
+                writer.WriteEndObject();
+            };
+        });
+    }
+}
+
+```
 
 ### MessagePack
 
@@ -486,137 +599,102 @@ TODO:...
 default formatter is PlaintTextFormatter.
 
 
-# -----------------------------
-
-v1.
 
 
-ZLogger
-===
-[![GitHub Actions](https://github.com/Cysharp/ZLogger/workflows/Build-Debug/badge.svg)](https://github.com/Cysharp/ZLogger/actions) [![Releases](https://img.shields.io/github/release/Cysharp/ZLogger.svg)](https://github.com/Cysharp/ZLogger/releases)
 
-**Z**ero Allocation Text/Structured **Logger** for .NET and Unity, built on top of a Microsoft.Extensions.Logging.
 
-Logging to standard output is very important, especially in the age of containerization(described in [The Twelve Factor App - Logs](https://12factor.net/logs) says should write to stdout), but traditionally its performance has been very slow, however anyone no concerned about it. It also supports both text logs and structured logs, which are important in cloud log management.
 
-![image](https://user-images.githubusercontent.com/46207/78019524-d4238480-738a-11ea-88ac-00caa8bc5228.png)
 
-ZLogger writes directly as UTF8 by the our zero allocation string builder [ZString](https://github.com/Cysharp/ZString). In addition, thorough generics, struct, and cache are utilized to achieve the maximum performance. Default options is set to the best for performance by the async and buffered, so you don't have to worry about the logger settings.
 
-ZLogger is built directly on top of `Microsoft.Extensions.Logging`. By not having a separate logger framework layer, we are extracting better performance. In addition to ConsoleLogging, we provides **FileLogger**, **RollingFileLogger**, and **StreamLogger**. They too are designed to bring out the best in performance, write to UTF8 directly.
 
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-## Table of Contents
-
-- [Getting Started](#getting-started)
-- [Structured Logging](#structured-logging)
-- [Filters](#filters)
-- [Output Providers](#output-providers)
-  - [Console](#console)
-  - [File](#file)
-  - [RollingFile](#rollingfile)
-  - [Stream](#stream)
-  - [LogProcessor](#logprocessor)
-- [Multiple Providers](#multiple-providers)
-- [Preparing Message Format](#preparing-message-format)
-- [Options](#options)
-- [Formatters](#formatters)
-  - [`PlainTextZLoggerFormatter`](#plaintextzloggerformatter)
-    - [Format and DateTime Handling](#format-and-datetime-handling)
-    - [Console Coloring](#console-coloring)
-  - [`SystemTextJsonZLoggerFormatter`](#systemtextjsonzloggerformatter)
-  - [`MessagePackZLoggerFormatter`](#messagepackzloggerformatter)
-  - [Custom formatter](#custom-formatter)
-- [Microsoft.CodeAnalysis.BannedApiAnalyzers](#microsoftcodeanalysisbannedapianalyzers)
-- [Global LoggerFactory](#global-loggerfactory)
-- [Unity](#unity)
-  - [`UnityJsonUtilityZLoggerFormatter`](#unityjsonutilityzloggerformatter)
-- [License](#license)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
-Getting Started
+Microsoft.CodeAnalysis.BannedApiAnalyzers
 ---
-For .NET Core, use NuGet. For Unity(ZLogger for Unity run on IL2CPP, all platforms), please read [Unity](#unity) section.
+[Microsoft.CodeAnalysis.BannedApiAnalyzers](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md) is an interesting analyzer, you can prohibit the normal Log method and induce the user to call ZLogger's ZLog method.
 
-> PM> Install-Package [ZLogger](https://www.nuget.org/packages/ZLogger)
+![image](https://user-images.githubusercontent.com/46207/78545188-56ea8a80-7836-11ea-81f2-6cbf7119f027.png)
 
-You can setup logger by [.NET Generic Host](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/generic-host), for ASP.NET Core and if you want to use this in ConsoleApplication, we provides [ConsoleAppFramework](https://github.com/Cysharp/ConsoleAppFramework) to use hosting abstraction.
+All you have to do is prepare the following configuration.
 
-```csharp
-using ZLogger; // namespace
-
-Host.CreateDefaultBuilder()
-    .ConfigureLogging(logging =>
-    {
-        // optional(MS.E.Logging):clear default providers.
-        logging.ClearProviders();
-        
-        // optional(MS.E.Logging): default is Info, you can use this or AddFilter to filtering log.
-        logging.SetMinimumLevel(LogLevel.Debug);
-        
-        // Add Console Logging.
-        logging.AddZLoggerConsole();
-
-        // Add File Logging.
-        logging.AddZLoggerFile("fileName.log");
-
-        // Add Rolling File Logging.
-        logging.AddZLoggerRollingFile((dt, x) => $"logs/{dt.ToLocalTime():yyyy-MM-dd}_{x:000}.log", x => x.ToLocalTime().Date, 1024);
-       
-        // Enable Structured Logging
-        logging.AddZLoggerConsole(options =>
-        {
-            options.UseJsonFormatter();
-        });
-    })
+```
+T:Microsoft.Extensions.Logging.LoggerExtensions;Don't use this, use ZLog*** instead.
+T:System.Console;Don't use this, use logger instead.
 ```
 
-```csharp
-public class MyClass
-{
-    readonly ILogger<MyClass> logger;
+Global LoggerFactory
+---
+Like the traditional log manager, how to get and store logger per type without DI(such as `static readonly ILogger logger = LogManager.GetLogger()`). You can get `ILoggerFactory` from `IHost` before Run and set to the global static loggerfactory store.
 
-    // get logger from DI.
-    public MyClass(ILogger<MyClass> logger)
+```csharp
+var host = Host.CreateDefaultBuilder()
+    .ConfigureLogging(logging =>
     {
-        this.logger = logger;
+        logging.ClearProviders();
+        logging.AddZLoggerConsole();
+    })
+    .UseConsoleAppFramework<Program>(args) // use framework, example of ConsoleAppFramework
+    // .ConfigureWebHostDefaults(x => x.UseStartup<Startup>()) // example of ASP.NET Core
+    .Build(); // use Build instead of Run directly
+
+// get configured loggerfactory.
+var loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
+
+LogManager.SetLoggerFactory(loggerFactory, "Global");
+
+// Run after set global logger.
+await host.RunAsync();
+
+// -----
+
+// Own static logger manager
+public static class LogManager
+{
+    static ILogger globalLogger;
+    static ILoggerFactory loggerFactory;
+
+    public static void SetLoggerFactory(ILoggerFactory loggerFactory, string categoryName)
+    {
+        LogManager.loggerFactory = loggerFactory;
+        LogManager.globalLogger = loggerFactory.CreateLogger(categoryName);
     }
 
-    public void Foo()
-    {
-        // log text.
-        logger.ZLogDebug("foo{0} bar{1}", 10, 20);
+    public static ILogger Logger => globalLogger;
 
-        // log text with structure in Structured Logging.
-        logger.ZLogDebugWithPayload(new { Foo = 10, Bar = 20 }, "foo{0} bar{1}", 10, 20);
+    // standard LoggerFactory caches logger per category so no need to cache in this manager
+    public static ILogger<T> GetLogger<T>() where T : class => loggerFactory.CreateLogger<T>();
+    public static ILogger GetLogger(string categoryName) => loggerFactory.CreateLogger(categoryName);
+}
+```
+
+You can use this logger manager like following.
+
+```csharp
+public class Foo
+{
+    static readonly ILogger<Foo> logger = LogManager.GetLogger<Foo>();
+
+    public void Foo(int x)
+    {
+        logger.ZLogDebug($"do do do: {x}");
     }
 }
 ```
 
-The setup and get the logger follows [Microsoft.Extensions.Logging](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/). However, writing logs uses `ZLog`, `ZLogInformation`, `ZLogError`, etc. with a prefix of **Z**. 
+Unity
+---
+This library requires C# 10.0, however currently Unity C# version is 9.0. Therefore, it is not supported at this time and will be considered when the version of Unity's C# is updated.
 
-All logging methods are completely similar as [Microsoft.Extensions.Logging.LoggerExtensions](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.loggerextensions), but it has **Z** prefix and has many generics overload to avoid allocation of boxing.
+License
+---
+This library is licensed under the MIT License.
 
-```csharp
-// ZLog, ZLogTrace, ZLogDebug, ZLogInformation, ZLogWarning, ZLogError, ZLogCritical and *WithPayload.
-public static void ZLogDebug(this ILogger logger, string format);
-public static void ZLogDebug(this ILogger logger, EventId eventId, string format);
-public static void ZLogDebug(this ILogger logger, Exception? exception, string format);
-public static void ZLogDebug(this ILogger logger, EventId eventId, Exception? exception, string format);
-public static void ZLogDebug<T1>(this ILogger logger, string format, T1 arg1);
-public static void ZLogDebug<T1>(this ILogger logger, EventId eventId, string format, T1 arg1);
-public static void ZLogDebug<T1>(this ILogger logger, Exception? exception, string format, T1 arg1);
-public static void ZLogDebug<T1>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1);
-// T1~T16
-public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15, T16 arg16);
-```
 
-Of course, default logger methods such as `Log`, `LogInformation`, `LogError` ets are also supported.  When used, ZLogger also pools buffers for strings and states as much as possible.
-However, the `ZLog*` method families are better because they skip overhead of variable length arguments and string generation.
 
-If you want to replace an existing .NET logger, you can setup the builder.AddZLogger and simply replace LogDebug -> ZLogDebug. If you want to check and prohibit standard log methods, see the [Microsoft.CodeAnalysis.BannedApiAnalyzers](#microsoftcodeanalysisbannedapianalyzers) section. If you want to use the logger without DI, see the [Global LoggerFactory](#global-loggerfactory) section.
+
+
+
+
+
+
 
 If you want to use without .NET Generic Host(for simple use, for unit testing, etc.), create the logger factory and store to static/singleton field to it.
 
@@ -1164,177 +1242,3 @@ logging.AddZLoggerConsole(options =>
     });
 });
 ```
-
-Microsoft.CodeAnalysis.BannedApiAnalyzers
----
-[Microsoft.CodeAnalysis.BannedApiAnalyzers](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md) is an interesting analyzer, you can prohibit the normal Log method and induce the user to call ZLogger's ZLog method.
-
-![image](https://user-images.githubusercontent.com/46207/78545188-56ea8a80-7836-11ea-81f2-6cbf7119f027.png)
-
-All you have to do is prepare the following configuration.
-
-```
-T:Microsoft.Extensions.Logging.LoggerExtensions;Don't use this, use ZLog*** instead.
-T:System.Console;Don't use this, use logger instead.
-```
-
-Global LoggerFactory
----
-Like the traditional log manager, how to get and store logger per type without DI(such as `static readonly ILogger logger = LogManager.GetLogger()`). You can get `ILoggerFactory` from `IHost` before Run and set to the global static loggerfactory store.
-
-```csharp
-var host = Host.CreateDefaultBuilder()
-    .ConfigureLogging(logging =>
-    {
-        logging.ClearProviders();
-        logging.AddZLoggerConsole();
-    })
-    .UseConsoleAppFramework<Program>(args) // use framework, example of ConsoleAppFramework
-    // .ConfigureWebHostDefaults(x => x.UseStartup<Startup>()) // example of ASP.NET Core
-    .Build(); // use Build instead of Run directly
-
-// get configured loggerfactory.
-var loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
-
-LogManager.SetLoggerFactory(loggerFactory, "Global");
-
-// Run after set global logger.
-await host.RunAsync();
-
-// -----
-
-// Own static logger manager
-public static class LogManager
-{
-    static ILogger globalLogger;
-    static ILoggerFactory loggerFactory;
-
-    public static void SetLoggerFactory(ILoggerFactory loggerFactory, string categoryName)
-    {
-        LogManager.loggerFactory = loggerFactory;
-        LogManager.globalLogger = loggerFactory.CreateLogger(categoryName);
-    }
-
-    public static ILogger Logger => globalLogger;
-
-    public static ILogger<T> GetLogger<T>() where T : class => loggerFactory.CreateLogger<T>();
-    public static ILogger GetLogger(string categoryName) => loggerFactory.CreateLogger(categoryName);
-}
-```
-
-You can use this logger manager like following.
-
-```csharp
-public class Foo
-{
-    public static readonly ILogger<Foo> logger = LogManager.GetLogger<Foo>();
-
-    public void Foo(int x)
-    {
-        logger.ZLogDebug("do do do: {0}", x);
-    }
-}
-```
-
-Unity
----
-ZLogger can also be used in Unity. unitypackage is in [ZLogger/Releases](https://github.com/Cysharp/ZLogger/releases), so if you download it and extract it, it will extract a file that contains a dll from Microsoft.Extensions.Logging. However, because [ZString](https://github.com/Cysharp/ZString/) is not included, the download of ZString is also necessary.
-
-Here is the sample of usage, use `UnityLoggerFactory` and store logger factory to field. You can use `AddZLoggerUnityDebug` to show ZLogger entry to Unity.Debug.Log.
-
-```csharp
-public static class LogManager
-{
-    static Microsoft.Extensions.Logging.ILogger globalLogger;
-    static ILoggerFactory loggerFactory;
-
-    // Setup on first called GetLogger<T>.
-    static LogManager()
-    {
-        // Standard LoggerFactory does not work on IL2CPP,
-        // But you can use ZLogger's UnityLoggerFactory instead,
-        // it works on IL2CPP, all platforms(includes mobile).
-        loggerFactory = UnityLoggerFactory.Create(builder =>
-        {
-            // or more configuration, you can use builder.AddFilter
-            builder.SetMinimumLevel(LogLevel.Trace);
-
-            // AddZLoggerUnityDebug is only available for Unity, it send log to UnityEngine.Debug.Log.
-            // LogLevels are translate to
-            // * Trace/Debug/Information -> LogType.Log
-            // * Warning/Critical -> LogType.Warning
-            // * Error without Exception -> LogType.Error
-            // * Error with Exception -> LogException
-            builder.AddZLoggerUnityDebug();
-
-            // and other configuration(AddFileLog, etc...)
-        });
-
-        globalLogger = loggerFactory.CreateLogger("Global");
-
-        Application.quitting += () =>
-        {
-            // when quit, flush unfinished log entries.
-            loggerFactory.Dispose();
-        };
-    }
-
-    public static Microsoft.Extensions.Logging.ILogger Logger => globalLogger;
-
-    public static ILogger<T> GetLogger<T>() where T : class => loggerFactory.CreateLogger<T>();
-    public static Microsoft.Extensions.Logging.ILogger GetLogger(string categoryName) => loggerFactory.CreateLogger(categoryName);
-}
-
-// ---
-
-public class MyScript : MonoBehaviour
-{
-    // store logger per class to static readonly field.
-    static readonly ILogger<MyScript> logger = LogManager.GetLogger<MyScript>();
-
-    void Start()
-    {
-        logger.ZLogDebug("Init!");
-    }
-}
-```
-
-The advantages of using ZLogger include more log levels, filtering, automatic category(typename from `GetLogger<T>`) granting, and common log headers/footers than the standard Unity logger. Adding categories can be very useful for filtering logs using something like [EditorConsolePro](https://assetstore.unity.com/packages/tools/utilities/editor-console-pro-11889) (e.g. [UI], [Battle], [Network], etc.).
-
-You can also use `ZLoggerFileLoggerProvider`, `ZLoggerRollingFileLoggerProvider` to write out logs to files, which can be useful if you want to output as a PC application(Steam, VR, etc...). You can also use `ZLoggerStreamLoggerProvider` or `ZLoggerLogProcessorProvider` as an extension point for your own log output.
-
-Limitation: 
-Currently, ZLogger for Unity can only specify `PlainTextZLoggerFormatter` and `UnityJsonUtilityZLoggerFormatter`.
-If you want more flexibility in formatting, see the Custom formatter section.
-
-### `UnityJsonUtilityZLoggerFormatter`
-
-```csharp
-loggerFactory = UnityLoggerFactory.Create(builder =>
-{
-    builder.AddZLoggerUnityDebug(options => 
-    {
-        options.UseUnityJsonUtilityFormatter();
-    });
-});
-
-// {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":null}
-logger.ZLogInformation("Registered User: Id = {0}, UserName = {1}", id, userName);
-
-// {"CategoryName":"ConsoleApp.Program","LogLevel":"Information","EventId":0,"EventIdName":null,"Timestamp":"2020-04-07T11:53:22.3867872+00:00","Exception":null,"Message":"Registered User: Id = 10, UserName = Mike","Payload":{"Id":10,"Name":"Mike"}}
-logger.ZLogInformationWithPayload(new UserRegisteredLog { Id = id, Name = userName }, "Registered User: Id = {0}, UserName = {1}", id, userName);
-
-// Payload must be able to be formatted with JsonUtility.
-// The target fields are those that are `[Serializable]`, public fields, or fields with `[SerializeField]` attached.
-[Serializable]
-public struct UserRegisteredLog
-{
-    public int Id;
-    public string Name;
-}
-
-```
-
-License
----
-This library is licensed under the MIT License.
