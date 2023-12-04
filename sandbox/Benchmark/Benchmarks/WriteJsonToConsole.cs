@@ -10,6 +10,9 @@ using NLog.Extensions.Logging;
 using NLog.Targets.Wrappers;
 using Serilog;
 using Serilog.Formatting.Json;
+using ZeroLog.Appenders;
+using ZeroLog.Configuration;
+using ZeroLog.Formatting;
 using ZLogger;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
@@ -53,6 +56,8 @@ public class WriteJsonToConsole
     NLog.Logger nLogLoggerDefault = default!;
     NLog.Config.LoggingConfiguration nLogConfig = default!;
     NLog.Config.LoggingConfiguration nLogConfigDefault = default!;
+
+    ZeroLog.Log zeroLogLogger = ZeroLog.LogManager.GetLogger<WriteJsonToConsole>();
 
     [IterationSetup]
     public void SetUpLogger()
@@ -150,6 +155,24 @@ public class WriteJsonToConsole
             nLogMsExtLoggerDefault = nLogMsExtLoggerFactoryDefault.CreateLogger<WriteJsonToConsole>();
         }
 
+        // ZeroLog
+
+        ZeroLog.LogManager.Initialize(new()
+        {
+            LogMessagePoolSize = 16 * 1024,
+            RootLogger =
+            {
+                LogMessagePoolExhaustionStrategy = LogMessagePoolExhaustionStrategy.WaitUntilAvailable,
+                Appenders =
+                {
+                    new ConsoleAppender
+                    {
+                        ColorOutput = false,
+                        Formatter = new DefaultFormatter { PrefixPattern = "%{date:yyyy-MM-dd HH:mm:ss.fff} [%level] " }
+                    }
+                }
+            }
+        });
     }
 
     [IterationCleanup]
@@ -167,6 +190,8 @@ public class WriteJsonToConsole
 
         nLogConfig.LogFactory.Shutdown();
         nLogConfigDefault.LogFactory.Shutdown();
+
+        ZeroLog.LogManager.Shutdown();
     }
 
     [Benchmark]
@@ -190,6 +215,22 @@ public class WriteJsonToConsole
             zLogger.GeneratedZLog(MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
         }
         zLoggerFactory.Dispose();
+    }
+
+    [Benchmark]
+    public void ZeroLog_JsonFile()
+    {
+        for (var i = 0; i < N; i++)
+        {
+            zeroLogLogger.Info()
+                .Append("Hello")
+                .AppendKeyValue("Name", MessageSample.Arg1)
+                .AppendKeyValue("City", MessageSample.Arg2)
+                .AppendKeyValue("Age", MessageSample.Arg3)
+                .Log();
+        }
+
+        ZeroLog.LogManager.Shutdown();
     }
 
     [Benchmark]

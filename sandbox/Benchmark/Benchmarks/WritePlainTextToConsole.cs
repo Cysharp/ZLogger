@@ -8,6 +8,9 @@ using NLog.Extensions.Logging;
 using NLog.Targets.Wrappers;
 using Serilog;
 using Serilog.Formatting.Display;
+using ZeroLog.Appenders;
+using ZeroLog.Configuration;
+using ZeroLog.Formatting;
 using ZLogger;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
@@ -49,6 +52,8 @@ public class WritePlainTextToConsole
     NLog.Logger nLogLoggerDefault = default!;
     NLog.Config.LoggingConfiguration nLogConfig = default!;
     NLog.Config.LoggingConfiguration nLogConfigDefault = default!;
+
+    ZeroLog.Log zeroLogLogger = ZeroLog.LogManager.GetLogger<WritePlainTextToConsole>();
 
     [IterationSetup]
     public void SetUpLogger()
@@ -131,6 +136,25 @@ public class WritePlainTextToConsole
             nLogMsExtLoggerFactoryDefault = LoggerFactory.Create(x => x.AddNLog(nLogConfigDefault));
             nLogMsExtLoggerDefault = nLogMsExtLoggerFactoryDefault.CreateLogger<WritePlainTextToConsole>();
         }
+
+        // ZeroLog
+
+        ZeroLog.LogManager.Initialize(new()
+        {
+            LogMessagePoolSize = 16 * 1024,
+            RootLogger =
+            {
+                LogMessagePoolExhaustionStrategy = LogMessagePoolExhaustionStrategy.WaitUntilAvailable,
+                Appenders =
+                {
+                    new ConsoleAppender
+                    {
+                        ColorOutput = false,
+                        Formatter = new DefaultFormatter { PrefixPattern = "%{date:yyyy-MM-dd HH:mm:ss.fff} [%level] " }
+                    }
+                }
+            }
+        });
     }
     
     [IterationCleanup]
@@ -148,6 +172,8 @@ public class WritePlainTextToConsole
 
         nLogConfig.LogFactory.Shutdown();
         nLogConfigDefault.LogFactory.Shutdown();
+
+        ZeroLog.LogManager.Shutdown();
     }
 
     [Benchmark]
@@ -168,6 +194,17 @@ public class WritePlainTextToConsole
             zLogger.GeneratedZLog(MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
         }
         zLoggerFactory.Dispose();
+    }
+
+    [Benchmark]
+    public void ZeroLog_PlainTextConsole()
+    {
+        for (var i = 0; i < N; i++)
+        {
+            zeroLogLogger.Info($"Hello, {MessageSample.Arg1} lives in {MessageSample.Arg2} {MessageSample.Arg3} years old");
+        }
+
+        ZeroLog.LogManager.Shutdown();
     }
 
     [Benchmark]
