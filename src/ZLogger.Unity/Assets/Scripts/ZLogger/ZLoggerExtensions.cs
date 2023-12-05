@@ -4947,25 +4947,25 @@ namespace ZLogger
             });
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogInformation(this ILogger logger, string message)
         {
             ZLogInformation(logger, default(EventId), default(Exception), message);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogInformation(this ILogger logger, EventId eventId, string message)
         {
             ZLogInformation(logger, eventId, default(Exception), message);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogInformation(this ILogger logger, Exception? exception, string message)
         {
             ZLogInformation(logger, default(EventId), exception, message);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogInformation(this ILogger logger, EventId eventId, Exception? exception, string message)
         {
             logger.Log(LogLevel.Information, eventId, new MessageLogState<object>(null, message), exception, (state, ex) =>
@@ -4974,25 +4974,25 @@ namespace ZLogger
             });
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogInformationWithPayload<TPayload>(this ILogger logger, TPayload payload, string message)
         {
             ZLogInformationWithPayload<TPayload>(logger, default, null, payload, message);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogInformationWithPayload<TPayload>(this ILogger logger, EventId eventId, TPayload payload, string message)
         {
             ZLogInformationWithPayload<TPayload>(logger, eventId, null, payload, message);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogInformationWithPayload<TPayload>(this ILogger logger, Exception? exception, TPayload payload, string message)
         {
             ZLogInformationWithPayload<TPayload>(logger, default, exception, payload, message);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogInformationWithPayload<TPayload>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string message)
         {
             logger.Log(LogLevel.Information, eventId, new MessageLogState<TPayload>(payload, message), exception, (state, ex) =>
@@ -5001,21 +5001,25 @@ namespace ZLogger
             });
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogWarning(this ILogger logger, string message)
         {
             ZLogWarning(logger, default(EventId), default(Exception), message);
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogWarning(this ILogger logger, EventId eventId, string message)
         {
             ZLogWarning(logger, eventId, default(Exception), message);
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogWarning(this ILogger logger, Exception? exception, string message)
         {
             ZLogWarning(logger, default(EventId), exception, message);
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogWarning(this ILogger logger, EventId eventId, Exception? exception, string message)
         {
             logger.Log(LogLevel.Warning, eventId, new MessageLogState<object>(null, message), exception, (state, ex) =>
@@ -5024,21 +5028,25 @@ namespace ZLogger
             });
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogWarningWithPayload<TPayload>(this ILogger logger, TPayload payload, string message)
         {
             ZLogWarningWithPayload<TPayload>(logger, default, null, payload, message);
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogWarningWithPayload<TPayload>(this ILogger logger, EventId eventId, TPayload payload, string message)
         {
             ZLogWarningWithPayload<TPayload>(logger, eventId, null, payload, message);
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogWarningWithPayload<TPayload>(this ILogger logger, Exception? exception, TPayload payload, string message)
         {
             ZLogWarningWithPayload<TPayload>(logger, default, exception, payload, message);
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogWarningWithPayload<TPayload>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string message)
         {
             logger.Log(LogLevel.Warning, eventId, new MessageLogState<TPayload>(payload, message), exception, (state, ex) =>
@@ -5047,21 +5055,25 @@ namespace ZLogger
             });
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogError(this ILogger logger, string message)
         {
             ZLogError(logger, default(EventId), default(Exception), message);
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogError(this ILogger logger, EventId eventId, string message)
         {
             ZLogError(logger, eventId, default(Exception), message);
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogError(this ILogger logger, Exception? exception, string message)
         {
             ZLogError(logger, default(EventId), exception, message);
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogError(this ILogger logger, EventId eventId, Exception? exception, string message)
         {
             logger.Log(LogLevel.Error, eventId, new MessageLogState<object>(null, message), exception, (state, ex) =>
@@ -5070,21 +5082,25 @@ namespace ZLogger
             });
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogErrorWithPayload<TPayload>(this ILogger logger, TPayload payload, string message)
         {
             ZLogErrorWithPayload<TPayload>(logger, default, null, payload, message);
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogErrorWithPayload<TPayload>(this ILogger logger, EventId eventId, TPayload payload, string message)
         {
             ZLogErrorWithPayload<TPayload>(logger, eventId, null, payload, message);
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogErrorWithPayload<TPayload>(this ILogger logger, Exception? exception, TPayload payload, string message)
         {
             ZLogErrorWithPayload<TPayload>(logger, default, exception, payload, message);
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogErrorWithPayload<TPayload>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string message)
         {
             logger.Log(LogLevel.Error, eventId, new MessageLogState<TPayload>(payload, message), exception, (state, ex) =>
@@ -5093,21 +5109,25 @@ namespace ZLogger
             });
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogCritical(this ILogger logger, string message)
         {
             ZLogCritical(logger, default(EventId), default(Exception), message);
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogCritical(this ILogger logger, EventId eventId, string message)
         {
             ZLogCritical(logger, eventId, default(Exception), message);
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogCritical(this ILogger logger, Exception? exception, string message)
         {
             ZLogCritical(logger, default(EventId), exception, message);
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogCritical(this ILogger logger, EventId eventId, Exception? exception, string message)
         {
             logger.Log(LogLevel.Critical, eventId, new MessageLogState<object>(null, message), exception, (state, ex) =>
@@ -5116,21 +5136,25 @@ namespace ZLogger
             });
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogCriticalWithPayload<TPayload>(this ILogger logger, TPayload payload, string message)
         {
             ZLogCriticalWithPayload<TPayload>(logger, default, null, payload, message);
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogCriticalWithPayload<TPayload>(this ILogger logger, EventId eventId, TPayload payload, string message)
         {
             ZLogCriticalWithPayload<TPayload>(logger, eventId, null, payload, message);
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogCriticalWithPayload<TPayload>(this ILogger logger, Exception? exception, TPayload payload, string message)
         {
             ZLogCriticalWithPayload<TPayload>(logger, default, exception, payload, message);
         }
 
+        [JetBrains.Annotations.StringFormatMethod("message")]
         public static void ZLogCriticalWithPayload<TPayload>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string message)
         {
             logger.Log(LogLevel.Critical, eventId, new MessageLogState<TPayload>(payload, message), exception, (state, ex) =>
