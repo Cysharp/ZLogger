@@ -12,6 +12,8 @@ ZLogger is built directly on top of `Microsoft.Extensions.Logging`. `Microsoft.E
 
 This benchmark is for writing to a file, but the default settings of typical loggers are very slow. This is because they flush after every write. In the benchmark, to ensure fairness, careful attention was paid to set the options in each logger for maximum speed. ZLogger is designed to be the fastest by default, so there is no need to worry about any settings.
 
+The slowness of this default setting is due to I/O, so it can be mitigated by using a faster drive. When taking benchmarks, please note that the results can vary greatly not only on your local (which is probably fast!) but also on drives attached to the cloud and in environments like Docker. One of the good points about the async-buffered setting is that it can reduce the impact of such I/O issues.
+
 ZLogger focuses on the new syntax of C#, and fully adopts Interpolated Strings.
 
 ![Alt text](docs/image-1.png)
