@@ -21,6 +21,8 @@ namespace ZLogger
         readonly Task writeLoop;
         readonly ZLoggerOptions options;
         readonly CancellationTokenSource cancellationTokenSource;
+        
+        const float maxWorkWhenThrottled = 0.1f;
 
         public AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options)
         {
@@ -144,24 +146,21 @@ namespace ZLogger
                             if (options.FlushRate != null && !cancellationTokenSource.IsCancellationRequested)
                             {
                                 sw.Stop();
-                                var sleepTime = options.FlushRate.Value - sw.Elapsed;
-                                if (sleepTime > TimeSpan.Zero)
+                                if (sw.Elapsed > TimeSpan.FromSeconds(maxWorkWhenThrottled))
                                 {
                                     try
                                     {
-                                        await Task.Delay(sleepTime, cancellationTokenSource.Token)
+                                        await Task.Delay(options.FlushRate.Value, cancellationTokenSource.Token)
                                             .ConfigureAwait(false);
                                     }
                                     catch (OperationCanceledException)
                                     {
                                     }
+                                    sw.Reset();
                                 }
+                                sw.Start();
                             }
-
                             writer.Flush(); // flush before wait.
-
-                            sw.Reset();
-                            sw.Start();
                         }
                     }
                     catch (Exception ex)
