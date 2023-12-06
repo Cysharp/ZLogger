@@ -76,7 +76,7 @@ namespace ZLogger
             }
         }
 
-        public void AppendLiteral(string s)
+        public void AppendLiteral([System.Diagnostics.CodeAnalysis.ConstantExpected] string s)
         {
             literals.Add(s);
         }
