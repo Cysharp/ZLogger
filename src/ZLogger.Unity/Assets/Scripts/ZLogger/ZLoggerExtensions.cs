@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Cysharp.Text;
 using Microsoft.Extensions.Logging;
 using ZLogger.Entries;
@@ -61,97 +62,97 @@ namespace ZLogger
             });
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1>(this ILogger logger, string format, T1 arg1)
         {
             ZLog<T1>(logger, LogLevel.Trace, default, null, format, arg1);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1>(this ILogger logger, EventId eventId, string format, T1 arg1)
         {
             ZLog<T1>(logger, LogLevel.Trace, eventId, null, format, arg1);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1>(this ILogger logger, Exception? exception, string format, T1 arg1)
         {
             ZLog<T1>(logger, LogLevel.Trace, default, exception, format, arg1);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1)
         {
             ZLog<T1>(logger, LogLevel.Trace, eventId, exception, format, arg1);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1>(this ILogger logger, TPayload payload, string format, T1 arg1)
         {
             ZLogWithPayload<TPayload, T1>(logger, LogLevel.Trace, default, null, payload, format, arg1);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1)
         {
             ZLogWithPayload<TPayload, T1>(logger, LogLevel.Trace, eventId, null, payload, format, arg1);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1)
         {
             ZLogWithPayload<TPayload, T1>(logger, LogLevel.Trace, default, exception, payload, format, arg1);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1)
         {
             ZLogWithPayload<TPayload, T1>(logger, LogLevel.Trace, eventId, exception, payload, format, arg1);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1>(this ILogger logger, string format, T1 arg1)
         {
             ZLog<T1>(logger, LogLevel.Debug, default, null, format, arg1);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1>(this ILogger logger, EventId eventId, string format, T1 arg1)
         {
             ZLog<T1>(logger, LogLevel.Debug, eventId, null, format, arg1);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1>(this ILogger logger, Exception? exception, string format, T1 arg1)
         {
             ZLog<T1>(logger, LogLevel.Debug, default, exception, format, arg1);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1)
         {
             ZLog<T1>(logger, LogLevel.Debug, eventId, exception, format, arg1);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1>(this ILogger logger, TPayload payload, string format, T1 arg1)
         {
             ZLogWithPayload<TPayload, T1>(logger, LogLevel.Debug, default, null, payload, format, arg1);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1)
         {
             ZLogWithPayload<TPayload, T1>(logger, LogLevel.Debug, eventId, null, payload, format, arg1);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1)
         {
             ZLogWithPayload<TPayload, T1>(logger, LogLevel.Debug, default, exception, payload, format, arg1);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1)
         {
             ZLogWithPayload<TPayload, T1>(logger, LogLevel.Debug, eventId, exception, payload, format, arg1);
@@ -404,97 +405,97 @@ namespace ZLogger
             });
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2>(this ILogger logger, string format, T1 arg1, T2 arg2)
         {
             ZLog<T1, T2>(logger, LogLevel.Trace, default, null, format, arg1, arg2);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2)
         {
             ZLog<T1, T2>(logger, LogLevel.Trace, eventId, null, format, arg1, arg2);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2)
         {
             ZLog<T1, T2>(logger, LogLevel.Trace, default, exception, format, arg1, arg2);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2)
         {
             ZLog<T1, T2>(logger, LogLevel.Trace, eventId, exception, format, arg1, arg2);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2)
         {
             ZLogWithPayload<TPayload, T1, T2>(logger, LogLevel.Trace, default, null, payload, format, arg1, arg2);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2)
         {
             ZLogWithPayload<TPayload, T1, T2>(logger, LogLevel.Trace, eventId, null, payload, format, arg1, arg2);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2)
         {
             ZLogWithPayload<TPayload, T1, T2>(logger, LogLevel.Trace, default, exception, payload, format, arg1, arg2);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2)
         {
             ZLogWithPayload<TPayload, T1, T2>(logger, LogLevel.Trace, eventId, exception, payload, format, arg1, arg2);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2>(this ILogger logger, string format, T1 arg1, T2 arg2)
         {
             ZLog<T1, T2>(logger, LogLevel.Debug, default, null, format, arg1, arg2);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2)
         {
             ZLog<T1, T2>(logger, LogLevel.Debug, eventId, null, format, arg1, arg2);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2)
         {
             ZLog<T1, T2>(logger, LogLevel.Debug, default, exception, format, arg1, arg2);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2)
         {
             ZLog<T1, T2>(logger, LogLevel.Debug, eventId, exception, format, arg1, arg2);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2)
         {
             ZLogWithPayload<TPayload, T1, T2>(logger, LogLevel.Debug, default, null, payload, format, arg1, arg2);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2)
         {
             ZLogWithPayload<TPayload, T1, T2>(logger, LogLevel.Debug, eventId, null, payload, format, arg1, arg2);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2)
         {
             ZLogWithPayload<TPayload, T1, T2>(logger, LogLevel.Debug, default, exception, payload, format, arg1, arg2);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2)
         {
             ZLogWithPayload<TPayload, T1, T2>(logger, LogLevel.Debug, eventId, exception, payload, format, arg1, arg2);
@@ -747,97 +748,97 @@ namespace ZLogger
             });
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3)
         {
             ZLog<T1, T2, T3>(logger, LogLevel.Trace, default, null, format, arg1, arg2, arg3);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3)
         {
             ZLog<T1, T2, T3>(logger, LogLevel.Trace, eventId, null, format, arg1, arg2, arg3);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3)
         {
             ZLog<T1, T2, T3>(logger, LogLevel.Trace, default, exception, format, arg1, arg2, arg3);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3)
         {
             ZLog<T1, T2, T3>(logger, LogLevel.Trace, eventId, exception, format, arg1, arg2, arg3);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3)
         {
             ZLogWithPayload<TPayload, T1, T2, T3>(logger, LogLevel.Trace, default, null, payload, format, arg1, arg2, arg3);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3)
         {
             ZLogWithPayload<TPayload, T1, T2, T3>(logger, LogLevel.Trace, eventId, null, payload, format, arg1, arg2, arg3);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3)
         {
             ZLogWithPayload<TPayload, T1, T2, T3>(logger, LogLevel.Trace, default, exception, payload, format, arg1, arg2, arg3);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3)
         {
             ZLogWithPayload<TPayload, T1, T2, T3>(logger, LogLevel.Trace, eventId, exception, payload, format, arg1, arg2, arg3);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3)
         {
             ZLog<T1, T2, T3>(logger, LogLevel.Debug, default, null, format, arg1, arg2, arg3);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3)
         {
             ZLog<T1, T2, T3>(logger, LogLevel.Debug, eventId, null, format, arg1, arg2, arg3);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3)
         {
             ZLog<T1, T2, T3>(logger, LogLevel.Debug, default, exception, format, arg1, arg2, arg3);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3)
         {
             ZLog<T1, T2, T3>(logger, LogLevel.Debug, eventId, exception, format, arg1, arg2, arg3);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3)
         {
             ZLogWithPayload<TPayload, T1, T2, T3>(logger, LogLevel.Debug, default, null, payload, format, arg1, arg2, arg3);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3)
         {
             ZLogWithPayload<TPayload, T1, T2, T3>(logger, LogLevel.Debug, eventId, null, payload, format, arg1, arg2, arg3);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3)
         {
             ZLogWithPayload<TPayload, T1, T2, T3>(logger, LogLevel.Debug, default, exception, payload, format, arg1, arg2, arg3);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3)
         {
             ZLogWithPayload<TPayload, T1, T2, T3>(logger, LogLevel.Debug, eventId, exception, payload, format, arg1, arg2, arg3);
@@ -1090,97 +1091,97 @@ namespace ZLogger
             });
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ZLog<T1, T2, T3, T4>(logger, LogLevel.Trace, default, null, format, arg1, arg2, arg3, arg4);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ZLog<T1, T2, T3, T4>(logger, LogLevel.Trace, eventId, null, format, arg1, arg2, arg3, arg4);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ZLog<T1, T2, T3, T4>(logger, LogLevel.Trace, default, exception, format, arg1, arg2, arg3, arg4);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ZLog<T1, T2, T3, T4>(logger, LogLevel.Trace, eventId, exception, format, arg1, arg2, arg3, arg4);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4>(logger, LogLevel.Trace, default, null, payload, format, arg1, arg2, arg3, arg4);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4>(logger, LogLevel.Trace, eventId, null, payload, format, arg1, arg2, arg3, arg4);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4>(logger, LogLevel.Trace, default, exception, payload, format, arg1, arg2, arg3, arg4);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4>(logger, LogLevel.Trace, eventId, exception, payload, format, arg1, arg2, arg3, arg4);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ZLog<T1, T2, T3, T4>(logger, LogLevel.Debug, default, null, format, arg1, arg2, arg3, arg4);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ZLog<T1, T2, T3, T4>(logger, LogLevel.Debug, eventId, null, format, arg1, arg2, arg3, arg4);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ZLog<T1, T2, T3, T4>(logger, LogLevel.Debug, default, exception, format, arg1, arg2, arg3, arg4);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ZLog<T1, T2, T3, T4>(logger, LogLevel.Debug, eventId, exception, format, arg1, arg2, arg3, arg4);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4>(logger, LogLevel.Debug, default, null, payload, format, arg1, arg2, arg3, arg4);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4>(logger, LogLevel.Debug, eventId, null, payload, format, arg1, arg2, arg3, arg4);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4>(logger, LogLevel.Debug, default, exception, payload, format, arg1, arg2, arg3, arg4);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4>(logger, LogLevel.Debug, eventId, exception, payload, format, arg1, arg2, arg3, arg4);
@@ -1433,97 +1434,97 @@ namespace ZLogger
             });
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ZLog<T1, T2, T3, T4, T5>(logger, LogLevel.Trace, default, null, format, arg1, arg2, arg3, arg4, arg5);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ZLog<T1, T2, T3, T4, T5>(logger, LogLevel.Trace, eventId, null, format, arg1, arg2, arg3, arg4, arg5);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ZLog<T1, T2, T3, T4, T5>(logger, LogLevel.Trace, default, exception, format, arg1, arg2, arg3, arg4, arg5);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ZLog<T1, T2, T3, T4, T5>(logger, LogLevel.Trace, eventId, exception, format, arg1, arg2, arg3, arg4, arg5);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5>(logger, LogLevel.Trace, default, null, payload, format, arg1, arg2, arg3, arg4, arg5);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5>(logger, LogLevel.Trace, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5>(logger, LogLevel.Trace, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5>(logger, LogLevel.Trace, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ZLog<T1, T2, T3, T4, T5>(logger, LogLevel.Debug, default, null, format, arg1, arg2, arg3, arg4, arg5);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ZLog<T1, T2, T3, T4, T5>(logger, LogLevel.Debug, eventId, null, format, arg1, arg2, arg3, arg4, arg5);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ZLog<T1, T2, T3, T4, T5>(logger, LogLevel.Debug, default, exception, format, arg1, arg2, arg3, arg4, arg5);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ZLog<T1, T2, T3, T4, T5>(logger, LogLevel.Debug, eventId, exception, format, arg1, arg2, arg3, arg4, arg5);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5>(logger, LogLevel.Debug, default, null, payload, format, arg1, arg2, arg3, arg4, arg5);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5>(logger, LogLevel.Debug, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5>(logger, LogLevel.Debug, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5>(logger, LogLevel.Debug, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5);
@@ -1776,97 +1777,97 @@ namespace ZLogger
             });
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ZLog<T1, T2, T3, T4, T5, T6>(logger, LogLevel.Trace, default, null, format, arg1, arg2, arg3, arg4, arg5, arg6);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ZLog<T1, T2, T3, T4, T5, T6>(logger, LogLevel.Trace, eventId, null, format, arg1, arg2, arg3, arg4, arg5, arg6);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ZLog<T1, T2, T3, T4, T5, T6>(logger, LogLevel.Trace, default, exception, format, arg1, arg2, arg3, arg4, arg5, arg6);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ZLog<T1, T2, T3, T4, T5, T6>(logger, LogLevel.Trace, eventId, exception, format, arg1, arg2, arg3, arg4, arg5, arg6);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6>(logger, LogLevel.Trace, default, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6>(logger, LogLevel.Trace, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6>(logger, LogLevel.Trace, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6>(logger, LogLevel.Trace, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ZLog<T1, T2, T3, T4, T5, T6>(logger, LogLevel.Debug, default, null, format, arg1, arg2, arg3, arg4, arg5, arg6);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ZLog<T1, T2, T3, T4, T5, T6>(logger, LogLevel.Debug, eventId, null, format, arg1, arg2, arg3, arg4, arg5, arg6);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ZLog<T1, T2, T3, T4, T5, T6>(logger, LogLevel.Debug, default, exception, format, arg1, arg2, arg3, arg4, arg5, arg6);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ZLog<T1, T2, T3, T4, T5, T6>(logger, LogLevel.Debug, eventId, exception, format, arg1, arg2, arg3, arg4, arg5, arg6);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6>(logger, LogLevel.Debug, default, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6>(logger, LogLevel.Debug, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6>(logger, LogLevel.Debug, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6>(logger, LogLevel.Debug, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6);
@@ -2119,97 +2120,97 @@ namespace ZLogger
             });
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7>(logger, LogLevel.Trace, default, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7>(logger, LogLevel.Trace, eventId, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7>(logger, LogLevel.Trace, default, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7>(logger, LogLevel.Trace, eventId, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7>(logger, LogLevel.Trace, default, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7>(logger, LogLevel.Trace, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7>(logger, LogLevel.Trace, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7>(logger, LogLevel.Trace, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7>(logger, LogLevel.Debug, default, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7>(logger, LogLevel.Debug, eventId, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7>(logger, LogLevel.Debug, default, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7>(logger, LogLevel.Debug, eventId, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7>(logger, LogLevel.Debug, default, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7>(logger, LogLevel.Debug, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7>(logger, LogLevel.Debug, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7>(logger, LogLevel.Debug, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
@@ -2462,97 +2463,97 @@ namespace ZLogger
             });
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8>(logger, LogLevel.Trace, default, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8>(logger, LogLevel.Trace, eventId, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8>(logger, LogLevel.Trace, default, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8>(logger, LogLevel.Trace, eventId, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>(logger, LogLevel.Trace, default, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>(logger, LogLevel.Trace, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>(logger, LogLevel.Trace, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>(logger, LogLevel.Trace, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8>(logger, LogLevel.Debug, default, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8>(logger, LogLevel.Debug, eventId, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8>(logger, LogLevel.Debug, default, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8>(logger, LogLevel.Debug, eventId, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>(logger, LogLevel.Debug, default, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>(logger, LogLevel.Debug, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>(logger, LogLevel.Debug, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8>(logger, LogLevel.Debug, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
@@ -2805,97 +2806,97 @@ namespace ZLogger
             });
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9>(logger, LogLevel.Trace, default, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9>(logger, LogLevel.Trace, eventId, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9>(logger, LogLevel.Trace, default, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9>(logger, LogLevel.Trace, eventId, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>(logger, LogLevel.Trace, default, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>(logger, LogLevel.Trace, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>(logger, LogLevel.Trace, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>(logger, LogLevel.Trace, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9>(logger, LogLevel.Debug, default, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9>(logger, LogLevel.Debug, eventId, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9>(logger, LogLevel.Debug, default, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9>(logger, LogLevel.Debug, eventId, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>(logger, LogLevel.Debug, default, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>(logger, LogLevel.Debug, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>(logger, LogLevel.Debug, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9>(logger, LogLevel.Debug, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
@@ -3148,97 +3149,97 @@ namespace ZLogger
             });
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(logger, LogLevel.Trace, default, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(logger, LogLevel.Trace, eventId, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(logger, LogLevel.Trace, default, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(logger, LogLevel.Trace, eventId, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(logger, LogLevel.Trace, default, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(logger, LogLevel.Trace, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(logger, LogLevel.Trace, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(logger, LogLevel.Trace, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(logger, LogLevel.Debug, default, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(logger, LogLevel.Debug, eventId, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(logger, LogLevel.Debug, default, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(logger, LogLevel.Debug, eventId, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(logger, LogLevel.Debug, default, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(logger, LogLevel.Debug, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(logger, LogLevel.Debug, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(logger, LogLevel.Debug, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
@@ -3491,97 +3492,97 @@ namespace ZLogger
             });
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(logger, LogLevel.Trace, default, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(logger, LogLevel.Trace, eventId, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(logger, LogLevel.Trace, default, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(logger, LogLevel.Trace, eventId, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(logger, LogLevel.Trace, default, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(logger, LogLevel.Trace, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(logger, LogLevel.Trace, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(logger, LogLevel.Trace, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(logger, LogLevel.Debug, default, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(logger, LogLevel.Debug, eventId, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(logger, LogLevel.Debug, default, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(logger, LogLevel.Debug, eventId, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(logger, LogLevel.Debug, default, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(logger, LogLevel.Debug, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(logger, LogLevel.Debug, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(logger, LogLevel.Debug, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
@@ -3834,97 +3835,97 @@ namespace ZLogger
             });
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(logger, LogLevel.Trace, default, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(logger, LogLevel.Trace, eventId, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(logger, LogLevel.Trace, default, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(logger, LogLevel.Trace, eventId, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(logger, LogLevel.Trace, default, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(logger, LogLevel.Trace, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(logger, LogLevel.Trace, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(logger, LogLevel.Trace, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(logger, LogLevel.Debug, default, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(logger, LogLevel.Debug, eventId, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(logger, LogLevel.Debug, default, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(logger, LogLevel.Debug, eventId, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(logger, LogLevel.Debug, default, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(logger, LogLevel.Debug, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(logger, LogLevel.Debug, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(logger, LogLevel.Debug, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
@@ -4177,97 +4178,97 @@ namespace ZLogger
             });
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(logger, LogLevel.Trace, default, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(logger, LogLevel.Trace, eventId, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(logger, LogLevel.Trace, default, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(logger, LogLevel.Trace, eventId, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(logger, LogLevel.Trace, default, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(logger, LogLevel.Trace, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(logger, LogLevel.Trace, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(logger, LogLevel.Trace, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(logger, LogLevel.Debug, default, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(logger, LogLevel.Debug, eventId, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(logger, LogLevel.Debug, default, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(logger, LogLevel.Debug, eventId, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(logger, LogLevel.Debug, default, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(logger, LogLevel.Debug, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(logger, LogLevel.Debug, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(logger, LogLevel.Debug, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
@@ -4520,97 +4521,97 @@ namespace ZLogger
             });
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(logger, LogLevel.Trace, default, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(logger, LogLevel.Trace, eventId, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(logger, LogLevel.Trace, default, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(logger, LogLevel.Trace, eventId, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(logger, LogLevel.Trace, default, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(logger, LogLevel.Trace, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(logger, LogLevel.Trace, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(logger, LogLevel.Trace, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this ILogger logger, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(logger, LogLevel.Debug, default, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this ILogger logger, EventId eventId, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(logger, LogLevel.Debug, eventId, null, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this ILogger logger, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(logger, LogLevel.Debug, default, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this ILogger logger, EventId eventId, Exception? exception, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ZLog<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(logger, LogLevel.Debug, eventId, exception, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this ILogger logger, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(logger, LogLevel.Debug, default, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this ILogger logger, EventId eventId, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(logger, LogLevel.Debug, eventId, null, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this ILogger logger, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(logger, LogLevel.Debug, default, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
         }
 
-        [JetBrains.Annotations.StringFormatMethod("format")]
+        [JetBrains.Annotations.StringFormatMethod("format"), Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string format, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ZLogWithPayload<TPayload, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(logger, LogLevel.Debug, eventId, exception, payload, format, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
@@ -4855,21 +4856,25 @@ namespace ZLogger
             });
         }
 
+        [Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace(this ILogger logger, string message)
         {
             ZLogTrace(logger, default(EventId), default(Exception), message);
         }
 
+        [Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace(this ILogger logger, EventId eventId, string message)
         {
             ZLogTrace(logger, eventId, default(Exception), message);
         }
 
+        [Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace(this ILogger logger, Exception? exception, string message)
         {
             ZLogTrace(logger, default(EventId), exception, message);
         }
 
+        [Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTrace(this ILogger logger, EventId eventId, Exception? exception, string message)
         {
             logger.Log(LogLevel.Trace, eventId, new MessageLogState<object>(null, message), exception, (state, ex) =>
@@ -4878,21 +4883,25 @@ namespace ZLogger
             });
         }
 
+        [Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload>(this ILogger logger, TPayload payload, string message)
         {
             ZLogTraceWithPayload<TPayload>(logger, default, null, payload, message);
         }
 
+        [Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload>(this ILogger logger, EventId eventId, TPayload payload, string message)
         {
             ZLogTraceWithPayload<TPayload>(logger, eventId, null, payload, message);
         }
 
+        [Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload>(this ILogger logger, Exception? exception, TPayload payload, string message)
         {
             ZLogTraceWithPayload<TPayload>(logger, default, exception, payload, message);
         }
 
+        [Conditional("ALLOW_TRACE_LOGS")]
         public static void ZLogTraceWithPayload<TPayload>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string message)
         {
             logger.Log(LogLevel.Trace, eventId, new MessageLogState<TPayload>(payload, message), exception, (state, ex) =>
@@ -4901,21 +4910,25 @@ namespace ZLogger
             });
         }
 
+        [Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug(this ILogger logger, string message)
         {
             ZLogDebug(logger, default(EventId), default(Exception), message);
         }
 
+        [Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug(this ILogger logger, EventId eventId, string message)
         {
             ZLogDebug(logger, eventId, default(Exception), message);
         }
 
+        [Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug(this ILogger logger, Exception? exception, string message)
         {
             ZLogDebug(logger, default(EventId), exception, message);
         }
 
+        [Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebug(this ILogger logger, EventId eventId, Exception? exception, string message)
         {
             logger.Log(LogLevel.Debug, eventId, new MessageLogState<object>(null, message), exception, (state, ex) =>
@@ -4924,21 +4937,25 @@ namespace ZLogger
             });
         }
 
+        [Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload>(this ILogger logger, TPayload payload, string message)
         {
             ZLogDebugWithPayload<TPayload>(logger, default, null, payload, message);
         }
 
+        [Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload>(this ILogger logger, EventId eventId, TPayload payload, string message)
         {
             ZLogDebugWithPayload<TPayload>(logger, eventId, null, payload, message);
         }
 
+        [Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload>(this ILogger logger, Exception? exception, TPayload payload, string message)
         {
             ZLogDebugWithPayload<TPayload>(logger, default, exception, payload, message);
         }
 
+        [Conditional("ALLOW_DEBUG_LOGS")]
         public static void ZLogDebugWithPayload<TPayload>(this ILogger logger, EventId eventId, Exception? exception, TPayload payload, string message)
         {
             logger.Log(LogLevel.Debug, eventId, new MessageLogState<TPayload>(payload, message), exception, (state, ex) =>
