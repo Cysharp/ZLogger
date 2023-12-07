@@ -31,6 +31,8 @@ public class MessagePackPropertyNames
     public byte[] LogLevelCritical { get; set; } = MessagePackStringEncoder.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Critical));
     public byte[] LogLevelNone { get; set; } = MessagePackStringEncoder.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.None));
 
+    public byte[]? ParameterKeyValues { get; set; }  // if null(default), non nested.
+    public byte[]? ScopeKeyValues { get; set; }  // if null(default), non nested.
 
     public byte[] GetEncodedLogLevel(LogLevel logLevel) => logLevel switch
     {
@@ -70,8 +72,11 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
     {
         var messagePackWriter = new MessagePackWriter(writer);
         var propCount = BitOperations.PopCount((uint)IncludeProperties);
+        var scopePropCount = 0;
 
-        if ((IncludeProperties & IncludeProperties.ParameterKeyValues) != 0)
+        if ((IncludeProperties & IncludeProperties.ParameterKeyValues) != 0 &&
+            // flatten
+            propertyNames.ParameterKeyValues == null)
         {
             propCount--;
             propCount += entry.ParameterCount;
@@ -82,7 +87,6 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
         }
         if ((IncludeProperties & IncludeProperties.ScopeKeyValues) != 0)
         {
-            propCount--;
             if (entry.LogInfo.ScopeState != null)
             {
                 var scopeProperties = entry.LogInfo.ScopeState.Properties;
@@ -90,9 +94,16 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
                 {
                     if (scopeProperties[i].Key != "{OriginalFormat}")
                     {
-                        propCount++;
+                        scopePropCount++;
                     }
                 }
+            }
+
+            // flatten
+            if (propertyNames.ScopeKeyValues == null)
+            {
+                propCount--;
+                propCount += scopePropCount;
             }
         }
 
@@ -138,7 +149,7 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
         // Message
         if ((flag & IncludeProperties.Message) != 0)
         {
-            messagePackWriter.Write(propertyNames.Message);
+            messagePackWriter.WriteRaw(propertyNames.Message);
             var buffer = GetThreadStaticBufferWriter();
             entry.ToString(buffer);
             messagePackWriter.WriteString(buffer.WrittenSpan);
@@ -149,6 +160,12 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
         {
             if (entry.LogInfo.ScopeState is { Properties: var scopeProperties })
             {
+                // nested
+                if (propertyNames.ScopeKeyValues != null)
+                {
+                    messagePackWriter.WriteMapHeader(scopePropCount);
+                }
+                
                 foreach (var t in scopeProperties)
                 {
                     var (key, value) = t;
@@ -171,6 +188,11 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
         // Params
         if ((flag & IncludeProperties.ParameterKeyValues) != 0)
         {
+            // nested
+            if (propertyNames.ParameterKeyValues != null)
+            {
+                messagePackWriter.WriteMapHeader(entry.ParameterCount);
+            }
             for (var i = 0; i < entry.ParameterCount; i++)
             {
                 WriteKeyName(ref messagePackWriter, entry, i);

@@ -19,7 +19,7 @@ public class FormatterTest
         
         processor = new TestProcessor(new MessagePackZLoggerFormatter
         {
-            IncludeProperties = IncludeProperties.ParameterKeyValues
+            IncludeProperties = IncludeProperties.Default
         });
 
         var loggerFactory = LoggerFactory.Create(x =>
@@ -40,7 +40,7 @@ public class FormatterTest
         logger.ZLogInformation(new EventId(1, "HOGE"), $"AAA {111} BBB {"Hello"}");
             
         var msgpack = processor.Dequeue();
-        ((string)msgpack["CategoryName"]).Should().Be("test");
+        ((string)msgpack["Category"]).Should().Be("test");
         ((string)msgpack["LogLevel"]).Should().Be("Information");
         ((string)msgpack["Message"]).Should().Be("AAA 111 BBB Hello");
         ((DateTimeOffset)msgpack["Timestamp"]).Should().BeOnOrAfter(now);
@@ -61,7 +61,7 @@ public class FormatterTest
         }
         
         var msgpack = processor.Dequeue();
-        ((string)msgpack["CategoryName"]).Should().Be("test");
+        ((string)msgpack["Category"]).Should().Be("test");
         ((string)msgpack["LogLevel"]).Should().Be("Error");
         ((string)msgpack["Message"]).Should().Be("DAMEDA 111");
         ((DateTimeOffset)msgpack["Timestamp"]).Should().BeOnOrAfter(now);
@@ -84,7 +84,7 @@ public class FormatterTest
         }
         
         var msgpack = processor.Dequeue();
-        ((string)msgpack["CategoryName"]).Should().Be("test");
+        ((string)msgpack["Category"]).Should().Be("test");
         ((string)msgpack["LogLevel"]).Should().Be("Error");
         ((string)msgpack["Message"]).Should().Be("DAMEDA 111");
         ((DateTimeOffset)msgpack["Timestamp"]).Should().BeOnOrAfter(now);
@@ -104,7 +104,7 @@ public class FormatterTest
         logger.ZLogInformation(new EventId(1, "HOGE"), $"UMU {payload} {x} {y}");
         
         var msgpack = processor.Dequeue();
-        ((string)msgpack["CategoryName"]).Should().Be("test");
+        ((string)msgpack["Category"]).Should().Be("test");
         ((string)msgpack["LogLevel"]).Should().Be("Information");
         ((DateTimeOffset)msgpack["Timestamp"]).Should().BeOnOrAfter(now);
         ((int?)msgpack["x"]).Should().Be(100);
@@ -137,7 +137,7 @@ public class FormatterTest
         logger.ZLogInformation($"AAA {XyzAbc} {fOo}");
 
         var msgpack = processor.Dequeue();
-        ((string)msgpack["CategoryName"]).Should().Be("test");
+        ((string)msgpack["Category"]).Should().Be("test");
         ((string)msgpack["LogLevel"]).Should().Be("Information");
         ((string)msgpack["Message"]).Should().Be("AAA 100 200");
         ((int)msgpack["xyzAbc"]).Should().Be(100);
