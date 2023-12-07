@@ -179,16 +179,7 @@ namespace ZLogger.MessagePack
             {
                 for (var i = 0; i < entry.ParameterCount; i++)
                 {
-                    if (entry.IsSupportUtf8ParameterKey)
-                    {
-                        var key = entry.GetParameterKey(i);
-                        messagePackWriter.Write(key);
-                    }
-                    else
-                    {
-                        WriteKeyName(ref messagePackWriter, entry, i);
-                    }
-
+                    WriteKeyName(ref messagePackWriter, entry, i);
                     WriteParameterValue(ref messagePackWriter, entry, entry.GetParameterType(i), i);
                 }
             }
@@ -203,7 +194,7 @@ namespace ZLogger.MessagePack
             if (entry.IsSupportUtf8ParameterKey)
             {
                 var key = entry.GetParameterKey(parameterIndex);
-                messagePackWriter.Write(key);
+                messagePackWriter.WriteString(key);
             }
             else
             {

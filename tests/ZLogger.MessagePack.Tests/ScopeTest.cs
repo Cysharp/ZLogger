@@ -12,13 +12,7 @@ namespace ZLogger.MessagePack.Tests
 
         public ScopeTest()
         {
-            var options = new ZLoggerOptions
-            {
-                IncludeScopes = true
-            };
-            options.UseMessagePackFormatter();
-
-            processor = new TestProcessor(options);
+            processor = new TestProcessor(new MessagePackZLoggerFormatter());
 
             var loggerFactory = LoggerFactory.Create(x =>
             {
