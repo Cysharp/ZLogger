@@ -208,14 +208,16 @@ public class FormatterTest
     [Fact]
     public void CustomPropertyNames()
     {
-        var formatter = new MessagePackZLoggerFormatter();
-        formatter.SetPropertyNames((propertyNames, encode) =>
+        var formatter = new MessagePackZLoggerFormatter
         {
-            propertyNames.Timestamp = encode("time");
-            propertyNames.LogLevel = encode("level");
-            propertyNames.LogLevelInformation = encode("INFO");
-        });
-        
+            PropertyNames = MessagePackPropertyNames.Default with
+            {
+                Timestamp = MessagePackEncodedText.Encode("time"),
+                LogLevel = MessagePackEncodedText.Encode("level"),
+                LogLevelInformation = MessagePackEncodedText.Encode("INFO"),
+            }
+        };
+
         processor = new TestProcessor(formatter);
 
         var loggerFactory = LoggerFactory.Create(x =>
@@ -235,6 +237,36 @@ public class FormatterTest
         ((string)msg["level"]).Should().Be("INFO");
     }
 
+    [Fact]
+    public void Nested()
+    {
+        var formatter = new MessagePackZLoggerFormatter();
+        formatter.PropertyNames = MessagePackPropertyNames.Default with
+        {
+            ParameterKeyValues = MessagePackEncodedText.Encode("attributes")
+        };
+        
+        processor = new TestProcessor(formatter);
+
+        var loggerFactory = LoggerFactory.Create(x =>
+        {
+            x.SetMinimumLevel(LogLevel.Debug);
+            x.AddZLoggerLogProcessor(options =>
+            {
+                options.TimeProvider = timeProvider;
+                return processor;
+            });
+        });
+        logger = loggerFactory.CreateLogger("test");
+                
+        
+        logger.ZLogInformation($"{100:@x}");
+
+        var msg = processor.Dequeue();
+        ((string)msg["Message"]).Should().Be("100");
+        ((int)msg["attributes"]["x"]).Should().Be(100);
+    }
+    
     [Fact]
     public void WithSourceGenerator()
     {

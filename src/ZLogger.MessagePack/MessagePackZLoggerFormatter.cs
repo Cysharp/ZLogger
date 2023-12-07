@@ -6,35 +6,54 @@ using Microsoft.Extensions.Logging;
 
 namespace ZLogger.MessagePack;
 
-public class MessagePackPropertyNames
-{
-    public static readonly MessagePackPropertyNames Default = new();
-        
-    public byte[] Category { get; set; } = MessagePackStringEncoder.Encode("Category");
-    public byte[] Timestamp { get; set; } = MessagePackStringEncoder.Encode("Timestamp");
-    public byte[] LogLevel { get; set; } = MessagePackStringEncoder.Encode("LogLevel");
-    public byte[] EventId { get; set; } = MessagePackStringEncoder.Encode("EventId");
-    public byte[] EventIdName { get; set; } = MessagePackStringEncoder.Encode("EventIdName");
-    public byte[] Exception { get; set; } = MessagePackStringEncoder.Encode("Exception");
-    public byte[] Message { get; set; } = MessagePackStringEncoder.Encode("Message");
-
-    public byte[] ExceptionName { get; set; } = MessagePackStringEncoder.Encode("Name");    
-    public byte[] ExceptionMessage { get; set; } = MessagePackStringEncoder.Encode("Message");    
-    public byte[] ExceptionStackTrace { get; set; } = MessagePackStringEncoder.Encode("StackTrace");    
-    public byte[] ExceptionInnerException { get; set; } = MessagePackStringEncoder.Encode("InnerException");
+public record MessagePackPropertyNames(
+    MessagePackEncodedText Category,
+    MessagePackEncodedText Timestamp,
+    MessagePackEncodedText LogLevel,
+    MessagePackEncodedText EventId,
+    MessagePackEncodedText EventIdName,
+    MessagePackEncodedText Exception,
+    MessagePackEncodedText Message,
     
-    public byte[] LogLevelTrace { get; set; } = MessagePackStringEncoder.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Trace));
-    public byte[] LogLevelDebug { get; set; } = MessagePackStringEncoder.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Debug));
-    public byte[] LogLevelInformation { get; set; } = MessagePackStringEncoder.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Information));
-    public byte[] LogLevelWarning { get; set; } = MessagePackStringEncoder.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Warning));
-    public byte[] LogLevelError { get; set; } = MessagePackStringEncoder.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Error));
-    public byte[] LogLevelCritical { get; set; } = MessagePackStringEncoder.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Critical));
-    public byte[] LogLevelNone { get; set; } = MessagePackStringEncoder.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.None));
+    MessagePackEncodedText ExceptionName,
+    MessagePackEncodedText ExceptionMessage,
+    MessagePackEncodedText ExceptionStackTrace,
+    MessagePackEncodedText ExceptionInnerException,
+    
+    MessagePackEncodedText LogLevelTrace,
+    MessagePackEncodedText LogLevelDebug,
+    MessagePackEncodedText LogLevelInformation,
+    MessagePackEncodedText LogLevelWarning,
+    MessagePackEncodedText LogLevelError,
+    MessagePackEncodedText LogLevelCritical,
+    MessagePackEncodedText LogLevelNone,
+    
+    MessagePackEncodedText? ParameterKeyValues = null,
+    MessagePackEncodedText? ScopeKeyValues = null)
+{
+    public static readonly MessagePackPropertyNames Default = new(
+        Category: MessagePackEncodedText.Encode("Category"),
+        Timestamp: MessagePackEncodedText.Encode("Timestamp"),
+        LogLevel: MessagePackEncodedText.Encode("LogLevel"),
+        EventId: MessagePackEncodedText.Encode("EventId"),
+        EventIdName: MessagePackEncodedText.Encode("EventIdName"),
+        Exception: MessagePackEncodedText.Encode("Exception"),
+        Message: MessagePackEncodedText.Encode("Message"),
 
-    public byte[]? ParameterKeyValues { get; set; }  // if null(default), non nested.
-    public byte[]? ScopeKeyValues { get; set; }  // if null(default), non nested.
+        ExceptionName: MessagePackEncodedText.Encode("Name"),
+        ExceptionMessage: MessagePackEncodedText.Encode("Message"),
+        ExceptionStackTrace: MessagePackEncodedText.Encode("StackTrace"),
+        ExceptionInnerException: MessagePackEncodedText.Encode("InnerException"),
 
-    public byte[] GetEncodedLogLevel(LogLevel logLevel) => logLevel switch
+        LogLevelTrace: MessagePackEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Trace)),
+        LogLevelDebug: MessagePackEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Debug)),
+        LogLevelInformation: MessagePackEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Information)),
+        LogLevelWarning: MessagePackEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Warning)),
+        LogLevelError: MessagePackEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Error)),
+        LogLevelCritical: MessagePackEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Critical)),
+        LogLevelNone: MessagePackEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.None)));
+
+    public MessagePackEncodedText GetEncodedLogLevel(LogLevel logLevel) => logLevel switch
     {
         Microsoft.Extensions.Logging.LogLevel.Trace => LogLevelTrace,
         Microsoft.Extensions.Logging.LogLevel.Debug => LogLevelDebug,
@@ -52,21 +71,12 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
     [ThreadStatic]
     static ArrayBufferWriter<byte>? threadStaticBufferWriter;
 
-    static readonly Func<string, byte[]> EncodeAction = static stringValue => MessagePackStringEncoder.Encode(stringValue);
-
     bool IZLoggerFormatter.WithLineBreak => false;
 
     public MessagePackSerializerOptions MessagePackSerializerOptions { get; set; } = MessagePackSerializer.DefaultOptions;
     public IncludeProperties IncludeProperties { get; set; } = IncludeProperties.Default;
+    public MessagePackPropertyNames PropertyNames { get; set; } = MessagePackPropertyNames.Default;
     public IKeyNameMutator? KeyNameMutator { get; set; }
-
-    public void SetPropertyNames(Action<MessagePackPropertyNames, Func<string, byte[]>> configure)
-    {
-        propertyNames = new MessagePackPropertyNames();
-        configure(propertyNames, EncodeAction);
-    }
-
-    MessagePackPropertyNames propertyNames = MessagePackPropertyNames.Default;
 
     public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
     {
@@ -76,7 +86,7 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
 
         if ((IncludeProperties & IncludeProperties.ParameterKeyValues) != 0 &&
             // flatten
-            propertyNames.ParameterKeyValues == null)
+            PropertyNames.ParameterKeyValues == null)
         {
             propCount--;
             propCount += entry.ParameterCount;
@@ -100,7 +110,7 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
             }
 
             // flatten
-            if (propertyNames.ScopeKeyValues == null)
+            if (PropertyNames.ScopeKeyValues == null)
             {
                 propCount--;
                 propCount += scopePropCount;
@@ -113,27 +123,27 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
         var flag = IncludeProperties;
         if ((flag & IncludeProperties.CategoryName) != 0)
         {
-            messagePackWriter.WriteRaw(propertyNames.Category);
+            messagePackWriter.WriteRaw(PropertyNames.Category.Utf8EncodedValue);
             messagePackWriter.WriteString(entry.LogInfo.Category.Utf8Span);
         }
         if ((flag & IncludeProperties.LogLevel) != 0)
         {
-            messagePackWriter.WriteRaw(propertyNames.LogLevel);
-            messagePackWriter.WriteRaw(propertyNames.GetEncodedLogLevel(entry.LogInfo.LogLevel));
+            messagePackWriter.WriteRaw(PropertyNames.LogLevel.Utf8EncodedValue);
+            messagePackWriter.WriteRaw(PropertyNames.GetEncodedLogLevel(entry.LogInfo.LogLevel).Utf8EncodedValue);
         }
         if ((flag & IncludeProperties.EventIdValue) != 0)
         {
-            messagePackWriter.WriteRaw(propertyNames.EventId);
+            messagePackWriter.WriteRaw(PropertyNames.EventId.Utf8EncodedValue);
             messagePackWriter.WriteInt32(entry.LogInfo.EventId.Id);
         }
         if ((flag & IncludeProperties.EventIdName) != 0)
         {
-            messagePackWriter.WriteRaw(propertyNames.EventIdName);
+            messagePackWriter.WriteRaw(PropertyNames.EventIdName.Utf8EncodedValue);
             messagePackWriter.Write(entry.LogInfo.EventId.Name);
         }
         if ((flag & IncludeProperties.Timestamp) != 0)
         {
-            messagePackWriter.WriteRaw(propertyNames.Timestamp);
+            messagePackWriter.WriteRaw(PropertyNames.Timestamp.Utf8EncodedValue);
             MessagePackSerializerOptions.Resolver.GetFormatterWithVerify<DateTime>()
                 .Serialize(ref messagePackWriter, entry.LogInfo.Timestamp.Utc.DateTime, MessagePackSerializerOptions);
         }
@@ -141,7 +151,7 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
         {
             if (entry.LogInfo.Exception is { } ex)
             {
-                messagePackWriter.WriteRaw(propertyNames.Exception);
+                messagePackWriter.WriteRaw(PropertyNames.Exception.Utf8EncodedValue);
                 WriteException(ref messagePackWriter, ex);
             }
         }
@@ -149,7 +159,7 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
         // Message
         if ((flag & IncludeProperties.Message) != 0)
         {
-            messagePackWriter.WriteRaw(propertyNames.Message);
+            messagePackWriter.WriteRaw(PropertyNames.Message.Utf8EncodedValue);
             var buffer = GetThreadStaticBufferWriter();
             entry.ToString(buffer);
             messagePackWriter.WriteString(buffer.WrittenSpan);
@@ -161,7 +171,7 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
             if (entry.LogInfo.ScopeState is { Properties: var scopeProperties })
             {
                 // nested
-                if (propertyNames.ScopeKeyValues != null)
+                if (PropertyNames.ScopeKeyValues != null)
                 {
                     messagePackWriter.WriteMapHeader(scopePropCount);
                 }
@@ -189,7 +199,7 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
         if ((flag & IncludeProperties.ParameterKeyValues) != 0)
         {
             // nested
-            if (propertyNames.ParameterKeyValues != null)
+            if (PropertyNames.ParameterKeyValues != null)
             {
                 messagePackWriter.WriteMapHeader(entry.ParameterCount);
             }
@@ -272,16 +282,16 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
 
             messagePackWriter.WriteMapHeader(4);
 
-            messagePackWriter.WriteRaw(propertyNames.ExceptionName);
+            messagePackWriter.WriteRaw(PropertyNames.ExceptionName.Utf8EncodedValue);
             messagePackWriter.Write(ex.GetType().FullName);
 
-            messagePackWriter.WriteRaw(propertyNames.ExceptionMessage);
+            messagePackWriter.WriteRaw(PropertyNames.ExceptionMessage.Utf8EncodedValue);
             messagePackWriter.Write(ex.Message);
 
-            messagePackWriter.WriteRaw(propertyNames.ExceptionStackTrace);
+            messagePackWriter.WriteRaw(PropertyNames.ExceptionStackTrace.Utf8EncodedValue);
             messagePackWriter.Write(ex.StackTrace);
 
-            messagePackWriter.WriteRaw(propertyNames.ExceptionInnerException);
+            messagePackWriter.WriteRaw(PropertyNames.ExceptionInnerException.Utf8EncodedValue);
             ex = ex.InnerException;
         }
     }

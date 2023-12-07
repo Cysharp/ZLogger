@@ -4,11 +4,22 @@ using MessagePack;
 
 namespace ZLogger.MessagePack;
 
-static class MessagePackStringEncoder
+public readonly struct MessagePackEncodedText : IEquatable<MessagePackEncodedText>
 {
     static readonly Encoding StringEncoding = new UTF8Encoding(false);
     
-    public static byte[] Encode(string stringValue, MessagePackSerializerOptions? options = null)
+    public string Value { get; private init; }
+    public ReadOnlySpan<byte> Utf8EncodedValue => utf8EncodedValue;
+
+    readonly byte[] utf8EncodedValue;
+
+    MessagePackEncodedText(string value, byte[] utf8EncodedValue)
+    {
+        Value = value;
+        this.utf8EncodedValue = utf8EncodedValue;
+    }
+    
+    public static MessagePackEncodedText Encode(string stringValue, MessagePackSerializerOptions? options = null)
     {
         var oldSpec = options?.OldSpec ?? false;
         var characterLength = stringValue.Length;
@@ -50,6 +61,11 @@ static class MessagePackStringEncoder
             buffer[4] = (byte)byteCount;
         }
 
-        return buffer[..(byteCount + useOffset)].ToArray();
+        var encodedValue = buffer[..(byteCount + useOffset)].ToArray();
+        return new MessagePackEncodedText(stringValue, encodedValue);
     }
+
+    public bool Equals(MessagePackEncodedText other) => Value == other.Value;
+    public override bool Equals(object? obj) => obj is MessagePackEncodedText other && Equals(other);
+    public override int GetHashCode() => Value.GetHashCode();
 }
