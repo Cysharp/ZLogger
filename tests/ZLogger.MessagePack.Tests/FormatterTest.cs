@@ -204,6 +204,36 @@ public class FormatterTest
         ((bool)msgpack.ContainsKey("CategoryName")).Should().BeFalse();
         ((bool)msgpack.ContainsKey("EventIdName")).Should().BeFalse();
     }
+    
+    [Fact]
+    public void CustomPropertyNames()
+    {
+        var formatter = new MessagePackZLoggerFormatter();
+        formatter.SetPropertyNames((propertyNames, encode) =>
+        {
+            propertyNames.Timestamp = encode("time");
+            propertyNames.LogLevel = encode("level");
+            propertyNames.LogLevelInformation = encode("INFO");
+        });
+        
+        processor = new TestProcessor(formatter);
+
+        var loggerFactory = LoggerFactory.Create(x =>
+        {
+            x.SetMinimumLevel(LogLevel.Debug);
+            x.AddZLoggerLogProcessor(options =>
+            {
+                options.TimeProvider = timeProvider;
+                return processor;
+            });
+        });
+        logger = loggerFactory.CreateLogger("test");
+                
+        logger.ZLogInformation($"HELLO!");
+
+        var msg = processor.Dequeue();
+        ((string)msg["level"]).Should().Be("INFO");
+    }
 
     [Fact]
     public void WithSourceGenerator()
