@@ -98,20 +98,24 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
         }
         if ((IncludeProperties & IncludeProperties.ScopeKeyValues) != 0)
         {
-            if (entry.LogInfo.ScopeState != null)
+            if (entry.LogInfo.ScopeState == null)
+            {
+                propCount--;
+            }
+            else
             {
                 var scopeProperties = entry.LogInfo.ScopeState.Properties;
                 foreach (var t in scopeProperties)
                 {
                     if (t.Key != "{OriginalFormat}") scopePropCount++;
                 }
-            }
 
-            // flatten
-            if (PropertyNames.ScopeKeyValues == null)
-            {
-                propCount--;
-                propCount += scopePropCount;
+                // flatten
+                if (PropertyNames.ScopeKeyValues == null)
+                {
+                    propCount--;
+                    propCount += scopePropCount;
+                }
             }
         }
 

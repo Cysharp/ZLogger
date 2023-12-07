@@ -263,13 +263,46 @@ public class FormatterTest
         logger = loggerFactory.CreateLogger("test");
 
 
+        logger.ZLogInformation($"{456:@y}");
+
+        var msg = processor.Dequeue();
+        ((string)msg["Message"]).Should().Be("456");
+        ((int)msg["attributes"]["y"]).Should().Be(456);
+    }
+
+    [Fact]
+    public void NestedScopeKeyValues()
+    {
+        var formatter = new MessagePackZLoggerFormatter
+        {
+            PropertyNames = MessagePackPropertyNames.Default with
+            {
+                ParameterKeyValues = MessagePackEncodedText.Encode("attributes"),
+                ScopeKeyValues = MessagePackEncodedText.Encode("scope")
+            }
+        };
+
+        processor = new TestProcessor(formatter);
+
+        var loggerFactory = LoggerFactory.Create(x =>
+        {
+            x.SetMinimumLevel(LogLevel.Debug);
+            x.AddZLoggerLogProcessor(options =>
+            {
+                options.IncludeScopes = true;
+                options.TimeProvider = timeProvider;
+                return processor;
+            });
+        });
+        logger = loggerFactory.CreateLogger("test");
+
         using (logger.BeginScope("{X}", 123))
         {
             logger.ZLogInformation($"{456:@y}");
         }
 
         var msg = processor.Dequeue();
-        ((string)msg["Message"]).Should().Be("100");
+        ((string)msg["Message"]).Should().Be("456");
         ((int)msg["scope"]["X"]).Should().Be(123);
         ((int)msg["attributes"]["y"]).Should().Be(456);
     }
