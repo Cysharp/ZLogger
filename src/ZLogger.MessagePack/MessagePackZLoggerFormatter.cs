@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Numerics;
 using MessagePack;
 using Microsoft.Extensions.Logging;
@@ -100,12 +101,9 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
             if (entry.LogInfo.ScopeState != null)
             {
                 var scopeProperties = entry.LogInfo.ScopeState.Properties;
-                for (var i = 0; i < scopeProperties.Length; i++)
+                foreach (var t in scopeProperties)
                 {
-                    if (scopeProperties[i].Key != "{OriginalFormat}")
-                    {
-                        scopePropCount++;
-                    }
+                    if (t.Key != "{OriginalFormat}") scopePropCount++;
                 }
             }
 
@@ -173,6 +171,7 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
                 // nested
                 if (PropertyNames.ScopeKeyValues != null)
                 {
+                    messagePackWriter.WriteRaw(PropertyNames.ScopeKeyValues.Value.Utf8EncodedValue);
                     messagePackWriter.WriteMapHeader(scopePropCount);
                 }
                 
@@ -201,6 +200,7 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
             // nested
             if (PropertyNames.ParameterKeyValues != null)
             {
+                messagePackWriter.WriteRaw(PropertyNames.ParameterKeyValues.Value.Utf8EncodedValue);
                 messagePackWriter.WriteMapHeader(entry.ParameterCount);
             }
             for (var i = 0; i < entry.ParameterCount; i++)

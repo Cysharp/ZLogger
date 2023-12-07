@@ -238,14 +238,17 @@ public class FormatterTest
     }
 
     [Fact]
-    public void Nested()
+    public void NestedParameterKeyValues()
     {
-        var formatter = new MessagePackZLoggerFormatter();
-        formatter.PropertyNames = MessagePackPropertyNames.Default with
+        var formatter = new MessagePackZLoggerFormatter
         {
-            ParameterKeyValues = MessagePackEncodedText.Encode("attributes")
+            PropertyNames = MessagePackPropertyNames.Default with
+            {
+                ParameterKeyValues = MessagePackEncodedText.Encode("attributes"),
+                ScopeKeyValues = MessagePackEncodedText.Encode("scope")
+            }
         };
-        
+
         processor = new TestProcessor(formatter);
 
         var loggerFactory = LoggerFactory.Create(x =>
@@ -258,13 +261,17 @@ public class FormatterTest
             });
         });
         logger = loggerFactory.CreateLogger("test");
-                
-        
-        logger.ZLogInformation($"{100:@x}");
+
+
+        using (logger.BeginScope("{X}", 123))
+        {
+            logger.ZLogInformation($"{456:@y}");
+        }
 
         var msg = processor.Dequeue();
         ((string)msg["Message"]).Should().Be("100");
-        ((int)msg["attributes"]["x"]).Should().Be(100);
+        ((int)msg["scope"]["X"]).Should().Be(123);
+        ((int)msg["attributes"]["y"]).Should().Be(456);
     }
     
     [Fact]
