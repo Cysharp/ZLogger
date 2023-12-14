@@ -9,6 +9,7 @@
     <ItemGroup>
         <PackageReference Include="FluentAssertions" Version="5.10.3" />
         <PackageReference Include="MessagePack" Version="2.5.129" />
+        <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="8.0.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.0" />
         <PackageReference Include="xunit" Version="2.4.1" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
@@ -20,5 +21,10 @@
     <ItemGroup>
       <ProjectReference Include="..\..\src\ZLogger.MessagePack\ZLogger.MessagePack.csproj" />
       <ProjectReference Include="..\..\src\ZLogger\ZLogger.csproj" />
+      <ProjectReference Include="..\..\src\ZLogger.Generator\ZLogger.Generator.csproj" />
+      <ProjectReference Include="..\..\src\ZLogger.Generator\ZLogger.Generator.csproj">
+          <OutputItemType>Analyzer</OutputItemType>
+          <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      </ProjectReference>
     </ItemGroup>
 </Project>

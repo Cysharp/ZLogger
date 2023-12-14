@@ -25,19 +25,17 @@ namespace ZLogger.MessagePack.Tests
         }
     }
     
-    class TestProcessor : IAsyncLogProcessor
+    class TestProcessor(IZLoggerFormatter formatter) : IAsyncLogProcessor
     {
-        public Queue<dynamic> EntryMessages = new();
-        readonly ZLoggerOptions options;
-        readonly IZLoggerFormatter formatter;
+        public readonly Queue<byte[]> EntryMessages = new();
         readonly ArrayBufferWriter<byte> bufferWriter = new();
 
-        public dynamic Dequeue() => EntryMessages.Dequeue();
+        public byte[] DequeueAsRaw() => EntryMessages.Dequeue();
 
-        public TestProcessor(ZLoggerOptions options)
+        public dynamic Dequeue()
         {
-            this.options = options;
-            formatter = options.CreateFormatter();
+            var data = EntryMessages.Dequeue();
+            return MessagePackSerializer.Deserialize<dynamic>(data, ContractlessStandardResolver.Options);
         }
 
         public ValueTask DisposeAsync()
@@ -48,9 +46,8 @@ namespace ZLogger.MessagePack.Tests
         public void Post(IZLoggerEntry log)
         {
             log.FormatUtf8(bufferWriter, formatter);
-            var entry = MessagePackSerializer.Deserialize<dynamic>(bufferWriter.WrittenMemory, ContractlessStandardResolver.Options);
+            EntryMessages.Enqueue(bufferWriter.WrittenMemory.ToArray());
             bufferWriter.Clear();
-            EntryMessages.Enqueue(entry);
         }
     }    
 }

@@ -66,7 +66,7 @@ namespace ZLogger.Formatters
         JsonEncodedText LogLevelNone
     )
     {
-        public static readonly JsonPropertyNames Default = new JsonPropertyNames(
+        public static readonly JsonPropertyNames Default = new(
             Category: JsonEncodedText.Encode(nameof(LogInfo.Category)),
             Timestamp: JsonEncodedText.Encode(nameof(LogInfo.Timestamp)),
             LogLevel: JsonEncodedText.Encode(nameof(LogInfo.LogLevel)),
