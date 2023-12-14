@@ -1,0 +1,9 @@
+{
+  "name": "com.cysharp.zlogger",
+  "version": "2.0.0",
+  "author": { "name": "Cysharp, Inc.", "url": "https://cysharp.co.jp/en/" },
+  "displayName": "ZLogger",
+  "description": "Zero Allocation Text/Structured Logger for .NET with StringInterpolation and Source Generator, built on top of a Microsoft.Extensions.Logging.",
+  "unity": "2022.2",
+  "license": "MIT"
+}

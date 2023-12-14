@@ -137,3 +137,5 @@ src/ZLogger.Unity/ZLogger.Unity.sln
 src/ZLogger.Unity/ZString.csproj
 
 src/ZLogger.Unity/*.csproj
+
+.DS_Store
