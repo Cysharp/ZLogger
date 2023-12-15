@@ -51,6 +51,9 @@ As for standard logger features, it supports loading LogLevel from json, filteri
 - [Microsoft.CodeAnalysis.BannedApiAnalyzers](#microsoftcodeanalysisbannedapianalyzers)
 - [Global LoggerFactory](#global-loggerfactory)
 - [Unity](#unity)
+  - [Installation](#installation)
+  - [Basic usage](#basic-usage)
+  - [UnityEngine.Debug log provider](#unityenginedebug-log-provider)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
