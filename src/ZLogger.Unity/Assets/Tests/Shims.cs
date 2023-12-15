@@ -25,7 +25,7 @@ namespace FluentAssertions
             return new Bool(value);
         }
 
-        public static String Should(this string value)
+        public static String Should(this string? value)
         {
             return new String(value);
         }
@@ -134,9 +134,9 @@ namespace FluentAssertions
 
         public class String
         {
-            readonly string actual;
+            readonly string? actual;
 
-            public String(string value)
+            public String(string? value)
             {
                 actual = value;
             }

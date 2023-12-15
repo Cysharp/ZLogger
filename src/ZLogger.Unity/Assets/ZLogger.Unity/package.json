@@ -1,0 +1,10 @@
+{
+  "name": "com.cysharp.zlogger",
+  "version": "2.0.0",
+  "author": { "name": "Cysharp, Inc.", "url": "https://cysharp.co.jp/en/" },
+  "displayName": "ZLogger",
+  "description": "ZLogger unity extensions",
+  "unity": "2022.3",
+  "unityRelease": "12f1",
+  "license": "MIT"
+}

@@ -2,7 +2,13 @@ using Microsoft.Extensions.Logging;
 using UnityEngine;
 using ZLogger;
 using ZLogger.Unity;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
+public static partial class Log
+{
+    [ZLoggerMessage(LogLevel.Information, "Could not open socket to {hostName} {ipAddress}.")]
+    public static partial void Hello(this ILogger logger, string hostName, string ipAddress);
+}
 
 public class SampleBehaviour : MonoBehaviour
 {
@@ -35,5 +41,7 @@ public class SampleBehaviour : MonoBehaviour
         {
             logger.ZLogInformation($"@@@@@@@@ Hello {name}");
         }
+        
+        logger.Hello("example.com", "111.111.111.111");
     }
 }
