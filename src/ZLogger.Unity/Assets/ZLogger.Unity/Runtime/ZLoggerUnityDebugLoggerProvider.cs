@@ -10,7 +10,7 @@ namespace ZLogger.Unity;
 
 public static class ZLoggerUnityExtensions
 {
-    public static ILoggingBuilder AddZLoggerUnityDebug(this ILoggingBuilder builder) => builder.AddZLoggerConsole((_, _) => { });
+    public static ILoggingBuilder AddZLoggerUnityDebug(this ILoggingBuilder builder) => builder.AddZLoggerUnityDebug(_ => { });
     public static ILoggingBuilder AddZLoggerUnityDebug(this ILoggingBuilder builder, Action<ZLoggerOptions> configure)
     {
         builder.Services.AddSingleton<ILoggerProvider, ZLoggerUnityDebugLoggerProvider>(serviceProvider =>
