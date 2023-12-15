@@ -6,7 +6,12 @@ on:
       tag:
         description: "tag: git tag you want create. (sample 1.0.0)"
         required: true
-
+      dry-run:
+        description: "dry-run: true will never create relase/nuget."
+        required: true
+        default: false
+        type: boolean
+        
 env:
   GIT_TAG: ${{ github.event.inputs.tag }}
   
@@ -17,7 +22,7 @@ jobs:
       file-path: ./src/ZLogger.Unity/Assets/ZLogger.Unity/package.json
       tag: ${{ github.event.inputs.tag }}
       dry-run: ${{ fromJson(github.event.inputs.dry-run) }}
-  
+ 
   build-dotnet:
     needs: [update-packagejson]
     runs-on: ubuntu-latest
@@ -37,6 +42,7 @@ jobs:
 
   # release
   create-release:
+    if: github.event.inputs.dry-run == 'false'    
     needs: [update-packagejson, build-dotnet]
     runs-on: ubuntu-latest
     timeout-minutes: 10
