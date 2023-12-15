@@ -37,7 +37,7 @@ jobs:
 
   # release
   create-release:
-    needs: [build-dotnet]
+    needs: [update-packagejson, build-dotnet]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
