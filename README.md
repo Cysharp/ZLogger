@@ -734,31 +734,33 @@ To use them in Unity, needs to check the Unity version and set up the compiler.
   - Unity internally embeds the .NET SDK 6. So C# 10 is available via compiler arguments.
 - Unity 2022.3.12f1 or newer
   - ZLogger source generator available.
-  - Unity internaly update .NET SDK 6. So C# 11,12 features are in preview.
+  - Unity internaly update .NET SDK 6. So C# 11 features are in preview.
 
 Prerequirements:
 - Install [NuGetForUnity](https://github.com/GlitchEnzo/NuGetForUnity)
   - Required to install the dlls of ZLogger and its dependencies.
 - Install [CsprojModifier](https://github.com/Cysharp/CsprojModifier) 
   - Required too develop in the IDE with a new language version.
+- Install `ZLogger.Unity` package via git url.
+  - Add `https://github.com/Cysharp/ZLogger.git?path=src/ZLogger.Unity/Assets/ZLogger.Unity` to Package Manager
   
 Installation steps:
 
 1. Setup the C# compiler for unity. 
     - Add a text file named `csc.rsp` with the following contents under your Assets/.
         - ```
-          -langVersion:preview -nullable
+          -langVersion:10 -nullable
           ```
     - Note:
         - If you are using assembly definition, put it in the same folder as the asmdef that references ZLogger.
-        - Specifying `langVersion:10` allows C# 10 features to be used. `langVersion:preview` allows parts of C# 11,12 features to be used.
+        - If you are using Unity 2022.3.12f1 or newer, you can use `langVersion:preview` allows parts of C# 11 features.
 
 2. Setup the C# compiler for your IDE. 
     - Add a text file named LangVersion.props with the following contents
         - ```xml
           <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
             <PropertyGroup>
-              <LangVersion>preview</LangVersion>
+              <LangVersion>10</LangVersion>
               <Nullable>enable</Nullable>
             </PropertyGroup>
           </Project>
@@ -767,11 +769,11 @@ Installation steps:
     - Add the .props file you just created, to the list of [Additional project imports].
     - Note:
         - If you are using assembly definition, add your additional csproj in the list of [The project to be addef for import].
+        - If you want to use `ZLoggerMessage` Source Generator, require Unity 2022.3.12f1 and change to `<LangVersion>11</LangVersion>`
 3. Install ZLogger nuget package. 
     - Open [Nuget] -> [Manage Nuget Packages] in the menu bar.
     - Search `ZLogger`, and press [Install].
-4. If you want to use the ZLogger extension for Unity, install the `ZLogger.Unity` package.
-    - Add `https://github.com/Cysharp/ZLogger.git?path=src/ZLogger.Unity/Assets/ZLogger.Unity` to Package Manager
+
 
 
 ### Basic usage
@@ -781,33 +783,37 @@ The basic functions of ZLogger are also available in Unity as follows. Use Logge
 ```cs
 var loggerFactory = LoggerFactory.Create(logging =>
 {
-    logging.AddZLoggerFile("/path/to/logfile", options =>
-    {
-        options.UseJsonFormatter();
-        options.IncludeScopes = true;
-    });
+    logging.SetMinimumLevel(LogLevel.Trace);
+    logging.AddZLoggerUnityDebug(); // log to UnityDebug
 });
 
-var logger = loggerFactory.CreateLogger(nameof(YourClass));
+var logger = loggerFactory.CreateLogger<YourClass>();
 
 var name = "foo";
 logger.ZLogInformation($"Hello, {name}!");
 ```
 
-### UnityEngine.Debug log provider
-
-If you have installed ZLogger.Unity, you can output to UnityEngine.Debug.Log as follows
+Also supports StructuredLogging(JSON), and FileProvider.
 
 ```cs
 var loggerFactory = LoggerFactory.Create(logging =>
 {
-    logging.AddZLoggerUnityDebug(options =>
+    logging.AddZLoggerFile("/path/to/logfile", options =>
     {
         options.UseJsonFormatter();
     });
 });
 ```
 
+Unity 2022.3.12f1 and enables `-langVersion:preview` supports Source Generator.
+
+```csharp
+public static partial class LogExtensions
+{
+    [ZLoggerMessage(LogLevel.Debug, "Hello, {name}")]
+    public static partial void Hello(this ILogger<NewBehaviourScript> logger, string name);
+}
+```
 
 License
 ---
