@@ -734,7 +734,7 @@ To use them in Unity, needs to check the Unity version and set up the compiler.
   - Unity internally embeds the .NET SDK 6. So C# 10 is available via compiler arguments.
 - Unity 2022.3.12f1 or newer
   - ZLogger source generator available.
-  - Unity internaly update .NET SDK 6. So C# 11 features are in preview.
+  - Unity internaly update .NET SDK 6. So C# 11,12 features are in preview.
 
 Prerequirements:
 - Install [NuGetForUnity](https://github.com/GlitchEnzo/NuGetForUnity)
@@ -751,7 +751,7 @@ Installation steps:
           ```
     - Note:
         - If you are using assembly definition, put it in the same folder as the asmdef that references ZLogger.
-        - Specifying `langVersion:10` allows C# 10 features to be used. `langVersion:preview` allows parts of C# 11 features to be used.
+        - Specifying `langVersion:10` allows C# 10 features to be used. `langVersion:preview` allows parts of C# 11,12 features to be used.
 
 2. Setup the C# compiler for your IDE. 
     - Add a text file named LangVersion.props with the following contents
