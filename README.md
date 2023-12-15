@@ -2,7 +2,7 @@ ZLogger
 ===
 [![GitHub Actions](https://github.com/Cysharp/ZLogger/workflows/Build-Debug/badge.svg)](https://github.com/Cysharp/ZLogger/actions) [![Releases](https://img.shields.io/github/release/Cysharp/ZLogger.svg)](https://github.com/Cysharp/ZLogger/releases)
 
-**Z**ero Allocation Text/Structured **Logger** for .NET with StringInterpolation and Source Generator, built on top of a `Microsoft.Extensions.Logging`.
+**Z**ero Allocation Text/Structured **Logger** for .NET and Unity, with StringInterpolation and Source Generator, built on top of a `Microsoft.Extensions.Logging`.
 
 The usual destinations for log output are `Console(Stream)`, `File(Stream)`, `Network(Stream)`, all in UTF8 format. However, since typical logging architectures are based on Strings (UTF16), this requires additional encoding costs. In ZLogger, we utilize the [String Interpolation Improvement of C# 10](https://devblogs.microsoft.com/dotnet/string-interpolation-in-c-10-and-net-6/) and by leveraging .NET 8's [IUtf8SpanFormattable](https://learn.microsoft.com/en-us/dotnet/api/system.iutf8spanformattable?view=net-8.0), we have managed to avoid the boxing of values and maintain high performance by consistently outputting directly in UTF8 from input to output.
 
@@ -62,6 +62,9 @@ This library is distributed via NuGet, supporting `.NET Standard 2.0`, `.NET Sta
 > PM> Install-Package [ZLogger](https://www.nuget.org/packages/ZLogger)
 
 In the simplest case, you generate a logger by adding ZLogger's Provider to Microsoft.Extensions.Logging's [LoggerFactory](https://learn.microsoft.com/en-us/dotnet/core/extensions/logging), and then use ZLogger's own ZLog method.
+
+For Unity, the requirements and installation process are completely different. See the [Unity](#unity) section for details.
+
 
 ```csharp
 using Microsoft.Extensions.Logging;
@@ -716,7 +719,92 @@ public class Foo
 
 Unity
 ---
-This library requires C# 10.0, however currently Unity C# version is 9.0. Therefore, it is not supported at this time and will be considered when the version of Unity's C# is updated.
+
+### Installation
+
+ZLogger uses some of the compile time features of C# 10, and ZLogger.Generator uses some of the features of C# 11.
+
+To use them in Unity, needs to check the Unity version and set up the compiler.
+
+- Unity 2022.2 or newer
+  - Standard ZLogger features are available.
+  - Unity internally embeds the .NET SDK 6. So C# 10 is available via compiler arguments.
+- Unity 2022.3.12f1 or newer
+  - ZLogger source generator available.
+  - Unity internaly update .NET SDK 6. So C# 11 features are in preview.
+
+Prerequirements:
+- Install [NuGetForUnity](https://github.com/GlitchEnzo/NuGetForUnity)
+  - Required to install the dlls of ZLogger and its dependencies.
+- Install [CsprojModifier](https://github.com/Cysharp/CsprojModifier) 
+  - Required too develop in the IDE with a new language version.
+  
+Installation steps:
+
+1. Setup the C# compiler for unity. 
+    - Add a text file named `csc.rsp` with the following contents under your Assets/.
+        - ```
+          -langVersion:preview -nullable
+          ```
+    - Note:
+        - If you are using assembly definition, put it in the same folder as the asmdef that references ZLogger.
+        - Specifying `langVersion:10` allows C# 10 features to be used. `langVersion:preview` allows parts of C# 11 features to be used.
+
+2. Setup the C# compiler for your IDE. 
+    - Add a text file named LangVersion.props with the following contents
+        - ```xml
+          <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+            <PropertyGroup>
+              <LangVersion>preview</LangVersion>
+              <Nullable>enable</Nullable>
+            </PropertyGroup>
+          </Project>
+          ``` 
+    - Open Project Settings and [C# Project Modifier] section under the [Editor].
+    - Add the .props file you just created, to the list of [Additional project imports].
+    - Note:
+        - If you are using assembly definition, add your additional csproj in the list of [The project to be addef for import].
+3. Install ZLogger nuget package. 
+    - Open [Nuget] -> [Manage Nuget Packages] in the menu bar.
+    - Search `ZLogger`, and press [Install].
+4. If you want to use the ZLogger extension for Unity, install the `ZLogger.Unity` package.
+    - Add `https://github.com/Cysharp/ZLogger.git?path=src/ZLogger.Unity/Assets/ZLogger.Unity` to Package Manager
+
+
+### Basic usage
+
+The basic functions of ZLogger are also available in Unity as follows. Use LoggerFactory directly to create loggers.
+
+```cs
+var loggerFactory = LoggerFactory.Create(logging =>
+{
+    logging.AddZLoggerFile("/path/to/logfile", options =>
+    {
+        options.UseJsonFormatter();
+        options.IncludeScopes = true;
+    });
+});
+
+var logger = loggerFactory.CreateLogger(nameof(YourClass));
+
+var name = "foo";
+logger.ZLogInformation($"Hello, {name}!");
+```
+
+### UnityEngine.Debug log provider
+
+If you have installed ZLogger.Unity, you can output to UnityEngine.Debug.Log as follows
+
+```cs
+var loggerFactory = LoggerFactory.Create(logging =>
+{
+    logging.AddZLoggerUnityDebug(options =>
+    {
+        options.UseJsonFormatter();
+    });
+});
+```
+
 
 License
 ---

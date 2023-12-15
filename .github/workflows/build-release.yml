@@ -11,7 +11,15 @@ env:
   GIT_TAG: ${{ github.event.inputs.tag }}
   
 jobs:
-  dotnet-build-and-push:
+  update-packagejson:
+    uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
+    with:
+      file-path: ./src/ZLogger.Unity/Assets/ZLogger.Unity/package.json
+      tag: ${{ github.event.inputs.tag }}
+      dry-run: ${{ fromJson(github.event.inputs.dry-run) }}
+  
+  build-dotnet:
+    needs: [update-packagejson]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -43,3 +51,10 @@ jobs:
           release_name: Ver.${{ env.GIT_TAG }}
           draft: true
           prerelease: false
+
+  cleanup:
+    if: needs.update-packagejson.outputs.is-branch-created == 'true'
+    needs: [update-packagejson, build-dotnet]
+    uses: Cysharp/Actions/.github/workflows/clean-packagejson-branch.yaml@main
+    with:
+      branch: ${{ needs.update-packagejson.outputs.branch-name }}
