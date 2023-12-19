@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,6 +29,9 @@ namespace ZLogger.Generator.Tests
 
         [ZLoggerMessage(LogLevel.Information, "Hello {x} {y}")]
         public partial void Err(ILogger logger, Exception exception, int x, int y);
+
+        [ZLoggerMessage(LogLevel.Error, "Hello {str} {x}")]
+        public partial void ErrNullable(ILogger logger, string? str, int? x, Exception? exception = null);
 
         [ZLoggerMessage(EventId = 12, EventName = "EventName", Level = LogLevel.Warning, Message = "Hello {x} {y}")]
         public partial void EventName(ILogger logger, int x, int y);
@@ -65,7 +70,7 @@ namespace ZLogger.Generator.Tests
         {
             using var _ = TestHelper.CreateLogger<AttributeTest>(LogLevel.Debug, options => options.UsePlainTextFormatter(formatter =>
             {
-                formatter.SetPrefixFormatter($"{0}:", (template, info) => template.Format(info.Exception.Message));
+                formatter.SetPrefixFormatter($"{0}:", (template, info) => template.Format(info.Exception?.Message));
                 formatter.SetExceptionFormatter((_, _) => { });
             }), out var logger, out var list);
 

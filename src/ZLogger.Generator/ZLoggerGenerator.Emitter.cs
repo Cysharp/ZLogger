@@ -239,7 +239,12 @@ public partial class ZLoggerGenerator
             var stateTypeName = $"{method.TargetMethod.Name}State";
 
             var methodArgument = method.MethodParameters
-                .Select(x => $"{x.Symbol.Type.ToFullyQualifiedFormatString()} {x.Symbol.Name}")
+                .Select(x =>
+                {
+                    var t = x.Symbol.Type;
+                    var nullableSuffix = t.NullableAnnotation is NullableAnnotation.Annotated && t.IsValueType is false ? "?" : "";
+                    return $"{t.ToFullyQualifiedFormatString()}{nullableSuffix} {x.Symbol.Name}";
+                })
                 .StringJoinComma();
 
             var newParameters = methodParameters
