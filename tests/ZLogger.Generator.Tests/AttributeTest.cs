@@ -28,6 +28,9 @@ namespace ZLogger.Generator.Tests
         [ZLoggerMessage(LogLevel.Information, "Hello {x} {y}")]
         public partial void Err(ILogger logger, Exception exception, int x, int y);
 
+        [ZLoggerMessage(EventId = 12, EventName = "EventName", Level = LogLevel.Warning, Message = "Hello {x} {y}")]
+        public partial void EventName(ILogger logger, int x, int y);
+
 #pragma warning restore xUnit1013
 
         [Fact]
@@ -52,6 +55,9 @@ namespace ZLogger.Generator.Tests
 
             Three(logger, 30, 20);
             list[4].Should().Be("Warning:Hello 30 20");
+
+            EventName(logger, 40, 50);
+            list[5].Should().Be("Warning:Hello 40 50");
         }
 
         [Fact]

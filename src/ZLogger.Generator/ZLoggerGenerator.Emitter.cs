@@ -226,7 +226,7 @@ public partial class ZLoggerGenerator
             var modifiers = method.TargetSyntax.Modifiers.ToString();
             var extension = method.TargetMethod.IsExtensionMethod ? "this " : string.Empty;
 
-            var eventName = method.Attribute.EventName ?? $"nameof({method.TargetMethod.Name})";
+            var eventName = method.Attribute.EventName is { } name ? $"\"{name}\"" : $"nameof({method.TargetMethod.Name})";
 
             var loggerName = method.MethodParameters.First(x => x.IsFirstLogger).Symbol.Name;
 
