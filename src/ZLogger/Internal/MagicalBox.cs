@@ -327,7 +327,7 @@ internal unsafe partial struct MagicalBox
             }
             else
             {
-                cache.TryAdd(typeof(T), new Handlers(&JsonSerialize<T>, &StringAppendFormatted<T>, &Utf8AppendFormatted<T>, &ReadBoxed<DateTimeOffset>));
+                cache.TryAdd(typeof(T), new Handlers(&JsonSerialize<T>, &StringAppendFormatted<T>, &Utf8AppendFormatted<T>, &ReadBoxed<T>));
             }
 
             IsRegistered<T>.Value = true;
