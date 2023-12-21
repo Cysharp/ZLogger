@@ -47,24 +47,24 @@ namespace ZLogger
         }
 <# foreach(var logLevel in logLevels) { #>
 
-        public static void ZLog<#= logLevel #>(this ILogger logger, [InterpolatedStringHandlerArgument("logger")]ref ZLogger<#= logLevel #>InterpolatedStringHandler message)
+        public static void ZLog<#= logLevel #>(this ILogger logger, [InterpolatedStringHandlerArgument("logger")] ref ZLogger<#= logLevel #>InterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.<#= logLevel #>, default, null, ref message.innerHandler);
+            ZLog(logger, LogLevel.<#= logLevel #>, default, null, ref message.InnerHandler);
         } 
 
-        public static void ZLog<#= logLevel #>(this ILogger logger, EventId eventId, [InterpolatedStringHandlerArgument("logger")]ref ZLogger<#= logLevel #>InterpolatedStringHandler message)
+        public static void ZLog<#= logLevel #>(this ILogger logger, EventId eventId, [InterpolatedStringHandlerArgument("logger")] ref ZLogger<#= logLevel #>InterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.<#= logLevel #>, eventId, null, ref message.innerHandler);
+            ZLog(logger, LogLevel.<#= logLevel #>, eventId, null, ref message.InnerHandler);
         } 
 
-        public static void ZLog<#= logLevel #>(this ILogger logger, Exception? exception, [InterpolatedStringHandlerArgument("logger")]ref ZLogger<#= logLevel #>InterpolatedStringHandler message)
+        public static void ZLog<#= logLevel #>(this ILogger logger, Exception? exception, [InterpolatedStringHandlerArgument("logger")] ref ZLogger<#= logLevel #>InterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.<#= logLevel #>, default, exception, ref message.innerHandler);
+            ZLog(logger, LogLevel.<#= logLevel #>, default, exception, ref message.InnerHandler);
         } 
 
-        public static void ZLog<#= logLevel #>(this ILogger logger, EventId eventId, Exception? exception, [InterpolatedStringHandlerArgument("logger")]ref ZLogger<#= logLevel #>InterpolatedStringHandler message)
+        public static void ZLog<#= logLevel #>(this ILogger logger, EventId eventId, Exception? exception, [InterpolatedStringHandlerArgument("logger")] ref ZLogger<#= logLevel #>InterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.<#= logLevel #>, eventId, exception, ref message.innerHandler);
+            ZLog(logger, LogLevel.<#= logLevel #>, eventId, exception, ref message.InnerHandler);
         }
 <# } #>
     }
