@@ -1,16 +1,17 @@
 using System;
 using System.Buffers;
+using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using ZLogger.Providers;
+using ZLogger.Unity.Runtime;
 
 namespace ZLogger.Unity;
 
 public sealed class ZLoggerUnityDebugOptions : ZLoggerOptions
 {
-    public bool StackTraceRecaptureing { get; set; }
+    public bool PrettyStacktrace { get; set; } = true;
 }
 
 public static class ZLoggerUnityExtensions
@@ -20,7 +21,7 @@ public static class ZLoggerUnityExtensions
     {
         builder.Services.AddSingleton<ILoggerProvider, ZLoggerUnityDebugLoggerProvider>(serviceProvider =>
         {
-            var options = new ZLoggerConsoleOptions();
+            var options = new ZLoggerUnityDebugOptions();
             configure(options);
             return new ZLoggerUnityDebugLoggerProvider(options);
         });
@@ -34,10 +35,10 @@ public class UnityDebugLogProcessor : IAsyncLogProcessor
     [ThreadStatic]
     static ArrayBufferWriter<byte>? bufferWriter;
     
-    readonly ZLoggerOptions options;
+    readonly ZLoggerUnityDebugOptions options;
     readonly IZLoggerFormatter formatter;
 
-    public UnityDebugLogProcessor(ZLoggerOptions options)
+    public UnityDebugLogProcessor(ZLoggerUnityDebugOptions options)
     {
         this.options = options;
         formatter = options.CreateFormatter();
@@ -55,6 +56,13 @@ public class UnityDebugLogProcessor : IAsyncLogProcessor
         {
             var context = GetContext(log);
             var msg = FormatToString(log, formatter);
+            var stacktrace = new StackTrace(5, true);
+
+            if (options.PrettyStacktrace)
+            {
+                msg = $"{msg}{Environment.NewLine}{DiagnosticsHelper.CleanupStackTrace(stacktrace)}{Environment.NewLine}---";
+            }
+            
             switch (log.LogInfo.LogLevel)
             {
                 case LogLevel.Trace:
@@ -128,6 +136,9 @@ public class UnityDebugLogProcessor : IAsyncLogProcessor
         catch (ArgumentOutOfRangeException)
         {
         }
+        catch (IndexOutOfRangeException)
+        {
+        }
         return null;
     }
     
@@ -148,7 +159,7 @@ public class ZLoggerUnityDebugLoggerProvider : ILoggerProvider, ISupportExternal
     readonly UnityDebugLogProcessor processor;
     IExternalScopeProvider? scopeProvider;
 
-    public ZLoggerUnityDebugLoggerProvider(ZLoggerOptions options)
+    public ZLoggerUnityDebugLoggerProvider(ZLoggerUnityDebugOptions options)
     {
         this.options = options;
         this.processor = new UnityDebugLogProcessor(options);
