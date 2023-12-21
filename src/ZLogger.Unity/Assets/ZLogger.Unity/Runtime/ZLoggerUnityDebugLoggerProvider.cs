@@ -8,6 +8,11 @@ using ZLogger.Providers;
 
 namespace ZLogger.Unity;
 
+public sealed class ZLoggerUnityDebugOptions : ZLoggerOptions
+{
+    public bool StackTraceRecaptureing { get; set; }
+}
+
 public static class ZLoggerUnityExtensions
 {
     public static ILoggingBuilder AddZLoggerUnityDebug(this ILoggingBuilder builder) => builder.AddZLoggerUnityDebug(_ => { });
@@ -48,7 +53,7 @@ public class UnityDebugLogProcessor : IAsyncLogProcessor
     {
         try
         {
-            var context = log.GetParameterValue(-1) as UnityEngine.Object;
+            var context = GetContext(log);
             var msg = FormatToString(log, formatter);
             switch (log.LogInfo.LogLevel)
             {
@@ -109,6 +114,21 @@ public class UnityDebugLogProcessor : IAsyncLogProcessor
         {
             log.Return();
         }
+    }
+
+    static UnityEngine.Object? GetContext(IZLoggerEntry entry)
+    {
+        try
+        {
+            if (entry.GetParameterValue(-1) is UnityEngine.Object obj)
+            {
+                return obj;
+            }
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+        }
+        return null;
     }
     
     static string FormatToString(IZLoggerEntry entry, IZLoggerFormatter formatter)

@@ -58,8 +58,8 @@ struct UnityDebugLogState : IZLoggerFormattable, IReferenceCountable
     public ReadOnlySpan<byte> GetParameterKey(int index) => innerState.GetParameterKey(index);
     public ReadOnlySpan<char> GetParameterKeyAsString(int index) => innerState.GetParameterKeyAsString(index);
 
-    public T? GetParameterValue<T>(int index) => innerState.GetParameterValue<T>(index);
     public Type GetParameterType(int index) => innerState.GetParameterType(index);
+    public T? GetParameterValue<T>(int index) => innerState.GetParameterValue<T>(index);
 
     public object? GetParameterValue(int index)
     {
