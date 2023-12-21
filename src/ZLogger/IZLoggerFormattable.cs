@@ -26,7 +26,7 @@ namespace ZLogger
         Type GetParameterType(int index);
     }
 
-    internal interface IReferenceCountable
+    public interface IReferenceCountable
     {
         void Retain();
         void Release();

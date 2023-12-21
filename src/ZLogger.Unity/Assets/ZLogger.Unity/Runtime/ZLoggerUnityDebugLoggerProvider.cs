@@ -43,32 +43,60 @@ public class UnityDebugLogProcessor : IAsyncLogProcessor
         return default;
     }
 
+    [UnityEngine.HideInCallstack]
     public void Post(IZLoggerEntry log)
     {
-        bufferWriter ??= new ArrayBufferWriter<byte>();
-        
         try
         {
+            var context = log.GetParameterValue(-1) as UnityEngine.Object;
             var msg = FormatToString(log, formatter);
             switch (log.LogInfo.LogLevel)
             {
                 case LogLevel.Trace:
                 case LogLevel.Debug:
                 case LogLevel.Information:
-                    UnityEngine.Debug.Log(msg);
+                    if (context != null)
+                    {
+                        UnityEngine.Debug.Log(msg, context);
+                    }
+                    else
+                    {
+                        UnityEngine.Debug.Log(msg);
+                    }
                     break;
                 case LogLevel.Warning:
                 case LogLevel.Critical:
-                    UnityEngine.Debug.LogWarning(msg);
+                    if (context != null)
+                    {
+                        UnityEngine.Debug.LogWarning(msg, context);
+                    }
+                    else
+                    {
+                        UnityEngine.Debug.LogWarning(msg);
+                    }
                     break;
                 case LogLevel.Error:
                     if (log.LogInfo.Exception != null)
                     {
-                        UnityEngine.Debug.LogException(log.LogInfo.Exception);
+                        if (context != null)
+                        {
+                            UnityEngine.Debug.LogException(log.LogInfo.Exception, context);
+                        }
+                        else
+                        {
+                            UnityEngine.Debug.LogException(log.LogInfo.Exception);
+                        }
                     }
                     else
                     {
-                        UnityEngine.Debug.LogError(msg);
+                        if (context != null)
+                        {
+                            UnityEngine.Debug.LogError(msg, context);
+                        }
+                        else
+                        {
+                            UnityEngine.Debug.LogError(msg);
+                        }
                     }
                     break;
                 case LogLevel.None:
