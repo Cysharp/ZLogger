@@ -13,22 +13,6 @@ internal sealed class InterpolatedStringLogState :
     IObjectPoolNode<InterpolatedStringLogState>, 
     IEnumerable<KeyValuePair<string, object?>>
 {
-    struct Enumerator(InterpolatedStringLogState state) : IEnumerator<KeyValuePair<string, object?>>
-    {
-        InterpolatedStringLogState state = state;
-        int currentIndex = -1;
-
-        object IEnumerator.Current => Current;
-        public bool MoveNext() => ++currentIndex < state.ParameterCount;
-        public void Reset() => currentIndex = -1;
-
-        public KeyValuePair<string, object?> Current => new(
-            state.GetParameterKeyAsString(currentIndex),
-            state.GetParameterValue(currentIndex));
-
-        public void Dispose() { }
-    }
-        
     static readonly ObjectPool<InterpolatedStringLogState> cache = new();
 
     public ref InterpolatedStringLogState? NextNode => ref next;
@@ -175,6 +159,22 @@ internal sealed class InterpolatedStringLogState :
     {
         return parameters[index].Type;
     }
+    
+    struct Enumerator(InterpolatedStringLogState state) : IEnumerator<KeyValuePair<string, object?>>
+    {
+        InterpolatedStringLogState state = state;
+        int currentIndex = -1;
+
+        object IEnumerator.Current => Current;
+        public bool MoveNext() => ++currentIndex < state.ParameterCount;
+        public void Reset() => currentIndex = -1;
+
+        public KeyValuePair<string, object?> Current => new(
+            state.GetParameterKeyAsString(currentIndex),
+            state.GetParameterValue(currentIndex));
+
+        public void Dispose() { }
+    }
 }
 
 [StructLayout(LayoutKind.Auto)]
@@ -205,10 +205,7 @@ internal readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceC
     {
         state.Retain();
     }
-
-    public IEnumerator<KeyValuePair<string, object?>> GetEnumerator() => state.GetEnumerator();
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
+    
     public override string ToString()
     {
         // with validate
@@ -220,4 +217,7 @@ internal readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceC
 
         return state.ToString();
     }
+
+    public IEnumerator<KeyValuePair<string, object?>> GetEnumerator() => state.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

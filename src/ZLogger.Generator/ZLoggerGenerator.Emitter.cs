@@ -71,7 +71,7 @@ public partial class ZLoggerGenerator
                 .StringJoinNewLine();
 
             sb.AppendLine($$"""
-    readonly struct {{stateTypeName}} : IZLoggerFormattable
+    readonly struct {{stateTypeName}} : IZLoggerFormattable, IEnumerable<KeyValuePair<string, object?>>
     {
 {{jsonParameters}}
 
@@ -90,6 +90,7 @@ public partial class ZLoggerGenerator
 """);
 
             EmitIZLoggerFormattableMethods(method);
+            EmitKeyValuePairEnumerator(method);
             sb.AppendLine("    }");
             sb.AppendLine();
         }
@@ -220,6 +221,51 @@ public partial class ZLoggerGenerator
 """);
         }
 
+        void EmitKeyValuePairEnumerator(LogMethodDeclaration method)
+        {
+            var stateTypeName = $"{method.TargetMethod.Name}State";            
+            var methodParameters = method.MethodParameters.Where(x => x.IsParameter).ToArray();
+            sb.AppendLine($$"""
+        public IEnumerator<KeyValuePair<string, object?>> GetEnumerator() => new Enumerator(this);
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        struct Enumerator : IEnumerator<KeyValuePair<string, object?>>
+        {
+            int currentIndex;
+            {{stateTypeName}} state;
+            
+            public Enumerator({{stateTypeName}} state)
+            {
+                this.state = state;
+                currentIndex = -1;
+            }
+        
+            public bool MoveNext() => ++currentIndex < {{methodParameters.Length}};
+            public void Reset() => currentIndex = -1;
+        
+            public KeyValuePair<string, object?> Current
+            {
+                get
+                {
+                    switch (currentIndex)
+                    {
+{{ForEachLine("                        ", methodParameters, (x, i) => $"case {i}: return new(\"{x.LinkedMessageSegment.GetPropertyName()}\", state.{x.LinkedMessageSegment.NameParameter});")}}
+                    }
+                    CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+                    return default!;
+                }
+            }
+        
+            object IEnumerator.Current => Current;
+        
+            public void Dispose()
+            {
+            }
+        }
+
+""");
+        }
+
         void EmitLogBody(LogMethodDeclaration method)
         {
             var methodParameters = method.MethodParameters.Where(x => x.IsParameter).ToArray();
@@ -301,6 +347,8 @@ using ZLogger;
 using ZLogger.Internal;
 using System.Buffers;
 using System.Text.Json;
+using System.Collections;
+using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Utf8StringInterpolation;
 """);
