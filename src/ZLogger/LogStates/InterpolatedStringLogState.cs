@@ -123,9 +123,9 @@ namespace ZLogger.LogStates
             throw new NotSupportedException();
         }
 
-        public ReadOnlySpan<char> GetParameterKeyAsString(int index)
+        public string GetParameterKeyAsString(int index)
         {
-            return parameters[index].Name.AsSpan();
+            return parameters[index].Name;
         }
 
         public object? GetParameterValue(int index)

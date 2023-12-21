@@ -56,7 +56,7 @@ namespace ZLogger
         public bool IsSupportUtf8ParameterKey => state.IsSupportUtf8ParameterKey;
 
         public ReadOnlySpan<byte> GetParameterKey(int index) => state.GetParameterKey(index);
-        public ReadOnlySpan<char> GetParameterKeyAsString(int index) => state.GetParameterKeyAsString(index);
+        public string GetParameterKeyAsString(int index) => state.GetParameterKeyAsString(index);
 
         public Type GetParameterType(int index) => state.GetParameterType(index);
 

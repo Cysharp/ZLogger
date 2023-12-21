@@ -70,11 +70,11 @@ namespace ZLogger.LogStates
             throw new NotSupportedException();
         }
 
-        public ReadOnlySpan<char> GetParameterKeyAsString(int index)
+        public string GetParameterKeyAsString(int index)
         {
             if (originalStateParameters != null)
             {
-                return originalStateParameters[index].Key.AsSpan();
+                return originalStateParameters[index].Key;
             }
             throw new IndexOutOfRangeException(nameof(index));
         }

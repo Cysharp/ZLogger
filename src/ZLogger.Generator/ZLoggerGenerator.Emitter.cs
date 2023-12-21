@@ -177,7 +177,7 @@ public partial class ZLoggerGenerator
             return default!;
         }
 
-        public ReadOnlySpan<char> GetParameterKeyAsString(int index)
+        public string GetParameterKeyAsString(int index)
         {
             switch (index)
             {

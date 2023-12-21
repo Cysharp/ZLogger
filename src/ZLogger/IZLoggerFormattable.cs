@@ -20,7 +20,7 @@ namespace ZLogger
         void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions, IKeyNameMutator? keyNameMutator = null);
 
         ReadOnlySpan<byte> GetParameterKey(int index);
-        ReadOnlySpan<char> GetParameterKeyAsString(int index);
+        string GetParameterKeyAsString(int index);
         object? GetParameterValue(int index);
         T? GetParameterValue<T>(int index);
         Type GetParameterType(int index);
