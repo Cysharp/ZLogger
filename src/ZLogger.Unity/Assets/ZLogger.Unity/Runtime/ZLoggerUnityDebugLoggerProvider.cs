@@ -19,7 +19,7 @@ public sealed class ZLoggerUnityDebugOptions : ZLoggerOptions
 public static class ZLoggerUnityExtensions
 {
     public static ILoggingBuilder AddZLoggerUnityDebug(this ILoggingBuilder builder) => builder.AddZLoggerUnityDebug(_ => { });
-    public static ILoggingBuilder AddZLoggerUnityDebug(this ILoggingBuilder builder, Action<ZLoggerOptions> configure)
+    public static ILoggingBuilder AddZLoggerUnityDebug(this ILoggingBuilder builder, Action<ZLoggerUnityDebugOptions> configure)
     {
         builder.Services.AddSingleton<ILoggerProvider, ZLoggerUnityDebugLoggerProvider>(serviceProvider =>
         {
@@ -75,9 +75,9 @@ public class UnityDebugLogProcessor : IAsyncLogProcessor
                 
             if (UnityEngine.Application.GetStackTraceLogType(unityLogType) != StackTraceLogType.None)
             {
-                var stacktrace = new StackTrace(5, true);
                 if (options.PrettyStacktrace)
                 {
+                    var stacktrace = new StackTrace(5, true);
                     msg = $"{msg}{Environment.NewLine}{DiagnosticsHelper.CleanupStackTrace(stacktrace)}{Environment.NewLine}---";
                 }
             }
