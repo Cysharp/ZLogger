@@ -5,7 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using UnityEngine;
 using ZLogger.Unity.Runtime;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace ZLogger.Unity;
 
@@ -27,7 +29,20 @@ public static class ZLoggerUnityExtensions
         });
         return builder;
     }
-    
+
+    public static UnityEngine.LogType AsUnityLogType(this LogInfo logInfo)
+    {
+        if (logInfo.Exception != null)
+        {
+            return UnityEngine.LogType.Exception;
+        }
+        return logInfo.LogLevel switch
+        {
+            LogLevel.Warning => UnityEngine.LogType.Warning,
+            LogLevel.Error or LogLevel.Critical => UnityEngine.LogType.Error,
+            _ => UnityEngine.LogType.Log
+        };
+    }
 }
 
 public class UnityDebugLogProcessor : IAsyncLogProcessor
@@ -56,18 +71,20 @@ public class UnityDebugLogProcessor : IAsyncLogProcessor
         {
             var context = GetContext(log);
             var msg = FormatToString(log, formatter);
-            var stacktrace = new StackTrace(5, true);
-
-            if (options.PrettyStacktrace)
+            var unityLogType = log.LogInfo.AsUnityLogType();
+                
+            if (UnityEngine.Application.GetStackTraceLogType(unityLogType) != StackTraceLogType.None)
             {
-                msg = $"{msg}{Environment.NewLine}{DiagnosticsHelper.CleanupStackTrace(stacktrace)}{Environment.NewLine}---";
+                var stacktrace = new StackTrace(5, true);
+                if (options.PrettyStacktrace)
+                {
+                    msg = $"{msg}{Environment.NewLine}{DiagnosticsHelper.CleanupStackTrace(stacktrace)}{Environment.NewLine}---";
+                }
             }
             
-            switch (log.LogInfo.LogLevel)
+            switch (unityLogType)
             {
-                case LogLevel.Trace:
-                case LogLevel.Debug:
-                case LogLevel.Information:
+                case UnityEngine.LogType.Log:
                     if (context != null)
                     {
                         UnityEngine.Debug.Log(msg, context);
@@ -77,8 +94,7 @@ public class UnityDebugLogProcessor : IAsyncLogProcessor
                         UnityEngine.Debug.Log(msg);
                     }
                     break;
-                case LogLevel.Warning:
-                case LogLevel.Critical:
+                case UnityEngine.LogType.Warning:
                     if (context != null)
                     {
                         UnityEngine.Debug.LogWarning(msg, context);
@@ -88,31 +104,25 @@ public class UnityDebugLogProcessor : IAsyncLogProcessor
                         UnityEngine.Debug.LogWarning(msg);
                     }
                     break;
-                case LogLevel.Error:
-                    if (log.LogInfo.Exception != null)
+                case UnityEngine.LogType.Error:
+                    if (context != null)
                     {
-                        if (context != null)
-                        {
-                            UnityEngine.Debug.LogException(log.LogInfo.Exception, context);
-                        }
-                        else
-                        {
-                            UnityEngine.Debug.LogException(log.LogInfo.Exception);
-                        }
+                        UnityEngine.Debug.LogError(msg, context);
                     }
                     else
                     {
-                        if (context != null)
-                        {
-                            UnityEngine.Debug.LogError(msg, context);
-                        }
-                        else
-                        {
-                            UnityEngine.Debug.LogError(msg);
-                        }
+                        UnityEngine.Debug.LogError(msg);
                     }
                     break;
-                case LogLevel.None:
+                case UnityEngine.LogType.Exception:
+                    if (context != null)
+                    {
+                        UnityEngine.Debug.LogException(log.LogInfo.Exception, context);
+                    }
+                    else
+                    {
+                        UnityEngine.Debug.LogException(log.LogInfo.Exception);
+                    }
                     break;
                 default:
                     break;
