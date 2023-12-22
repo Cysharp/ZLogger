@@ -105,5 +105,7 @@ namespace ZLogger.LogStates
             }
             throw new IndexOutOfRangeException(nameof(index));
         }
+        
+        public object? GetContext() => null;
     }
 }

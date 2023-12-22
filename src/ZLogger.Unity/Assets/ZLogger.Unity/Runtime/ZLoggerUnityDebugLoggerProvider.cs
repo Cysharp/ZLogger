@@ -1,27 +1,48 @@
 using System;
 using System.Buffers;
+using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using ZLogger.Providers;
+using UnityEngine;
+using ZLogger.Unity.Runtime;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace ZLogger.Unity;
+
+public sealed class ZLoggerUnityDebugOptions : ZLoggerOptions
+{
+    public bool PrettyStacktrace { get; set; } = true;
+}
 
 public static class ZLoggerUnityExtensions
 {
     public static ILoggingBuilder AddZLoggerUnityDebug(this ILoggingBuilder builder) => builder.AddZLoggerUnityDebug(_ => { });
-    public static ILoggingBuilder AddZLoggerUnityDebug(this ILoggingBuilder builder, Action<ZLoggerOptions> configure)
+    public static ILoggingBuilder AddZLoggerUnityDebug(this ILoggingBuilder builder, Action<ZLoggerUnityDebugOptions> configure)
     {
         builder.Services.AddSingleton<ILoggerProvider, ZLoggerUnityDebugLoggerProvider>(serviceProvider =>
         {
-            var options = new ZLoggerConsoleOptions();
+            var options = new ZLoggerUnityDebugOptions();
             configure(options);
             return new ZLoggerUnityDebugLoggerProvider(options);
         });
         return builder;
     }
-    
+
+    public static UnityEngine.LogType AsUnityLogType(this LogInfo logInfo)
+    {
+        if (logInfo.Exception != null)
+        {
+            return UnityEngine.LogType.Exception;
+        }
+        return logInfo.LogLevel switch
+        {
+            LogLevel.Warning => UnityEngine.LogType.Warning,
+            LogLevel.Error or LogLevel.Critical => UnityEngine.LogType.Error,
+            _ => UnityEngine.LogType.Log
+        };
+    }
 }
 
 public class UnityDebugLogProcessor : IAsyncLogProcessor
@@ -29,10 +50,10 @@ public class UnityDebugLogProcessor : IAsyncLogProcessor
     [ThreadStatic]
     static ArrayBufferWriter<byte>? bufferWriter;
     
-    readonly ZLoggerOptions options;
+    readonly ZLoggerUnityDebugOptions options;
     readonly IZLoggerFormatter formatter;
 
-    public UnityDebugLogProcessor(ZLoggerOptions options)
+    public UnityDebugLogProcessor(ZLoggerUnityDebugOptions options)
     {
         this.options = options;
         formatter = options.CreateFormatter();
@@ -43,35 +64,62 @@ public class UnityDebugLogProcessor : IAsyncLogProcessor
         return default;
     }
 
+    [UnityEngine.HideInCallstack]
     public void Post(IZLoggerEntry log)
     {
-        bufferWriter ??= new ArrayBufferWriter<byte>();
-        
         try
         {
+            var context = log.GetContext() as UnityEngine.Object;
             var msg = FormatToString(log, formatter);
-            switch (log.LogInfo.LogLevel)
+            var unityLogType = log.LogInfo.AsUnityLogType();
+                
+            if (UnityEngine.Application.GetStackTraceLogType(unityLogType) != StackTraceLogType.None && options.PrettyStacktrace)
             {
-                case LogLevel.Trace:
-                case LogLevel.Debug:
-                case LogLevel.Information:
-                    UnityEngine.Debug.Log(msg);
-                    break;
-                case LogLevel.Warning:
-                case LogLevel.Critical:
-                    UnityEngine.Debug.LogWarning(msg);
-                    break;
-                case LogLevel.Error:
-                    if (log.LogInfo.Exception != null)
+                var stacktrace = new StackTrace(5, true);
+                msg = $"{msg}{Environment.NewLine}{DiagnosticsHelper.CleanupStackTrace(stacktrace)}{Environment.NewLine}---";
+            }
+            
+            switch (unityLogType)
+            {
+                case UnityEngine.LogType.Log:
+                    if (context != null)
                     {
-                        UnityEngine.Debug.LogException(log.LogInfo.Exception);
+                        UnityEngine.Debug.Log(msg, context);
+                    }
+                    else
+                    {
+                        UnityEngine.Debug.Log(msg);
+                    }
+                    break;
+                case UnityEngine.LogType.Warning:
+                    if (context != null)
+                    {
+                        UnityEngine.Debug.LogWarning(msg, context);
+                    }
+                    else
+                    {
+                        UnityEngine.Debug.LogWarning(msg);
+                    }
+                    break;
+                case UnityEngine.LogType.Error:
+                    if (context != null)
+                    {
+                        UnityEngine.Debug.LogError(msg, context);
                     }
                     else
                     {
                         UnityEngine.Debug.LogError(msg);
                     }
                     break;
-                case LogLevel.None:
+                case UnityEngine.LogType.Exception:
+                    if (context != null)
+                    {
+                        UnityEngine.Debug.LogException(log.LogInfo.Exception, context);
+                    }
+                    else
+                    {
+                        UnityEngine.Debug.LogException(log.LogInfo.Exception);
+                    }
                     break;
                 default:
                     break;
@@ -100,7 +148,7 @@ public class ZLoggerUnityDebugLoggerProvider : ILoggerProvider, ISupportExternal
     readonly UnityDebugLogProcessor processor;
     IExternalScopeProvider? scopeProvider;
 
-    public ZLoggerUnityDebugLoggerProvider(ZLoggerOptions options)
+    public ZLoggerUnityDebugLoggerProvider(ZLoggerUnityDebugOptions options)
     {
         this.options = options;
         this.processor = new UnityDebugLogProcessor(options);

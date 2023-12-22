@@ -1,0 +1,62 @@
+<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#
+    var logLevels = new[] { "Trace", "Debug", "Information", "Warning", "Error", "Critical" };
+#>
+using System;
+using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging;
+using ZLogger.LogStates;
+
+namespace ZLogger.Unity;
+
+public static class UnityLoggerExtensions
+{
+	[UnityEngine.HideInCallstack]
+    public static void ZLog(
+        this ILogger logger, 
+        LogLevel logLevel,
+        Exception? exception,
+        [InterpolatedStringHandlerArgument("logger", "logLevel")] ref ZLoggerInterpolatedStringHandler message, 
+        UnityEngine.Object context)
+    {
+        if (message.IsLoggerEnabled)
+        {
+            var state = message.GetState();
+			var unityState = new UnityDebugLogState(state, context);
+            try
+            {
+                logger.Log(logLevel, default, unityState, exception, static (state, ex) => state.ToString());
+            }
+            finally
+            {
+                state.Release();
+            }
+        }
+    }
+    
+    [UnityEngine.HideInCallstack]
+    public static void ZLog(this ILogger logger, LogLevel logLevel, [InterpolatedStringHandlerArgument("logger", "logLevel")] ref ZLoggerInterpolatedStringHandler message, UnityEngine.Object context)
+    {
+        ZLog(logger, logLevel, null, message, context);
+    }
+
+<# foreach(var logLevel in logLevels) { #>
+    [UnityEngine.HideInCallstack]
+    public static void ZLog<#= logLevel #>(this ILogger logger, [InterpolatedStringHandlerArgument("logger")] ref ZLogger<#= logLevel #>InterpolatedStringHandler message, UnityEngine.Object context)
+    {
+        ZLog(logger, LogLevel.<#= logLevel #>, ref message.InnerHandler, context);
+    }
+ 
+    [UnityEngine.HideInCallstack]
+    public static void ZLog<#= logLevel #>(this ILogger logger, Exception? exception, [InterpolatedStringHandlerArgument("logger")] ref ZLogger<#= logLevel #>InterpolatedStringHandler message, UnityEngine.Object context)
+    {
+        ZLog(logger, LogLevel.<#= logLevel #>, exception, ref message.InnerHandler, context);
+    }
+<# } #>
+}
+

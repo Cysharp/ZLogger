@@ -37,124 +37,124 @@ namespace ZLogger
             }
         }
 
-        public static void ZLogTrace(this ILogger logger, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerTraceInterpolatedStringHandler message)
+        public static void ZLogTrace(this ILogger logger, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerTraceInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Trace, default, null, ref message.innerHandler);
+            ZLog(logger, LogLevel.Trace, default, null, ref message.InnerHandler);
         } 
 
-        public static void ZLogTrace(this ILogger logger, EventId eventId, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerTraceInterpolatedStringHandler message)
+        public static void ZLogTrace(this ILogger logger, EventId eventId, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerTraceInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Trace, eventId, null, ref message.innerHandler);
+            ZLog(logger, LogLevel.Trace, eventId, null, ref message.InnerHandler);
         } 
 
-        public static void ZLogTrace(this ILogger logger, Exception? exception, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerTraceInterpolatedStringHandler message)
+        public static void ZLogTrace(this ILogger logger, Exception? exception, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerTraceInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Trace, default, exception, ref message.innerHandler);
+            ZLog(logger, LogLevel.Trace, default, exception, ref message.InnerHandler);
         } 
 
-        public static void ZLogTrace(this ILogger logger, EventId eventId, Exception? exception, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerTraceInterpolatedStringHandler message)
+        public static void ZLogTrace(this ILogger logger, EventId eventId, Exception? exception, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerTraceInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Trace, eventId, exception, ref message.innerHandler);
+            ZLog(logger, LogLevel.Trace, eventId, exception, ref message.InnerHandler);
         }
 
-        public static void ZLogDebug(this ILogger logger, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerDebugInterpolatedStringHandler message)
+        public static void ZLogDebug(this ILogger logger, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerDebugInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Debug, default, null, ref message.innerHandler);
+            ZLog(logger, LogLevel.Debug, default, null, ref message.InnerHandler);
         } 
 
-        public static void ZLogDebug(this ILogger logger, EventId eventId, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerDebugInterpolatedStringHandler message)
+        public static void ZLogDebug(this ILogger logger, EventId eventId, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerDebugInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Debug, eventId, null, ref message.innerHandler);
+            ZLog(logger, LogLevel.Debug, eventId, null, ref message.InnerHandler);
         } 
 
-        public static void ZLogDebug(this ILogger logger, Exception? exception, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerDebugInterpolatedStringHandler message)
+        public static void ZLogDebug(this ILogger logger, Exception? exception, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerDebugInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Debug, default, exception, ref message.innerHandler);
+            ZLog(logger, LogLevel.Debug, default, exception, ref message.InnerHandler);
         } 
 
-        public static void ZLogDebug(this ILogger logger, EventId eventId, Exception? exception, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerDebugInterpolatedStringHandler message)
+        public static void ZLogDebug(this ILogger logger, EventId eventId, Exception? exception, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerDebugInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Debug, eventId, exception, ref message.innerHandler);
+            ZLog(logger, LogLevel.Debug, eventId, exception, ref message.InnerHandler);
         }
 
-        public static void ZLogInformation(this ILogger logger, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerInformationInterpolatedStringHandler message)
+        public static void ZLogInformation(this ILogger logger, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerInformationInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Information, default, null, ref message.innerHandler);
+            ZLog(logger, LogLevel.Information, default, null, ref message.InnerHandler);
         } 
 
-        public static void ZLogInformation(this ILogger logger, EventId eventId, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerInformationInterpolatedStringHandler message)
+        public static void ZLogInformation(this ILogger logger, EventId eventId, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerInformationInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Information, eventId, null, ref message.innerHandler);
+            ZLog(logger, LogLevel.Information, eventId, null, ref message.InnerHandler);
         } 
 
-        public static void ZLogInformation(this ILogger logger, Exception? exception, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerInformationInterpolatedStringHandler message)
+        public static void ZLogInformation(this ILogger logger, Exception? exception, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerInformationInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Information, default, exception, ref message.innerHandler);
+            ZLog(logger, LogLevel.Information, default, exception, ref message.InnerHandler);
         } 
 
-        public static void ZLogInformation(this ILogger logger, EventId eventId, Exception? exception, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerInformationInterpolatedStringHandler message)
+        public static void ZLogInformation(this ILogger logger, EventId eventId, Exception? exception, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerInformationInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Information, eventId, exception, ref message.innerHandler);
+            ZLog(logger, LogLevel.Information, eventId, exception, ref message.InnerHandler);
         }
 
-        public static void ZLogWarning(this ILogger logger, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerWarningInterpolatedStringHandler message)
+        public static void ZLogWarning(this ILogger logger, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerWarningInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Warning, default, null, ref message.innerHandler);
+            ZLog(logger, LogLevel.Warning, default, null, ref message.InnerHandler);
         } 
 
-        public static void ZLogWarning(this ILogger logger, EventId eventId, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerWarningInterpolatedStringHandler message)
+        public static void ZLogWarning(this ILogger logger, EventId eventId, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerWarningInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Warning, eventId, null, ref message.innerHandler);
+            ZLog(logger, LogLevel.Warning, eventId, null, ref message.InnerHandler);
         } 
 
-        public static void ZLogWarning(this ILogger logger, Exception? exception, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerWarningInterpolatedStringHandler message)
+        public static void ZLogWarning(this ILogger logger, Exception? exception, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerWarningInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Warning, default, exception, ref message.innerHandler);
+            ZLog(logger, LogLevel.Warning, default, exception, ref message.InnerHandler);
         } 
 
-        public static void ZLogWarning(this ILogger logger, EventId eventId, Exception? exception, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerWarningInterpolatedStringHandler message)
+        public static void ZLogWarning(this ILogger logger, EventId eventId, Exception? exception, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerWarningInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Warning, eventId, exception, ref message.innerHandler);
+            ZLog(logger, LogLevel.Warning, eventId, exception, ref message.InnerHandler);
         }
 
-        public static void ZLogError(this ILogger logger, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerErrorInterpolatedStringHandler message)
+        public static void ZLogError(this ILogger logger, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerErrorInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Error, default, null, ref message.innerHandler);
+            ZLog(logger, LogLevel.Error, default, null, ref message.InnerHandler);
         } 
 
-        public static void ZLogError(this ILogger logger, EventId eventId, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerErrorInterpolatedStringHandler message)
+        public static void ZLogError(this ILogger logger, EventId eventId, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerErrorInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Error, eventId, null, ref message.innerHandler);
+            ZLog(logger, LogLevel.Error, eventId, null, ref message.InnerHandler);
         } 
 
-        public static void ZLogError(this ILogger logger, Exception? exception, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerErrorInterpolatedStringHandler message)
+        public static void ZLogError(this ILogger logger, Exception? exception, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerErrorInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Error, default, exception, ref message.innerHandler);
+            ZLog(logger, LogLevel.Error, default, exception, ref message.InnerHandler);
         } 
 
-        public static void ZLogError(this ILogger logger, EventId eventId, Exception? exception, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerErrorInterpolatedStringHandler message)
+        public static void ZLogError(this ILogger logger, EventId eventId, Exception? exception, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerErrorInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Error, eventId, exception, ref message.innerHandler);
+            ZLog(logger, LogLevel.Error, eventId, exception, ref message.InnerHandler);
         }
 
-        public static void ZLogCritical(this ILogger logger, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerCriticalInterpolatedStringHandler message)
+        public static void ZLogCritical(this ILogger logger, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerCriticalInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Critical, default, null, ref message.innerHandler);
+            ZLog(logger, LogLevel.Critical, default, null, ref message.InnerHandler);
         } 
 
-        public static void ZLogCritical(this ILogger logger, EventId eventId, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerCriticalInterpolatedStringHandler message)
+        public static void ZLogCritical(this ILogger logger, EventId eventId, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerCriticalInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Critical, eventId, null, ref message.innerHandler);
+            ZLog(logger, LogLevel.Critical, eventId, null, ref message.InnerHandler);
         } 
 
-        public static void ZLogCritical(this ILogger logger, Exception? exception, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerCriticalInterpolatedStringHandler message)
+        public static void ZLogCritical(this ILogger logger, Exception? exception, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerCriticalInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Critical, default, exception, ref message.innerHandler);
+            ZLog(logger, LogLevel.Critical, default, exception, ref message.InnerHandler);
         } 
 
-        public static void ZLogCritical(this ILogger logger, EventId eventId, Exception? exception, [InterpolatedStringHandlerArgument("logger")]ref ZLoggerCriticalInterpolatedStringHandler message)
+        public static void ZLogCritical(this ILogger logger, EventId eventId, Exception? exception, [InterpolatedStringHandlerArgument("logger")] ref ZLoggerCriticalInterpolatedStringHandler message)
         {
-            ZLog(logger, LogLevel.Critical, eventId, exception, ref message.innerHandler);
+            ZLog(logger, LogLevel.Critical, eventId, exception, ref message.InnerHandler);
         }
     }
 }

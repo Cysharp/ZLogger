@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Sample;
 using UnityEngine;
 using ZLogger;
 using ZLogger.Unity;
@@ -12,6 +13,8 @@ public static partial class Log
 
 public class SampleBehaviour : MonoBehaviour
 {
+    ILogger logger;
+    
     void Start()
     {
         using var loggerFactory = LoggerFactory.Create(logging =>
@@ -30,18 +33,24 @@ public class SampleBehaviour : MonoBehaviour
 
         });
 
-        var logger = loggerFactory.CreateLogger(nameof(SampleBehaviour));
+        logger = loggerFactory.CreateLogger(nameof(SampleBehaviour));
 
         var name = "Hoge";
         var id = 12345;
         
-        logger.ZLogInformation($"!!!!!! Hello {name} your id is {id:@userId}");
+        logger.Log(LogLevel.Information, $"Log");
+        logger.LogInformation($"LogInformation");
+        
+        logger.ZLog(LogLevel.Information, $"ZLog Hello {name} your id is {id:@userId}");
+        logger.ZLogInformation($"ZLogInformation Hello {name} your id is {id:@userId}");
 
         using (logger.BeginScope("{Id}", id))
         {
-            logger.ZLogInformation($"@@@@@@@@ Hello {name}");
+            logger.ZLogInformation($"Scoped log {name}");
         }
         
-        logger.Hello("example.com", "111.111.111.111");
+        logger.ZLogInformation($"with context {name}", this);
+        
+        new SampleClass1(logger).Method1();
     }
 }

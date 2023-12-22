@@ -135,7 +135,7 @@ namespace ZLogger
             }
         }
 
-        internal InterpolatedStringLogState GetState()
+        public InterpolatedStringLogState GetState()
         {
             // MessageSequence is immutable
             state.messageSequence = MessageSequence.GetOrCreate(literalLength, parametersLength, literals);

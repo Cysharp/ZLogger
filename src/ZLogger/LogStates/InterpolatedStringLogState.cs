@@ -7,7 +7,7 @@ using ZLogger.Internal;
 
 namespace ZLogger.LogStates;
 
-internal sealed class InterpolatedStringLogState : 
+public sealed class InterpolatedStringLogState : 
     IZLoggerFormattable, 
     IReferenceCountable, 
     IObjectPoolNode<InterpolatedStringLogState>, 
@@ -160,6 +160,8 @@ internal sealed class InterpolatedStringLogState :
         return parameters[index].Type;
     }
     
+    public object? GetContext() => null;    
+    
     struct Enumerator(InterpolatedStringLogState state) : IEnumerator<KeyValuePair<string, object?>>
     {
         InterpolatedStringLogState state = state;
@@ -178,14 +180,14 @@ internal sealed class InterpolatedStringLogState :
 }
 
 [StructLayout(LayoutKind.Auto)]
-internal readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCountable, IEnumerable<KeyValuePair<string, object?>>
+public readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCountable, IEnumerable<KeyValuePair<string, object?>>
 {
     readonly InterpolatedStringLogState state;
     readonly int version;
 
     public int Version => version;
 
-    public VersionedLogState(InterpolatedStringLogState state)
+    internal VersionedLogState(InterpolatedStringLogState state)
     {
         this.state = state;
         this.version = state.Version;

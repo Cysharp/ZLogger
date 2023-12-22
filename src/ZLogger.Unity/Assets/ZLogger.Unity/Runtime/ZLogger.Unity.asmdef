@@ -7,11 +7,12 @@
     "allowUnsafeCode": true,
     "overrideReferences": true,
     "precompiledReferences": [
-        "ZLogger.dll",
         "Microsoft.Extensions.Logging.Abstractions.dll",
         "Microsoft.Extensions.Logging.dll",
         "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
-        "Microsoft.Extensions.DependencyInjection.dll"
+        "Microsoft.Extensions.DependencyInjection.dll",
+        "ZLogger.dll",
+        "System.Text.Json.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],
