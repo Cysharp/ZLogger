@@ -208,16 +208,24 @@ internal readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceC
     
     public override string ToString()
     {
-        // with validate
+        ThrowIfVersionUnmatched();
+        return state.ToString();
+    }
+
+    public IEnumerator<KeyValuePair<string, object?>> GetEnumerator()
+    {
+        ThrowIfVersionUnmatched();
+        return state.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    void ThrowIfVersionUnmatched()
+    {
         if (state.Version != version)
         {
             throw new InvalidOperationException(
                 "ZLogger log state version is unmatched. The reason is that the external log provider is not generating strings immediately, ZLog does not support such providers.");
         }
-
-        return state.ToString();
     }
-
-    public IEnumerator<KeyValuePair<string, object?>> GetEnumerator() => state.GetEnumerator();
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
