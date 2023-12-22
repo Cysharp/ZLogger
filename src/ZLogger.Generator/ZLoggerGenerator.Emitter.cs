@@ -87,6 +87,8 @@ public partial class ZLoggerGenerator
             return ZLoggerEntry<{{stateTypeName}}>.Create(info, this);
         }
         
+        public object? GetContext() => null;
+        
 """);
 
             EmitIZLoggerFormattableMethods(method);

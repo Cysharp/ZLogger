@@ -69,17 +69,14 @@ public class UnityDebugLogProcessor : IAsyncLogProcessor
     {
         try
         {
-            var context = GetContext(log);
+            var context = log.GetContext() as UnityEngine.Object;
             var msg = FormatToString(log, formatter);
             var unityLogType = log.LogInfo.AsUnityLogType();
                 
-            if (UnityEngine.Application.GetStackTraceLogType(unityLogType) != StackTraceLogType.None)
+            if (UnityEngine.Application.GetStackTraceLogType(unityLogType) != StackTraceLogType.None && options.PrettyStacktrace)
             {
-                if (options.PrettyStacktrace)
-                {
-                    var stacktrace = new StackTrace(5, true);
-                    msg = $"{msg}{Environment.NewLine}{DiagnosticsHelper.CleanupStackTrace(stacktrace)}{Environment.NewLine}---";
-                }
+                var stacktrace = new StackTrace(5, true);
+                msg = $"{msg}{Environment.NewLine}{DiagnosticsHelper.CleanupStackTrace(stacktrace)}{Environment.NewLine}---";
             }
             
             switch (unityLogType)
@@ -132,24 +129,6 @@ public class UnityDebugLogProcessor : IAsyncLogProcessor
         {
             log.Return();
         }
-    }
-
-    static UnityEngine.Object? GetContext(IZLoggerEntry entry)
-    {
-        try
-        {
-            if (entry.GetParameterValue(-1) is UnityEngine.Object obj)
-            {
-                return obj;
-            }
-        }
-        catch (ArgumentOutOfRangeException)
-        {
-        }
-        catch (IndexOutOfRangeException)
-        {
-        }
-        return null;
     }
     
     static string FormatToString(IZLoggerEntry entry, IZLoggerFormatter formatter)

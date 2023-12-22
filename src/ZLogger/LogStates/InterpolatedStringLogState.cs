@@ -160,6 +160,8 @@ public sealed class InterpolatedStringLogState :
         return parameters[index].Type;
     }
     
+    public object? GetContext() => null;    
+    
     struct Enumerator(InterpolatedStringLogState state) : IEnumerator<KeyValuePair<string, object?>>
     {
         InterpolatedStringLogState state = state;

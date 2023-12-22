@@ -144,6 +144,8 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable, IReadOnlyLis
         return default!;
     }
 
+    public object? GetContext() => null;
+
     public int Count => 2;
 
     public KeyValuePair<string, object?> this[int index] => index switch
@@ -278,4 +280,5 @@ file readonly struct SamplerState2 : IZLoggerFormattable
         return default!;
     }
 
+    public object? GetContext() => null;
 }

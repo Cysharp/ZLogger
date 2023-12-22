@@ -24,6 +24,8 @@ namespace ZLogger
         object? GetParameterValue(int index);
         T? GetParameterValue<T>(int index);
         Type GetParameterType(int index);
+
+        object? GetContext();
     }
 
     public interface IReferenceCountable
