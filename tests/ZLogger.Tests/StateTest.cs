@@ -1,10 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ZLogger.LogStates;
+using System.Runtime.CompilerServices;
 
 namespace ZLogger.Tests
 {
@@ -27,6 +23,48 @@ namespace ZLogger.Tests
             var formatter = logs.Dequeue();
 
             Assert.Throws<InvalidOperationException>(() => formatter.Format());
+        }
+
+        [Fact]
+        public void EnumerateState()
+        {
+            Queue<IFormatter> logs = new();
+            var loggerFactory = LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Trace);
+                x.AddProvider(new MyProvider(logs));
+            });
+
+            var logger = loggerFactory.CreateLogger("MyCategory");
+            
+            var handler = Hoge(logger, LogLevel.Information, $"any state {100:@x} {200:@y}");
+            var state = handler.GetState();
+            using (var enumerator = state.GetEnumerator())
+            {
+                enumerator.MoveNext().Should().BeTrue();
+                enumerator.Current.Key.Should().Be("x");
+                enumerator.Current.Value.Should().Be(100);
+            
+                enumerator.MoveNext().Should().BeTrue();
+                enumerator.Current.Key.Should().Be("y");
+                enumerator.Current.Value.Should().Be(200);
+            
+                enumerator.MoveNext().Should().BeFalse();
+            }
+            state.Release();
+            
+            handler = Hoge(logger, LogLevel.Information, $"empty state");
+            state = handler.GetState();
+            using (var enumerator = state.GetEnumerator())
+            {
+                enumerator.MoveNext().Should().BeFalse();
+            }
+            state.Release();
+            
+            ZLoggerInterpolatedStringHandler Hoge(ILogger logger, LogLevel logLevel, [InterpolatedStringHandlerArgument("logger", "logLevel")] ZLoggerInterpolatedStringHandler handler)
+            {
+                return handler;
+            }
         }
     }
 

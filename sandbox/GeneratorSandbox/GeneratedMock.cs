@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic;
 using System.Buffers;
+using System.Collections;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Utf8StringInterpolation;
@@ -36,7 +36,7 @@ public static partial class Log22
 
 }
 
-file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
+file readonly struct CouldNotOpenSocketState : IZLoggerFormattable, IReadOnlyList<KeyValuePair<string, object?>>
 {
     static readonly JsonEncodedText _jsonParameter_hostName = JsonEncodedText.Encode("hostName");
     static readonly JsonEncodedText _jsonParameter_ipAddress = JsonEncodedText.Encode("ipAddress");
@@ -57,6 +57,7 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
 
     public int ParameterCount => 2;
     public bool IsSupportUtf8ParameterKey => true;
+
     public override string ToString() => $"Could not open socket to {hostName} {ipAddress}.";
 
     public void ToString(IBufferWriter<byte> writer)
@@ -99,7 +100,7 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
         return default!;
     }
 
-    public ReadOnlySpan<char> GetParameterKeyAsString(int index)
+    public string GetParameterKeyAsString(int index)
     {
         switch (index)
         {
@@ -143,6 +144,41 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable
         return default!;
     }
 
+    public int Count => 2;
+
+    public KeyValuePair<string, object?> this[int index] => index switch
+    {
+        0 => new KeyValuePair<string, object?>("hostName", hostName),
+        1 => new KeyValuePair<string, object?>("ipAddress", ipAddress),
+        _ => throw new ArgumentOutOfRangeException()
+    };
+    
+    public IEnumerator<KeyValuePair<string, object?>> GetEnumerator() => new Enumerator(this);
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    struct Enumerator : IEnumerator<KeyValuePair<string, object?>>
+    {
+        int currentIndex;
+        CouldNotOpenSocketState state;
+        
+        public Enumerator(CouldNotOpenSocketState state)
+        {
+            this.state = state;
+            currentIndex = -1;
+        }
+
+        object IEnumerator.Current => Current;
+        public bool MoveNext() => ++currentIndex < 2;
+        public void Reset() => currentIndex = -1;
+
+        public KeyValuePair<string, object?> Current => state[currentIndex];
+
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+    }
 }
 
 file readonly struct SamplerState2 : IZLoggerFormattable
@@ -198,7 +234,7 @@ file readonly struct SamplerState2 : IZLoggerFormattable
         return default!;
     }
 
-    public ReadOnlySpan<char> GetParameterKeyAsString(int index)
+    public string GetParameterKeyAsString(int index)
     {
         switch (index)
         {
