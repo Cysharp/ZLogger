@@ -71,7 +71,7 @@ public partial class ZLoggerGenerator
                 .StringJoinNewLine();
 
             sb.AppendLine($$"""
-    readonly struct {{stateTypeName}} : IZLoggerFormattable, IEnumerable<KeyValuePair<string, object?>>
+    readonly struct {{stateTypeName}} : IZLoggerFormattable, IReadOnlyList<KeyValuePair<string, object?>>
     {
 {{jsonParameters}}
 
@@ -226,8 +226,22 @@ public partial class ZLoggerGenerator
             var stateTypeName = $"{method.TargetMethod.Name}State";            
             var methodParameters = method.MethodParameters.Where(x => x.IsParameter).ToArray();
             sb.AppendLine($$"""
+        public int Count => {{methodParameters.Length}};
         public IEnumerator<KeyValuePair<string, object?>> GetEnumerator() => new Enumerator(this);
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public KeyValuePair<string, object?> this[int index]
+        {
+            get
+            {
+                switch (index)
+                {
+{{ForEachLine("                        ", methodParameters, (x, i) => $"case {i}: return new(\"{x.LinkedMessageSegment.GetPropertyName()}\", {x.LinkedMessageSegment.NameParameter});")}}
+                }
+                CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+                return default!;
+            }
+        }
 
         struct Enumerator : IEnumerator<KeyValuePair<string, object?>>
         {
@@ -242,25 +256,9 @@ public partial class ZLoggerGenerator
         
             public bool MoveNext() => ++currentIndex < {{methodParameters.Length}};
             public void Reset() => currentIndex = -1;
-        
-            public KeyValuePair<string, object?> Current
-            {
-                get
-                {
-                    switch (currentIndex)
-                    {
-{{ForEachLine("                        ", methodParameters, (x, i) => $"case {i}: return new(\"{x.LinkedMessageSegment.GetPropertyName()}\", state.{x.LinkedMessageSegment.NameParameter});")}}
-                    }
-                    CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
-                    return default!;
-                }
-            }
-        
+            public KeyValuePair<string, object?> Current => state[currentIndex];
             object IEnumerator.Current => Current;
-        
-            public void Dispose()
-            {
-            }
+            public void Dispose() { }
         }
 
 """);

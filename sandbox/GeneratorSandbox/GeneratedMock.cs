@@ -36,7 +36,7 @@ public static partial class Log22
 
 }
 
-file readonly struct CouldNotOpenSocketState : IZLoggerFormattable, IEnumerable<KeyValuePair<string, object?>>
+file readonly struct CouldNotOpenSocketState : IZLoggerFormattable, IReadOnlyList<KeyValuePair<string, object?>>
 {
     static readonly JsonEncodedText _jsonParameter_hostName = JsonEncodedText.Encode("hostName");
     static readonly JsonEncodedText _jsonParameter_ipAddress = JsonEncodedText.Encode("ipAddress");
@@ -143,6 +143,15 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable, IEnumerable<
         CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
         return default!;
     }
+
+    public int Count => 2;
+
+    public KeyValuePair<string, object?> this[int index] => index switch
+    {
+        0 => new KeyValuePair<string, object?>("hostName", hostName),
+        1 => new KeyValuePair<string, object?>("ipAddress", ipAddress),
+        _ => throw new ArgumentOutOfRangeException()
+    };
     
     public IEnumerator<KeyValuePair<string, object?>> GetEnumerator() => new Enumerator(this);
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -158,17 +167,12 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable, IEnumerable<
             currentIndex = -1;
         }
 
+        object IEnumerator.Current => Current;
         public bool MoveNext() => ++currentIndex < 2;
         public void Reset() => currentIndex = -1;
 
-        public KeyValuePair<string, object?> Current => currentIndex switch
-        {
-            0 => new KeyValuePair<string, object?>("hostName", state.hostName), 
-            1 => new KeyValuePair<string, object?>("ipAddress", state.ipAddress), 
-            _ => throw new ArgumentOutOfRangeException()
-        };
+        public KeyValuePair<string, object?> Current => state[currentIndex];
 
-        object IEnumerator.Current => Current;
 
         public void Dispose()
         {
