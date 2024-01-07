@@ -234,6 +234,7 @@ namespace ZLogger
 
             public void Dispose()
             {
+                loggerFactory?.Dispose();
                 (serviceProvider as IDisposable)?.Dispose();
             }
 
