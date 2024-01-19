@@ -1,8 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.DotnetRuntime.Extensions;
-using GeneratorAttributeSyntaxContext = Microsoft.CodeAnalysis.DotnetRuntime.Extensions.GeneratorAttributeSyntaxContext;
 
 namespace ZLogger.Generator;
 
@@ -14,7 +12,6 @@ public partial class ZLoggerGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var source = context.SyntaxProvider.ForAttributeWithMetadataName(
-            context,
             "ZLogger.ZLoggerMessageAttribute",
             static (node, token) => node is MethodDeclarationSyntax,
             static (context, token) => context);
