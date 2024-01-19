@@ -19,8 +19,6 @@ namespace ZLogger
         readonly ZLoggerOptions options;
         readonly Func<LogLevel, bool>? levelFilter;
 
-        readonly ManualResetEventSlim blockingEvent = new();
-
         public AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options)
             : this(stream, options, null)
         {
@@ -72,6 +70,7 @@ namespace ZLogger
                     SingleReader = true,
                     FullMode = BoundedChannelFullMode.DropWrite,
                 }),
+                _ => throw new ArgumentOutOfRangeException()
             };
                 
             this.writeLoop = Task.Run(WriteLoop);
@@ -83,16 +82,13 @@ namespace ZLogger
             var written = channel.Writer.TryWrite(log);
             if (!written && options.FullMode == BackgroundBufferFullMode.Block)
             {
-                WaitForWrite(log);
+                PostSlow(log);
             }
         }
 
-        void WaitForWrite(IZLoggerEntry log)
+        void PostSlow(IZLoggerEntry log)
         {
-            while (!channel.Writer.TryWrite(log))
-            {
-                blockingEvent.Wait();
-            }                
+            channel.Writer.WriteAsync(log).AsTask().Wait();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -151,12 +147,6 @@ namespace ZLogger
                         {
                             AppendLine(writer);
                         }
-                    }
-                    
-                    if (options.FullMode == BackgroundBufferFullMode.Block)
-                    {
-                        blockingEvent.Set();
-                        blockingEvent.Reset();
                     }
 
                     writer.Flush(); // flush before wait.
