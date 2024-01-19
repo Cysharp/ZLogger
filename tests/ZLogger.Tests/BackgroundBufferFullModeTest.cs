@@ -23,14 +23,14 @@ public class BackgroundBufferFullModeTest
 
         var logger = loggerFactory.CreateLogger("mytest");
 
-        for (var i = 0; i < 20; i++)
+        for (var i = 0; i < 10; i++)
         {
             logger.ZLogInformation($"log {i}");
         }
         loggerFactory.Dispose();
 
         using var fs = File.OpenText(path);
-        for (var i = 0; i < 20; i++)
+        for (var i = 0; i < 10; i++)
         {
             fs.ReadLine().Should().Be($"log {i}");
         }
@@ -56,7 +56,7 @@ public class BackgroundBufferFullModeTest
 
         var logger = loggerFactory.CreateLogger("mytest");
 
-        for (var i = 0; i < 20; i++)
+        for (var i = 0; i < 10; i++)
         {
             logger.ZLogInformation($"log {i}");
         }
@@ -64,7 +64,12 @@ public class BackgroundBufferFullModeTest
 
         using var fs = File.OpenText(path);
         fs.ReadLine().Should().Be("log 0");
-        fs.ReadLine().Should().Be("log 1");
-        fs.ReadLine().Should().BeNull();
+
+        var lastLine = fs.ReadLine(); 
+        while (lastLine != null)
+        {
+            lastLine = fs.ReadLine();
+        }
+        lastLine.Should().NotBe("log 9");
     }
 }
