@@ -50,7 +50,7 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable, IReadOnlyLis
         this.ipAddress = ipAddress;
     }
 
-    public IZLoggerEntry CreateEntry(LogInfo info)
+    public IZLoggerEntry CreateEntry(in LogInfo info)
     {
         return ZLoggerEntry<CouldNotOpenSocketState>.Create(info, this);
     }
@@ -197,7 +197,7 @@ file readonly struct SamplerState2 : IZLoggerFormattable
         this.dt = dt;
     }
 
-    public IZLoggerEntry CreateEntry(LogInfo info)
+    public IZLoggerEntry CreateEntry(in LogInfo info)
     {
         return ZLoggerEntry<SamplerState2>.Create(info, this);
     }

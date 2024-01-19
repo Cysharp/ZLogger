@@ -44,7 +44,7 @@ public class ScopeTest
             logger.ZLogInformation($"FooBar{x} NanoNano{y}");
         }
 
-        var doc = JsonDocument.Parse(processor.Dequeue()).RootElement;
+        var doc = JsonDocument.Parse(processor.DequeueAsString()).RootElement;
         doc.GetProperty("Message").GetString().Should().Be("FooBar333 NanoNano444");
         doc.GetProperty("X").GetInt32().Should().Be(111);
         doc.GetProperty("Y").ValueKind.Should().Be(JsonValueKind.Null);
@@ -60,7 +60,7 @@ public class ScopeTest
             logger.ZLogInformation($"FooBar{x} NanoNano{y}");
         }
 
-        var doc = JsonDocument.Parse(processor.Dequeue()).RootElement;
+        var doc = JsonDocument.Parse(processor.DequeueAsString()).RootElement;
 
         doc.GetProperty("Message").GetString().Should().Be("FooBar100 NanoNano200");
         doc.GetProperty("Hoge").GetString().Should().Be("AAA");
@@ -76,7 +76,7 @@ public class ScopeTest
             logger.ZLogInformation($"FooBar{x} NanoNano{y}");
         }
 
-        var json = processor.Dequeue();
+        var json = processor.DequeueAsString();
         var doc = JsonDocument.Parse(json).RootElement;
         doc.GetProperty("Message").GetString().Should().Be("FooBar100 NanoNano200");
             
@@ -97,8 +97,8 @@ public class ScopeTest
             }
         }
 
-        var log1 = JsonDocument.Parse(processor.Dequeue()).RootElement;
-        var log2 = JsonDocument.Parse(processor.Dequeue()).RootElement;
+        var log1 = JsonDocument.Parse(processor.DequeueAsString()).RootElement;
+        var log2 = JsonDocument.Parse(processor.DequeueAsString()).RootElement;
 
         log1.GetProperty("Message").GetString().Should().Be("Message 1");
         log1.GetProperty("X").GetInt32().Should().Be(111);

@@ -18,24 +18,24 @@ namespace ZLogger
             this.timeProvider = options.TimeProvider;
             this.scopeProvider = scopeProvider;
         }
-
+        
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             var scopeState = scopeProvider != null
                 ? LogScopeState.Create(scopeProvider)
                 : null;
 
-            var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState);
-
             IZLoggerEntry entry;
             if (state is VersionedLogState)
             {
                 var s = Unsafe.As<TState, VersionedLogState>(ref state);
+                var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, s.CallerInfo);
                 entry = s.CreateEntry(info);
                 s.Retain();
             }
             else if (state is IZLoggerEntryCreatable)
             {
+                var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, null);
                 entry = ((IZLoggerEntryCreatable)state).CreateEntry(info);
                 if (state is IReferenceCountable)
                 {
@@ -44,6 +44,7 @@ namespace ZLogger
             }
             else
             {
+                var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, null);
                 // called from standard `logger.Log`
                 entry = new StringFormatterLogState<TState>(state, exception, formatter).CreateEntry(info);
             }

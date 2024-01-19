@@ -19,6 +19,7 @@ public sealed class InterpolatedStringLogState :
     InterpolatedStringLogState? next;
 
     public int ParameterCount { get; private set; }
+    public LogCallerInfo? CallerInfo { get; set; }
     public bool IsSupportUtf8ParameterKey => false;
 
     public IEnumerator<KeyValuePair<string, object?>> GetEnumerator() => new Enumerator(this);
@@ -57,13 +58,14 @@ public sealed class InterpolatedStringLogState :
         }
         state.ParameterCount = formattedCount;
         state.refCount = 1;
+        state.CallerInfo = default;
 
         return state;
     }
 
-    public IZLoggerEntry CreateEntry(LogInfo info)
+    public IZLoggerEntry CreateEntry(in LogInfo info)
     {
-        return ZLoggerEntry<InterpolatedStringLogState>.Create(info, this);
+        return ZLoggerEntry<InterpolatedStringLogState>.Create(in info, this);
     }
 
     public void Retain()
@@ -185,6 +187,7 @@ public readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCou
     readonly InterpolatedStringLogState state;
     readonly int version;
 
+    public LogCallerInfo? CallerInfo => state.CallerInfo;
     public int Version => version;
 
     internal VersionedLogState(InterpolatedStringLogState state)
@@ -193,7 +196,7 @@ public readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCou
         this.version = state.Version;
     }
 
-    public IZLoggerEntry CreateEntry(LogInfo info)
+    public IZLoggerEntry CreateEntry(in LogInfo info)
     {
         return state.CreateEntry(info);
     }

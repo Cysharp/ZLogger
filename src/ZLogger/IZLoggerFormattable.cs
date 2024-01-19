@@ -7,7 +7,7 @@ namespace ZLogger
 
     public interface IZLoggerEntryCreatable
     {
-        IZLoggerEntry CreateEntry(LogInfo info);
+        IZLoggerEntry CreateEntry(in LogInfo info);
     }
 
     public interface IZLoggerFormattable : IZLoggerEntryCreatable

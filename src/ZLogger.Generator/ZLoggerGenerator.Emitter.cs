@@ -82,7 +82,7 @@ public partial class ZLoggerGenerator
 {{constructorBody}}
         }
 
-        public IZLoggerEntry CreateEntry(LogInfo info)
+        public IZLoggerEntry CreateEntry(in LogInfo info)
         {
             return ZLoggerEntry<{{stateTypeName}}>.Create(info, this);
         }

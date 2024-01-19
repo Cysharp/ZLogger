@@ -24,7 +24,7 @@ namespace ZLogger.Tests
 
             logger.ZLogInformation($"{100:@TAKO} {200:@YAKI:D5} {new DateTime(2023, 12, 31),15:@T:yyyy-MM-dd}");
 
-            var json = processor.EntryMessages.Dequeue();
+            var json = processor.DequeueAsString();
             var doc = JsonDocument.Parse(json).RootElement;
 
             doc.GetProperty("Message").GetString().Should().Be("100 00200      2023-12-31");
