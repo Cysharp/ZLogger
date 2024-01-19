@@ -18,8 +18,9 @@ namespace ZLogger
         readonly Task writeLoop;
         readonly ZLoggerOptions options;
         readonly Func<LogLevel, bool>? levelFilter;
-        
-        readonly object blockingGate = new();
+
+        readonly ManualResetEventSlim blockingEvent = new();
+        readonly CancellationTokenSource cancellationSource = new();
 
         public AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options)
             : this(stream, options, null)
@@ -83,20 +84,16 @@ namespace ZLogger
             var written = channel.Writer.TryWrite(log);
             if (!written && options.FullMode == BackgroundBufferFullMode.Block)
             {
-                BlockingPost(log);
+                WaitForWrite(log);
             }
         }
 
-        void BlockingPost(IZLoggerEntry log)
+        void WaitForWrite(IZLoggerEntry log)
         {
-            while (!channel.Writer.TryWrite(log))
+            while (!channel.Writer.TryWrite(log) && !cancellationSource.IsCancellationRequested)
             {
-                lock (blockingGate)
-                {
-                    // This thread will sleep until WriterLoop do `Monitor.Pulse` or timeout
-                    Monitor.Wait(blockingGate, 100);
-                }
-            }
+                blockingEvent.Wait(cancellationSource.Token);
+            }                
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -159,10 +156,8 @@ namespace ZLogger
                     
                     if (options.FullMode == BackgroundBufferFullMode.Block)
                     {
-                        lock (blockingGate)
-                        {
-                            Monitor.PulseAll(blockingGate);
-                        }
+                        blockingEvent.Set();
+                        blockingEvent.Reset();
                     }
 
                     writer.Flush(); // flush before wait.
@@ -188,6 +183,8 @@ namespace ZLogger
             finally
             {
                 this.stream.Dispose();
+                cancellationSource.Cancel();
+                cancellationSource.Dispose();
             }
         }
     }
