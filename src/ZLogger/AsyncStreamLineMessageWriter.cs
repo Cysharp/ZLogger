@@ -20,7 +20,6 @@ namespace ZLogger
         readonly Func<LogLevel, bool>? levelFilter;
 
         readonly ManualResetEventSlim blockingEvent = new();
-        readonly CancellationTokenSource cancellationSource = new();
 
         public AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options)
             : this(stream, options, null)
@@ -90,9 +89,9 @@ namespace ZLogger
 
         void WaitForWrite(IZLoggerEntry log)
         {
-            while (!channel.Writer.TryWrite(log) && !cancellationSource.IsCancellationRequested)
+            while (!channel.Writer.TryWrite(log))
             {
-                blockingEvent.Wait(cancellationSource.Token);
+                blockingEvent.Wait();
             }                
         }
 
@@ -183,8 +182,6 @@ namespace ZLogger
             finally
             {
                 this.stream.Dispose();
-                cancellationSource.Cancel();
-                cancellationSource.Dispose();
             }
         }
     }
