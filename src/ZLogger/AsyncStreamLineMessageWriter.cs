@@ -48,19 +48,47 @@ namespace ZLogger
             this.stream = stream;
             this.levelFilter = levelFilter;
 
-            this.channel = Channel.CreateUnbounded<IZLoggerEntry>(new UnboundedChannelOptions
+            channel = this.options.FullMode switch
             {
-                AllowSynchronousContinuations = false, // always should be in async loop.
-                SingleWriter = false,
-                SingleReader = true,
-            });
+                BackgroundBufferFullMode.Grow => Channel.CreateUnbounded<IZLoggerEntry>(new UnboundedChannelOptions
+                {
+                    AllowSynchronousContinuations = false, // always should be in async loop.
+                    SingleWriter = false,
+                    SingleReader = true,
+                }),
+                BackgroundBufferFullMode.Block => Channel.CreateBounded<IZLoggerEntry>(new BoundedChannelOptions(options.BackgroundBufferCapacity)
+                {
+                    AllowSynchronousContinuations = false,
+                    SingleWriter = false,
+                    SingleReader = true,
+                    FullMode = BoundedChannelFullMode.Wait,
+                }),
+                BackgroundBufferFullMode.Drop => Channel.CreateBounded<IZLoggerEntry>(new BoundedChannelOptions(options.BackgroundBufferCapacity)
+                {
+                    AllowSynchronousContinuations = false,
+                    SingleWriter = false,
+                    SingleReader = true,
+                    FullMode = BoundedChannelFullMode.DropWrite,
+                }),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+                
             this.writeLoop = Task.Run(WriteLoop);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Post(IZLoggerEntry log)
         {
-            channel.Writer.TryWrite(log);
+            var written = channel.Writer.TryWrite(log);
+            if (!written && options.FullMode == BackgroundBufferFullMode.Block)
+            {
+                PostSlow(log);
+            }
+        }
+
+        void PostSlow(IZLoggerEntry log)
+        {
+            channel.Writer.WriteAsync(log).AsTask().Wait();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -127,10 +155,7 @@ namespace ZLogger
                 {
                     try
                     {
-                        if (options.InternalErrorLogger != null)
-                        {
-                            options.InternalErrorLogger(ex);
-                        }
+                        options.InternalErrorLogger?.Invoke(ex);
                     }
                     catch { }
                 }
