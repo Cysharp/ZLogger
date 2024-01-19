@@ -21,15 +21,24 @@ public partial class ZLoggerGenerator
 
     public partial class MethodParameter
     {
-        public required IParameterSymbol Symbol { get; init; }
+        public IParameterSymbol Symbol { get; }
         public bool IsFirstLogger { get; init; }
         public bool IsFirstLogLevel { get; init; }
         public bool IsFirstException { get; init; }
+        public bool IsCallerMemberName { get; init; }
+        public bool IsCallerFilePath { get; init; }
+        public bool IsCallerLineNumber { get; init; }
 
         public bool IsParameter => !IsFirstLogger && !IsFirstLogLevel && !IsFirstException;
+        public bool IsCallerInfo => IsCallerMemberName || IsCallerFilePath || IsCallerLineNumber;
 
         // set from outside, if many segments was linked, use first-one.
         public MessageSegment LinkedMessageSegment { get; set; } = default!;
+
+        public MethodParameter(IParameterSymbol symbol)
+        {
+            Symbol = symbol;
+        }
 
         public bool IsEnumerable()
         {
@@ -46,9 +55,12 @@ public partial class ZLoggerGenerator
         SourceProductionContext context;
         ImmutableArray<GeneratorAttributeSyntaxContext> sources;
 
-        INamedTypeSymbol loggerSymbol;
-        INamedTypeSymbol logLevelSymbol;
-        INamedTypeSymbol exceptionSymbol;
+        readonly INamedTypeSymbol loggerSymbol;
+        readonly INamedTypeSymbol logLevelSymbol;
+        readonly INamedTypeSymbol exceptionSymbol;
+        readonly INamedTypeSymbol callerMemberNameAttributeSymbol;
+        readonly INamedTypeSymbol callerFilePathAttributeSymbol;
+        readonly INamedTypeSymbol callerLineNumberAttributeSymbol;
 
         public Parser(SourceProductionContext context, ImmutableArray<GeneratorAttributeSyntaxContext> sources)
         {
@@ -59,6 +71,9 @@ public partial class ZLoggerGenerator
             this.loggerSymbol = GetTypeByMetadataName(compilation, "Microsoft.Extensions.Logging.ILogger");
             this.logLevelSymbol = GetTypeByMetadataName(compilation, "Microsoft.Extensions.Logging.LogLevel");
             this.exceptionSymbol = GetTypeByMetadataName(compilation, "System.Exception");
+            this.callerMemberNameAttributeSymbol = GetTypeByMetadataName(compilation, "System.Runtime.CompilerServices.CallerMemberName");
+            this.callerFilePathAttributeSymbol = GetTypeByMetadataName(compilation, "System.Runtime.CompilerServices.CallerFilePath");
+            this.callerLineNumberAttributeSymbol = GetTypeByMetadataName(compilation, "System.Runtime.CompilerServices.CallerLineNumber");
         }
 
         static INamedTypeSymbol GetTypeByMetadataName(Compilation compilation, string metadataName)
@@ -288,9 +303,8 @@ public partial class ZLoggerGenerator
                     if (isLogger)
                     {
                         foundFirstLogger = true;
-                        result[i] = new MethodParameter
+                        result[i] = new MethodParameter(p)
                         {
-                            Symbol = p,
                             IsFirstLogger = true,
                         };
                         continue;
@@ -302,9 +316,8 @@ public partial class ZLoggerGenerator
                     if (isLogLevel)
                     {
                         foundFirstLogLevel = true;
-                        result[i] = new MethodParameter
+                        result[i] = new MethodParameter(p)
                         {
-                            Symbol = p,
                             IsFirstLogLevel = true,
                         };
                         continue;
@@ -316,16 +329,32 @@ public partial class ZLoggerGenerator
                     if (isException)
                     {
                         foundFirstException = true;
-                        result[i] = new MethodParameter
+                        result[i] = new MethodParameter(p)
                         {
-                            Symbol = p,
                             IsFirstException = true,
                         };
                         continue;
                     }
                 }
 
-                result[i] = new MethodParameter { Symbol = p };
+                var attributes = p.GetAttributes();                
+                if (attributes.Any(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, callerMemberNameAttributeSymbol)))
+                {
+                    result[i] = new MethodParameter(p) { IsCallerMemberName = true };
+                    continue;
+                }
+                if (attributes.Any(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, callerFilePathAttributeSymbol)))
+                {
+                    result[i] = new MethodParameter(p) { IsCallerFilePath = true };
+                    continue;
+                }
+                if (attributes.Any(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, callerLineNumberAttributeSymbol)))
+                {
+                    result[i] = new MethodParameter(p) { IsCallerLineNumber = true };
+                    continue;
+                }
+                
+                result[i] = new MethodParameter(p);
             }
 
             return (result, foundFirstLogLevel);

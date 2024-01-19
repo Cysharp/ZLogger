@@ -33,4 +33,11 @@ namespace ZLogger
         void Retain();
         void Release();
     }
+
+    public interface ICallerInfo
+    {
+        string? CallerMemberName { get; }
+        string? CallerFilePath { get; }
+        int CallerLineNumber { get; }
+    }
 }

@@ -10,6 +10,7 @@ namespace ZLogger.LogStates;
 public sealed class InterpolatedStringLogState : 
     IZLoggerFormattable, 
     IReferenceCountable, 
+    ICallerInfo,
     IObjectPoolNode<InterpolatedStringLogState>, 
     IEnumerable<KeyValuePair<string, object?>>
 {
@@ -18,9 +19,11 @@ public sealed class InterpolatedStringLogState :
     public ref InterpolatedStringLogState? NextNode => ref next;
     InterpolatedStringLogState? next;
 
-    public int ParameterCount { get; private set; }
-    public LogCallerInfo? CallerInfo { get; set; }
     public bool IsSupportUtf8ParameterKey => false;
+    public int ParameterCount { get; private set; }
+    public string? CallerMemberName { get; set; }
+    public string? CallerFilePath { get; set; }
+    public int CallerLineNumber { get; set; }
 
     public IEnumerator<KeyValuePair<string, object?>> GetEnumerator() => new Enumerator(this);
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -58,7 +61,9 @@ public sealed class InterpolatedStringLogState :
         }
         state.ParameterCount = formattedCount;
         state.refCount = 1;
-        state.CallerInfo = default;
+        state.CallerMemberName = default!;
+        state.CallerFilePath = default!;
+        state.CallerLineNumber = default;
 
         return state;
     }

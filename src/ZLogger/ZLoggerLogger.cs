@@ -25,17 +25,23 @@ namespace ZLogger
                 ? LogScopeState.Create(scopeProvider)
                 : null;
 
+            var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState);
+            if (state is ICallerInfo)
+            {
+                info.CallerMemberName = ((ICallerInfo)state).CallerMemberName;
+                info.CallerFileName = ((ICallerInfo)state).CallerFilePath;
+                info.CallerLineNumber = ((ICallerInfo)state).CallerLineNumber;
+            } 
+            
             IZLoggerEntry entry;
             if (state is VersionedLogState)
             {
                 var s = Unsafe.As<TState, VersionedLogState>(ref state);
-                var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, s.CallerInfo);
                 entry = s.CreateEntry(info);
                 s.Retain();
             }
             else if (state is IZLoggerEntryCreatable)
             {
-                var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, null);
                 entry = ((IZLoggerEntryCreatable)state).CreateEntry(info);
                 if (state is IReferenceCountable)
                 {
@@ -44,7 +50,6 @@ namespace ZLogger
             }
             else
             {
-                var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, null);
                 // called from standard `logger.Log`
                 entry = new StringFormatterLogState<TState>(state, exception, formatter).CreateEntry(info);
             }

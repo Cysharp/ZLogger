@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace ZLogger;
 
-public readonly struct LogInfo(LogCategory category, Timestamp timestamp, LogLevel logLevel, EventId eventId, Exception? exception, LogScopeState? scopeState, in LogCallerInfo? callerInfo)
+public struct LogInfo(LogCategory category, Timestamp timestamp, LogLevel logLevel, EventId eventId, Exception? exception, LogScopeState? scopeState)
 {
     public readonly LogCategory Category = category;
     public readonly Timestamp Timestamp = timestamp;
@@ -12,14 +12,9 @@ public readonly struct LogInfo(LogCategory category, Timestamp timestamp, LogLev
     public readonly EventId EventId = eventId;
     public readonly Exception? Exception = exception;
     public readonly LogScopeState? ScopeState = scopeState;
-    public readonly LogCallerInfo? CallerInfo = callerInfo;
-}
-
-public readonly struct LogCallerInfo(string memberName, string filePath, int lineNumber)
-{
-    public readonly string MemberName = memberName;
-    public readonly string FilePath = filePath;
-    public readonly int LineNumber = lineNumber;
+    public string? CallerMemberName;
+    public string? CallerFileName;
+    public int CallerLineNumber;
 }
 
 public readonly struct LogCategory

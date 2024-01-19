@@ -26,13 +26,14 @@ public static partial class Log22
         logger.Log(LogLevel.Information, -1, new CouldNotOpenSocketState(hostName, ipAddress), exception, (state, ex) => state.ToString());
     }
 
-
+    public static void CouldNotOpenSocketWithCaller(this ILogger<FooBarBaz> logger, string hostName, int ipAddress, [CallerLineNumber] int lineNumber = 0)
+    {
+        if (!logger.IsEnabled(LogLevel.Information)) return;
+        logger.Log(LogLevel.Information, -1, new CouldNotOpenSocketState(hostName, ipAddress, lineNumber), null, (state, ex) => state.ToString());
+    }
 
     [ZLoggerMessage(LogLevel.Information, "Could not open socket to {hostName} {ipAddress}.")]
     public static partial void CouldNotOpenSocket3(this ILogger<FooBarBaz> logger, string hostName, int ipAddress);
-
-
-
 
 }
 
@@ -41,13 +42,16 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable, IReadOnlyLis
     static readonly JsonEncodedText _jsonParameter_hostName = JsonEncodedText.Encode("hostName");
     static readonly JsonEncodedText _jsonParameter_ipAddress = JsonEncodedText.Encode("ipAddress");
 
+    public int CallerLineNumber { get; }
+
     readonly string hostName;
     readonly int ipAddress;
 
-    public CouldNotOpenSocketState(string hostName, int ipAddress)
+    public CouldNotOpenSocketState(string hostName, int ipAddress, int callerLineNumber = 0)
     {
         this.hostName = hostName;
         this.ipAddress = ipAddress;
+        CallerLineNumber = callerLineNumber;
     }
 
     public IZLoggerEntry CreateEntry(in LogInfo info)

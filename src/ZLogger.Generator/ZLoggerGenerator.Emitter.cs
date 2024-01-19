@@ -59,7 +59,11 @@ public partial class ZLoggerGenerator
                 .StringJoinNewLine();
 
             var fieldParameters = methodParameters
-                .Select(x => $"        readonly {x.Symbol.Type.ToFullyQualifiedFormatString()} {x.LinkedMessageSegment.NameParameter};")
+                .Select(x =>
+                {
+                    if (x.IsCallerFilePath)
+                    return $"        readonly {x.Symbol.Type.ToFullyQualifiedFormatString()} {x.LinkedMessageSegment.NameParameter};";
+                })
                 .StringJoinNewLine();
 
             var constructorParameters = methodParameters
@@ -71,7 +75,7 @@ public partial class ZLoggerGenerator
                 .StringJoinNewLine();
 
             sb.AppendLine($$"""
-    readonly struct {{stateTypeName}} : IZLoggerFormattable, IReadOnlyList<KeyValuePair<string, object?>>
+    readonly struct {{stateTypeName}} : IZLoggerFormattable, ICallerInfo, IReadOnlyList<KeyValuePair<string, object?>>
     {
 {{jsonParameters}}
 
