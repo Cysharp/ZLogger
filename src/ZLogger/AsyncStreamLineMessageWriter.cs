@@ -18,6 +18,8 @@ namespace ZLogger
         readonly Task writeLoop;
         readonly ZLoggerOptions options;
         readonly Func<LogLevel, bool>? levelFilter;
+        
+        readonly object blockingGate = new();
 
         public AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options)
             : this(stream, options, null)
@@ -48,19 +50,53 @@ namespace ZLogger
             this.stream = stream;
             this.levelFilter = levelFilter;
 
-            this.channel = Channel.CreateUnbounded<IZLoggerEntry>(new UnboundedChannelOptions
+            channel = this.options.FullMode switch
             {
-                AllowSynchronousContinuations = false, // always should be in async loop.
-                SingleWriter = false,
-                SingleReader = true,
-            });
+                BackgroundBufferFullMode.Grow => Channel.CreateUnbounded<IZLoggerEntry>(new UnboundedChannelOptions
+                {
+                    AllowSynchronousContinuations = false, // always should be in async loop.
+                    SingleWriter = false,
+                    SingleReader = true,
+                }),
+                BackgroundBufferFullMode.Block => Channel.CreateBounded<IZLoggerEntry>(new BoundedChannelOptions(options.BackgroundBufferCapacity)
+                {
+                    AllowSynchronousContinuations = false,
+                    SingleWriter = false,
+                    SingleReader = true,
+                    FullMode = BoundedChannelFullMode.Wait,
+                }),
+                BackgroundBufferFullMode.Drop => Channel.CreateBounded<IZLoggerEntry>(new BoundedChannelOptions(options.BackgroundBufferCapacity)
+                {
+                    AllowSynchronousContinuations = false,
+                    SingleWriter = false,
+                    SingleReader = true,
+                    FullMode = BoundedChannelFullMode.DropWrite,
+                }),
+            };
+                
             this.writeLoop = Task.Run(WriteLoop);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Post(IZLoggerEntry log)
         {
-            channel.Writer.TryWrite(log);
+            var written = channel.Writer.TryWrite(log);
+            if (!written && options.FullMode == BackgroundBufferFullMode.Block)
+            {
+                BlockingPost(log);
+            }
+        }
+
+        void BlockingPost(IZLoggerEntry log)
+        {
+            while (!channel.Writer.TryWrite(log))
+            {
+                lock (blockingGate)
+                {
+                    // This thread will sleep until WriterLoop do `Monitor.Pulse` or timeout
+                    Monitor.Wait(blockingGate, 100);
+                }
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -120,6 +156,14 @@ namespace ZLogger
                             AppendLine(writer);
                         }
                     }
+                    
+                    if (options.FullMode == BackgroundBufferFullMode.Block)
+                    {
+                        lock (blockingGate)
+                        {
+                            Monitor.PulseAll(blockingGate);
+                        }
+                    }
 
                     writer.Flush(); // flush before wait.
                 }
@@ -127,10 +171,7 @@ namespace ZLogger
                 {
                     try
                     {
-                        if (options.InternalErrorLogger != null)
-                        {
-                            options.InternalErrorLogger(ex);
-                        }
+                        options.InternalErrorLogger?.Invoke(ex);
                     }
                     catch { }
                 }
