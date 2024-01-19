@@ -739,7 +739,7 @@ Prerequirements:
 - Install [NuGetForUnity](https://github.com/GlitchEnzo/NuGetForUnity)
   - Required to install the dlls of ZLogger and its dependencies.
 - Install [CsprojModifier](https://github.com/Cysharp/CsprojModifier) 
-  - Required too develop in the IDE with a new language version.
+  - Required to develop in the IDE with a new language version.
 - Install `ZLogger.Unity` package via git url.
   - Add `https://github.com/Cysharp/ZLogger.git?path=src/ZLogger.Unity/Assets/ZLogger.Unity` to Package Manager
   
