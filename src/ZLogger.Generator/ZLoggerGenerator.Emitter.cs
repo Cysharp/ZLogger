@@ -55,7 +55,7 @@ public partial class ZLoggerGenerator
             var parameterCount = methodParameters.Length;
 
             var jsonParameters = methodParameters
-                .Select(x => $"        static readonly JsonEncodedText _jsonParameter_{x.LinkedMessageSegment.NameParameter} = JsonEncodedText.Encode(\"{x.LinkedMessageSegment.GetPropertyName()}\");")
+                .Select(x => $"        static readonly global::System.Text.Json.JsonEncodedText _jsonParameter_{x.LinkedMessageSegment.NameParameter} = global::System.Text.Json.JsonEncodedText.Encode(\"{x.LinkedMessageSegment.GetPropertyName()}\");")
                 .StringJoinNewLine();
 
             var fieldParameters = methodParameters
@@ -129,7 +129,7 @@ public partial class ZLoggerGenerator
                             var method = methodParameters.First(y => x == y.LinkedMessageSegment);
                             if (method.IsEnumerable() || x.FormatString == "json")
                             {
-                                return $"            CodeGeneratorUtil.AppendAsJson(ref stringWriter, {x.NameParameter});";
+                                return $"            global::ZLogger.Internal.CodeGeneratorUtil.AppendAsJson(ref stringWriter, {x.NameParameter});";
                             }
                             else
                             {
@@ -145,9 +145,9 @@ public partial class ZLoggerGenerator
                     .StringJoinNewLine();
 
                 sb.AppendLine($$"""
-        public void ToString(IBufferWriter<byte> writer)
+        public void ToString(global::System.Buffers.IBufferWriter<byte> writer)
         {
-            var stringWriter = new Utf8StringWriter<IBufferWriter<byte>>(literalLength: {{literalLength}}, formattedCount: {{formattedCount}}, bufferWriter: writer);
+            var stringWriter = new global::Utf8StringInterpolation.Utf8StringWriter<global::System.Buffers.IBufferWriter<byte>>(literalLength: {{literalLength}}, formattedCount: {{formattedCount}}, bufferWriter: writer);
 
 {{appendValues}}            
 
@@ -159,7 +159,7 @@ public partial class ZLoggerGenerator
 
             //void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions);
             sb.AppendLine($$"""
-        public void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions, IKeyNameMutator? keyNameMutator = null)
+        public void WriteJsonParameterKeyValues(global::System.Text.Json.Utf8JsonWriter writer, global::System.Text.Json.JsonSerializerOptions jsonSerializerOptions, global::ZLogger.IKeyNameMutator? keyNameMutator = null)
         {
 {{ForEachLine("            ", methodParameters, x => x.ConvertJsonWriteMethod())}}
         }
@@ -176,7 +176,7 @@ public partial class ZLoggerGenerator
             {
 {{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return \"{x.LinkedMessageSegment.GetPropertyName()}\"u8;")}}
             }
-            CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+            global::ZLogger.Internal.CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
             return default!;
         }
 
@@ -186,7 +186,7 @@ public partial class ZLoggerGenerator
             {
 {{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return \"{x.LinkedMessageSegment.GetPropertyName()}\";")}}
             }
-            CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+            global::ZLogger.Internal.CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
             return default!;
         }
 
@@ -196,7 +196,7 @@ public partial class ZLoggerGenerator
             {
 {{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return this.{x.LinkedMessageSegment.NameParameter}!;")}}
             }
-            CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+            global::ZLogger.Internal.CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
             return default!;
         }
 
@@ -206,7 +206,7 @@ public partial class ZLoggerGenerator
             {
 {{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return Unsafe.As<{x.Symbol.Type.ToFullyQualifiedFormatString()}, T>(ref Unsafe.AsRef(in this.{x.LinkedMessageSegment.NameParameter}));")}}
             }
-            CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+            global::ZLogger.Internal.CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
             return default!;
         }
 
@@ -216,7 +216,7 @@ public partial class ZLoggerGenerator
             {
 {{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return typeof({x.Symbol.Type.ToFullyQualifiedFormatString()});")}}
             }
-            CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+            global::ZLogger.Internal.CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
             return default!;
         }
 
@@ -240,7 +240,7 @@ public partial class ZLoggerGenerator
                 {
 {{ForEachLine("                        ", methodParameters, (x, i) => $"case {i}: return new(\"{x.LinkedMessageSegment.GetPropertyName()}\", {x.LinkedMessageSegment.NameParameter});")}}
                 }
-                CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
+                global::ZLogger.Internal.CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
                 return default!;
             }
         }
@@ -277,7 +277,7 @@ public partial class ZLoggerGenerator
             var loggerName = method.MethodParameters.First(x => x.IsFirstLogger).Symbol.Name;
 
             var logLevelParameter = method.MethodParameters.FirstOrDefault(x => x.IsFirstLogLevel);
-            var logLevel = (logLevelParameter != null) ? logLevelParameter.Symbol.Name : "LogLevel." + method.Attribute.Level;
+            var logLevel = (logLevelParameter != null) ? logLevelParameter.Symbol.ToFullyQualifiedFormatString() : "global::Microsoft.Extensions.Logging.LogLevel." + method.Attribute.Level;
 
             var exceptionParameter = method.MethodParameters.FirstOrDefault(x => x.IsFirstException);
             var exception = (exceptionParameter != null) ? exceptionParameter.Symbol.Name : "null";
@@ -404,7 +404,7 @@ using Utf8StringInterpolation;
                 default:
                     if (type.TypeKind == TypeKind.Enum)
                     {
-                        return $"CodeGeneratorUtil.WriteJsonEnum(writer, _jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter}{emitDotValueString});";
+                        return $"global::ZLogger.Internal.CodeGeneratorUtil.WriteJsonEnum(writer, _jsonParameter_{LinkedMessageSegment.NameParameter}, this.{LinkedMessageSegment.NameParameter}{emitDotValueString});";
                     }
 
                     var fullString = type.ToFullyQualifiedFormatString();
@@ -428,7 +428,7 @@ using Utf8StringInterpolation;
             }
 
             // final fallback, use Serialize
-            return $"writer.WritePropertyName(_jsonParameter_{LinkedMessageSegment.NameParameter}); JsonSerializer.Serialize(writer, this.{LinkedMessageSegment.NameParameter}{emitDotValueString});";
+            return $"writer.WritePropertyName(_jsonParameter_{LinkedMessageSegment.NameParameter}); global::System.Text.Json.JsonSerializer.Serialize(writer, this.{LinkedMessageSegment.NameParameter}{emitDotValueString});";
         }
     }
 }
