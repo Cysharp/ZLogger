@@ -26,9 +26,7 @@ namespace ZLogger
             if (message.IsLoggerEnabled)
             {
                 var state = message.GetState();
-                state.CallerMemberName = callerMemberName;
-                state.CallerFilePath = callerFilePath;
-                state.CallerLineNumber = callerLineNumber;
+                state.CallerInfo = new LogCallerInfo(callerMemberName, callerFilePath, callerLineNumber);
                 try
                 {
                     logger.Log(logLevel, eventId, new VersionedLogState(state), exception, static (state, ex) => state.ToString());

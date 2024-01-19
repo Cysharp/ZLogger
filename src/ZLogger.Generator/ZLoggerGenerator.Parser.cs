@@ -29,7 +29,7 @@ public partial class ZLoggerGenerator
         public bool IsCallerFilePath { get; init; }
         public bool IsCallerLineNumber { get; init; }
 
-        public bool IsParameter => !IsFirstLogger && !IsFirstLogLevel && !IsFirstException;
+        public bool IsParameter => !IsFirstLogger && !IsFirstLogLevel && !IsFirstException && !IsCallerInfo;
         public bool IsCallerInfo => IsCallerMemberName || IsCallerFilePath || IsCallerLineNumber;
 
         // set from outside, if many segments was linked, use first-one.
@@ -71,9 +71,9 @@ public partial class ZLoggerGenerator
             this.loggerSymbol = GetTypeByMetadataName(compilation, "Microsoft.Extensions.Logging.ILogger");
             this.logLevelSymbol = GetTypeByMetadataName(compilation, "Microsoft.Extensions.Logging.LogLevel");
             this.exceptionSymbol = GetTypeByMetadataName(compilation, "System.Exception");
-            this.callerMemberNameAttributeSymbol = GetTypeByMetadataName(compilation, "System.Runtime.CompilerServices.CallerMemberName");
-            this.callerFilePathAttributeSymbol = GetTypeByMetadataName(compilation, "System.Runtime.CompilerServices.CallerFilePath");
-            this.callerLineNumberAttributeSymbol = GetTypeByMetadataName(compilation, "System.Runtime.CompilerServices.CallerLineNumber");
+            this.callerMemberNameAttributeSymbol = GetTypeByMetadataName(compilation, "System.Runtime.CompilerServices.CallerMemberNameAttribute");
+            this.callerFilePathAttributeSymbol = GetTypeByMetadataName(compilation, "System.Runtime.CompilerServices.CallerFilePathAttribute");
+            this.callerLineNumberAttributeSymbol = GetTypeByMetadataName(compilation, "System.Runtime.CompilerServices.CallerLineNumberAttribute");
         }
 
         static INamedTypeSymbol GetTypeByMetadataName(Compilation compilation, string metadataName)

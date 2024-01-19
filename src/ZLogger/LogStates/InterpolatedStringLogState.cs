@@ -9,8 +9,8 @@ namespace ZLogger.LogStates;
 
 public sealed class InterpolatedStringLogState : 
     IZLoggerFormattable, 
-    IReferenceCountable, 
-    ICallerInfo,
+    IReferenceCountable,
+    ICallerTracable,
     IObjectPoolNode<InterpolatedStringLogState>, 
     IEnumerable<KeyValuePair<string, object?>>
 {
@@ -21,9 +21,7 @@ public sealed class InterpolatedStringLogState :
 
     public bool IsSupportUtf8ParameterKey => false;
     public int ParameterCount { get; private set; }
-    public string? CallerMemberName { get; set; }
-    public string? CallerFilePath { get; set; }
-    public int CallerLineNumber { get; set; }
+    public LogCallerInfo? CallerInfo { get; set; }
 
     public IEnumerator<KeyValuePair<string, object?>> GetEnumerator() => new Enumerator(this);
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -61,10 +59,7 @@ public sealed class InterpolatedStringLogState :
         }
         state.ParameterCount = formattedCount;
         state.refCount = 1;
-        state.CallerMemberName = default!;
-        state.CallerFilePath = default!;
-        state.CallerLineNumber = default;
-
+        state.CallerInfo = default;
         return state;
     }
 
@@ -187,13 +182,13 @@ public sealed class InterpolatedStringLogState :
 }
 
 [StructLayout(LayoutKind.Auto)]
-public readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCountable, IEnumerable<KeyValuePair<string, object?>>
+public readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCountable, ICallerTracable, IEnumerable<KeyValuePair<string, object?>>
 {
     readonly InterpolatedStringLogState state;
     readonly int version;
 
-    public LogCallerInfo? CallerInfo => state.CallerInfo;
     public int Version => version;
+    public LogCallerInfo? CallerInfo => state.CallerInfo;
 
     internal VersionedLogState(InterpolatedStringLogState state)
     {

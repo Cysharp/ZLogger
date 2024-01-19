@@ -37,12 +37,12 @@ public static partial class Log22
 
 }
 
-file readonly struct CouldNotOpenSocketState : IZLoggerFormattable, IReadOnlyList<KeyValuePair<string, object?>>
+file readonly struct CouldNotOpenSocketState : IZLoggerFormattable, ICallerTracable, IReadOnlyList<KeyValuePair<string, object?>>
 {
     static readonly JsonEncodedText _jsonParameter_hostName = JsonEncodedText.Encode("hostName");
     static readonly JsonEncodedText _jsonParameter_ipAddress = JsonEncodedText.Encode("ipAddress");
 
-    public int CallerLineNumber { get; }
+    public LogCallerInfo? CallerInfo { get; }
 
     readonly string hostName;
     readonly int ipAddress;
@@ -51,7 +51,6 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable, IReadOnlyLis
     {
         this.hostName = hostName;
         this.ipAddress = ipAddress;
-        CallerLineNumber = callerLineNumber;
     }
 
     public IZLoggerEntry CreateEntry(in LogInfo info)

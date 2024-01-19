@@ -1,9 +1,9 @@
 namespace ZLogger.Tests;
 
-public class CallerInfoTest
+public class LogCallerInfoTest
 {
     [Fact]
-    public void CaptureCallerInfo()
+    public void CallerInfo()
     {
         var processor = new TestProcessor(new ZLoggerOptions());
 
@@ -17,7 +17,7 @@ public class CallerInfoTest
         logger.ZLogInformation($"aaaa");
 
         var x = processor.Entries.Dequeue();
-        x.LogInfo.CallerInfo!.Value.MemberName.Should().NotBeEmpty();
+        x.LogInfo.CallerInfo!.Value.MemberName.Should().Be("CallerInfo");
         x.LogInfo.CallerInfo!.Value.FilePath.Should().NotBeEmpty();
         x.LogInfo.CallerInfo!.Value.LineNumber.Should().BeGreaterThan(1);
     }
