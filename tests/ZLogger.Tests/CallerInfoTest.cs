@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace ZLogger.Tests;
 
 public class LogCallerInfoTest
@@ -18,7 +20,7 @@ public class LogCallerInfoTest
 
         var x = processor.Entries.Dequeue();
         x.LogInfo.CallerInfo!.Value.MemberName.Should().Be("CallerInfo");
-        x.LogInfo.CallerInfo!.Value.FilePath.Should().NotBeEmpty();
-        x.LogInfo.CallerInfo!.Value.LineNumber.Should().BeGreaterThan(1);
+        Path.GetFileName(x.LogInfo.CallerInfo!.Value.FilePath).Should().Be("CallerInfoTest.cs");
+        x.LogInfo.CallerInfo!.Value.LineNumber.Should().Be(19);
     }
 }
