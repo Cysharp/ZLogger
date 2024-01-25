@@ -35,5 +35,7 @@ public interface IReferenceCountable
 
 public interface ICallerTracable
 {
-    LogCallerInfo? CallerInfo { get; }
+    string? CallerMemberName { get; }
+    string? CallerFilePath { get; }
+    int CallerLineNumber { get; }
 }

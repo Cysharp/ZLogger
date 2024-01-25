@@ -21,7 +21,9 @@ public sealed class InterpolatedStringLogState :
 
     public bool IsSupportUtf8ParameterKey => false;
     public int ParameterCount { get; private set; }
-    public LogCallerInfo? CallerInfo { get; set; }
+    public string? CallerMemberName { get; set; }
+    public string? CallerFilePath { get; set; }
+    public int CallerLineNumber { get; set; }
 
     public IEnumerator<KeyValuePair<string, object?>> GetEnumerator() => new Enumerator(this);
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -59,7 +61,9 @@ public sealed class InterpolatedStringLogState :
         }
         state.ParameterCount = formattedCount;
         state.refCount = 1;
-        state.CallerInfo = default;
+        state.CallerMemberName = default;
+        state.CallerFilePath = default;
+        state.CallerLineNumber = default;
         return state;
     }
 
@@ -188,7 +192,10 @@ public readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCou
     readonly int version;
 
     public int Version => version;
-    public LogCallerInfo? CallerInfo => state.CallerInfo;
+
+    public string? CallerMemberName => state.CallerMemberName;
+    public string? CallerFilePath => state.CallerFilePath;
+    public int CallerLineNumber => state.CallerLineNumber;
 
     internal VersionedLogState(InterpolatedStringLogState state)
     {

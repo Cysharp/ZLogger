@@ -19,8 +19,8 @@ public class LogCallerInfoTest
         logger.ZLogInformation($"aaaa");
 
         var x = processor.Entries.Dequeue();
-        x.LogInfo.CallerInfo!.Value.MemberName.Should().Be("CallerInfo");
-        Path.GetFileName(x.LogInfo.CallerInfo!.Value.FilePath).Should().Be("CallerInfoTest.cs");
-        x.LogInfo.CallerInfo!.Value.LineNumber.Should().Be(19);
+        x.LogInfo.CallerMemberName.Should().Be("CallerInfo");
+        Path.GetFileName(x.LogInfo.CallerFilePath).Should().Be("CallerInfoTest.cs");
+        x.LogInfo.CallerLineNumber.Should().Be(19);
     }
 }

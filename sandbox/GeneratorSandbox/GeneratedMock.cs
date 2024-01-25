@@ -42,7 +42,9 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable, ICallerTraca
     static readonly JsonEncodedText _jsonParameter_hostName = JsonEncodedText.Encode("hostName");
     static readonly JsonEncodedText _jsonParameter_ipAddress = JsonEncodedText.Encode("ipAddress");
 
-    public LogCallerInfo? CallerInfo { get; }
+    public string? CallerMemberName { get; }
+    public string? CallerFilePath { get; }
+    public int CallerLineNumber { get; }
 
     readonly string hostName;
     readonly int ipAddress;
@@ -51,6 +53,7 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable, ICallerTraca
     {
         this.hostName = hostName;
         this.ipAddress = ipAddress;
+        CallerLineNumber = callerLineNumber;
     }
 
     public IZLoggerEntry CreateEntry(in LogInfo info)

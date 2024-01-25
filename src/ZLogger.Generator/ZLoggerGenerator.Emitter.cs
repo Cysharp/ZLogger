@@ -74,7 +74,9 @@ public partial class ZLoggerGenerator
             sb.AppendLine($$"""
     readonly struct {{stateTypeName}} : IZLoggerFormattable, ICallerTracable, IReadOnlyList<KeyValuePair<string, object?>>
     {
-        public LogCallerInfo? CallerInfo { get; } 
+        public string? CallerMemberName { get; }
+        public string? CallerFilePath { get; }
+        public int CallerLineNumber { get; }
     
 {{jsonParameters}}
 
@@ -86,12 +88,24 @@ public partial class ZLoggerGenerator
 """);
             if (callerInfoParameters.Length > 0)
             {
-                var callerMemberNameArg = callerInfoParameters.FirstOrDefault(x => x.IsCallerMemberName)?.Symbol.Name ?? "null";
-                var callerFilePathArg = callerInfoParameters.FirstOrDefault(x => x.IsCallerFilePath)?.Symbol.Name ?? "null";
-                var callerLineNumberArg = callerInfoParameters.FirstOrDefault(x => x.IsCallerLineNumber)?.Symbol.Name ?? "default";
-                sb.AppendLine($$"""
-                    CallerInfo = new LogCallerInfo({{callerMemberNameArg}}, {{callerFilePathArg}}, {{callerLineNumberArg}});
+                if (callerInfoParameters.FirstOrDefault(x => x.IsCallerMemberName) is { } callerMemberNameArg)
+                {
+                    sb.AppendLine($$"""
+            CallerMemberName = {{callerMemberNameArg.Symbol.Name}};
 """);
+                }
+                if (callerInfoParameters.FirstOrDefault(x => x.IsCallerFilePath) is { } callerFilePathArg)
+                {
+                    sb.AppendLine($$"""
+            CallerFilePath = {{callerFilePathArg.Symbol.Name}};
+""");
+                }
+                if (callerInfoParameters.FirstOrDefault(x => x.IsCallerLineNumber) is { } callerLineNumberArg)
+                {
+                    sb.AppendLine($$"""
+            CallerLineNumber = {{callerLineNumberArg.Symbol.Name}};
+""");
+                }
             }
             sb.AppendLine($$"""
         }

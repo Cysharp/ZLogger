@@ -25,9 +25,17 @@ namespace ZLogger
                 ? LogScopeState.Create(scopeProvider)
                 : null;
 
+            var callerMemberName = default(string?);
+            var callerFilePath = default(string?);
+            var callerLineNumber = default(int);
+            if (state is ICallerTracable)
+            {
+                callerMemberName = ((ICallerTracable)state).CallerMemberName;
+                callerFilePath = ((ICallerTracable)state).CallerFilePath;
+                callerLineNumber = ((ICallerTracable)state).CallerLineNumber;
+            }
 
-            var callerInfo = state is ICallerTracable ? ((ICallerTracable)state).CallerInfo : null;
-            var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, callerInfo);
+            var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, callerMemberName, callerFilePath, callerLineNumber);
             
             IZLoggerEntry entry;
             if (state is VersionedLogState)
