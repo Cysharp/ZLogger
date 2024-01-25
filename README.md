@@ -491,12 +491,19 @@ If you are using `ZLoggerConsoleLoggerProvider`, the following additional option
 
 | Name                                    | Description                                                                                                                               |
 |:----------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------|
-| `bool OutputEncodingToUtf8`             | Set `Console.OutputEncoding = new UTF8Encoding(false)` when the provider is created.  (default: true)                                     | |
+| `bool OutputEncodingToUtf8`             | Set `Console.OutputEncoding = new UTF8Encoding(false)` when the provider is created.  (default: true)                                     |
 | `bool ConfigureEnableAnsiEscapeCode`    | If set true, then configure console option on execution and enable virtual terminal processing(enable ANSI escape code). (default: false) |
 | `LogLevel LogToStandardErrorThreshold`  | If set, logs at a higher level than the value will be output to standard error. (default: LogLevel.None)                                  |
 
 
 ### File
+
+
+If you are using `ZLoggerRollingFileLoggerProvider`, the following additional options are available:
+
+| Name                                                                              | Description                                                                                                        |
+|:----------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------|
+| `bool fileShared`                                                                  | If set true, enables exclusive control of writing to the same file from multiple processes.(default: false) |
 
 
 ### RollingFile
@@ -506,9 +513,10 @@ If you are using `ZLoggerRollingFileLoggerProvider`, the following additional op
 
 | Name                                                                              | Description                                                                                                        |
 |:----------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------|
-| `Func<DateTimeOffset, int, string> fileNameSelector`                              | The Func to consturct the file path. `DateTimeOffset` is date of file open time(UTC), `int` is number sequence.        | |
-| `RollingInterval rollInterval`                                                    | Interval to automatically rotate files.                                                                            | |
-| `int rollSizeKB`                                                                  | Limit size of single file.  If the file size is exceeded, a new file is created with the sequence number moved up. | |
+| `Func<DateTimeOffset, int, string> fileNameSelector`                              | The Func to consturct the file path. `DateTimeOffset` is date of file open time(UTC), `int` is number sequence.        |
+| `RollingInterval rollInterval`                                                    | Interval to automatically rotate files.                                                                            |
+| `int rollSizeKB`                                                                  | Limit size of single file.  If the file size is exceeded, a new file is created with the sequence number moved up. |
+| `bool fileShared`                                                                  | If set true, enables exclusive control of writing to the same file from multiple processes.(default: false) |
 
 
 ### Stream

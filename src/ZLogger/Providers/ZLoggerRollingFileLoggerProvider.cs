@@ -12,7 +12,7 @@ public enum RollingInterval
     Minute
 }
 
-public sealed class ZLoggerRollingFileOptions : ZLoggerOptions
+public sealed class ZLoggerRollingFileOptions : ZLoggerFileOptions
 {
     public Func<DateTimeOffset, int, string>? FilePathSelector { get; set; }
     public RollingInterval RollingInterval { get; set; } = RollingInterval.Day;
@@ -33,7 +33,7 @@ public class ZLoggerRollingFileLoggerProvider : ILoggerProvider, ISupportExterna
             throw new ArgumentException(nameof(options.FilePathSelector));
         }
         this.options = options;
-        var stream = new RollingFileStream(options.FilePathSelector!, options.RollingInterval, options.RollingSizeKB, options.TimeProvider);
+        var stream = new RollingFileStream(options.FilePathSelector!, options.RollingInterval, options.RollingSizeKB, options.TimeProvider, options.FileShared);
         this.streamWriter = new AsyncStreamLineMessageWriter(stream, this.options);
     }
 

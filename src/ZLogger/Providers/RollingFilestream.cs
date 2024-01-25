@@ -17,6 +17,7 @@ internal partial class RollingFileStream : Stream
     readonly RollingInterval rollInterval;
     readonly long rollSizeInBytes;
     readonly TimeProvider? timeProvider;
+    readonly bool fileShared;
 
 #pragma warning disable CS8618
 
@@ -26,12 +27,13 @@ internal partial class RollingFileStream : Stream
     Stream? innerStream;
     DateTimeOffset? nextCheckpoint;
 
-    public RollingFileStream(Func<DateTimeOffset, int, string> fileNameSelector, RollingInterval rollInterval, int rollSizeKB, TimeProvider? timeProvider)
+    public RollingFileStream(Func<DateTimeOffset, int, string> fileNameSelector, RollingInterval rollInterval, int rollSizeKB, TimeProvider? timeProvider, bool fileShared)
     {
         this.fileNameSelector = fileNameSelector;
         this.rollInterval = rollInterval;
         this.rollSizeInBytes = rollSizeKB * 1024;
         this.timeProvider = timeProvider;
+        this.fileShared = fileShared;
 
         ValidateFileNameSelector();
         TryChangeNewRollingFile();
@@ -140,7 +142,9 @@ internal partial class RollingFileStream : Stream
                     di.Create();
                 }
                 // useAsync:false, use sync(in thread) processor, don't use FileStream buffer(use buffer size = 1).
-                innerStream = new FileStream(fileName, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 1, false);
+                innerStream = fileShared
+                    ? new SharedFileStream(fileName)
+                    : new FileStream(fileName, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 1, false);
             }
             catch (Exception ex)
             {
