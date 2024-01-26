@@ -85,13 +85,28 @@ public static class ZLoggerBuilderExtensions
     }
 
     public static ILoggingBuilder AddZLoggerFile(this ILoggingBuilder builder, string filePath) => builder.AddZLoggerFile((_, _) => filePath);
-    public static ILoggingBuilder AddZLoggerFile(this ILoggingBuilder builder, string filePath, Action<ZLoggerOptions> configure) => builder.AddZLoggerFile((o, _) => { configure(o); return filePath; });
-    public static ILoggingBuilder AddZLoggerFile(this ILoggingBuilder builder, string filePath, Action<ZLoggerOptions, IServiceProvider> configure) => builder.AddZLoggerFile((o, p) => { configure(o, p); return filePath; });
-    public static ILoggingBuilder AddZLoggerFile(this ILoggingBuilder builder, Func<ZLoggerOptions, IServiceProvider, string> filePathFactory)
+    public static ILoggingBuilder AddZLoggerFile(this ILoggingBuilder builder, string filePath, bool fileShared) => builder.AddZLoggerFile((o, _) =>
+    {
+        o.FileShared = fileShared;
+        return filePath;
+    });
+
+    public static ILoggingBuilder AddZLoggerFile(this ILoggingBuilder builder, string filePath, Action<ZLoggerFileOptions> configure) => builder.AddZLoggerFile((o, _) =>
+    {
+        configure(o);
+        return filePath;
+    });
+
+    public static ILoggingBuilder AddZLoggerFile(this ILoggingBuilder builder, string filePath, Action<ZLoggerFileOptions, IServiceProvider> configure) => builder.AddZLoggerFile((o, p) =>
+    {
+        configure(o, p);
+        return filePath;
+    });
+    public static ILoggingBuilder AddZLoggerFile(this ILoggingBuilder builder, Func<ZLoggerFileOptions, IServiceProvider, string> filePathFactory)
     {
         builder.Services.AddSingleton<ILoggerProvider, ZLoggerFileLoggerProvider>(serviceProvider =>
         {
-            var options = new ZLoggerOptions();
+            var options = new ZLoggerFileOptions();
             var filePath = filePathFactory(options, serviceProvider);
             return new ZLoggerFileLoggerProvider(filePath, options);
         });

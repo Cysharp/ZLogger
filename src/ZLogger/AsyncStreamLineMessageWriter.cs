@@ -18,7 +18,7 @@ namespace ZLogger
         readonly Task writeLoop;
         readonly ZLoggerOptions options;
         readonly Func<LogLevel, bool>? levelFilter;
-
+        
         public AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options)
             : this(stream, options, null)
         {
