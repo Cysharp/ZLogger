@@ -36,7 +36,7 @@ As for standard logger features, it supports loading LogLevel from json, filteri
   - [JSON](#json)
   - [MessagePack](#messagepack)
   - [Custom Formatter](#custom-formatter)
-- [LogInfo ?](#loginfo-)
+- [LogInfo](#loginfo)
 - [KeyNameMutator](#keynamemutator)
 - [ZLoggerBuilder](#zloggerbuilder)
   - [Console](#console)
