@@ -22,7 +22,7 @@ struct UnityDebugLogState : IZLoggerFormattable, IReferenceCountable
         version = state.Version;
     }
 
-    public IZLoggerEntry CreateEntry(LogInfo info)
+    public IZLoggerEntry CreateEntry(in LogInfo info)
     {
         return ZLoggerEntry<UnityDebugLogState>.Create(info, this);
     }
