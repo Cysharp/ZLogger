@@ -23,7 +23,7 @@ public ref struct ZLogger<#= logLevel #>InterpolatedStringHandler
     {
         InnerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, logger, LogLevel.<#= logLevel #>, out enabled);
     }
-    public void AppendLiteral(string s)
+    public void AppendLiteral([System.Diagnostics.CodeAnalysis.ConstantExpected]string s)
     {
         InnerHandler.AppendLiteral(s);
     }

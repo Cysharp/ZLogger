@@ -13,7 +13,7 @@ public ref struct ZLoggerTraceInterpolatedStringHandler
     {
         InnerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, logger, LogLevel.Trace, out enabled);
     }
-    public void AppendLiteral(string s)
+    public void AppendLiteral([System.Diagnostics.CodeAnalysis.ConstantExpected]string s)
     {
         InnerHandler.AppendLiteral(s);
     }
@@ -44,7 +44,7 @@ public ref struct ZLoggerDebugInterpolatedStringHandler
     {
         InnerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, logger, LogLevel.Debug, out enabled);
     }
-    public void AppendLiteral(string s)
+    public void AppendLiteral([System.Diagnostics.CodeAnalysis.ConstantExpected]string s)
     {
         InnerHandler.AppendLiteral(s);
     }
@@ -75,7 +75,7 @@ public ref struct ZLoggerInformationInterpolatedStringHandler
     {
         InnerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, logger, LogLevel.Information, out enabled);
     }
-    public void AppendLiteral(string s)
+    public void AppendLiteral([System.Diagnostics.CodeAnalysis.ConstantExpected]string s)
     {
         InnerHandler.AppendLiteral(s);
     }
@@ -106,7 +106,7 @@ public ref struct ZLoggerWarningInterpolatedStringHandler
     {
         InnerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, logger, LogLevel.Warning, out enabled);
     }
-    public void AppendLiteral(string s)
+    public void AppendLiteral([System.Diagnostics.CodeAnalysis.ConstantExpected]string s)
     {
         InnerHandler.AppendLiteral(s);
     }
@@ -137,7 +137,7 @@ public ref struct ZLoggerErrorInterpolatedStringHandler
     {
         InnerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, logger, LogLevel.Error, out enabled);
     }
-    public void AppendLiteral(string s)
+    public void AppendLiteral([System.Diagnostics.CodeAnalysis.ConstantExpected]string s)
     {
         InnerHandler.AppendLiteral(s);
     }
@@ -168,7 +168,7 @@ public ref struct ZLoggerCriticalInterpolatedStringHandler
     {
         InnerHandler = new ZLoggerInterpolatedStringHandler(literalLength, formattedCount, logger, LogLevel.Critical, out enabled);
     }
-    public void AppendLiteral(string s)
+    public void AppendLiteral([System.Diagnostics.CodeAnalysis.ConstantExpected]string s)
     {
         InnerHandler.AppendLiteral(s);
     }
