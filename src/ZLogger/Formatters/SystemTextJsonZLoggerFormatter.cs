@@ -36,8 +36,12 @@ namespace ZLogger
         Exception = 1 << 6,
         ScopeKeyValues = 1 << 7,
         ParameterKeyValues = 1 << 8,
+        MemberName = 1 << 9, // added in 2.2.0
+        FilePath = 1 << 10, // added in 2.2.0
+        LineNumber = 1 << 11, // added in 2.2.0
+
         Default = Timestamp | LogLevel | CategoryName | Message | Exception | ScopeKeyValues | ParameterKeyValues,
-        All = Timestamp | LogLevel | CategoryName | EventIdValue | EventIdName | Message | Exception | ScopeKeyValues | ParameterKeyValues
+        All = Timestamp | LogLevel | CategoryName | EventIdValue | EventIdName | Message | Exception | ScopeKeyValues | ParameterKeyValues | MemberName | FilePath | LineNumber
     }
 }
 
@@ -63,7 +67,11 @@ namespace ZLogger.Formatters
         JsonEncodedText LogLevelWarning,
         JsonEncodedText LogLevelError,
         JsonEncodedText LogLevelCritical,
-        JsonEncodedText LogLevelNone
+        JsonEncodedText LogLevelNone,
+
+        JsonEncodedText MemberName,
+        JsonEncodedText FilePath,
+        JsonEncodedText LineNumber
     )
     {
         public static readonly JsonPropertyNames Default = new(
@@ -86,7 +94,11 @@ namespace ZLogger.Formatters
             LogLevelWarning: JsonEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Warning)),
             LogLevelError: JsonEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Error)),
             LogLevelCritical: JsonEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Critical)),
-            LogLevelNone: JsonEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.None))
+            LogLevelNone: JsonEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.None)),
+
+            MemberName: JsonEncodedText.Encode(nameof(LogInfo.MemberName)),
+            FilePath: JsonEncodedText.Encode(nameof(LogInfo.FilePath)),
+            LineNumber: JsonEncodedText.Encode(nameof(LogInfo.LineNumber))
         );
     }
 
@@ -231,6 +243,18 @@ namespace ZLogger.Formatters
                     jsonWriter.WritePropertyName(JsonPropertyNames.Exception);
                     WriteException(jsonWriter, ex);
                 }
+            }
+            if ((flag & IncludeProperties.MemberName) != 0)
+            {
+                jsonWriter.WriteString(JsonPropertyNames.MemberName, info.MemberName);
+            }
+            if ((flag & IncludeProperties.FilePath) != 0)
+            {
+                jsonWriter.WriteString(JsonPropertyNames.FilePath, info.FilePath);
+            }
+            if ((flag & IncludeProperties.LineNumber) != 0)
+            {
+                jsonWriter.WriteNumber(JsonPropertyNames.LineNumber, info.LineNumber);
             }
         }
 

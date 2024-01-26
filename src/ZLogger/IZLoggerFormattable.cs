@@ -33,7 +33,7 @@ public interface IReferenceCountable
     void Release();
 }
 
-public interface ICallerTracable
+public interface ICallerTraceable
 {
     string? CallerMemberName { get; }
     string? CallerFilePath { get; }

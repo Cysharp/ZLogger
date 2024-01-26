@@ -28,11 +28,11 @@ namespace ZLogger
             var callerMemberName = default(string?);
             var callerFilePath = default(string?);
             var callerLineNumber = default(int);
-            if (state is ICallerTracable)
+            if (state is ICallerTraceable)
             {
-                callerMemberName = ((ICallerTracable)state).CallerMemberName;
-                callerFilePath = ((ICallerTracable)state).CallerFilePath;
-                callerLineNumber = ((ICallerTracable)state).CallerLineNumber;
+                callerMemberName = ((ICallerTraceable)state).CallerMemberName;
+                callerFilePath = ((ICallerTraceable)state).CallerFilePath;
+                callerLineNumber = ((ICallerTraceable)state).CallerLineNumber;
             }
 
             var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, callerMemberName, callerFilePath, callerLineNumber);

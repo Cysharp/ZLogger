@@ -401,7 +401,7 @@ Formats using messagepack are supported in an additional package.
 
 todo
 
-LogInfo ?
+LogInfo
 ---
 
 | Name                        | Description                                                                                              |
@@ -412,6 +412,9 @@ LogInfo ?
 | `EventId EventId`           | EventId of `Microsoft.Extensions.Logging`                                                                |
 | `Exception? Exception`      | Exception given as argument when logging.                                                                |
 | `LogScopeState? ScopeState` | Additional properties set by `ILogger.BeginScope(...)` (if ZLoggerOptions.IncludeScopes = true)          |
+| `string? MemberName` | Caller MemberName         |
+| `string? FilePath` | Caller FilePath         |
+| `int LineNumber` | Caller LineNumber         |
 
 
 KeyNameMutator

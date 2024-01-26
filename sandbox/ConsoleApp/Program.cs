@@ -1,15 +1,22 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Runtime.CompilerServices;
 using ZLogger;
 
 using var factory = LoggerFactory.Create(logging =>
 {
     // Add ZLogger provider to ILoggingBuilder
-    logging.AddZLoggerConsole();
+    logging.AddZLoggerConsole(options =>
+    {
+        options.UsePlainTextFormatter(formatter =>
+        {
+            // formatter.SetPrefixFormatter($"foo", (template, info) => info.CallerLineNumber
+        });
+    });
 
     // Output Structured Logging, setup options
     logging.AddZLoggerConsole(options => options.UseJsonFormatter(formatter =>
     {
-        formatter.IncludeProperties = IncludeProperties.ParameterKeyValues;
+        formatter.IncludeProperties = IncludeProperties.ParameterKeyValues | IncludeProperties.MemberName | IncludeProperties.FilePath | IncludeProperties.LineNumber;
     }));
 });
 
@@ -21,13 +28,16 @@ var age = 33;
 // Use **Z**Log method and string interpolation to log message
 logger.ZLogInformation($"Hello my name is {name}, {age} years old.");
 
+LogLog.Foo(logger, "tako", "huga", 1000);
+
+
 // Output messages:
 // Hello my name is John, 33 years old.
 // {"Timestamp":"2023-12-04T19:39:59.9237682+09:00","LogLevel":"Information","Category":"Program","Message":"Hello my name is John, 33 years old.","name":"John","age":33}
 
 
 
-public class MyClass
+public partial class MyClass
 {
     // get ILogger<T> from DI.
     readonly ILogger<MyClass> logger;
@@ -71,4 +81,10 @@ public class MyClass
         // json:
         // {"Timestamp":"2023-12-01T16:59:29.908126+09:00","LogLevel":"Information","Category":"my","Message":"users: [{\u0022Id\u0022:1,\u0022Name\u0022:\u0022Alice\u0022},{\u0022Id\u0022:1,\u0022Name\u0022:\u0022Bob\u0022}]","users":[{"Id":1,"Name":"Alice"},{"Id":1,"Name":"Bob"}]}
     }
+}
+
+public static partial class LogLog
+{
+    [ZLoggerMessage(LogLevel.Information, "foo is {name} {city} {age}")]
+    public static partial void Foo(ILogger logger, string name, string city, int age, [CallerMemberName] string? memberName = null, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = 0);
 }

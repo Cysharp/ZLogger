@@ -10,7 +10,7 @@ namespace ZLogger.LogStates;
 public sealed class InterpolatedStringLogState : 
     IZLoggerFormattable, 
     IReferenceCountable,
-    ICallerTracable,
+    ICallerTraceable,
     IObjectPoolNode<InterpolatedStringLogState>, 
     IEnumerable<KeyValuePair<string, object?>>
 {
@@ -186,7 +186,7 @@ public sealed class InterpolatedStringLogState :
 }
 
 [StructLayout(LayoutKind.Auto)]
-public readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCountable, ICallerTracable, IEnumerable<KeyValuePair<string, object?>>
+public readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCountable, ICallerTraceable, IEnumerable<KeyValuePair<string, object?>>
 {
     readonly InterpolatedStringLogState state;
     readonly int version;

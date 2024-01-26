@@ -72,7 +72,7 @@ public partial class ZLoggerGenerator
                 .StringJoinNewLine();
 
             sb.AppendLine($$"""
-    readonly struct {{stateTypeName}} : IZLoggerFormattable, ICallerTracable, IReadOnlyList<KeyValuePair<string, object?>>
+    readonly struct {{stateTypeName}} : IZLoggerFormattable, ICallerTraceable, IReadOnlyList<KeyValuePair<string, object?>>
     {
         public string? CallerMemberName { get; }
         public string? CallerFilePath { get; }
