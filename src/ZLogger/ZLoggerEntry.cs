@@ -51,7 +51,7 @@ namespace ZLogger
 
         public override string ToString() => state.ToString();
 
-        public IZLoggerEntry CreateEntry(LogInfo info) => state.CreateEntry(info);
+        public IZLoggerEntry CreateEntry(in LogInfo info) => state.CreateEntry(info);
         public int ParameterCount => state.ParameterCount;
         public bool IsSupportUtf8ParameterKey => state.IsSupportUtf8ParameterKey;
 

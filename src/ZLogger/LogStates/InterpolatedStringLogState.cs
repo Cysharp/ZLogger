@@ -9,7 +9,8 @@ namespace ZLogger.LogStates;
 
 public sealed class InterpolatedStringLogState : 
     IZLoggerFormattable, 
-    IReferenceCountable, 
+    IReferenceCountable,
+    ICallerTracable,
     IObjectPoolNode<InterpolatedStringLogState>, 
     IEnumerable<KeyValuePair<string, object?>>
 {
@@ -18,8 +19,11 @@ public sealed class InterpolatedStringLogState :
     public ref InterpolatedStringLogState? NextNode => ref next;
     InterpolatedStringLogState? next;
 
-    public int ParameterCount { get; private set; }
     public bool IsSupportUtf8ParameterKey => false;
+    public int ParameterCount { get; private set; }
+    public string? CallerMemberName { get; set; }
+    public string? CallerFilePath { get; set; }
+    public int CallerLineNumber { get; set; }
 
     public IEnumerator<KeyValuePair<string, object?>> GetEnumerator() => new Enumerator(this);
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -57,13 +61,15 @@ public sealed class InterpolatedStringLogState :
         }
         state.ParameterCount = formattedCount;
         state.refCount = 1;
-
+        state.CallerMemberName = default;
+        state.CallerFilePath = default;
+        state.CallerLineNumber = default;
         return state;
     }
 
-    public IZLoggerEntry CreateEntry(LogInfo info)
+    public IZLoggerEntry CreateEntry(in LogInfo info)
     {
-        return ZLoggerEntry<InterpolatedStringLogState>.Create(info, this);
+        return ZLoggerEntry<InterpolatedStringLogState>.Create(in info, this);
     }
 
     public void Retain()
@@ -180,12 +186,16 @@ public sealed class InterpolatedStringLogState :
 }
 
 [StructLayout(LayoutKind.Auto)]
-public readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCountable, IEnumerable<KeyValuePair<string, object?>>
+public readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCountable, ICallerTracable, IEnumerable<KeyValuePair<string, object?>>
 {
     readonly InterpolatedStringLogState state;
     readonly int version;
 
     public int Version => version;
+
+    public string? CallerMemberName => state.CallerMemberName;
+    public string? CallerFilePath => state.CallerFilePath;
+    public int CallerLineNumber => state.CallerLineNumber;
 
     internal VersionedLogState(InterpolatedStringLogState state)
     {
@@ -193,7 +203,7 @@ public readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCou
         this.version = state.Version;
     }
 
-    public IZLoggerEntry CreateEntry(LogInfo info)
+    public IZLoggerEntry CreateEntry(in LogInfo info)
     {
         return state.CreateEntry(info);
     }

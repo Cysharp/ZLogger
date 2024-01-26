@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using ZLogger.Generator.Tests;
 
 namespace ZLogger.Tests.GeneratorTests
@@ -10,6 +11,9 @@ namespace ZLogger.Tests.GeneratorTests
         // check for instance
         [ZLoggerMessage(Information, "Hello {name}")]
         partial void Hello(ILogger logger, string name);
+
+        [ZLoggerMessage(Information, "Bye {name}")]
+        partial void Bye(ILogger logger, string name, [CallerMemberName] string memberName = "");
 
 
         [Fact]

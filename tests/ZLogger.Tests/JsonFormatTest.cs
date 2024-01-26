@@ -1,5 +1,3 @@
-using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Text;
@@ -78,7 +76,7 @@ namespace ZLogger.Tests
             var now = DateTime.UtcNow;
             logger.ZLogInformation(new EventId(1, "TEST"), $"HELLO!");
 
-            var json = processor.Dequeue();
+            var json = processor.DequeueAsString();
             var doc = JsonDocument.Parse(json).RootElement;
 
             doc.TryGetProperty("Message", out _).Should().BeFalse();
@@ -108,7 +106,7 @@ namespace ZLogger.Tests
 
             logger.ZLogInformation(new EventId(1, "TEST"), $"HELLO!");
 
-            var json = processor.Dequeue();
+            var json = processor.DequeueAsString();
             var doc = JsonDocument.Parse(json).RootElement;
 
             doc.TryGetProperty("Message", out _).Should().BeFalse();
@@ -145,7 +143,7 @@ namespace ZLogger.Tests
             var Yaki = "あいうえお";
             logger.ZLogDebug($"tako: {Tako} yaki: {Yaki}");
 
-            var json = processor.Dequeue();
+            var json = processor.DequeueAsString();
             var doc = JsonDocument.Parse(json).RootElement;
 
             doc.GetProperty("Message").GetString().Should().Be("tako: 100 yaki: あいうえお");
@@ -178,7 +176,7 @@ namespace ZLogger.Tests
 
             logger.ZLogDebug($"tako: {zzz.Tako} yaki: {zzz.Yaki}");
 
-            var json = processor.Dequeue();
+            var json = processor.DequeueAsString();
             var doc = JsonDocument.Parse(json).RootElement;
 
             doc.GetProperty("Message").GetString().Should().Be("tako: 100 yaki: あいうえお");
@@ -211,7 +209,7 @@ namespace ZLogger.Tests
 
             logger.ZLogDebug($"tako: {zzz.tako} yaki: {zzz.yaki}");
 
-            var json = processor.Dequeue();
+            var json = processor.DequeueAsString();
             var doc = JsonDocument.Parse(json).RootElement;
 
             doc.GetProperty("Message").GetString().Should().Be("tako: 100 yaki: あいうえお");
@@ -245,7 +243,7 @@ namespace ZLogger.Tests
 
             logger.ZLogDebug($"tako: {zzz.Tako} yaki: {zzz.Yaki}");
 
-            var json = processor.Dequeue();
+            var json = processor.DequeueAsString();
             var doc = JsonDocument.Parse(json).RootElement;
 
             doc.GetProperty("Message").GetString().Should().Be("tako: 100 yaki: あいうえお");
@@ -281,7 +279,7 @@ namespace ZLogger.Tests
 
             logger.ZLogInformation(new EventId(1, "TEST"), $"HELLO!");
 
-            var json = processor.Dequeue();
+            var json = processor.DequeueAsString();
             var doc = JsonDocument.Parse(json).RootElement;
 
             doc.TryGetProperty("MMMMMMMMMMMOsage", out _).Should().BeTrue();
@@ -320,7 +318,7 @@ namespace ZLogger.Tests
             var mc = new MyClass();
             logger.ZLogDebug($"tako: {mc.Call(10, anon.Tako)} yaki: {(((mc.Call2(1, 2))))}");
 
-            var json = processor.Dequeue();
+            var json = processor.DequeueAsString();
             var doc = JsonDocument.Parse(json).RootElement;
 
             doc.GetProperty("Call").GetInt32().Should().Be(110);

@@ -30,7 +30,7 @@ namespace ZLogger.LogStates
             }
         }
 
-        public IZLoggerEntry CreateEntry(LogInfo info)
+        public IZLoggerEntry CreateEntry(in LogInfo info)
         {
             return ZLoggerEntry<StringFormatterLogState<TState>>.Create(info, this);
         }

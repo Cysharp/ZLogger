@@ -7,10 +7,10 @@ namespace ZLogger.Tests
 {
     class TestProcessor : IAsyncLogProcessor
     {
-        public Queue<string> EntryMessages = new();
+        public readonly Queue<IZLoggerEntry> Entries = new();
         readonly IZLoggerFormatter formatter;
 
-        public string Dequeue() => EntryMessages.Dequeue();
+        public string DequeueAsString() => Entries.Dequeue().FormatToString(formatter);
 
         public TestProcessor(ZLoggerOptions options)
         {
@@ -24,7 +24,7 @@ namespace ZLogger.Tests
 
         public void Post(IZLoggerEntry log)
         {
-            EntryMessages.Enqueue(log.FormatToString(formatter));
+            Entries.Enqueue(log);
         }
     }
 
