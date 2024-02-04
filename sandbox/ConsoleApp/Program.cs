@@ -19,16 +19,16 @@ using var factory = LoggerFactory.Create(logging =>
     //});
 
     //// Output Structured Logging, setup options
-    logging.AddZLoggerConsole(options => options.UseJsonFormatter(formatter =>
-    {
-        formatter.IncludeProperties = IncludeProperties.ParameterKeyValues | IncludeProperties.MemberName | IncludeProperties.FilePath | IncludeProperties.LineNumber;
-    }));
-
-    //logging.AddZLoggerConsole(options =>
+    //logging.AddZLoggerConsole(options => options.UseJsonFormatter(formatter =>
     //{
-    //    options.InternalErrorLogger = ex => Console.WriteLine(ex);
-    //    options.UseFormatter(() => new CLEFMessageTemplateFormatter());
-    //});
+    //    formatter.IncludeProperties = IncludeProperties.ParameterKeyValues | IncludeProperties.MemberName | IncludeProperties.FilePath | IncludeProperties.LineNumber;
+    //}));
+
+    logging.AddZLoggerConsole(options =>
+    {
+        options.InternalErrorLogger = ex => Console.WriteLine(ex);
+        options.UseFormatter(() => new CLEFMessageTemplateFormatter());
+    });
 
 
 });
@@ -41,10 +41,10 @@ var name = "John";
 var age = 33;
 
 
-logger.LogInformation("aiueo {id} ", 100);
+logger.LogInformation("aiueo {id:0,0000} ", 100);
 
 // Use **Z**Log method and string interpolation to log message
-logger.ZLogInformation($"Hello my name is {name}, {age} years old.");
+logger.ZLogInformation($"Hello my name is {name}, {age:-1,0000} years old.");
 
 LogLog.Foo(logger, "tako", "huga", 1000);
 
@@ -97,7 +97,7 @@ public partial class MyClass
 
 public static partial class LogLog
 {
-    [ZLoggerMessage(LogLevel.Information, "foo is {name} {city} {age}")]
+    [ZLoggerMessage(LogLevel.Information, "foo is {name} {city} {age:-1,0000}")]
     public static partial void Foo(ILogger logger, string name, string city, int age, [CallerMemberName] string? memberName = null, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = 0);
 
 

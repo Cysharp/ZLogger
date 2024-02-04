@@ -322,6 +322,18 @@ namespace ZLogger
                     ref var p = ref parameters[parameterIndex++];
                     stringHandler.AppendLiteral("{");
                     stringHandler.AppendLiteral(p.Name);
+
+                    if (p.Alignment != 0)
+                    {
+                        stringHandler.AppendLiteral(":");
+                        stringHandler.AppendFormatted(p.Alignment);
+                    }
+                    if (p.Format != null)
+                    {
+                        stringHandler.AppendLiteral(",");
+                        stringHandler.AppendLiteral(p.Format);
+                    }
+
                     stringHandler.AppendLiteral("}");
                 }
             }
@@ -345,6 +357,18 @@ namespace ZLogger
                     ref var p = ref parameters[parameterIndex++];
                     stringWriter.AppendLiteral("{");
                     stringWriter.AppendLiteral(p.Name);
+
+                    if (p.Alignment != 0)
+                    {
+                        stringWriter.AppendLiteral(":");
+                        stringWriter.AppendFormatted(p.Alignment);
+                    }
+                    if (p.Format != null)
+                    {
+                        stringWriter.AppendLiteral(",");
+                        stringWriter.AppendLiteral(p.Format);
+                    }
+
                     stringWriter.AppendLiteral("}");
                 }
             }

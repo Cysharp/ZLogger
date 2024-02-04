@@ -66,6 +66,11 @@ internal class CLEFMessageTemplateFormatter : IZLoggerFormatter
         entry.WriteOriginalFormat(originalFormatWriter);
         jsonWriter.WriteString(MessageTemplate, originalFormatWriter.WrittenSpan);
 
+        if (entry.LogInfo.Exception != null)
+        {
+            jsonWriter.WriteString(Exception, entry.LogInfo.Exception.ToString());
+        }
+
         // Parameters
         entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions);
 
