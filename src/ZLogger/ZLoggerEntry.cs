@@ -78,6 +78,10 @@ namespace ZLogger
             formatter.FormatLogEntry(writer, this);
         }
 
+        public string GetOriginalFormat() => state.GetOriginalFormat();
+
+        public void WriteOriginalFormat(IBufferWriter<byte> writer) => state.WriteOriginalFormat(writer);
+
         public void Return()
         {
             if (state is VersionedLogState)

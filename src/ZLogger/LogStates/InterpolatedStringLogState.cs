@@ -7,11 +7,11 @@ using ZLogger.Internal;
 
 namespace ZLogger.LogStates;
 
-public sealed class InterpolatedStringLogState : 
-    IZLoggerFormattable, 
+public sealed class InterpolatedStringLogState :
+    IZLoggerFormattable,
     IReferenceCountable,
     ICallerTraceable,
-    IObjectPoolNode<InterpolatedStringLogState>, 
+    IObjectPoolNode<InterpolatedStringLogState>,
     IEnumerable<KeyValuePair<string, object?>>
 {
     static readonly ObjectPool<InterpolatedStringLogState> cache = new();
@@ -106,6 +106,16 @@ public sealed class InterpolatedStringLogState :
         messageSequence.ToString(writer, magicalBox, parameters);
     }
 
+    public string GetOriginalFormat()
+    {
+        return messageSequence.GetOriginalFormat(parameters);
+    }
+
+    public void WriteOriginalFormat(IBufferWriter<byte> writer)
+    {
+        messageSequence.WriteOriginalFormat(writer, parameters);
+    }
+
     public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions, IKeyNameMutator? keyNameMutator = null)
     {
         for (var i = 0; i < ParameterCount; i++)
@@ -165,9 +175,9 @@ public sealed class InterpolatedStringLogState :
     {
         return parameters[index].Type;
     }
-    
-    public object? GetContext() => null;    
-    
+
+    public object? GetContext() => null;
+
     struct Enumerator(InterpolatedStringLogState state) : IEnumerator<KeyValuePair<string, object?>>
     {
         InterpolatedStringLogState state = state;
@@ -217,7 +227,7 @@ public readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCou
     {
         state.Retain();
     }
-    
+
     public override string ToString()
     {
         ThrowIfVersionUnmatched();

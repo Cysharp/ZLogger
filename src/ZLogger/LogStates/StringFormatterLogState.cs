@@ -1,12 +1,13 @@
 using System.Buffers;
 using System.Text;
 using System.Text.Json;
+using ZLogger.Internal;
 
 namespace ZLogger.LogStates
 {
     internal struct StringFormatterLogState<TState> : IZLoggerFormattable
     {
-        public int ParameterCount => originalStateParameters?.Count ?? 0;
+        public int ParameterCount { get; }
         public bool IsSupportUtf8ParameterKey => false;
 
         readonly TState originalState;
@@ -23,10 +24,15 @@ namespace ZLogger.LogStates
             if (originalState is IReadOnlyList<KeyValuePair<string, object?>> x)
             {
                 originalStateParameters = x;
+                if (x.Count != 0 && x[^1].Key == "{OriginalFormat}")
+                {
+                    ParameterCount = x.Count - 1;
+                }
             }
             else
             {
                 originalStateParameters = null;
+                ParameterCount = 0;
             }
         }
 
@@ -45,11 +51,36 @@ namespace ZLogger.LogStates
             writer.Advance(bytesWritten);
         }
 
+        public string GetOriginalFormat()
+        {
+            var bufferWriter = ArrayBufferWriterPool.GetThreadStaticInstance();
+            WriteOriginalFormat(bufferWriter);
+            return Encoding.UTF8.GetString(bufferWriter.WrittenSpan);
+        }
+
+        public void WriteOriginalFormat(IBufferWriter<byte> writer)
+        {
+            if (originalStateParameters == null) return;
+
+            var len = originalStateParameters.Count;
+            for (int i = len - 1; i >= 0; i--)
+            {
+                var item = originalStateParameters[i]; // maybe last is OriginalFormat
+                if (item.Key == "{OriginalFormat}" && item.Value is string str)
+                {
+                    var buffer = writer.GetSpan(Encoding.UTF8.GetMaxByteCount(str.Length));
+                    var bytesWritten = Encoding.UTF8.GetBytes(str.AsSpan(), buffer);
+                    writer.Advance(bytesWritten);
+                }
+            }
+        }
+
         public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions, IKeyNameMutator? keyNameMutator = null)
         {
             if (originalStateParameters == null) return;
 
-            for (var i = 0; i < originalStateParameters.Count; i++)
+            var length = ParameterCount;
+            for (var i = 0; i < length; i++)
             {
                 var x = originalStateParameters[i];
                 jsonWriter.WritePropertyName(x.Key);
@@ -105,7 +136,7 @@ namespace ZLogger.LogStates
             }
             throw new IndexOutOfRangeException(nameof(index));
         }
-        
+
         public object? GetContext() => null;
     }
 }

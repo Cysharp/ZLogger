@@ -213,7 +213,7 @@ namespace ZLogger.Formatters
             }
         }
 
-        void FormatLogInfo(Utf8JsonWriter jsonWriter, LogInfo info)
+        void FormatLogInfo(Utf8JsonWriter jsonWriter, in LogInfo info)
         {
             var flag = IncludeProperties;
             if ((flag & IncludeProperties.Timestamp) != 0)

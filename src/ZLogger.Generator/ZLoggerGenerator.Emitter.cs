@@ -185,6 +185,17 @@ public partial class ZLoggerGenerator
 """);
             }
 
+            // string GetOriginalFormat()
+            // void WriteOriginalFormat(IBufferWriter<byte> writer)
+            sb.AppendLine($$"""
+        public string GetOriginalFormat() => "{{string.Concat(method.MessageSegments.Select(x => x.ToString()))}}";
+
+        public void WriteOriginalFormat(global::System.Buffers.IBufferWriter<byte> writer)
+        {
+            writer.Write("{{string.Concat(method.MessageSegments.Select(x => x.ToString()))}}"u8);
+        }
+
+""");
             //void WriteJsonParameterKeyValues(Utf8JsonWriter writer, JsonSerializerOptions jsonSerializerOptions);
             sb.AppendLine($$"""
         public void WriteJsonParameterKeyValues(global::System.Text.Json.Utf8JsonWriter writer, global::System.Text.Json.JsonSerializerOptions jsonSerializerOptions, global::ZLogger.IKeyNameMutator? keyNameMutator = null)

@@ -16,6 +16,9 @@ public interface IZLoggerFormattable : IZLoggerEntryCreatable
     string ToString();
     void ToString(IBufferWriter<byte> writer);
 
+    string GetOriginalFormat();
+    void WriteOriginalFormat(IBufferWriter<byte> writer);
+
     void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions, IKeyNameMutator? keyNameMutator = null);
 
     ReadOnlySpan<byte> GetParameterKey(int index);

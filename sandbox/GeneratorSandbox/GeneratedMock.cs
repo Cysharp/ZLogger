@@ -164,6 +164,19 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable, ICallerTrace
     public IEnumerator<KeyValuePair<string, object?>> GetEnumerator() => new Enumerator(this);
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+    public string GetOriginalFormat()
+    {
+        return "Could not open socket to {hostName} {ipAddress}.";
+    }
+
+    public void WriteOriginalFormat(IBufferWriter<byte> writer)
+    {
+        var format = "Could not open socket to {hostName} {ipAddress}."u8;
+        writer.GetSpan(format.Length);
+        writer.Write(format);
+        writer.Advance(format.Length);
+    }
+
     struct Enumerator : IEnumerator<KeyValuePair<string, object?>>
     {
         int currentIndex;
@@ -287,4 +300,14 @@ file readonly struct SamplerState2 : IZLoggerFormattable
     }
 
     public object? GetContext() => null;
+
+    public string GetOriginalFormat()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void WriteOriginalFormat(IBufferWriter<byte> writer)
+    {
+        throw new NotImplementedException();
+    }
 }

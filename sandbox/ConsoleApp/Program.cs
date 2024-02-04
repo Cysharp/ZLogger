@@ -1,40 +1,52 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using ConsoleApp;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Buffers;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.Json;
 using ZLogger;
 
 using var factory = LoggerFactory.Create(logging =>
 {
     // Add ZLogger provider to ILoggingBuilder
+    //logging.AddZLoggerConsole(options =>
+    //{
+    //    options.UsePlainTextFormatter(formatter =>
+    //    {
+    //        // formatter.SetPrefixFormatter($"foo", (template, info) => info.CallerLineNumber
+    //    });
+    //});
+
+    //// Output Structured Logging, setup options
+    //logging.AddZLoggerConsole(options => options.UseJsonFormatter(formatter =>
+    //{
+    //    formatter.IncludeProperties = IncludeProperties.ParameterKeyValues | IncludeProperties.MemberName | IncludeProperties.FilePath | IncludeProperties.LineNumber;
+    //}));
+
     logging.AddZLoggerConsole(options =>
     {
-        options.UsePlainTextFormatter(formatter =>
-        {
-            // formatter.SetPrefixFormatter($"foo", (template, info) => info.CallerLineNumber
-        });
+        options.InternalErrorLogger = ex => Console.WriteLine(ex);
+        options.UseFormatter(() => new CLEFMessageTemplateFormatter());
     });
 
-    // Output Structured Logging, setup options
-    logging.AddZLoggerConsole(options => options.UseJsonFormatter(formatter =>
-    {
-        formatter.IncludeProperties = IncludeProperties.ParameterKeyValues | IncludeProperties.MemberName | IncludeProperties.FilePath | IncludeProperties.LineNumber;
-    }));
+
 });
+
+
 
 var logger = factory.CreateLogger("Program");
 
 var name = "John";
 var age = 33;
 
+
+logger.LogInformation("aiueo {id} ", 100);
+
 // Use **Z**Log method and string interpolation to log message
 logger.ZLogInformation($"Hello my name is {name}, {age} years old.");
 
 LogLog.Foo(logger, "tako", "huga", 1000);
-
-
-// Output messages:
-// Hello my name is John, 33 years old.
-// {"Timestamp":"2023-12-04T19:39:59.9237682+09:00","LogLevel":"Information","Category":"Program","Message":"Hello my name is John, 33 years old.","name":"John","age":33}
-
 
 
 public partial class MyClass

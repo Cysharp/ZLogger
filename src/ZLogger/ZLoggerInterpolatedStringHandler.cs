@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.IO;
 using System.IO.Hashing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -304,6 +305,50 @@ namespace ZLogger
             }
 
             return stringHandler.ToStringAndClear();
+        }
+
+        public string GetOriginalFormat(Span<InterpolatedStringParameter> parameters)
+        {
+            var stringHandler = new DefaultInterpolatedStringHandler(literalLength, parametersLength);
+            var parameterIndex = 0;
+            foreach (var item in segments)
+            {
+                if (item.IsLiteral)
+                {
+                    stringHandler.AppendLiteral(item.Literal);
+                }
+                else
+                {
+                    ref var p = ref parameters[parameterIndex++];
+                    stringHandler.AppendLiteral("{");
+                    stringHandler.AppendLiteral(p.Name);
+                    stringHandler.AppendLiteral("}");
+                }
+            }
+
+            return stringHandler.ToStringAndClear();
+        }
+
+        public void WriteOriginalFormat(IBufferWriter<byte> writer, Span<InterpolatedStringParameter> parameters)
+        {
+            var stringWriter = new Utf8StringWriter<IBufferWriter<byte>>(literalLength, parametersLength, writer);
+
+            var parameterIndex = 0;
+            foreach (var item in segments)
+            {
+                if (item.IsLiteral)
+                {
+                    stringWriter.AppendUtf8(item.Utf8Bytes);
+                }
+                else
+                {
+                    ref var p = ref parameters[parameterIndex++];
+                    stringWriter.AppendLiteral("{");
+                    stringWriter.AppendLiteral(p.Name);
+                    stringWriter.AppendLiteral("}");
+                }
+            }
+            stringWriter.Flush();
         }
 
         public override string ToString()
