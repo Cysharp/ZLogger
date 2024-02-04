@@ -71,12 +71,17 @@ public partial class ZLoggerGenerator
                 .Select(x => $"            this.{x.LinkedMessageSegment.NameParameter} = {x.Symbol.Name};")
                 .StringJoinNewLine();
 
+            var implCallerTraceable = callerInfoParameters.Length > 0 ? ", ICallerTraceable" : "";
+            var callerMembers = implCallerTraceable != "" ? $"""
+        readonly string? callerMemberName;
+        readonly string? callerFilePath;
+        readonly int callerLineNumber;
+""" : "";
+
             sb.AppendLine($$"""
-    readonly struct {{stateTypeName}} : IZLoggerFormattable, ICallerTraceable, IReadOnlyList<KeyValuePair<string, object?>>
+    readonly struct {{stateTypeName}} : IZLoggerFormattable{{implCallerTraceable}}, IReadOnlyList<KeyValuePair<string, object?>>
     {
-        public string? CallerMemberName { get; }
-        public string? CallerFilePath { get; }
-        public int CallerLineNumber { get; }
+{{callerMembers}}
     
 {{jsonParameters}}
 
@@ -91,19 +96,37 @@ public partial class ZLoggerGenerator
                 if (callerInfoParameters.FirstOrDefault(x => x.IsCallerMemberName) is { } callerMemberNameArg)
                 {
                     sb.AppendLine($$"""
-            CallerMemberName = {{callerMemberNameArg.Symbol.Name}};
+            this.callerMemberName = {{callerMemberNameArg.Symbol.Name}};
+""");
+                }
+                else
+                {
+                    sb.AppendLine($$"""
+            this.callerMemberName = null;
 """);
                 }
                 if (callerInfoParameters.FirstOrDefault(x => x.IsCallerFilePath) is { } callerFilePathArg)
                 {
                     sb.AppendLine($$"""
-            CallerFilePath = {{callerFilePathArg.Symbol.Name}};
+            this.callerFilePath = {{callerFilePathArg.Symbol.Name}};
+""");
+                }
+                else
+                {
+                    sb.AppendLine($$"""
+            this.callerFilePath = null;
 """);
                 }
                 if (callerInfoParameters.FirstOrDefault(x => x.IsCallerLineNumber) is { } callerLineNumberArg)
                 {
                     sb.AppendLine($$"""
-            CallerLineNumber = {{callerLineNumberArg.Symbol.Name}};
+            this.callerLineNumber = {{callerLineNumberArg.Symbol.Name}};
+""");
+                }
+                else
+                {
+                    sb.AppendLine($$"""
+            this.callerLineNumber = 0;
 """);
                 }
             }
@@ -118,6 +141,14 @@ public partial class ZLoggerGenerator
         public object? GetContext() => null;
         
 """);
+
+            if (implCallerTraceable != "")
+            {
+                sb.AppendLine($$"""
+        public (string? MemberName, string? FilePath, int LineNumber) GetCallerInfo() => (callerMemberName, callerFilePath, callerLineNumber);
+
+""");
+            }
 
             EmitIZLoggerFormattableMethods(method);
             EmitKeyValuePairEnumerator(method);

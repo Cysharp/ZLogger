@@ -38,7 +38,5 @@ public interface IReferenceCountable
 
 public interface ICallerTraceable
 {
-    string? CallerMemberName { get; }
-    string? CallerFilePath { get; }
-    int CallerLineNumber { get; }
+    (string? MemberName, string? FilePath, int LineNumber) GetCallerInfo();
 }

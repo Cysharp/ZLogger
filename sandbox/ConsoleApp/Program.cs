@@ -19,16 +19,16 @@ using var factory = LoggerFactory.Create(logging =>
     //});
 
     //// Output Structured Logging, setup options
-    //logging.AddZLoggerConsole(options => options.UseJsonFormatter(formatter =>
-    //{
-    //    formatter.IncludeProperties = IncludeProperties.ParameterKeyValues | IncludeProperties.MemberName | IncludeProperties.FilePath | IncludeProperties.LineNumber;
-    //}));
-
-    logging.AddZLoggerConsole(options =>
+    logging.AddZLoggerConsole(options => options.UseJsonFormatter(formatter =>
     {
-        options.InternalErrorLogger = ex => Console.WriteLine(ex);
-        options.UseFormatter(() => new CLEFMessageTemplateFormatter());
-    });
+        formatter.IncludeProperties = IncludeProperties.ParameterKeyValues | IncludeProperties.MemberName | IncludeProperties.FilePath | IncludeProperties.LineNumber;
+    }));
+
+    //logging.AddZLoggerConsole(options =>
+    //{
+    //    options.InternalErrorLogger = ex => Console.WriteLine(ex);
+    //    options.UseFormatter(() => new CLEFMessageTemplateFormatter());
+    //});
 
 
 });
@@ -99,4 +99,8 @@ public static partial class LogLog
 {
     [ZLoggerMessage(LogLevel.Information, "foo is {name} {city} {age}")]
     public static partial void Foo(ILogger logger, string name, string city, int age, [CallerMemberName] string? memberName = null, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = 0);
+
+
+    [ZLoggerMessage(LogLevel.Information, "foo is {name} {city} {age}")]
+    public static partial void Foo2(ILogger logger, string name, string city, int age);
 }

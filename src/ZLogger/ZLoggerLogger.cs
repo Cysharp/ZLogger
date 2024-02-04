@@ -18,7 +18,7 @@ namespace ZLogger
             this.timeProvider = options.TimeProvider;
             this.scopeProvider = scopeProvider;
         }
-        
+
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             var scopeState = scopeProvider != null
@@ -30,13 +30,11 @@ namespace ZLogger
             var callerLineNumber = default(int);
             if (state is ICallerTraceable)
             {
-                callerMemberName = ((ICallerTraceable)state).CallerMemberName;
-                callerFilePath = ((ICallerTraceable)state).CallerFilePath;
-                callerLineNumber = ((ICallerTraceable)state).CallerLineNumber;
+                (callerMemberName, callerFilePath, callerLineNumber) = ((ICallerTraceable)state).GetCallerInfo();
             }
 
             var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, callerMemberName, callerFilePath, callerLineNumber);
-            
+
             IZLoggerEntry entry;
             if (state is VersionedLogState)
             {

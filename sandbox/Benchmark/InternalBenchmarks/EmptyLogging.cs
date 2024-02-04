@@ -1,4 +1,6 @@
-﻿using Benchmark.Benchmarks;
+﻿#pragma warning disable 0219
+
+using Benchmark.Benchmarks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;

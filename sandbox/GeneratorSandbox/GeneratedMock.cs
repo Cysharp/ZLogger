@@ -177,6 +177,11 @@ file readonly struct CouldNotOpenSocketState : IZLoggerFormattable, ICallerTrace
         writer.Advance(format.Length);
     }
 
+    public (string? MemberName, string? FilePath, int LineNumber) GetCallerInfo()
+    {
+        throw new NotImplementedException();
+    }
+
     struct Enumerator : IEnumerator<KeyValuePair<string, object?>>
     {
         int currentIndex;

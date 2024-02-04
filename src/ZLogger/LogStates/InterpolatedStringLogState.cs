@@ -21,9 +21,8 @@ public sealed class InterpolatedStringLogState :
 
     public bool IsSupportUtf8ParameterKey => false;
     public int ParameterCount { get; private set; }
-    public string? CallerMemberName { get; set; }
-    public string? CallerFilePath { get; set; }
-    public int CallerLineNumber { get; set; }
+
+    internal (string? MemberName, string? FilePath, int LineNumber) callerInfo; // set from ZLog method
 
     public IEnumerator<KeyValuePair<string, object?>> GetEnumerator() => new Enumerator(this);
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -61,9 +60,7 @@ public sealed class InterpolatedStringLogState :
         }
         state.ParameterCount = formattedCount;
         state.refCount = 1;
-        state.CallerMemberName = default;
-        state.CallerFilePath = default;
-        state.CallerLineNumber = default;
+        state.callerInfo = default;
         return state;
     }
 
@@ -178,6 +175,11 @@ public sealed class InterpolatedStringLogState :
 
     public object? GetContext() => null;
 
+    public (string? MemberName, string? FilePath, int LineNumber) GetCallerInfo()
+    {
+        return callerInfo;
+    }
+
     struct Enumerator(InterpolatedStringLogState state) : IEnumerator<KeyValuePair<string, object?>>
     {
         InterpolatedStringLogState state = state;
@@ -203,10 +205,6 @@ public readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCou
 
     public int Version => version;
 
-    public string? CallerMemberName => state.CallerMemberName;
-    public string? CallerFilePath => state.CallerFilePath;
-    public int CallerLineNumber => state.CallerLineNumber;
-
     internal VersionedLogState(InterpolatedStringLogState state)
     {
         this.state = state;
@@ -216,6 +214,11 @@ public readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCou
     public IZLoggerEntry CreateEntry(in LogInfo info)
     {
         return state.CreateEntry(info);
+    }
+
+    public (string? MemberName, string? FilePath, int LineNumber) GetCallerInfo()
+    {
+        return state.GetCallerInfo();
     }
 
     public void Release()

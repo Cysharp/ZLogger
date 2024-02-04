@@ -38,7 +38,7 @@ public static class CSharpGeneratorRunner
         baseCompilation = compilation;
     }
 
-    public static Diagnostic[] RunGenerator(string source, string[]? preprocessorSymbols = null, AnalyzerConfigOptionsProvider? options = null)
+    public static Diagnostic[] RunGenerator(string source, string[] preprocessorSymbols = null, AnalyzerConfigOptionsProvider options = null)
     {
         if (preprocessorSymbols == null)
         {
