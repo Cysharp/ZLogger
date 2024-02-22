@@ -1,4 +1,6 @@
 ﻿#pragma warning disable 0219
+#pragma warning disable 0169
+#pragma warning disable 0414
 
 using Benchmark.Benchmarks;
 using BenchmarkDotNet.Attributes;

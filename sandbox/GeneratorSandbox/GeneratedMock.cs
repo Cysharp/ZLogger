@@ -37,7 +37,7 @@ public static partial class Log22
 
 }
 
-file readonly struct CouldNotOpenSocketState : IZLoggerFormattable, ICallerTraceable, IReadOnlyList<KeyValuePair<string, object?>>
+file readonly struct CouldNotOpenSocketState : IZLoggerFormattable,  IReadOnlyList<KeyValuePair<string, object?>>
 {
     static readonly JsonEncodedText _jsonParameter_hostName = JsonEncodedText.Encode("hostName");
     static readonly JsonEncodedText _jsonParameter_ipAddress = JsonEncodedText.Encode("ipAddress");
