@@ -5,15 +5,15 @@ using ZLogger;
 using ZLogger.Unity;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
-public static partial class Log
-{
-    [ZLoggerMessage(LogLevel.Information, "Could not open socket to {hostName} {ipAddress}.")]
-    public static partial void Hello(this ILogger logger, string hostName, string ipAddress);
-}
+//public static partial class Log
+//{
+//    [ZLoggerMessage(LogLevel.Information, "Could not open socket to {hostName} {ipAddress}.")]
+//    public static partial void Hello(this ILogger logger, string hostName, string ipAddress);
+//}
 
 public class SampleBehaviour : MonoBehaviour
 {
-    ILogger logger;
+    ILogger logger = default!;
     
     void Start()
     {

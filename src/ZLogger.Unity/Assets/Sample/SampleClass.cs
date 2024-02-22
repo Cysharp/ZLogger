@@ -36,6 +36,6 @@ public class SampleClass2<T>
     {
         logger.ZLog(LogLevel.Information, $"ZLog Hello");
         logger.ZLogInformation($"ZLogInformation Hello");
-        logger.Hello("example.com", "111.111.111.111");
+        // logger.Hello("example.com", "111.111.111.111");
     }
 }

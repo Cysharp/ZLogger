@@ -35,16 +35,20 @@ using var factory = LoggerFactory.Create(logging =>
 
 
 
+
+
+
 var logger = factory.CreateLogger("Program");
 
 var name = "John";
 var age = 33;
 
 
-logger.LogInformation("aiueo {id:0,0000} ", 100);
+//logger.LogInformation("aiueo {id:0,0000} ", 100);
 
+LogLog.Foo3(logger, "a", "b", 100, new { aaaaa = 1000 });
 // Use **Z**Log method and string interpolation to log message
-logger.ZLogInformation($"Hello my name is {name}, {age:-1,0000} years old.");
+logger.ZLogInformation($"Hello my name is {name}, {age:-1,0000} years old.", new { tako = 9999 });
 
 LogLog.Foo(logger, "tako", "huga", 1000);
 
@@ -103,4 +107,8 @@ public static partial class LogLog
 
     [ZLoggerMessage(LogLevel.Information, "foo is {name} {city} {age}")]
     public static partial void Foo2(ILogger logger, string name, string city, int age);
+
+
+    [ZLoggerMessage(LogLevel.Information, "foo is {name} {city} {age:-1,0000}")]
+    public static partial void Foo3(ILogger logger, string name, string city, int age, [ZLoggerContext] object? context = null, [CallerMemberName] string? memberName = null, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNumber = 0);
 }

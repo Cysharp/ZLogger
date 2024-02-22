@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -10,13 +12,13 @@ using System.Security;
 using System.Text.RegularExpressions;
 using Application = UnityEngine.Device.Application;
 
-namespace ZLogger.Unity.Runtime;
-
-public static class DiagnosticsHelper
+namespace ZLogger.Unity.Runtime
 {
-    static readonly Regex typeBeautifyRegex = new("`.+$", RegexOptions.Compiled);    
-    
-    static readonly Dictionary<Type, string> builtInTypeNames = new()
+    public static class DiagnosticsHelper
+    {
+        static readonly Regex typeBeautifyRegex = new("`.+$", RegexOptions.Compiled);
+
+        static readonly Dictionary<Type, string> builtInTypeNames = new()
     {
         { typeof(void), "void" },
         { typeof(bool), "bool" },
@@ -35,130 +37,131 @@ public static class DiagnosticsHelper
         { typeof(ulong), "ulong" },
         { typeof(ushort), "ushort" }
     };
-    
-    static string? applicationDataPath;    
-    static bool displayFilenames = true;
-    
-    public static string CleanupStackTrace(StackTrace stackTrace)
-    {
-        var sb = new StringBuilder();
-        for (var i = 0; i < stackTrace.FrameCount; i++)
+
+        static string? applicationDataPath;
+        static bool displayFilenames = true;
+
+        public static string CleanupStackTrace(StackTrace stackTrace)
         {
-            var sf = stackTrace.GetFrame(i);
-            var mb = sf.GetMethod();
-
-            if (IgnoreLine(mb)) continue;
-
-            // return type
-            if (mb is MethodInfo mi)
+            var sb = new StringBuilder();
+            for (var i = 0; i < stackTrace.FrameCount; i++)
             {
-                sb.Append(BeautifyType(mi.ReturnType, false));
-                sb.Append(" ");
+                var sf = stackTrace.GetFrame(i);
+                var mb = sf.GetMethod();
+
+                if (IgnoreLine(mb)) continue;
+
+                // return type
+                if (mb is MethodInfo mi)
+                {
+                    sb.Append(BeautifyType(mi.ReturnType, false));
+                    sb.Append(" ");
+                }
+
+                // method name
+                sb.Append(BeautifyType(mb.DeclaringType!, false));
+                if (!mb.IsConstructor)
+                {
+                    sb.Append(".");
+                }
+                sb.Append(mb.Name);
+                if (mb.IsGenericMethod)
+                {
+                    sb.Append("<");
+                    foreach (var item in mb.GetGenericArguments())
+                    {
+                        sb.Append(BeautifyType(item, true));
+                    }
+                    sb.Append(">");
+                }
+
+                // parameter
+                sb.Append("(");
+                sb.Append(string.Join(", ", mb.GetParameters().Select(p => BeautifyType(p.ParameterType, true) + " " + p.Name)));
+                sb.Append(")");
+
+                // file name
+                if (displayFilenames && sf.GetILOffset() != -1)
+                {
+                    string? fileName = null;
+                    try
+                    {
+                        fileName = sf.GetFileName();
+                    }
+                    catch (NotSupportedException)
+                    {
+                        displayFilenames = false;
+                    }
+                    catch (SecurityException)
+                    {
+                        displayFilenames = false;
+                    }
+
+                    if (fileName != null)
+                    {
+                        sb.Append(' ');
+                        sb.AppendFormat(CultureInfo.InvariantCulture, "(at {0})", AppendHyperLink(fileName, sf.GetFileLineNumber().ToString()));
+                    }
+                }
+
+                sb.AppendLine();
+            }
+            return sb.ToString();
+        }
+
+        static string BeautifyType(Type t, bool shortName)
+        {
+            if (builtInTypeNames.TryGetValue(t, out var builtin))
+            {
+                return builtin;
+            }
+            if (t.IsGenericParameter) return t.Name;
+            if (t.IsArray) return BeautifyType(t.GetElementType()!, shortName) + "[]";
+            if (t.FullName?.StartsWith("System.ValueTuple") ?? false)
+            {
+                return "(" + string.Join(", ", t.GetGenericArguments().Select(x => BeautifyType(x, true))) + ")";
             }
 
-            // method name
-            sb.Append(BeautifyType(mb.DeclaringType!, false));
-            if (!mb.IsConstructor)
+            if (!t.IsGenericType)
             {
-                sb.Append(".");
-            }
-            sb.Append(mb.Name);
-            if (mb.IsGenericMethod)
-            {
-                sb.Append("<");
-                foreach (var item in mb.GetGenericArguments())
-                {
-                    sb.Append(BeautifyType(item, true));
-                }
-                sb.Append(">");
+                return shortName ? t.Name : t.FullName ?? t.Name;
             }
 
-            // parameter
-            sb.Append("(");
-            sb.Append(string.Join(", ", mb.GetParameters().Select(p => BeautifyType(p.ParameterType, true) + " " + p.Name)));
-            sb.Append(")");
+            var innerFormat = string.Join(", ", t.GetGenericArguments().Select(x => BeautifyType(x, true)));
 
-            // file name
-            if (displayFilenames && sf.GetILOffset() != -1)
+            var genericType = t.GetGenericTypeDefinition().FullName;
+            if (genericType == "System.Threading.Tasks.Task`1")
             {
-                string? fileName = null;
-                try
-                {
-                    fileName = sf.GetFileName();
-                }
-                catch (NotSupportedException)
-                {
-                    displayFilenames = false;
-                }
-                catch (SecurityException)
-                {
-                    displayFilenames = false;
-                }
-            
-                if (fileName != null)
-                {
-                    sb.Append(' ');
-                    sb.AppendFormat(CultureInfo.InvariantCulture, "(at {0})", AppendHyperLink(fileName, sf.GetFileLineNumber().ToString()));
-                }
+                genericType = "Task";
+            }
+            return typeBeautifyRegex.Replace(genericType, "").Replace("Cysharp.Threading.Tasks.Triggers.", "").Replace("Cysharp.Threading.Tasks.Internal.", "").Replace("Cysharp.Threading.Tasks.", "") + "<" + innerFormat + ">";
+        }
+
+        static bool IgnoreLine(MethodBase methodInfo)
+        {
+            var declareType = methodInfo.DeclaringType!.FullName!;
+            if (declareType.StartsWith("ZLogger"))
+            {
+                return true;
+            }
+            if (declareType.StartsWith("Microsoft.Extensions.Logging"))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        static string AppendHyperLink(string path, string line)
+        {
+            var fi = new FileInfo(path);
+            if (fi.Directory == null)
+            {
+                return fi.Name;
             }
 
-            sb.AppendLine();
+            var root = applicationDataPath ??= Application.dataPath;
+            var href = fi.FullName.Replace(Path.DirectorySeparatorChar, '/').Replace(root, "Assets");
+            return "<a href=\"" + href + "\" line=\"" + line + "\">" + href + ":" + line + "</a>";
         }
-        return sb.ToString();
-    }
-
-    static string BeautifyType(Type t, bool shortName)
-    {
-        if (builtInTypeNames.TryGetValue(t, out var builtin))
-        {
-            return builtin;
-        }
-        if (t.IsGenericParameter) return t.Name;
-        if (t.IsArray) return BeautifyType(t.GetElementType()!, shortName) + "[]";
-        if (t.FullName?.StartsWith("System.ValueTuple") ?? false)
-        {
-            return "(" + string.Join(", ", t.GetGenericArguments().Select(x => BeautifyType(x, true))) + ")";
-        }
-
-        if (!t.IsGenericType)
-        {
-            return shortName ? t.Name : t.FullName ?? t.Name;
-        }
-
-        var innerFormat = string.Join(", ", t.GetGenericArguments().Select(x => BeautifyType(x, true)));
-
-        var genericType = t.GetGenericTypeDefinition().FullName;
-        if (genericType == "System.Threading.Tasks.Task`1")
-        {
-            genericType = "Task";
-        }
-        return typeBeautifyRegex.Replace(genericType, "").Replace("Cysharp.Threading.Tasks.Triggers.", "").Replace("Cysharp.Threading.Tasks.Internal.", "").Replace("Cysharp.Threading.Tasks.", "") + "<" + innerFormat + ">";
-    }
-
-    static bool IgnoreLine(MethodBase methodInfo)
-    {
-        var declareType = methodInfo.DeclaringType!.FullName!;
-        if (declareType.StartsWith("ZLogger"))
-        {
-            return true;
-        }
-        if (declareType.StartsWith("Microsoft.Extensions.Logging"))
-        {
-            return true;
-        }
-        return false;
-    }
-    
-    static string AppendHyperLink(string path, string line)
-    {
-        var fi = new FileInfo(path);
-        if (fi.Directory == null)
-        {
-            return fi.Name;
-        }
-
-        var root = applicationDataPath ??= Application.dataPath;
-        var href = fi.FullName.Replace(Path.DirectorySeparatorChar, '/').Replace(root, "Assets");
-        return "<a href=\"" + href + "\" line=\"" + line + "\">" + href + ":" + line + "</a>";
     }
 }

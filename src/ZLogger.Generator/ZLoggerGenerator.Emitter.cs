@@ -50,7 +50,7 @@ public partial class ZLoggerGenerator
         public void EmitStructState(LogMethodDeclaration method)
         {
             var methodParameters = method.MethodParameters.Where(x => x.IsParameter).ToArray();
-            var callerInfoParameters = method.MethodParameters.Where(x => x.IsCallerInfo).ToArray();
+            var additionalParameters = method.MethodParameters.Where(x => x.IsAdditionalParameter).ToArray();
 
             var stateTypeName = $"{method.TargetMethod.Name}State";
 
@@ -63,7 +63,7 @@ public partial class ZLoggerGenerator
                 .StringJoinNewLine();
 
             var constructorParameters = methodParameters
-                .Concat(callerInfoParameters)
+                .Concat(additionalParameters)
                 .Select(x => $"{x.Symbol.Type.ToFullyQualifiedFormatString()} {x.Symbol.Name}")
                 .StringJoinComma();
 
@@ -71,17 +71,18 @@ public partial class ZLoggerGenerator
                 .Select(x => $"            this.{x.LinkedMessageSegment.NameParameter} = {x.Symbol.Name};")
                 .StringJoinNewLine();
 
-            var implCallerTraceable = callerInfoParameters.Length > 0 ? ", ICallerTraceable" : "";
-            var callerMembers = implCallerTraceable != "" ? $"""
+            var implAdditionalInfo = additionalParameters.Length > 0 ? ", IZLoggerAdditionalInfo" : "";
+            var additionalMembers = implAdditionalInfo != "" ? $"""
+        readonly object? zloggerContext;        
         readonly string? callerMemberName;
         readonly string? callerFilePath;
         readonly int callerLineNumber;
 """ : "";
 
             sb.AppendLine($$"""
-    readonly struct {{stateTypeName}} : IZLoggerFormattable{{implCallerTraceable}}, IReadOnlyList<KeyValuePair<string, object?>>
+    readonly struct {{stateTypeName}} : IZLoggerFormattable{{implAdditionalInfo}}, IReadOnlyList<KeyValuePair<string, object?>>
     {
-{{callerMembers}}
+{{additionalMembers}}
     
 {{jsonParameters}}
 
@@ -91,9 +92,21 @@ public partial class ZLoggerGenerator
         {
 {{constructorBody}}
 """);
-            if (callerInfoParameters.Length > 0)
+            if (additionalParameters.Length > 0)
             {
-                if (callerInfoParameters.FirstOrDefault(x => x.IsCallerMemberName) is { } callerMemberNameArg)
+                if (additionalParameters.FirstOrDefault(x => x.IsZLoggerContext) is { } contextArg)
+                {
+                    sb.AppendLine($$"""
+            this.zloggerContext = {{contextArg.Symbol.Name}};
+""");
+                }
+                else
+                {
+                    sb.AppendLine($$"""
+            this.zloggerContext = null;
+""");
+                }
+                if (additionalParameters.FirstOrDefault(x => x.IsCallerMemberName) is { } callerMemberNameArg)
                 {
                     sb.AppendLine($$"""
             this.callerMemberName = {{callerMemberNameArg.Symbol.Name}};
@@ -105,7 +118,7 @@ public partial class ZLoggerGenerator
             this.callerMemberName = null;
 """);
                 }
-                if (callerInfoParameters.FirstOrDefault(x => x.IsCallerFilePath) is { } callerFilePathArg)
+                if (additionalParameters.FirstOrDefault(x => x.IsCallerFilePath) is { } callerFilePathArg)
                 {
                     sb.AppendLine($$"""
             this.callerFilePath = {{callerFilePathArg.Symbol.Name}};
@@ -117,7 +130,7 @@ public partial class ZLoggerGenerator
             this.callerFilePath = null;
 """);
                 }
-                if (callerInfoParameters.FirstOrDefault(x => x.IsCallerLineNumber) is { } callerLineNumberArg)
+                if (additionalParameters.FirstOrDefault(x => x.IsCallerLineNumber) is { } callerLineNumberArg)
                 {
                     sb.AppendLine($$"""
             this.callerLineNumber = {{callerLineNumberArg.Symbol.Name}};
@@ -138,14 +151,12 @@ public partial class ZLoggerGenerator
             return ZLoggerEntry<{{stateTypeName}}>.Create(info, this);
         }
         
-        public object? GetContext() => null;
-        
 """);
 
-            if (implCallerTraceable != "")
+            if (implAdditionalInfo != "")
             {
                 sb.AppendLine($$"""
-        public (string? MemberName, string? FilePath, int LineNumber) GetCallerInfo() => (callerMemberName, callerFilePath, callerLineNumber);
+        public (object? Context, string? MemberName, string? FilePath, int LineNumber) GetAdditionalInfo() => (zloggerContext, callerMemberName, callerFilePath, callerLineNumber);
 
 """);
             }
@@ -295,7 +306,7 @@ public partial class ZLoggerGenerator
 
         void EmitKeyValuePairEnumerator(LogMethodDeclaration method)
         {
-            var stateTypeName = $"{method.TargetMethod.Name}State";            
+            var stateTypeName = $"{method.TargetMethod.Name}State";
             var methodParameters = method.MethodParameters.Where(x => x.IsParameter).ToArray();
             sb.AppendLine($$"""
         public int Count => {{methodParameters.Length}};
@@ -339,7 +350,7 @@ public partial class ZLoggerGenerator
         void EmitLogBody(LogMethodDeclaration method)
         {
             var methodParameters = method.MethodParameters.Where(x => x.IsParameter).ToArray();
-            var callerInfoParameters = method.MethodParameters.Where(x => x.IsCallerInfo).ToArray();
+            var additionalParameters = method.MethodParameters.Where(x => x.IsAdditionalParameter).ToArray();
             var modifiers = method.TargetSyntax.Modifiers.ToString();
             var extension = method.TargetMethod.IsExtensionMethod ? "this " : string.Empty;
 
@@ -365,7 +376,7 @@ public partial class ZLoggerGenerator
                 .StringJoinComma();
 
             var newParameters = methodParameters
-                .Concat(callerInfoParameters)
+                .Concat(additionalParameters)
                 .Select(x => $"{x.Symbol.Name}")
                 .StringJoinComma();
 

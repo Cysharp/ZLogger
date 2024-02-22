@@ -28,9 +28,10 @@ public partial class ZLoggerGenerator
         public bool IsCallerMemberName { get; init; }
         public bool IsCallerFilePath { get; init; }
         public bool IsCallerLineNumber { get; init; }
+        public bool IsZLoggerContext { get; init; }
 
-        public bool IsParameter => !IsFirstLogger && !IsFirstLogLevel && !IsFirstException && !IsCallerInfo;
-        public bool IsCallerInfo => IsCallerMemberName || IsCallerFilePath || IsCallerLineNumber;
+        public bool IsParameter => !IsFirstLogger && !IsFirstLogLevel && !IsFirstException && !IsAdditionalParameter;
+        public bool IsAdditionalParameter => IsCallerMemberName || IsCallerFilePath || IsCallerLineNumber || IsZLoggerContext;
 
         // set from outside, if many segments was linked, use first-one.
         public MessageSegment LinkedMessageSegment { get; set; } = default!;
@@ -61,6 +62,7 @@ public partial class ZLoggerGenerator
         readonly INamedTypeSymbol callerMemberNameAttributeSymbol;
         readonly INamedTypeSymbol callerFilePathAttributeSymbol;
         readonly INamedTypeSymbol callerLineNumberAttributeSymbol;
+        readonly INamedTypeSymbol zloggerContextAttributeSymbol;
 
         public Parser(SourceProductionContext context, ImmutableArray<GeneratorAttributeSyntaxContext> sources)
         {
@@ -74,6 +76,7 @@ public partial class ZLoggerGenerator
             this.callerMemberNameAttributeSymbol = GetTypeByMetadataName(compilation, "System.Runtime.CompilerServices.CallerMemberNameAttribute");
             this.callerFilePathAttributeSymbol = GetTypeByMetadataName(compilation, "System.Runtime.CompilerServices.CallerFilePathAttribute");
             this.callerLineNumberAttributeSymbol = GetTypeByMetadataName(compilation, "System.Runtime.CompilerServices.CallerLineNumberAttribute");
+            this.zloggerContextAttributeSymbol = GetTypeByMetadataName(compilation, "ZLogger.ZLoggerContextAttribute");
         }
 
         static INamedTypeSymbol GetTypeByMetadataName(Compilation compilation, string metadataName)
@@ -353,7 +356,12 @@ public partial class ZLoggerGenerator
                     result[i] = new MethodParameter(p) { IsCallerLineNumber = true };
                     continue;
                 }
-                
+                if (attributes.Any(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, zloggerContextAttributeSymbol)))
+                {
+                    result[i] = new MethodParameter(p) { IsZLoggerContext = true };
+                    continue;
+                }
+
                 result[i] = new MethodParameter(p);
             }
 

@@ -10,7 +10,7 @@ namespace ZLogger.LogStates;
 public sealed class InterpolatedStringLogState :
     IZLoggerFormattable,
     IReferenceCountable,
-    ICallerTraceable,
+    IZLoggerAdditionalInfo,
     IObjectPoolNode<InterpolatedStringLogState>,
     IEnumerable<KeyValuePair<string, object?>>
 {
@@ -22,7 +22,7 @@ public sealed class InterpolatedStringLogState :
     public bool IsSupportUtf8ParameterKey => false;
     public int ParameterCount { get; private set; }
 
-    internal (string? MemberName, string? FilePath, int LineNumber) callerInfo; // set from ZLog method
+    internal (object? context, string? MemberName, string? FilePath, int LineNumber) additionalInfo; // set from ZLog method
 
     public IEnumerator<KeyValuePair<string, object?>> GetEnumerator() => new Enumerator(this);
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -60,7 +60,7 @@ public sealed class InterpolatedStringLogState :
         }
         state.ParameterCount = formattedCount;
         state.refCount = 1;
-        state.callerInfo = default;
+        state.additionalInfo = default;
         return state;
     }
 
@@ -85,6 +85,7 @@ public sealed class InterpolatedStringLogState :
     void DisposeCore()
     {
         parameters.AsSpan(0, ParameterCount).Clear();
+        additionalInfo = default;
         unchecked
         {
             version += 1;
@@ -173,11 +174,9 @@ public sealed class InterpolatedStringLogState :
         return parameters[index].Type;
     }
 
-    public object? GetContext() => null;
-
-    public (string? MemberName, string? FilePath, int LineNumber) GetCallerInfo()
+    public (object? Context, string? MemberName, string? FilePath, int LineNumber) GetAdditionalInfo()
     {
-        return callerInfo;
+        return additionalInfo;
     }
 
     struct Enumerator(InterpolatedStringLogState state) : IEnumerator<KeyValuePair<string, object?>>
@@ -198,7 +197,7 @@ public sealed class InterpolatedStringLogState :
 }
 
 [StructLayout(LayoutKind.Auto)]
-public readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCountable, ICallerTraceable, IEnumerable<KeyValuePair<string, object?>>
+public readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCountable, IZLoggerAdditionalInfo, IEnumerable<KeyValuePair<string, object?>>
 {
     readonly InterpolatedStringLogState state;
     readonly int version;
@@ -216,9 +215,9 @@ public readonly struct VersionedLogState : IZLoggerEntryCreatable, IReferenceCou
         return state.CreateEntry(info);
     }
 
-    public (string? MemberName, string? FilePath, int LineNumber) GetCallerInfo()
+    public (object? Context, string? MemberName, string? FilePath, int LineNumber) GetAdditionalInfo()
     {
-        return state.GetCallerInfo();
+        return state.GetAdditionalInfo();
     }
 
     public void Release()

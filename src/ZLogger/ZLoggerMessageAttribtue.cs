@@ -119,4 +119,14 @@ namespace ZLogger
         /// </summary>
         public bool SkipEnabledCheck { get; set; }
     }
+
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+#if ZLOGGER_GENERATOR
+    internal
+#else
+    public
+#endif
+    sealed class ZLoggerContextAttribute : Attribute
+    {
+    }
 }

@@ -64,8 +64,6 @@ namespace ZLogger
 
         public T? GetParameterValue<T>(int index) => state.GetParameterValue<T>(index);
 
-        public object? GetContext() => state.GetContext();
-
         public void ToString(IBufferWriter<byte> writer) => state.ToString(writer);
 
         public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions, IKeyNameMutator? keyNameMutator = null)

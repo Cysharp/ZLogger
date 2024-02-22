@@ -28,12 +28,13 @@ namespace ZLogger
             var callerMemberName = default(string?);
             var callerFilePath = default(string?);
             var callerLineNumber = default(int);
-            if (state is ICallerTraceable)
+            var context = default(object?);
+            if (state is IZLoggerAdditionalInfo)
             {
-                (callerMemberName, callerFilePath, callerLineNumber) = ((ICallerTraceable)state).GetCallerInfo();
+                (context, callerMemberName, callerFilePath, callerLineNumber) = ((IZLoggerAdditionalInfo)state).GetAdditionalInfo();
             }
 
-            var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, callerMemberName, callerFilePath, callerLineNumber);
+            var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, context, callerMemberName, callerFilePath, callerLineNumber);
 
             IZLoggerEntry entry;
             if (state is VersionedLogState)

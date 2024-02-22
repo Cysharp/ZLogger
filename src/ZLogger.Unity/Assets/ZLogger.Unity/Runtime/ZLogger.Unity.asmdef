@@ -11,8 +11,9 @@
         "Microsoft.Extensions.Logging.dll",
         "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
         "Microsoft.Extensions.DependencyInjection.dll",
+        "System.Text.Json.dll",
         "ZLogger.dll",
-        "System.Text.Json.dll"
+        "Microsoft.Bcl.AsyncInterfaces.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

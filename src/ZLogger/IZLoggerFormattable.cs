@@ -26,8 +26,6 @@ public interface IZLoggerFormattable : IZLoggerEntryCreatable
     object? GetParameterValue(int index);
     T? GetParameterValue<T>(int index);
     Type GetParameterType(int index);
-
-    object? GetContext();
 }
 
 public interface IReferenceCountable
@@ -36,7 +34,7 @@ public interface IReferenceCountable
     void Release();
 }
 
-public interface ICallerTraceable
+public interface IZLoggerAdditionalInfo
 {
-    (string? MemberName, string? FilePath, int LineNumber) GetCallerInfo();
+    (object? Context, string? MemberName, string? FilePath, int LineNumber) GetAdditionalInfo();
 }
