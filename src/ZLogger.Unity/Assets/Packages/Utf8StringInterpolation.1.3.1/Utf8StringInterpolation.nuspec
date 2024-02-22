@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Utf8StringInterpolation</id>
+    <version>1.3.1</version>
+    <authors>Cysharp</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>Icon.png</icon>
+    <projectUrl>https://github.com/Cysharp/Utf8StringInterpolation</projectUrl>
+    <description>Successor of ZString; UTF8 based zero allocation high-peformance String Interpolation and StringBuilder.</description>
+    <copyright>© Cysharp, Inc.</copyright>
+    <tags>string</tags>
+    <repository type="git" url="https://github.com/Cysharp/Utf8StringInterpolation" commit="bd04ec912fbe8d5714c9e5b663641b73b1e56901" />
+    <dependencies>
+      <group targetFramework="net6.0" />
+      <group targetFramework="net8.0" />
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="System.Memory" version="4.5.5" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.1">
+        <dependency id="System.Runtime.CompilerServices.Unsafe" version="6.0.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>
