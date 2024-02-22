@@ -28,7 +28,7 @@ public class JsonFormatTest
 
                 options.UseJsonFormatter(formatter =>
                 {
-                    formatter.AdditionalFormatter = (writer, _) =>
+                    formatter.AdditionalFormatter = (Utf8JsonWriter writer, in LogInfo _) =>
                     {
                         writer.WriteString(hashProp, sourceCodeHash);
                     };

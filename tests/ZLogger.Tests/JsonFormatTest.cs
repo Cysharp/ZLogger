@@ -24,13 +24,13 @@ namespace ZLogger.Tests
 
                     options.UseJsonFormatter(formatter =>
                     {
-                        formatter.AdditionalFormatter = (writer, _) =>
+                        formatter.AdditionalFormatter = (Utf8JsonWriter writer, in LogInfo _) =>
                         {
                             writer.WriteString(hashProp, sourceCodeHash);
                         };
                     });
                 }));
-            
+
             var logger = loggerFactory.CreateLogger("test");
 
             var tako = 100;

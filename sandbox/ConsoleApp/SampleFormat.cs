@@ -41,7 +41,7 @@ public static class CloudLoggingExtensions
             var eventId = Encode("eventId");
             var userId = Encode("userId");
 
-            formatter.AdditionalFormatter = (writer, logInfo) =>
+            formatter.AdditionalFormatter = (Utf8JsonWriter writer, in LogInfo logInfo) =>
             {
                 writer.WriteStartObject(labels);
                 writer.WriteString(category, logInfo.Category.JsonEncoded);

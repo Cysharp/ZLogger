@@ -228,14 +228,14 @@ builder.Logging.AddZLoggerConsole(options =>
     // e.g) "2023-12-01 16:41:55.775|Information|This is log message. (MyNamespace.MyApp)
     options.UsePlainTextFormatter(formatter => 
     {
-        formatter.SetPrefixFormatter($"{0}|{1}|", (template, info) => template.Format(info.Timestamp, info.LogLevel));
-        formatter.SetSuffixFormatter($" ({0})", (formatter, info) => formatter.Format(info.Category));
+        formatter.SetPrefixFormatter($"{0}|{1}|", (in MessageTemplate template, in LogInfo info) => template.Format(info.Timestamp, info.LogLevel));
+        formatter.SetSuffixFormatter($" ({0})", (in MessageTemplate template, in LogInfo info) => template.Format(info.Category));
         formatter.SetExceptionFormatter((writer, ex) => Utf8String.Format(writer, $"{ex.Message}"));
     });
         
     // Using various variable formats.
     // e.g) "2023-12-01T16:47:15+09:00|INF|This is log message"
-    formatter.SetPrefixFormatter($"{0:yyyy-MM-dd'T'HH:mm:sszzz}|{1:short}|", (writer, info) =>
+    formatter.SetPrefixFormatter($"{0:yyyy-MM-dd'T'HH:mm:sszzz}|{1:short}|", (in MessageTemplate template, in LogInfo info) =>
     {
         var escapeSequence = "";
         // if (info.LogLevel >= LogLevel.Error)
@@ -247,7 +247,7 @@ builder.Logging.AddZLoggerConsole(options =>
         //     escapeSequence = "\u001b[38;5;08m";
         // }
     
-        writer.Format(info.Timestamp, info.LogLevel);
+        template.Format(info.Timestamp, info.LogLevel);
     });
         
     // Console coloring example
@@ -256,7 +256,7 @@ builder.Logging.AddZLoggerConsole(options =>
         // \u001b[31m => Red(ANSI Escape Code)
         // \u001b[0m => Reset
         // \u001b[38;5;***m => 256 Colors(08 is Gray)
-        formatter.SetPrefixFormatter($"{0}{1}|{2:short}|", (writer, info) =>
+        formatter.SetPrefixFormatter($"{0}{1}|{2:short}|", (in MessageTemplate template, in LogInfo info) =>
         {
             var escapeSequence = "";
             if (info.LogLevel >= LogLevel.Error)
@@ -268,14 +268,14 @@ builder.Logging.AddZLoggerConsole(options =>
                 escapeSequence = "\u001b[38;5;08m";
             }
         
-            writer.Format(escapeSequence, info.Timestamp, info.LogLevel);
+            template.Format(escapeSequence, info.Timestamp, info.LogLevel);
         });
 
-        formatter.SetSuffixFormatter($"{0}", (writer, info) =>
+        formatter.SetSuffixFormatter($"{0}", (in MessageTemplate template, in LogInfo info) =>
         {
             if (info.LogLevel == LogLevel.Error || !info.Category.Name.Contains("MyApp"))
             {
-                writer.Format("\u001b[0m");
+                template.Format("\u001b[0m");
             }
         });
     });
@@ -288,24 +288,26 @@ Note: For format strings available for various variables:
 -`LogLevel` can be specially specified as `short`. This reduces the length of string to a fixed number of characters, such as `INFO`.
 - For other types, ZLogger uses [Cysharp/Utf8StringInterpolation](https://github.com/Cysharp/Utf8StringInterpolation) internally. Please see this.
 
+`public delegate void MessageTemplateFormatter(in MessageTemplate template, in LogInfo info);`
 
 | Name                                                                                             | Description                                                          |
 |:-------------------------------------------------------------------------------------------------|:---------------------------------------------------------------------|
-| `SetPrefixFormatter(MessageTemplateHandler format, Action<MessageTemplate, LogInfo> formatter)`  | Set the text to be given before the message body. (Default is empty) |
-| `SetSuffixFormatter(MessageTemplateHandler format, Action<MessageTemplate, LogInfo> formatter)`  | Set the text to be given after the message body. (Default is empty)  |
+| `SetPrefixFormatter(MessageTemplateHandler format, MessageTemplateFormatter formatter)`  | Set the text to be given before the message body. (Default is empty) |
+| `SetSuffixFormatter(MessageTemplateHandler format, MessageTemplateFormatter formatter)`  | Set the text to be given after the message body. (Default is empty)  |
 | `SetExceptionFormatter(Action<IBufferWriter<byte>, Exception> formatter)`                        |                                                                      |
 
 
 
 ### JSON
 
+`public delegate void JsonLogInfoFormatter(Utf8JsonWriter jsonWriter, in LogInfo info);`
 
 | Name                                                                | Description                                                                       |
 |:--------------------------------------------------------------------|:----------------------------------------------------------------------------------|
 | `JsonPropertyNames JsonPropertyNames`                               | Specify the name of each key in the output JSON                                   |
 | `IncludeProperties IncludeProperties`                               | Flags that can specify properties to be output. (default: `Timestamp              | LogLevel | CategoryName | Message | Exception | ScopeKeyValues | ParameterKeyValues`) |
 | `JsonSerializerOptions JsonSerializerOptions`                       | The options of `System.Text.Json`                                                 |
-| `Action<Utf8JsonWriter, LogInfo>? AdditionalFormatter`              | Action when rendering additional properties based on `LogInfo`.                   |
+| `JsonLogInfoFormatter? AdditionalFormatter`                         | Action when rendering additional properties based on `LogInfo`.                   |
 | `JsonEncodedText? PropertyKeyValuesObjectName`                      | If set, the key/value properties is nested under the specified key name.          |
 | `IKeyNameMutator? KeyNameMutator`                                   | You can set the naming convention if you want to automatically convert key names. |
 | `bool UseUtcTimestamp`                                              | If true, timestamp is output in utc. (default: false)                             |
@@ -357,7 +359,7 @@ public static class CloudLoggingExtensions
             var eventId = Encode("eventId");
             var userId = Encode("userId");
 
-            formatter.AdditionalFormatter = (writer, logInfo) =>
+            formatter.AdditionalFormatter = (Utf8JsonWriter writer, in LogInfo) =>
             {
                 writer.WriteStartObject(labels);
                 writer.WriteString(category, logInfo.Category.JsonEncoded);
@@ -412,6 +414,7 @@ LogInfo
 | `EventId EventId`           | EventId of `Microsoft.Extensions.Logging`                                                                |
 | `Exception? Exception`      | Exception given as argument when logging.                                                                |
 | `LogScopeState? ScopeState` | Additional properties set by `ILogger.BeginScope(...)` (if ZLoggerOptions.IncludeScopes = true)          |
+| `object? Context`    | Additional context | 
 | `string? MemberName` | Caller MemberName         |
 | `string? FilePath` | Caller FilePath         |
 | `int LineNumber` | Caller LineNumber         |

@@ -43,7 +43,7 @@ namespace ZLogger.Generator.Tests
         {
             using var _ = TestHelper.CreateLogger<AttributeTest>(LogLevel.Debug, options => options.UsePlainTextFormatter(formatter =>
             {
-                formatter.SetPrefixFormatter($"{0}:", (template, info) => template.Format(info.LogLevel));
+                formatter.SetPrefixFormatter($"{0}:", (in MessageTemplate template, in LogInfo info) => template.Format(info.LogLevel));
             }), out var logger, out var list);
 
             ZeroCtor(logger, LogLevel.Debug, 10, 20);
@@ -70,7 +70,7 @@ namespace ZLogger.Generator.Tests
         {
             using var _ = TestHelper.CreateLogger<AttributeTest>(LogLevel.Debug, options => options.UsePlainTextFormatter(formatter =>
             {
-                formatter.SetPrefixFormatter($"{0}:", (template, info) => template.Format(info.Exception?.Message));
+                formatter.SetPrefixFormatter($"{0}:", (in MessageTemplate template, in LogInfo info) => template.Format(info.Exception?.Message));
                 formatter.SetExceptionFormatter((_, _) => { });
             }), out var logger, out var list);
 

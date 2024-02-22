@@ -102,6 +102,8 @@ namespace ZLogger.Formatters
         );
     }
 
+    public delegate void JsonLogInfoFormatter(Utf8JsonWriter jsonWriter, in LogInfo info);
+
     public class SystemTextJsonZLoggerFormatter : IZLoggerFormatter
     {
         public JsonPropertyNames JsonPropertyNames { get; set; } = JsonPropertyNames.Default;
@@ -117,7 +119,7 @@ namespace ZLogger.Formatters
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
 
-        public Action<Utf8JsonWriter, LogInfo>? AdditionalFormatter { get; set; }
+        public JsonLogInfoFormatter? AdditionalFormatter { get; set; }
         public JsonEncodedText? PropertyKeyValuesObjectName { get; set; } // if null(default), non nested.
         public IKeyNameMutator? KeyNameMutator { get; set; }
         public bool UseUtcTimestamp { get; set; } // default is false, use Local.

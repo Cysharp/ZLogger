@@ -65,7 +65,7 @@ public class WritePlainTextToConsole
                 console.UsePlainTextFormatter(formatter =>
                 {
                     formatter.SetPrefixFormatter($"{0} [{1}]",
-                        (template, info) => template.Format(info.Timestamp, info.LogLevel));
+                        (in MessageTemplate template, in LogInfo info) => template.Format(info.Timestamp, info.LogLevel));
                 });
             });
         });

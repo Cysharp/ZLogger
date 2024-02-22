@@ -3,6 +3,8 @@ using System.Text;
 
 namespace ZLogger.Formatters
 {
+    public delegate void MessageTemplateFormatter(in MessageTemplate template, in LogInfo info);
+
     public class PlainTextZLoggerFormatter : IZLoggerFormatter
     {
         static readonly byte[] newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
@@ -12,17 +14,17 @@ namespace ZLogger.Formatters
         Action<IBufferWriter<byte>, Exception> exceptionFormatter = DefaultExceptionLoggingFormatter;
 
         MessageTemplateHolder? prefixTemplate;
-        Action<MessageTemplate, LogInfo>? prefixFormatter;
+        MessageTemplateFormatter? prefixFormatter;
         MessageTemplateHolder? suffixTemplate;
-        Action<MessageTemplate, LogInfo>? suffixFormatter;
+        MessageTemplateFormatter? suffixFormatter;
 
-        public void SetPrefixFormatter(MessageTemplateHandler format, Action<MessageTemplate, LogInfo> formatter)
+        public void SetPrefixFormatter(MessageTemplateHandler format, MessageTemplateFormatter formatter)
         {
             this.prefixTemplate = format.GetTemplate();
             this.prefixFormatter = formatter;
         }
 
-        public void SetSuffixFormatter(MessageTemplateHandler format, Action<MessageTemplate, LogInfo> formatter)
+        public void SetSuffixFormatter(MessageTemplateHandler format, MessageTemplateFormatter formatter)
         {
             this.suffixTemplate = format.GetTemplate();
             this.suffixFormatter = formatter;

@@ -37,7 +37,9 @@ public class SampleBehaviour : MonoBehaviour
 
         var name = "Hoge";
         var id = 12345;
-        
+
+        logger.ZLogInformation($"with context {name}", this);
+
         logger.Log(LogLevel.Information, $"Log");
         logger.LogInformation($"LogInformation");
         

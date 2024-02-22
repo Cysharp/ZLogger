@@ -105,7 +105,7 @@ public class PostLogEntry
         {
             logging.AddZLoggerStream(Stream.Null, options =>
             {
-                options.UsePlainTextFormatter(formatter => formatter.SetPrefixFormatter($"{0} [{1}]", (template, info) => template.Format(info.Timestamp, info.LogLevel)));
+                options.UsePlainTextFormatter(formatter => formatter.SetPrefixFormatter($"{0} [{1}]", (in MessageTemplate template, in LogInfo info) => template.Format(info.Timestamp, info.LogLevel)));
             });
         });
         disposables.Add(zLoggerFactory);

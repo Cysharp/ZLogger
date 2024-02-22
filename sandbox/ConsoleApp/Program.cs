@@ -10,13 +10,16 @@ using ZLogger;
 using var factory = LoggerFactory.Create(logging =>
 {
     // Add ZLogger provider to ILoggingBuilder
-    //logging.AddZLoggerConsole(options =>
-    //{
-    //    options.UsePlainTextFormatter(formatter =>
-    //    {
-    //        // formatter.SetPrefixFormatter($"foo", (template, info) => info.CallerLineNumber
-    //    });
-    //});
+    logging.AddZLoggerConsole(options =>
+    {
+        options.UsePlainTextFormatter(formatter =>
+        {
+             formatter.SetPrefixFormatter($"foo", (in MessageTemplate template, in LogInfo info) => template.Format());
+            //MessageTemplate
+            // LogInfo
+            //formatter.SetPrefixFormatter($"foo", (template, info) => template.Format());
+        });
+    });
 
     //// Output Structured Logging, setup options
     //logging.AddZLoggerConsole(options => options.UseJsonFormatter(formatter =>
@@ -24,11 +27,11 @@ using var factory = LoggerFactory.Create(logging =>
     //    formatter.IncludeProperties = IncludeProperties.ParameterKeyValues | IncludeProperties.MemberName | IncludeProperties.FilePath | IncludeProperties.LineNumber;
     //}));
 
-    logging.AddZLoggerConsole(options =>
-    {
-        options.InternalErrorLogger = ex => Console.WriteLine(ex);
-        options.UseFormatter(() => new CLEFMessageTemplateFormatter());
-    });
+    //logging.AddZLoggerConsole(options =>
+    //{
+    //    options.InternalErrorLogger = ex => Console.WriteLine(ex);
+    //    options.UseFormatter(() => new CLEFMessageTemplateFormatter());
+    //});
 
 
 });

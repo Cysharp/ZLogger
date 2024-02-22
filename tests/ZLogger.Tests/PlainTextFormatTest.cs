@@ -82,8 +82,8 @@ namespace ZLogger.Tests
             var options = new ZLoggerOptions();
             options.UsePlainTextFormatter(formatter =>
             {
-                formatter.SetPrefixFormatter($"[Pre:{0}]", (formatter, info) => formatter.Format(info.LogLevel));
-                formatter.SetSuffixFormatter($"[Suf:{0}]", (formatter, info) => formatter.Format(info.Category));
+                formatter.SetPrefixFormatter($"[Pre:{0}]", (in MessageTemplate formatter, in LogInfo info) => formatter.Format(info.LogLevel));
+                formatter.SetSuffixFormatter($"[Suf:{0}]", (in MessageTemplate formatter, in LogInfo info) => formatter.Format(info.Category));
                 formatter.SetExceptionFormatter((writer, ex) => Utf8String.Format(writer, $"{ex.Message}"));
             });
             var processsor = new TestProcessor(options);

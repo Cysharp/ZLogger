@@ -32,7 +32,7 @@ public class TimestampTest
                 options.TimeProvider = new FakeTime();
                 options.UsePlainTextFormatter(formatter =>
                 {
-                    formatter.SetPrefixFormatter(prefixTemplate, (template, info) => template.Format(info.Timestamp));
+                    formatter.SetPrefixFormatter(prefixTemplate, (in MessageTemplate template, in LogInfo info) => template.Format(info.Timestamp));
                 });
                 processor.SetOptions(options);
 
