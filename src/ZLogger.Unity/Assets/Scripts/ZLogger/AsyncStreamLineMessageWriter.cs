@@ -66,7 +66,7 @@ namespace ZLogger
         private const uint LIMIT_OUT            = 2;
         private const uint POSTS_SECONDS_WINDOW = 1;
         private       bool isSpamming;
-        private       bool didDropped;
+        private       bool didDrop;
 
         private readonly ConcurrentDictionary<LogLevel, int> dropSummary = new(new KeyValuePair<LogLevel, int>[]
         {
@@ -82,88 +82,102 @@ namespace ZLogger
         private readonly ConcurrentQueue<DateTimeOffset> postTimesQ                  = new();
         private readonly ConcurrentQueue<DateTimeOffset> postTimesTempQ              = new();
         private readonly ArrayBufferWriter<byte>         bufferWriterForDebugSpamMsg = new();
+        
+        private static readonly object lockObject = new();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Post(IZLoggerEntry log)
         {
-#pragma warning disable 162
-            if (!ENABLE_SPAM_DROPPER)
+            // lock (lockObject)
             {
-                channel.Writer.TryWrite(log);
-                return;
-            }
-#pragma warning restore 162
-
-            CheckPostsTimesAndSetIsSpamming();
-
-            if (isSpamming)
-            {
-                if (DEBUG_SPAM)
+    #pragma warning disable 162
+                if (!ENABLE_SPAM_DROPPER)
                 {
-                    var logInfo = new LogInfo(
-                        log.LogInfo.LogId,
-                        "ZLogger",
-                        log.LogInfo.Timestamp,
-                        log.LogInfo.LogLevel,
-                        log.LogInfo.EventId,
-                        log.LogInfo.Exception
-                    );
-
-                    bufferWriterForDebugSpamMsg.Clear();
-                    bufferWriterForDebugSpamMsg.Write(Encoding.UTF8.GetBytes("\""));
-                    log.FormatUtf8(bufferWriterForDebugSpamMsg, new(), null);
-                    bufferWriterForDebugSpamMsg.Write(Encoding.UTF8.GetBytes("\""));
-                    string logStr = Encoding.UTF8.GetString(bufferWriterForDebugSpamMsg.WrittenSpan);
-
-                    IZLoggerEntry? entry =
-                        FormatLogState<object, int, int, int, int, int, int, int, bool, int, string>.Factory(
-                            new(
-                                null,
-                                "LOG DROPPED {9}, postTimes.Count {8} did Drop: {7}. Dropping: ({0}) Trace. ({1}) Debug. ({2})  Information. ({3})  Warning. ({4})  Error. ({5})  Critical. ({6})  None",
-                                dropSummary[LogLevel.Trace],
-                                dropSummary[LogLevel.Debug],
-                                dropSummary[LogLevel.Information],
-                                dropSummary[LogLevel.Warning],
-                                dropSummary[LogLevel.Error],
-                                dropSummary[LogLevel.Critical],
-                                dropSummary[LogLevel.None],
-                                didDropped,
-                                postTimesQ.Count,
-                                logStr
-                            ),
-                            logInfo
-                        );
-
-                    channel.Writer.TryWrite(entry);
+                    channel.Writer.TryWrite(log);
+                    return;
                 }
+    #pragma warning restore 162
+    
+                CheckPostsTimesAndSetIsSpamming();
+    
+                if (isSpamming)
+                {
+                    if (DEBUG_SPAM)
+                    {
+                        var logInfo = new LogInfo(
+                            log.LogInfo.LogId,
+                            "ZLogger",
+                            log.LogInfo.Timestamp,
+                            log.LogInfo.LogLevel,
+                            log.LogInfo.EventId,
+                            log.LogInfo.Exception
+                        );
+    
+                        bufferWriterForDebugSpamMsg.Clear();
+                        bufferWriterForDebugSpamMsg.Write(Encoding.UTF8.GetBytes("\""));
+                        log.FormatUtf8(bufferWriterForDebugSpamMsg, new(), null);
+                        bufferWriterForDebugSpamMsg.Write(Encoding.UTF8.GetBytes("\""));
+                        string logStr = Encoding.UTF8.GetString(bufferWriterForDebugSpamMsg.WrittenSpan);
+    
+                        IZLoggerEntry? entry =
+                            FormatLogState<object, int, int, int, int, int, int, int, bool, int, string>.Factory(
+                                new(
+                                    null,
+                                    "LOG DROPPED {9}, postTimes.Count {8} did Drop: {7}. Dropping: ({0}) Trace. ({1}) Debug. ({2})  Information. ({3})  Warning. ({4})  Error. ({5})  Critical. ({6})  None",
+                                    dropSummary[LogLevel.Trace],
+                                    dropSummary[LogLevel.Debug],
+                                    dropSummary[LogLevel.Information],
+                                    dropSummary[LogLevel.Warning],
+                                    dropSummary[LogLevel.Error],
+                                    dropSummary[LogLevel.Critical],
+                                    dropSummary[LogLevel.None],
+                                    didDrop,
+                                    postTimesQ.Count,
+                                    logStr
+                                ),
+                                logInfo
+                            );
+    
+                        lock (lockObject) channel.Writer.TryWrite(entry);
+                    }
+    
+                    dropSummary[log.LogInfo.LogLevel]++;
+                    lock (lockObject) didDrop = true;
+                }
+                else
+                {
+                    bool tryWrite;
+                    lock (lockObject) tryWrite = channel.Writer.TryWrite(log);
 
-                dropSummary[log.LogInfo.LogLevel]++;
-                didDropped = true;
-            }
-            else
-            {
-                if (channel.Writer.TryWrite(log))
-                    postTimesQ.Enqueue(log.LogInfo.Timestamp);
+                    if (tryWrite)
+                        postTimesQ.Enqueue(log.LogInfo.Timestamp);
+                }
             }
         }
 
         private bool CheckPostsTimesAndSetIsSpamming()
         {
-            bool? spamming = PostsTimesCheck();
-            if (spamming.HasValue)
-                isSpamming = spamming.Value;
+            // fixes the issue where seeing summary without the actual logs
+            // maybe we can put the lock further down the PostTimesCheck method
+            lock (lockObject)
+            {
+                bool? spamming = PostsTimesCheck();
+                if (spamming.HasValue)
+                    lock (lockObject)
+                        isSpamming = spamming.Value;
 
-            return isSpamming;
+                return isSpamming;
+            }
         }
 
         private bool? PostsTimesCheck()
         {
             DateTimeOffset currentDateTime = DateTimeOffset.Now;
 
+            #pragma warning disable 162
             if (DEBUG_SPAM && postTimesTempQ.Count > 0)
-            {
                 throw new Exception("postTimesQH.Count > 0");
-            }
+            #pragma warning restore 162
 
             postTimesTempQ.Clear(); // technically redundant
 
@@ -177,10 +191,10 @@ namespace ZLogger
                 }
             }
 
+            #pragma warning disable 162
             if (DEBUG_SPAM && postTimesQ.Count > 0)
-            {
                 throw new Exception("postTimesQ.Count > 0");
-            }
+            #pragma warning restore 162
 
             postTimesQ.Clear(); // technically redundant
             while (postTimesTempQ.TryDequeue(out var postTime))
@@ -341,20 +355,20 @@ namespace ZLogger
             while (true)
             {
                 await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationTokenSource.Token).ConfigureAwait(false);
-                
-                if (!didDropped) continue;
-                
-                if (dropSummary[LogLevel.Trace] == 0 &&
-                    dropSummary[LogLevel.Debug] == 0 &&
+
+                if (!didDrop) continue;
+
+                if (dropSummary[LogLevel.Trace]       == 0 &&
+                    dropSummary[LogLevel.Debug]       == 0 &&
                     dropSummary[LogLevel.Information] == 0 &&
-                    dropSummary[LogLevel.Warning] == 0 &&
-                    dropSummary[LogLevel.Error] == 0 &&
-                    dropSummary[LogLevel.Critical] == 0 &&
-                    dropSummary[LogLevel.None] == 0)
+                    dropSummary[LogLevel.Warning]     == 0 &&
+                    dropSummary[LogLevel.Error]       == 0 &&
+                    dropSummary[LogLevel.Critical]    == 0 &&
+                    dropSummary[LogLevel.None]        == 0)
                 {
                     continue;
                 }
-                
+
                 try
                 {
                     CheckPostsTimesAndSetIsSpamming();
@@ -374,26 +388,36 @@ namespace ZLogger
                         0,
                         "ZLogger",
                         DateTimeOffset.Now,
-                        LogLevel.Warning,
+                        LogLevel.Critical,
                         new EventId(0),
                         exception
                     );
 
-                    IZLoggerEntry? entry = FormatLogState<object, int, int, int, int, int, int, int>.Factory(
-                        new
-                        (
-                            null,
-                            "Log spamming summary. Dropped: ({0}) Trace. ({1}) Debug. ({2})  Information. ({3})  Warning. ({4})  Error. ({5})  Critical. ({6})  None",
-                            dropSummary[LogLevel.Trace],
-                            dropSummary[LogLevel.Debug],
-                            dropSummary[LogLevel.Information],
-                            dropSummary[LogLevel.Warning],
-                            dropSummary[LogLevel.Error],
-                            dropSummary[LogLevel.Critical],
-                            dropSummary[LogLevel.None]
-                        ),
-                        logInfo
-                    );
+                    int droppedCount = dropSummary[LogLevel.Critical]
+                                     + dropSummary[LogLevel.Error]
+                                     + dropSummary[LogLevel.Warning]
+                                     + dropSummary[LogLevel.Information]
+                                     + dropSummary[LogLevel.Debug]
+                                     + dropSummary[LogLevel.Trace];
+
+                    IZLoggerEntry? entry =
+                        FormatLogState<object, int, int, int, int, int, int, int, uint, uint>.Factory(
+                            new
+                            (
+                                null,
+                                "Truncated {0} log messages (Critical: {1}, Error: {2}, Warning: {3}, Information: {4}, Debug: {5}, Trace: {6}) because had more than {7} logs in {8} seconds",
+                                droppedCount,
+                                dropSummary[LogLevel.Critical],
+                                dropSummary[LogLevel.Error],
+                                dropSummary[LogLevel.Warning],
+                                dropSummary[LogLevel.Information],
+                                dropSummary[LogLevel.Debug],
+                                dropSummary[LogLevel.Trace],
+                                LIMIT_IN,
+                                POSTS_SECONDS_WINDOW
+                            ),
+                            logInfo
+                        );
 
                     channel.Writer.TryWrite(entry);
 
@@ -409,7 +433,7 @@ namespace ZLogger
                 }
                 finally
                 {
-                    didDropped = false;
+                    didDrop = false;
                 }
             }
         }
