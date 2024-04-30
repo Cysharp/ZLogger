@@ -40,6 +40,7 @@ jobs:
         with:
           name: nuget
           path: ./publish/
+          retention-days: 1
 
   create-release:
     needs: [update-packagejson, build-dotnet]
