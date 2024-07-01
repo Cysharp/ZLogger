@@ -10,6 +10,7 @@ namespace ZLogger
         readonly IAsyncLogProcessor logProcessor;
         readonly TimeProvider? timeProvider;
         readonly IExternalScopeProvider? scopeProvider;
+        readonly bool formatImmediately;
 
         public ZLoggerLogger(string categoryName, IAsyncLogProcessor logProcessor, ZLoggerOptions options, IExternalScopeProvider? scopeProvider)
         {
@@ -17,6 +18,7 @@ namespace ZLogger
             this.logProcessor = logProcessor;
             this.timeProvider = options.TimeProvider;
             this.scopeProvider = scopeProvider;
+            this.formatImmediately = options.IsFormatLogImmediatelyInStandardLog;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
@@ -54,7 +56,7 @@ namespace ZLogger
             else
             {
                 // called from standard `logger.Log`
-                entry = new StringFormatterLogState<TState>(state, exception, formatter).CreateEntry(info);
+                entry = new StringFormatterLogState<TState>(state, exception, formatter, formatImmediately).CreateEntry(info);
             }
 
             logProcessor.Post(entry);

@@ -51,7 +51,12 @@ public class ZLoggerOptions
     /// Create an formatter to use in ZLoggerProvider.
     /// </summary>
     public IZLoggerFormatter CreateFormatter() => formatterFactory.Invoke();
-    
+
+    /// <summary>
+    /// fallback of standard logger.Log, message stringify immediately or not. Default is true.
+    /// </summary>
+    public bool IsFormatLogImmediatelyInStandardLog { get; set; } = true;
+
     Func<IZLoggerFormatter> formatterFactory = DefaultFormatterFactory;
 
     public ZLoggerOptions UseFormatter(Func<IZLoggerFormatter> formatterFactory)

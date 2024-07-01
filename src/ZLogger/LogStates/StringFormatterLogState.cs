@@ -14,8 +14,9 @@ namespace ZLogger.LogStates
         readonly Exception? exception;
         readonly Func<TState, Exception?, string> formatter;
         readonly IReadOnlyList<KeyValuePair<string, object?>>? originalStateParameters;
+        readonly string? formattedLog;
 
-        public StringFormatterLogState(TState originalState, Exception? exception, Func<TState, Exception?, string> formatter)
+        public StringFormatterLogState(TState originalState, Exception? exception, Func<TState, Exception?, string> formatter, bool formatImmediately)
         {
             this.originalState = originalState;
             this.exception = exception;
@@ -34,6 +35,11 @@ namespace ZLogger.LogStates
                 originalStateParameters = null;
                 ParameterCount = 0;
             }
+
+            if (formatImmediately)
+            {
+                formattedLog = formatter(originalState, exception);
+            }
         }
 
         public IZLoggerEntry CreateEntry(in LogInfo info)
@@ -41,7 +47,7 @@ namespace ZLogger.LogStates
             return ZLoggerEntry<StringFormatterLogState<TState>>.Create(info, this);
         }
 
-        public override string ToString() => formatter(originalState, exception);
+        public override string ToString() => formattedLog ?? formatter(originalState, exception);
 
         public void ToString(IBufferWriter<byte> writer)
         {

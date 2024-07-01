@@ -14,7 +14,7 @@ using var factory = LoggerFactory.Create(logging =>
     {
         options.UsePlainTextFormatter(formatter =>
         {
-             formatter.SetPrefixFormatter($"foo", (in MessageTemplate template, in LogInfo info) => template.Format());
+            formatter.SetPrefixFormatter($"foo", (in MessageTemplate template, in LogInfo info) => template.Format());
             //MessageTemplate
             // LogInfo
             //formatter.SetPrefixFormatter($"foo", (template, info) => template.Format());
@@ -44,12 +44,14 @@ using var factory = LoggerFactory.Create(logging =>
 var logger = factory.CreateLogger("Program");
 
 var name = "John";
-var age = 33;
 
+
+logger.Log(LogLevel.Information, "aiueo {0}", 100);
 
 //logger.LogInformation("aiueo {id:0,0000} ", 100);
 
 LogLog.Foo3(logger, "a", "b", 100, new { aaaaa = 1000 });
+var age = 33;
 // Use **Z**Log method and string interpolation to log message
 logger.ZLogInformation($"Hello my name is {name}, {age:-1,0000} years old.", new { tako = 9999 });
 
