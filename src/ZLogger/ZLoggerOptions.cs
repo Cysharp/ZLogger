@@ -53,7 +53,7 @@ public class ZLoggerOptions
     public IZLoggerFormatter CreateFormatter() => formatterFactory.Invoke();
 
     /// <summary>
-    /// fallback of standard logger.Log, message stringify immediately or not. Default is true.
+    /// Fallback of standard logger.Log, message stringify immediately or not. Default is true.
     /// </summary>
     public bool IsFormatLogImmediatelyInStandardLog { get; set; } = true;
 

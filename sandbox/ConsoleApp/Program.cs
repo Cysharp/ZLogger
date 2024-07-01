@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Buffers;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -21,6 +22,23 @@ using var factory = LoggerFactory.Create(logging =>
         });
     });
 
+    // output to  yyyy-MM-dd_*.log, roll by 1MB or changed date
+    //logging.AddZLoggerRollingFile((dt, index) => $"{dt:yyyy-MM-dd}_{index}.log", 1024 * 1024);
+
+
+    var ms = new MemoryStream();
+
+
+
+
+    logging.AddZLoggerInMemory(processor =>
+    {
+        processor.MessageReceived += msg =>
+        {
+            Console.WriteLine($"Received:{msg}");
+        };
+    });
+
     //// Output Structured Logging, setup options
     //logging.AddZLoggerConsole(options => options.UseJsonFormatter(formatter =>
     //{
@@ -35,7 +53,6 @@ using var factory = LoggerFactory.Create(logging =>
 
 
 });
-
 
 
 

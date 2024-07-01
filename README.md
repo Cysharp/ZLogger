@@ -59,14 +59,34 @@ As for standard logger features, it supports loading LogLevel from json, filteri
 
 Getting Started
 ---
-This library is distributed via NuGet, supporting `.NET Standard 2.0`, `.NET Standard 2.1`, `.NET 6(.NET 7)` and `.NET 8` or above.
-
-> PM> Install-Package [ZLogger](https://www.nuget.org/packages/ZLogger)
-
-In the simplest case, you generate a logger by adding ZLogger's Provider to Microsoft.Extensions.Logging's [LoggerFactory](https://learn.microsoft.com/en-us/dotnet/core/extensions/logging), and then use ZLogger's own ZLog method.
-
+This library is distributed via NuGet, supporting `.NET Standard 2.0`, `.NET Standard 2.1`, `.NET 6(.NET 7)` and `.NET 8` or above. 
 For Unity, the requirements and installation process are completely different. See the [Unity](#unity) section for details.
 
+> dotnet add package [ZLogger](https://www.nuget.org/packages/ZLogger)
+
+Here is the most simple sample on ASP.NET Core.
+
+```csharp
+using ZLogger;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.ClearProviders();
+builder.Logging.AddZLoggerConsole();
+```
+
+You can get logger from dependency injection.
+
+```csharp
+@page
+@using ZLogger;
+@inject ILogger<Index> logger
+@{
+    logger.ZLogInformation($"Requested path: {this.HttpContext.Request.Path}");
+}
+```
+
+This simple logger setup is possible because it is integrated with `Microsoft.Extensions.Logging` by default. For reference, here's how you would set it up using [LoggerFactory](https://learn.microsoft.com/en-us/dotnet/core/extensions/logging):
 
 ```csharp
 using Microsoft.Extensions.Logging;
@@ -92,9 +112,7 @@ var age = 33;
 logger.ZLogInformation($"Hello my name is {name}, {age} years old.");
 ```
 
-Normally, you don't create LoggerFactory yourself. Instead, you set up a Generic Host and receive ILogger through dependency injection (DI).
-
-You can setup logger by [.NET Generic Host](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/host/generic-host?view=aspnetcore-8.0)(for ASP.NET Core) and if you want to use this in ConsoleApplication, we provides [ConsoleAppFramework](https://github.com/Cysharp/ConsoleAppFramework) to use hosting abstraction.
+Normally, you don't create LoggerFactory yourself. Instead, you set up a Generic Host and receive ILogger through dependency injection (DI). You can setup logger by [.NET Generic Host](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/host/generic-host?view=aspnetcore-8.0)(for ASP.NET Core) and if you want to use this in ConsoleApplication, we provides [ConsoleAppFramework](https://github.com/Cysharp/ConsoleAppFramework) to use hosting abstraction.
 
 Here is the showcase of providers.
 
@@ -213,10 +231,209 @@ All logging methods are completely similar as [Microsoft.Extensions.Logging.Logg
 
 The ZLog* method uses [InterpolatedStringHandler](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/tutorials/interpolated-string-handler) in .NET and prepare the template at compile time.
 
+Logging Providers
+---
+By adding Providers, you can configure where the logs are output. ZLogger has the following providers.
+
+| Type                                   | Alias               | Builder Extension      |
+|----------------------------------------|---------------------|------------------------|
+| ZLoggerConsoleLoggerProvider           | ZLoggerConsole      | AddZLoggerConsole      |
+| ZLoggerFileLoggerProvider              | ZLoggerFile         | AddZLoggerFile         |
+| ZLoggerRollingFileLoggerProvider       | ZLoggerRollingFile  | AddZLoggerRollingFile  |
+| ZLoggerStreamLoggerProvider            | ZLoggerStream       | AddZLoggerStream       |
+| ZLoggerLogProcessorLoggerProvider      | ZLoggerLogProcessor | AddZLoggerLogProcessor |
+| ZLoggerInMemoryProcessorLoggerProvider | ZLoggerInMemory     | AddZLoggerInMemory     |
+
+All Providers can take an Action that sets `ZLoggerOptions` as the last argument. As follows.
+
+```cs
+builder.Logging
+    .ClearProviders()
+
+    // Configure options
+    .AddZLoggerConsole(options => 
+    {
+        options.LogToStandardErrorThreshold = LogLevel.Error;
+    });
+    
+    // Configure options with service provider
+    .AddZLoggerConsole((options, services) => 
+    {
+        options.TimeProvider = services.GetService<YourCustomTimeProvider>();
+    });
+```
+
+If you are using `Microsoft.Extensions.Configuration`, you can set the log level through configuration. In this case, alias of Provider can be used.  for example:
+
+```json
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information"
+    },
+    "ZLoggerConsoleLoggerProvider": {
+      "LogLevel": {
+        "Default": "Debug"
+      }
+    }
+  }
+}
+```
+
+Each Provider's behavior can be modified using the common `ZLoggerOptions`. For details, please refer to the [ZLoggerOptions](#zloggeroptions) section. Additionally, you can customize structured logging (JSON Logging) using the `UseFormatter` method within these options. For more information on this, check the [Formatter Configurations](#formatter-configurations) section.
+
+### Console
+
+Console writes to the standard output. Console output is not only for development purposes, but also serves as a standard log input port in containerized and cloud environments, making performance critically important. ZLogger has been optimized to maximize console output performance.
+
+```csharp
+logging.AddZLoggerConsole();
+```
+
+If you are using `ZLoggerConsoleLoggerProvider`, the following additional options are available:
+
+| Name                                    | Description                                                                                                                               |
+|:----------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------|
+| `bool OutputEncodingToUtf8`             | Set `Console.OutputEncoding = new UTF8Encoding(false)` when the provider is created.  (default: true)                                     |
+| `bool ConfigureEnableAnsiEscapeCode`    | If set true, then configure console option on execution and enable virtual terminal processing(enable ANSI escape code). (default: false) |
+| `LogLevel LogToStandardErrorThreshold`  | If set, logs at a higher level than the value will be output to standard error. (default: LogLevel.None)                                  |
+
+### File
+
+File outputs text logs to a file. This is a Provider that writes to a single file in append mode at high speed.
+
+```csharp
+logging.AddZLoggerFile("log.txt");
+```
+
+If you are using `ZLoggerFileLoggerProvider`, the following additional options are available:
+
+| Name                                                                              | Description                                                                                                        |
+|:----------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------|
+| `bool fileShared`                                                                  | If set true, enables exclusive control of writing to the same file from multiple processes.(default: false) |
+
+### RollingFile
+
+RollingFile is a Provider that dynamically changes the output file based on certain conditions.
+
+```csharp
+// output to  yyyy-MM-dd_*.log, roll by 1MB or changed date
+logging.AddZLoggerRollingFile((dt, index) => $"{dt:yyyy-MM-dd}_{index}.log", 1024 * 1024);
+```
+
+If you are using `ZLoggerRollingFileLoggerProvider`, the following additional options are available:
+
+| Name                                                                              | Description                                                                                                        |
+|:----------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------|
+| `Func<DateTimeOffset, int, string> fileNameSelector`                              | The Func to consturct the file path. `DateTimeOffset` is date of file open time(UTC), `int` is number sequence.        |
+| `RollingInterval rollInterval`                                                    | Interval to automatically rotate files.                                                                            |
+| `int rollSizeKB`                                                                  | Limit size of single file.  If the file size is exceeded, a new file is created with the sequence number moved up. |
+| `bool fileShared`                                                                  | If set true, enables exclusive control of writing to the same file from multiple processes.(default: false) |
+
+
+### Stream
+
+Stream can output logs to any arbitrary Stream. For example, if you output to a MemoryStream, you can retrieve the rendered results in memory. If you pass a NetworkStream such as TCP, it will write logs over the network.
+
+```csharp
+var ms = new MemoryStream();
+logging.AddZLoggerStream(ms);
+```
+
+### In-Memory
+
+InMemory allows you to retrieve rendered strings as they are generated. It can be conveniently used for purposes such as accumulating logs in a `List<string>` or `Queue<string>` for display on screen.
+
+```csharp
+logging.AddZLoggerInMemory(processor =>
+{
+    processor.MessageReceived += msg =>
+    {
+        Console.WriteLine($"Received:{msg}");
+    };
+});
+```
+
+If you are using `ZLoggerInMemoryLoggerProvider`, the following additional options are available:
+
+| Name                                                                                                            | Description |
+|:----------------------------------------------------------------------------------------------------------------|:------------|
+| `string processorKey`                                                                                           |  If specified, `InMemoryObservableLogProcessor` is registered in the DI container as a keyed service and can be retrieved by name.           |
+| `Action<InMemoryObservableLogProcessor> configureProcessor`                                                     |  Custom actions can be added that use processors instead of DI containers.           |
+
+### Custom LogProcessor
+
+todo
+
+
+```cs
+
+public class TcpLogProcessor : IAsyncLogProcessor
+{
+    TcpClient tcpClient;
+    AsyncStreamLineMessageWriter writer;
+
+    public TcpLogProcessor(ZLoggerOptions options)
+    {
+        tcpClient = new TcpClient("127.0.0.1", 1111);
+        writer = new AsyncStreamLineMessageWriter(tcpClient.GetStream(), options);
+    }
+
+    public void Post(IZLoggerEntry log)
+    {
+        writer.Post(log);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await writer.DisposeAsync();
+        tcpClient.Dispose();
+    }
+}
+```
+
+```cs
+public class BatchingHttpLogProcessor : BatchingAsyncLogProcessor
+{
+    HttpClient httpClient;
+    ArrayBufferWriter<byte> bufferWriter;
+    IZLoggerFormatter formatter;
+
+    public BatchingHttpLogProcessor(int batchSize, ZLoggerOptions options)
+        : base(batchSize, options)
+    {
+        httpClient = new HttpClient();
+        bufferWriter = new ArrayBufferWriter<byte>();
+        formatter = options.CreateFormatter();
+    }
+
+    protected override async ValueTask ProcessAsync(IReadOnlyList<INonReturnableZLoggerEntry> list)
+    {
+        foreach (var item in list)
+        {
+            item.FormatUtf8(bufferWriter, formatter);
+        }
+        
+        var byteArrayContent = new ByteArrayContent(bufferWriter.WrittenSpan.ToArray());
+        await httpClient.PostAsync("http://foo", byteArrayContent).ConfigureAwait(false);
+
+        bufferWriter.Clear();
+    }
+
+    protected override ValueTask DisposeAsyncCore()
+    {
+        httpClient.Dispose();
+        return default;
+    }
+}
+```
+
+
+
+
 Formatter Configurations
 ----
 
-// TODO: still being written, please wait a little longer.
 
 
 ### PlainText
@@ -438,190 +655,7 @@ KeyNameMutator
 
 
 
-ZLoggerBuilder
-----
 
-ZLogger has the following providers.
-
-| Type                                   | Alias               | Builder Extension      |
-|----------------------------------------|---------------------|------------------------|
-| ZLoggerConsoleLoggerProvider           | ZLoggerConsole      | AddZLoggerConsole      |
-| ZLoggerFileLoggerProvider              | ZLoggerFile         | AddZLoggerFile         |
-| ZLoggerRollingFileLoggerProvider       | ZLoggerRollingFile  | AddZLoggerRollingFile  |
-| ZLoggerStreamLoggerProvider            | ZLoggerStream       | AddZLoggerStream       |
-| ZLoggerLogProcessorLoggerProvider      | ZLoggerLogProcessor | AddZLoggerLogProcessor |
-| ZLoggerInMemoryProcessorLoggerProvider | ZLoggerInMemory     | AddZLoggerInMemory     |
-
-
-If you are using `Microsoft.Extensions.Configuration`, you can set the log level through configuration.
-In this case, alias of Provider can be used.  for example:
-
-```json
-{
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information"
-    },
-    "ZLoggerConsoleLoggerProvider": {
-      "LogLevel": {
-        "Default": "Debug"
-      }
-    }
-  }
-}
-```
-
-All Providers can take an Action that sets ZLoggerOptions as the last argument. As follows.
-
-```cs
-builder.Logging
-    .ClearProviders()
-    // Configure options
-    .AddZLoggerConsole(options => 
-    {
-        options.LogToStandardErrorThreshold = LogLevel.Error;
-    });
-    
-    // Configure options with service provider
-    .AddZLoggerConsole((options, services) => 
-    {
-        options.TimeProvider = services.GetService<YourCustomTimeProvider>();
-    });
-```
-
-
-### Console
-
-
-If you are using `ZLoggerConsoleLoggerProvider`, the following additional options are available:
-
-| Name                                    | Description                                                                                                                               |
-|:----------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------|
-| `bool OutputEncodingToUtf8`             | Set `Console.OutputEncoding = new UTF8Encoding(false)` when the provider is created.  (default: true)                                     |
-| `bool ConfigureEnableAnsiEscapeCode`    | If set true, then configure console option on execution and enable virtual terminal processing(enable ANSI escape code). (default: false) |
-| `LogLevel LogToStandardErrorThreshold`  | If set, logs at a higher level than the value will be output to standard error. (default: LogLevel.None)                                  |
-
-
-### File
-
-
-If you are using `ZLoggerRollingFileLoggerProvider`, the following additional options are available:
-
-| Name                                                                              | Description                                                                                                        |
-|:----------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------|
-| `bool fileShared`                                                                  | If set true, enables exclusive control of writing to the same file from multiple processes.(default: false) |
-
-
-### RollingFile
-
-
-If you are using `ZLoggerRollingFileLoggerProvider`, the following additional options are available:
-
-| Name                                                                              | Description                                                                                                        |
-|:----------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------|
-| `Func<DateTimeOffset, int, string> fileNameSelector`                              | The Func to consturct the file path. `DateTimeOffset` is date of file open time(UTC), `int` is number sequence.        |
-| `RollingInterval rollInterval`                                                    | Interval to automatically rotate files.                                                                            |
-| `int rollSizeKB`                                                                  | Limit size of single file.  If the file size is exceeded, a new file is created with the sequence number moved up. |
-| `bool fileShared`                                                                  | If set true, enables exclusive control of writing to the same file from multiple processes.(default: false) |
-
-
-### Stream
-
-```cs
-builder.Logging
-    .ClearProviders()
-    .AddZLogger(zlogger => 
-    {
-        // Default
-        zlogger.AddStream(stream);
-        
-        // Configure stream dynamically
-        zlogger.AddStream((options, services) =>
-        {
-            // ...
-            return yourCustomStream;
-        });
-    });
-
-```
-
-### In-Memory
-
-
-
-| Name                                                                                                            | Description |
-|:----------------------------------------------------------------------------------------------------------------|:------------|
-| `string processorKey`                                                                                           |  If specified, `InMemoryObservableLogProcessor` is registered in the DI container as a keyed service and can be retrieved by name.           |
-| `Action<InMemoryObservableLogProcessor> configureProcessor`                                                     |  Custom actions can be added that use processors instead of DI containers.           |
-
-
-
-### Custom LogProcessor
-
-todo
-
-
-```cs
-
-public class TcpLogProcessor : IAsyncLogProcessor
-{
-    TcpClient tcpClient;
-    AsyncStreamLineMessageWriter writer;
-
-    public TcpLogProcessor(ZLoggerOptions options)
-    {
-        tcpClient = new TcpClient("127.0.0.1", 1111);
-        writer = new AsyncStreamLineMessageWriter(tcpClient.GetStream(), options);
-    }
-
-    public void Post(IZLoggerEntry log)
-    {
-        writer.Post(log);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await writer.DisposeAsync();
-        tcpClient.Dispose();
-    }
-}
-```
-
-```cs
-public class BatchingHttpLogProcessor : BatchingAsyncLogProcessor
-{
-    HttpClient httpClient;
-    ArrayBufferWriter<byte> bufferWriter;
-    IZLoggerFormatter formatter;
-
-    public BatchingHttpLogProcessor(int batchSize, ZLoggerOptions options)
-        : base(batchSize, options)
-    {
-        httpClient = new HttpClient();
-        bufferWriter = new ArrayBufferWriter<byte>();
-        formatter = options.CreateFormatter();
-    }
-
-    protected override async ValueTask ProcessAsync(IReadOnlyList<INonReturnableZLoggerEntry> list)
-    {
-        foreach (var item in list)
-        {
-            item.FormatUtf8(bufferWriter, formatter);
-        }
-        
-        var byteArrayContent = new ByteArrayContent(bufferWriter.WrittenSpan.ToArray());
-        await httpClient.PostAsync("http://foo", byteArrayContent).ConfigureAwait(false);
-
-        bufferWriter.Clear();
-    }
-
-    protected override ValueTask DisposeAsyncCore()
-    {
-        httpClient.Dispose();
-        return default;
-    }
-}
-```
 
 
 ZLoggerOptions
@@ -631,6 +665,7 @@ ZLoggerOptions
 | Name                                                                         | Description                                                                                                                                                                                                                    |
 |:-----------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `bool IncludeScopes { get; set; }`                                           | Enable `ILogger.BeginScope`, default is `false`.                                                                                                                                                                               |
+| `bool IsFormatLogImmediatelyInStandardLog { get; set; }`                     | Fallback of standard logger.Log, message stringify immediately or not. Default is `true`.                                                                                                                                      |
 | `TimeProvider? TimeProvider { get; set; }`                                   | Gets or sets the time provider for the logger. The Timestamp of LogInfo is generated by TimeProvider's GetUtcNow() and LocalTimeZone when TimeProvider is set. The default value is null, which means use the system standard. |
 | `Action<Exception>? InternalErrorLogger { get; set; }`                       | `InternalErrorLogger` is a delegate that is called when an exception occurs in the log writing process (such as a serialization error). The default value is `null`, which means errors are ignored.                           |
 | `CreateFormatter()`                                                          | Create an formatter to use in ZLoggerProvider.                                                                                                                                                                                 |
