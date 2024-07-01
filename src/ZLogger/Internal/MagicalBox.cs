@@ -74,6 +74,7 @@ internal unsafe partial struct MagicalBox
     public bool TryReadTo(Type type, int offset, int alignment, string? format, ref Utf8StringWriter<IBufferWriter<byte>> handler)
     {
         if (offset < 0) return false;
+        if (type.IsEnum) goto USE_READER;
 
         var code = Type.GetTypeCode(type);
         switch (code)
@@ -124,12 +125,14 @@ internal unsafe partial struct MagicalBox
                 break;
         }
 
+        USE_READER:
         return ReaderCache.TryReadTo(type, this, offset, ref handler, alignment, format);
     }
 
     public bool TryReadTo(Type type, int offset, int alignment, string? format, ref DefaultInterpolatedStringHandler handler)
     {
         if (offset < 0) return false;
+        if (type.IsEnum) goto USE_READER;
 
         var code = Type.GetTypeCode(type);
         switch (code)
@@ -180,12 +183,14 @@ internal unsafe partial struct MagicalBox
                 break;
         }
 
+        USE_READER:
         return ReaderCache.TryReadTo(type, this, offset, ref handler, alignment, format);
     }
 
     public bool TryReadTo(Type type, int offset, Utf8JsonWriter jsonWriter, JsonSerializerOptions? options)
     {
         if (offset < 0) return false;
+        if (type.IsEnum) goto USE_READER;
 
         var code = Type.GetTypeCode(type);
         switch (code)
@@ -239,6 +244,7 @@ internal unsafe partial struct MagicalBox
                 break;
         }
 
+        USE_READER:
         return ReaderCache.TryReadTo(type, this, offset, jsonWriter, options);
     }
 

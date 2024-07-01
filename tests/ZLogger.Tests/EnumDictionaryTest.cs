@@ -8,6 +8,7 @@ using ZLogger.Internal;
 
 namespace ZLogger.Tests
 {
+
     public unsafe class EnumDictionaryTest
     {
         [Fact]
