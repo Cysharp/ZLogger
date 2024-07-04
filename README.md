@@ -188,20 +188,15 @@ builder.Logging
     });
 ```
 
+Look at the use of loggers and the syntax of ZLog.
+
 ```cs
 using Microsoft.Extensions.Logging;
 using ZLogger;
 
-public class MyClass
+// get ILogger<T> from DI.
+public class MyClass(ILogger<MyClass> logger)
 {
-    // get ILogger<T> from DI.
-    readonly ILogger<MyClass> logger;
-    
-    public MyClass(ILogger<MyClass> logger)
-    {
-        this.logger = logger;
-    }
-    
     // name = "Bill", city = "Kumamoto", age = 21
     public void Foo(string name, string city, int age)
     {
@@ -231,6 +226,8 @@ All logging methods are completely similar as [Microsoft.Extensions.Logging.Logg
 
 The ZLog* method uses [InterpolatedStringHandler](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/tutorials/interpolated-string-handler) in .NET and prepare the template at compile time.
 
+Some special custom formats are also supported. The `:@` can be used when you want to explicitly give the structured log a name other than the name of the variable to capture. `:json` can be used to log the result of JsonSerializing an object.
+
 Logging Providers
 ---
 By adding Providers, you can configure where the logs are output. ZLogger has the following providers.
@@ -241,8 +238,8 @@ By adding Providers, you can configure where the logs are output. ZLogger has th
 | ZLoggerFileLoggerProvider              | ZLoggerFile         | AddZLoggerFile         |
 | ZLoggerRollingFileLoggerProvider       | ZLoggerRollingFile  | AddZLoggerRollingFile  |
 | ZLoggerStreamLoggerProvider            | ZLoggerStream       | AddZLoggerStream       |
-| ZLoggerLogProcessorLoggerProvider      | ZLoggerLogProcessor | AddZLoggerLogProcessor |
 | ZLoggerInMemoryProcessorLoggerProvider | ZLoggerInMemory     | AddZLoggerInMemory     |
+| ZLoggerLogProcessorLoggerProvider      | ZLoggerLogProcessor | AddZLoggerLogProcessor |
 
 All Providers can take an Action that sets `ZLoggerOptions` as the last argument. As follows.
 
@@ -361,38 +358,51 @@ If you are using `ZLoggerInMemoryLoggerProvider`, the following additional optio
 | `string processorKey`                                                                                           |  If specified, `InMemoryObservableLogProcessor` is registered in the DI container as a keyed service and can be retrieved by name.           |
 | `Action<InMemoryObservableLogProcessor> configureProcessor`                                                     |  Custom actions can be added that use processors instead of DI containers.           |
 
-### Custom LogProcessor
+### LogProcessor
 
-todo
+LogProcessor is the most primitive Provider that allows you to customize output on a per-log basis (`IZLoggerEntry`) by implementing a custom `IAsyncLogProcessor`.
 
-
-```cs
-
-public class TcpLogProcessor : IAsyncLogProcessor
+```csharp
+public interface IAsyncLogProcessor : IAsyncDisposable
 {
-    TcpClient tcpClient;
-    AsyncStreamLineMessageWriter writer;
+    void Post(IZLoggerEntry log);
+}
+```
 
-    public TcpLogProcessor(ZLoggerOptions options)
-    {
-        tcpClient = new TcpClient("127.0.0.1", 1111);
-        writer = new AsyncStreamLineMessageWriter(tcpClient.GetStream(), options);
-    }
+For example, a LogProcessor that propagates logs as string events can be written as follows:
+
+```csharp
+public class SimpleInMemoryLogProcessor : IAsyncLogProcessor
+{
+    public event Action<string>? OnMessageReceived;
 
     public void Post(IZLoggerEntry log)
     {
-        writer.Post(log);
+        var msg = log.ToString();
+        log.Return();
+        
+        OnMessageReceived?.Invoke(msg);
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        await writer.DisposeAsync();
-        tcpClient.Dispose();
+        return default;
     }
 }
 ```
 
-```cs
+```csharp
+var processor = new SimpleInMemoryLogProcessor();
+processor.OnMessageReceived += msg => Console.WriteLine(msg);
+
+logging.AddZLoggerLogProcessor(processor);
+```
+
+Note that `IZLoggerEntry` is pooled, so you must always call `Return()`.
+
+Here's a more complex example. `BatchingAsyncLogProcessor` can batch logs together, which is useful for scenarios like sending multiple log lines via HTTP in a single request.
+
+```csharp
 public class BatchingHttpLogProcessor : BatchingAsyncLogProcessor
 {
     HttpClient httpClient;
@@ -428,109 +438,40 @@ public class BatchingHttpLogProcessor : BatchingAsyncLogProcessor
 }
 ```
 
-
-
+In this case, the LogEntry is NonReturnable, so there's no need to call Return().
 
 Formatter Configurations
 ----
 
-
+Both PlainText and JSON can be customized in addition to the standard log formats.
 
 ### PlainText
 
 ```cs
-builder.Logging.AddZLoggerConsole(options =>
+logging.AddZLoggerConsole(options =>
 {
     // Text format
     // e.g) "2023-12-01 16:41:55.775|Information|This is log message. (MyNamespace.MyApp)
-    options.UsePlainTextFormatter(formatter => 
+    options.UsePlainTextFormatter(formatter =>
     {
         formatter.SetPrefixFormatter($"{0}|{1}|", (in MessageTemplate template, in LogInfo info) => template.Format(info.Timestamp, info.LogLevel));
         formatter.SetSuffixFormatter($" ({0})", (in MessageTemplate template, in LogInfo info) => template.Format(info.Category));
-        formatter.SetExceptionFormatter((writer, ex) => Utf8String.Format(writer, $"{ex.Message}"));
-    });
-        
-    // Using various variable formats.
-    // e.g) "2023-12-01T16:47:15+09:00|INF|This is log message"
-    formatter.SetPrefixFormatter($"{0:yyyy-MM-dd'T'HH:mm:sszzz}|{1:short}|", (in MessageTemplate template, in LogInfo info) =>
-    {
-        var escapeSequence = "";
-        // if (info.LogLevel >= LogLevel.Error)
-        // {
-        //     escapeSequence = "\u001b[31m";
-        // }
-        // else if (!info.Category.Name.Contains("MyApp"))
-        // {
-        //     escapeSequence = "\u001b[38;5;08m";
-        // }
-    
-        template.Format(info.Timestamp, info.LogLevel);
-    });
-        
-    // Console coloring example
-    options.UsePlainTextFormatter(formatter =>
-    {
-        // \u001b[31m => Red(ANSI Escape Code)
-        // \u001b[0m => Reset
-        // \u001b[38;5;***m => 256 Colors(08 is Gray)
-        formatter.SetPrefixFormatter($"{0}{1}|{2:short}|", (in MessageTemplate template, in LogInfo info) =>
-        {
-            var escapeSequence = "";
-            if (info.LogLevel >= LogLevel.Error)
-            {
-                escapeSequence = "\u001b[31m";
-            }
-            else if (!info.Category.Name.Contains("MyApp"))
-            {
-                escapeSequence = "\u001b[38;5;08m";
-            }
-        
-            template.Format(escapeSequence, info.Timestamp, info.LogLevel);
-        });
-
-        formatter.SetSuffixFormatter($"{0}", (in MessageTemplate template, in LogInfo info) =>
-        {
-            if (info.LogLevel == LogLevel.Error || !info.Category.Name.Contains("MyApp"))
-            {
-                template.Format("\u001b[0m");
-            }
-        });
+        formatter.SetExceptionFormatter((writer, ex) => Utf8StringInterpolation.Utf8String.Format(writer, $"{ex.Message}"));
     });
 });
 ```
 
-Formatting can be set using the String Interpolation Template, and lambda expression as shown above.
+You can set Prefix and Suffix individually for text output. For performance reasons, the first argument is a special String Interpolation Template, which is formatted by the lambda expression in the second argument. For properties that can actually be retrieved with `LogInfo`, refer to [LogInfo](#loginfo). It is also possible to retrieve the log file path and line number from LogInfo.
 
-Note: For format strings available for various variables:
--`LogLevel` can be specially specified as `short`. This reduces the length of string to a fixed number of characters, such as `INFO`.
-- For other types, ZLogger uses [Cysharp/Utf8StringInterpolation](https://github.com/Cysharp/Utf8StringInterpolation) internally. Please see this.
+Only LogLevel supports a special format specification. By passing `:short`, you can get a 3-character log level notation such as `TRC`, `DBG`, `INF`, `WRN`, `ERR`, `CRI`, `NON`.
 
-`public delegate void MessageTemplateFormatter(in MessageTemplate template, in LogInfo info);`
-
-| Name                                                                                             | Description                                                          |
-|:-------------------------------------------------------------------------------------------------|:---------------------------------------------------------------------|
-| `SetPrefixFormatter(MessageTemplateHandler format, MessageTemplateFormatter formatter)`  | Set the text to be given before the message body. (Default is empty) |
-| `SetSuffixFormatter(MessageTemplateHandler format, MessageTemplateFormatter formatter)`  | Set the text to be given after the message body. (Default is empty)  |
-| `SetExceptionFormatter(Action<IBufferWriter<byte>, Exception> formatter)`                        |                                                                      |
-
-
+SetExceptionFormatter allows you to customize the display when outputting exceptions. This can be easily converted to a string using `Utf8String.Format`.
 
 ### JSON
 
-`public delegate void JsonLogInfoFormatter(Utf8JsonWriter jsonWriter, in LogInfo info);`
+You can flexibly change the JSON output format by modifying the JsonFormatter options. For example, if you set `IncludeProperties` to only `ParameterKeyValues`, you will get only the payload JSON. By default, the payload part is output directly without nesting, but if you set `PropertyKeyValuesObjectName`, you can output the payload JSON to a nested location. It is also possible to add values for arbitrary JSON Objects using `AdditionalFormatter`.
 
-| Name                                                                | Description                                                                       |
-|:--------------------------------------------------------------------|:----------------------------------------------------------------------------------|
-| `JsonPropertyNames JsonPropertyNames`                               | Specify the name of each key in the output JSON                                   |
-| `IncludeProperties IncludeProperties`                               | Flags that can specify properties to be output. (default: `Timestamp              | LogLevel | CategoryName | Message | Exception | ScopeKeyValues | ParameterKeyValues`) |
-| `JsonSerializerOptions JsonSerializerOptions`                       | The options of `System.Text.Json`                                                 |
-| `JsonLogInfoFormatter? AdditionalFormatter`                         | Action when rendering additional properties based on `LogInfo`.                   |
-| `JsonEncodedText? PropertyKeyValuesObjectName`                      | If set, the key/value properties is nested under the specified key name.          |
-| `IKeyNameMutator? KeyNameMutator`                                   | You can set the naming convention if you want to automatically convert key names. |
-| `bool UseUtcTimestamp`                                              | If true, timestamp is output in utc. (default: false)                             |
-
-
-Sample of Json Formatting customize
+The following is an example of customization to conform to the [Google Cloud Logging format](https://cloud.google.com/logging/docs/structured-logging?hl=en). We have also changed standard key names such as Timestamp.
 
 ```csharp
 using System.Text.Json;
@@ -570,7 +511,7 @@ public static class CloudLoggingExtensions
 
             formatter.PropertyKeyValuesObjectName = Encode("jsonPayload");
 
-            // cache JsonENcodedText outside of AdditionalFormatter
+            // cache JsonEncodedText outside of AdditionalFormatter
             var labels = Encode("logging.googleapis.com/labels");
             var category = Encode("category");
             var eventId = Encode("eventId");
@@ -598,17 +539,58 @@ public static class CloudLoggingExtensions
         });
     }
 }
-
 ```
+
+The list of properties is as follows.
+
+| Name                                                                | Description                                                                       |
+|:--------------------------------------------------------------------|:----------------------------------------------------------------------------------|
+| `JsonPropertyNames JsonPropertyNames`                               | Specify the name of each key in the output JSON                                   |
+| `IncludeProperties IncludeProperties`                               | Flags that can specify properties to be output. (default: `Timestamp, LogLevel, CategoryName, Message, Exception, ScopeKeyValues, ParameterKeyValues`) |
+| `JsonSerializerOptions JsonSerializerOptions`                       | The options of `System.Text.Json`                                                 |
+| `JsonLogInfoFormatter? AdditionalFormatter`                         | Action when rendering additional properties based on `LogInfo`.                   |
+| `JsonEncodedText? PropertyKeyValuesObjectName`                      | If set, the key/value properties is nested under the specified key name.          |
+| `IKeyNameMutator? KeyNameMutator`                                   | You can set the naming convention if you want to automatically convert key names. |
+| `bool UseUtcTimestamp`                                              | If true, timestamp is output in utc. (default: false)                             |
+
+#### KeyNameMutator
+
+By default, JSON key names are output as is, so in the following character output, "user.Name" becomes the JSON key name.
+
+```csharp
+var user = new User(1, "Alice");
+logger.ZLogInformation($"Name: {user.Name}");
+```
+
+If you set this to `formatter.KeyNameMutator = KeyNameMutator.LastMemberName`, it becomes `Name`. If you set this to `LastMemberNameLowerFirstCharacter`, the first character is replaced with lower-case, resulting in `name`.
+
+The following is a list of KeyNameMutators provided as standard:
+
+| Name                                  | Description                                                                                               |
+|:--------------------------------------|:----------------------------------------------------------------------------------------------------------|
+| `LastMemberName`                      | Returns the last member name of the source.                                                               |
+| `LowerFirstCharacter`                 | The first character converted to lowercase.                                                               |
+| `UpperFirstCharacter`                 | The first character converted to uppercase.                                                               |
+| `LastMemberNameLowerFirstCharacter`   | Returns the last member name of the source with the first character converted to lowercase.               |
+| `LastMemberNameUpperFirstCharacter`   | Returns the last member name of the source with the first character converted to uppercase.               |       
+
 
 ### MessagePack
 
-
-Formats using messagepack are supported in an additional package.
-
-[MessagePack-CSharp](https://github.com/MessagePack-CSharp/MessagePack-CSharp)
+We also support structured logging output in binary format using MessagePack instead of JSON. `UseMessagePackFormatter()` requires a reference to the additional package `ZLogger.MessagePack`.
 
 > PM> Install-Package [ZLogger.MessagePack](https://www.nuget.org/packages/ZLogger.MessagePack)
+
+```csharp
+logging.AddZLoggerFile("log.bin", options =>
+{
+    options.UseMessagePackFormatter();
+});
+```
+
+MessagePack extension uses [MessagePack-CSharp](https://github.com/MessagePack-CSharp/MessagePack-CSharp) as writer.
+
+The list of properties is as follows.
 
 | Name                                                               | Description                                                        |
 |:-------------------------------------------------------------------|:-------------------------------------------------------------------|
@@ -618,10 +600,24 @@ Formats using messagepack are supported in an additional package.
 
 ### Custom Formatter 
 
-todo
+If you want to create a formatter other than the default PlainText, Json, and MessagePack, you can implement `IZloggerFormatter` to create any custom output.
+
+```csharp
+public interface IZLoggerFormatter
+{
+    bool WithLineBreak { get; }
+    void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry)
+        where TEntry : IZLoggerEntry;
+}
+```
+
+```csharp
+options.UseFormatter(() => new MyFormatter());
+```
 
 LogInfo
 ---
+Additional information about when each log was written can be obtained from this LogInfo struct.
 
 | Name                        | Description                                                                                              |
 |:----------------------------|:---------------------------------------------------------------------------------------------------------|
@@ -636,31 +632,9 @@ LogInfo
 | `string? FilePath` | Caller FilePath         |
 | `int LineNumber` | Caller LineNumber         |
 
-
-KeyNameMutator
----
-
-
-| Name                                  | Description                                                                                               |
-|:--------------------------------------|:----------------------------------------------------------------------------------------------------------|
-| `LastMemberName`                      | Returns the last member name of the source.                                                               |
-| `LowerFirstCharacter`                 | The first character converted to lowercase.                                                               |
-| `UpperFirstCharacter`                 | The first character converted to uppercase.                                                               |
-| `LastMemberNameLowerFirstCharacter`   | Returns the last member name of the source with the first character converted to lowercase.               |
-| `LastMemberNameUpperFirstCharacter`   | Returns the last member name of the source with the first character converted to uppercase.               |                              
-
-
-
-
-
-
-
-
-
-
 ZLoggerOptions
 ---
-
+The following are common option items for all providers.
 
 | Name                                                                         | Description                                                                                                                                                                                                                    |
 |:-----------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -673,20 +647,17 @@ ZLoggerOptions
 | `UsePlainTextFormatter(Action<PlainTextZLoggerFormatter>? configure = null)` | Use the built-in plain text formatter.                                                                                                                                                                                         |
 | `UseJsonFormatter(Action<SystemTextJsonZLoggerFormatter>? configure = null)` | Use the built-in json formatter. (implementation of `System.Text.Json`)                                                                                                                                                        |
 
-TODO:...
-default formatter is PlaintTextFormatter.
+By default, `UsePlainTextFormatter` is set. Also, only one formatter can be set for one provider. If you want to use multiple formatters, you need to add multiple providers.
 
-
-Custom Format
----
-TODO:///
-
-`@`, `json`
-
+```csharp
+// Show plain text log for console, json log for file
+logging.AddZLoggerConsole(options => options.UsePlainTextFormatter());
+logging.AddZLoggerFile("json.log", options => options.UseJsonFormatter());
+```
 
 ZLoggerMessage Source Generator
 ---
-TODO:/.///
+A log method generator similar to .NET 6's [Compile-time logging source generation](https://learn.microsoft.com/en-us/dotnet/core/extensions/logger-message-generator) is bundled as standard.
 
 ```csharp
 public static partial class MyLogger
@@ -695,6 +666,8 @@ public static partial class MyLogger
     public static partial void Bar(this ILogger<Foo> logger, int x, int y);
 }
 ```
+
+This can achieve the highest performance. It's also possible to use special format specifiers like `:json`.
 
 Microsoft.CodeAnalysis.BannedApiAnalyzers
 ---
@@ -714,14 +687,12 @@ Global LoggerFactory
 Like the traditional log manager, how to get and store logger per type without DI(such as `static readonly ILogger logger = LogManager.GetLogger()`). You can get `ILoggerFactory` from `IHost` before Run and set to the global static loggerfactory store.
 
 ```csharp
-var host = Host.CreateDefaultBuilder()
+using var host = Host.CreateDefaultBuilder()
     .ConfigureLogging(logging =>
     {
         logging.ClearProviders();
         logging.AddZLoggerConsole();
     })
-    .UseConsoleAppFramework<Program>(args) // use framework, example of ConsoleAppFramework
-    // .ConfigureWebHostDefaults(x => x.UseStartup<Startup>()) // example of ASP.NET Core
     .Build(); // use Build instead of Run directly
 
 // get configured loggerfactory.
@@ -737,8 +708,8 @@ await host.RunAsync();
 // Own static logger manager
 public static class LogManager
 {
-    static ILogger globalLogger;
-    static ILoggerFactory loggerFactory;
+    static ILogger globalLogger = default!;
+    static ILoggerFactory loggerFactory = default!;
 
     public static void SetLoggerFactory(ILoggerFactory loggerFactory, string categoryName)
     {
