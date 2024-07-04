@@ -254,7 +254,18 @@ namespace ZLogger
                         }
                         else if (p.BoxedValue is IEnumerable enumerable)
                         {
+#if NET8_0
+                            if (p.BoxedValue is ISpanFormattable spanFormattable)
+                            {
+                                stringWriter.AppendFormatted(p.BoxedValue, p.Alignment, p.Format);
+                            }
+                            else
+                            {
+                                CodeGeneratorUtil.AppendAsJson(ref stringWriter, enumerable);
+                            }
+#else
                             CodeGeneratorUtil.AppendAsJson(ref stringWriter, enumerable);
+#endif
                         }
                         else
                         {
@@ -293,8 +304,20 @@ namespace ZLogger
                         }
                         else if (p.BoxedValue is IEnumerable enumerable)
                         {
+#if NET8_0
+                            if (p.BoxedValue is IFormattable)
+                            {
+                                stringHandler.AppendFormatted(p.BoxedValue, p.Alignment, p.Format);
+                            }
+                            else
+                            {
+                                var jsonString = JsonSerializer.Serialize(enumerable);
+                                stringHandler.AppendLiteral(jsonString);
+                            }
+#else
                             var jsonString = JsonSerializer.Serialize(enumerable);
                             stringHandler.AppendLiteral(jsonString);
+#endif
                         }
                         else
                         {
