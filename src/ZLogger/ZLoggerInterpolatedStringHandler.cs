@@ -261,10 +261,10 @@ namespace ZLogger
                             }
                             else
                             {
-                                CodeGeneratorUtil.AppendAsJson(ref stringWriter, enumerable);
+                                CodeGeneratorUtil.AppendAsJson(ref stringWriter, p.BoxedValue, p.Type);
                             }
 #else
-                            CodeGeneratorUtil.AppendAsJson(ref stringWriter, enumerable);
+                            CodeGeneratorUtil.AppendAsJson(ref stringWriter, p.BoxedValue, p.Type);
 #endif
                         }
                         else
@@ -311,11 +311,11 @@ namespace ZLogger
                             }
                             else
                             {
-                                var jsonString = JsonSerializer.Serialize(enumerable);
+                                var jsonString = JsonSerializer.Serialize(p.BoxedValue, p.Type);
                                 stringHandler.AppendLiteral(jsonString);
                             }
 #else
-                            var jsonString = JsonSerializer.Serialize(enumerable);
+                            var jsonString = JsonSerializer.Serialize(p.BoxedValue, p.Type);
                             stringHandler.AppendLiteral(jsonString);
 #endif
                         }
