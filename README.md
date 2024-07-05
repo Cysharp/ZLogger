@@ -227,6 +227,14 @@ The ZLog* method uses [InterpolatedStringHandler](https://learn.microsoft.com/en
 
 Some special custom formats are also supported. The `:@` can be used when you want to explicitly give the structured log a name other than the name of the variable to capture. `:json` can be used to log the result of JsonSerializing an object.
 
+The `@` parameter name specification and format string can be used together.
+
+```csharp
+// Today is 2023-12-19.
+// {"date":"2023-12-19T11:25:34.3642389+09:00"}
+logger.ZLogDebug($"Today is {DateTime.Now:@date:yyyy-MM-dd}.");
+```
+
 Logging Providers
 ---
 By adding Providers, you can configure where the logs are output. ZLogger has the following providers.
