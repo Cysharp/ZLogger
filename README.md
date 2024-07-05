@@ -470,7 +470,18 @@ logging.AddZLoggerConsole(options =>
 
 You can set Prefix and Suffix individually for text output. For performance reasons, the first argument is a special String Interpolation Template, which is formatted by the lambda expression in the second argument. For properties that can actually be retrieved with `LogInfo`, refer to [LogInfo](#loginfo). It is also possible to retrieve the log file path and line number from LogInfo.
 
-Only LogLevel supports a special format specification. By passing `:short`, you can get a 3-character log level notation such as `TRC`, `DBG`, `INF`, `WRN`, `ERR`, `CRI`, `NON`.
+Only LogLevel supports a special format specification. By passing `:short`, you can get a 3-character log level notation such as `TRC`, `DBG`, `INF`, `WRN`, `ERR`, `CRI`, `NON` (the length of the beginning matches, making it easier to read when opened in an editor). For Timestamp, there are `local | local-longdate | longdate`(local, local-longdate, longdate are same, there are alias), `utc | utc-longdate`, `datetime | local-datetime`, `utc-datetime`, `dateonly | local-dateonly`, `utc-dateonly`, `timeonly | local-timeonly`, `utc-timeonly`. Default is `local`.
+
+```csharp
+logging.AddZLoggerConsole(options =>
+{
+    options.UsePlainTextFormatter(formatter =>
+    {
+        // 2023-12-19 02:46:14.289 [DBG]......
+        formatter.SetPrefixFormatter($"{0:utc-longdate} [{1:short}]", (template, info) => template.Format(info.Timestamp, info.LogLevel));
+    });
+});
+```
 
 SetExceptionFormatter allows you to customize the display when outputting exceptions. This can be easily converted to a string using `Utf8String.Format`.
 
