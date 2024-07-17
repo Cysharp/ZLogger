@@ -797,7 +797,7 @@ Installation steps:
         - ```xml
           <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
             <PropertyGroup>
-              <LangVersion>10</LangVersion>
+              <LangVersion>10.0</LangVersion>
               <Nullable>enable</Nullable>
             </PropertyGroup>
           </Project>
