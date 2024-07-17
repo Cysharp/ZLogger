@@ -75,7 +75,7 @@ namespace ZLogger.Unity
                 var msg = FormatToString(log, formatter);
                 var unityLogType = log.LogInfo.AsUnityLogType();
 
-                if (UnityEngine.Application.GetStackTraceLogType(unityLogType) != StackTraceLogType.None && options.PrettyStacktrace)
+                if (LogTypeMapper.GetStackTraceLogType(unityLogType) != StackTraceLogType.None && options.PrettyStacktrace)
                 {
                     var stacktrace = new StackTrace(5, true);
                     msg = $"{msg}{Environment.NewLine}{DiagnosticsHelper.CleanupStackTrace(stacktrace)}{Environment.NewLine}---";
@@ -174,6 +174,32 @@ namespace ZLogger.Unity
         public void SetScopeProvider(IExternalScopeProvider scopeProvider)
         {
             this.scopeProvider = scopeProvider;
+        }
+    }
+
+    static class LogTypeMapper
+    {
+        static StackTraceLogType[]? stackTraceLogTypes = default!;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void Init()
+        {
+            var logTypes = new[] { LogType.Error, LogType.Assert, LogType.Warning, LogType.Log, LogType.Exception };
+            stackTraceLogTypes = new StackTraceLogType[logTypes.Length];
+            for (int i = 0; i < logTypes.Length; i++)
+            {
+                stackTraceLogTypes[i] = UnityEngine.Application.GetStackTraceLogType(logTypes[i]);
+            }
+        }
+
+        public static StackTraceLogType GetStackTraceLogType(LogType logType)
+        {
+            var i = (int)logType;
+            if (stackTraceLogTypes != null && i >= 0 && i < stackTraceLogTypes.Length)
+            {
+                return stackTraceLogTypes[i];
+            }
+            return StackTraceLogType.None;
         }
     }
 }
