@@ -79,7 +79,7 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
     public MessagePackPropertyNames PropertyNames { get; set; } = MessagePackPropertyNames.Default;
     public IKeyNameMutator? KeyNameMutator { get; set; }
 
-    public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
+    public void FormatLogEntry(IBufferWriter<byte> writer, IZLoggerEntry entry)
     {
         var messagePackWriter = new MessagePackWriter(writer);
         var propCount = BitOperations.PopCount((uint)IncludeProperties);

@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using ZLogger.Formatters;
@@ -114,6 +115,8 @@ public sealed class InterpolatedStringLogState :
         messageSequence.WriteOriginalFormat(writer, parameters);
     }
 
+    [UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode")]
     public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions, IKeyNameMutator? keyNameMutator = null)
     {
         for (var i = 0; i < ParameterCount; i++)

@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Hashing;
 using System.Runtime.CompilerServices;
@@ -82,7 +83,7 @@ namespace ZLogger
             literals.Add(s);
         }
 
-        public void AppendFormatted<T>(T value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+        public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(T value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
         {
             // Add for MessageSequence
             literals.Add(null);
@@ -120,7 +121,7 @@ namespace ZLogger
             state.parameters[parameterWritten++] = parameter;
         }
 
-        public void AppendFormatted<T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+        public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
             where T : struct
         {
             // Nullable, check and unwrap here.
@@ -277,6 +278,8 @@ namespace ZLogger
             stringWriter.Flush();
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode")]
+        [UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode")]
         public string ToString(MagicalBox box, Span<InterpolatedStringParameter> parameters)
         {
             var stringHandler = new DefaultInterpolatedStringHandler(literalLength, parametersLength);

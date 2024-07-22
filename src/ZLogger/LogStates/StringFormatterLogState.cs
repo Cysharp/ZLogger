@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json;
 using ZLogger.Internal;
@@ -81,6 +82,8 @@ namespace ZLogger.LogStates
             }
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode")]
+        [UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode")]
         public void WriteJsonParameterKeyValues(Utf8JsonWriter jsonWriter, JsonSerializerOptions jsonSerializerOptions, IKeyNameMutator? keyNameMutator = null)
         {
             if (originalStateParameters == null) return;
