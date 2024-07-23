@@ -46,7 +46,7 @@ internal class CLEFMessageTemplateFormatter : IZLoggerFormatter
     Utf8JsonWriter? jsonWriter;
     ArrayBufferWriter<byte> originalFormatWriter = new ArrayBufferWriter<byte>();
 
-    public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
+    public void FormatLogEntry(IBufferWriter<byte> writer, IZLoggerEntry entry)
     {
         // FormatLogEntry is guaranteed call in single-thread so reuse Utf8JsonWriter
         jsonWriter?.Reset(writer);

@@ -6,7 +6,6 @@ namespace ZLogger
     public interface IZLoggerFormatter
     {
         bool WithLineBreak { get; }
-        void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry)
-            where TEntry : IZLoggerEntry;
+        void FormatLogEntry(IBufferWriter<byte> writer, IZLoggerEntry entry);
     }
 }

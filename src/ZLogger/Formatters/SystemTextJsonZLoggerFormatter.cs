@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -126,7 +127,9 @@ namespace ZLogger.Formatters
 
         Utf8JsonWriter? jsonWriter;
 
-        public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
+        [UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode")]
+        [UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode")]
+        public void FormatLogEntry(IBufferWriter<byte> writer, IZLoggerEntry entry)
         {
             jsonWriter?.Reset(writer);
             jsonWriter ??= new Utf8JsonWriter(writer);

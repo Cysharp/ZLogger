@@ -8,11 +8,19 @@
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<NoWarn>1701;1702;1591;1573</NoWarn>
 
-		<!-- NuGet Packaging -->
+    <!-- Enable for using [DynamicallyAccessedMembers] attribute -->
+    <PolySharpIncludeRuntimeSupportedAttributes>true</PolySharpIncludeRuntimeSupportedAttributes>
+
+    <!-- NuGet Packaging -->
 		<PackageTags>logging;</PackageTags>
 		<Description>Zero Allocation Text/Strcutured Logger for .NET Core, built on top of a Microsoft.Extensions.Logging.</Description>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
+
+	<PropertyGroup Condition="$(TargetFramework) == 'net8.0'">
+    <!-- Enable AOT analyzers -->
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
 
 	<ItemGroup>
 		<None Include="..\..\Icon.png" Pack="true" PackagePath="/" />
@@ -36,7 +44,7 @@
 		<PackageReference Include="Microsoft.Bcl.TimeProvider" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
 		<PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
-		<PackageReference Include="PolySharp" Version="1.13.2">
+		<PackageReference Include="PolySharp" Version="1.14.1">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>

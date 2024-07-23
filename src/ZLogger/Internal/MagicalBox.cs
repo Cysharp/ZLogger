@@ -1,5 +1,6 @@
 ﻿using System.Buffers;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Utf8StringInterpolation;
@@ -18,7 +19,7 @@ internal unsafe partial struct MagicalBox
 
     public int Written => written;
 
-    public bool TryWrite<T>(T value, out int offset)
+    public bool TryWrite<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(T value, out int offset)
     {
         if (!IsSupportedType<T>())
         {
@@ -307,7 +308,7 @@ internal unsafe partial struct MagicalBox
         public static bool TryReadTo(Type type, MagicalBox box, int offset, ref Utf8StringWriter<IBufferWriter<byte>> writer, int alignment, string? format) => cache.TryGetValue(type, out var value) ? value.Utf8StringWriter(box, offset, ref writer, alignment, format) : false;
         public static object? ReadBoxed(Type type, MagicalBox box, int offset) => cache.TryGetValue(type, out var value) ? value.ReadBoxed(box, offset) : null;
 
-        public static void Register<T>()
+        public static void Register<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>()
         {
             if (IsRegistered<T>.Value)
             {
@@ -339,7 +340,7 @@ internal unsafe partial struct MagicalBox
             IsRegistered<T>.Value = true;
         }
 
-        static object? ReadBoxed<T>(MagicalBox box, int offset)
+        static object? ReadBoxed<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(MagicalBox box, int offset)
         {
             if (box.TryRead<T>(offset, out var v))
             {
@@ -348,7 +349,7 @@ internal unsafe partial struct MagicalBox
             return null;
         }
 
-        static bool EnumJsonWrite<T>(MagicalBox box, int offset, Utf8JsonWriter writer, JsonSerializerOptions? options)
+        static bool EnumJsonWrite<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(MagicalBox box, int offset, Utf8JsonWriter writer, JsonSerializerOptions? options)
         {
             if (box.TryRead<T>(offset, out var v))
             {
@@ -436,7 +437,9 @@ internal unsafe partial struct MagicalBox
             return false;
         }
 
-        static bool JsonSerialize<T>(MagicalBox box, int offset, Utf8JsonWriter writer, JsonSerializerOptions? options)
+        [UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode")]
+        [UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode")]
+        static bool JsonSerialize<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(MagicalBox box, int offset, Utf8JsonWriter writer, JsonSerializerOptions? options)
         {
             if (box.TryRead<T>(offset, out var v))
             {
@@ -447,7 +450,7 @@ internal unsafe partial struct MagicalBox
             return false;
         }
 
-        static bool StringAppendFormatted<T>(MagicalBox box, int offset, ref DefaultInterpolatedStringHandler handler, int alignment, string? format)
+        static bool StringAppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(MagicalBox box, int offset, ref DefaultInterpolatedStringHandler handler, int alignment, string? format)
         {
             if (box.TryRead<T>(offset, out var v))
             {
@@ -458,7 +461,7 @@ internal unsafe partial struct MagicalBox
             return false;
         }
 
-        static bool Utf8AppendFormatted<T>(MagicalBox box, int offset, ref Utf8StringWriter<IBufferWriter<byte>> writer, int alignment, string? format)
+        static bool Utf8AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(MagicalBox box, int offset, ref Utf8StringWriter<IBufferWriter<byte>> writer, int alignment, string? format)
         {
             if (box.TryRead<T>(offset, out var v))
             {

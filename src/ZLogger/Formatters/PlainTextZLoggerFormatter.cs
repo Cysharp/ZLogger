@@ -35,7 +35,7 @@ namespace ZLogger.Formatters
             this.exceptionFormatter = formatter;
         }
 
-        public void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry) where TEntry : IZLoggerEntry
+        public void FormatLogEntry(IBufferWriter<byte> writer, IZLoggerEntry entry)
         {
             if (prefixTemplate != null)
             {

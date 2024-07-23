@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace ZLogger.Internal;
 
-internal static unsafe class EnumDictionary<T>
+internal static unsafe class EnumDictionary<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>
 {
     static object dictionary;
 
@@ -16,10 +16,11 @@ internal static unsafe class EnumDictionary<T>
     public static readonly delegate* managed<T, ReadOnlySpan<byte>> GetUtf8Name; // be careful, zero is not found.
     public static readonly delegate* managed<T, JsonEncodedText?> GetJsonEncodedName;
 
+    [UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode")]
     static EnumDictionary()
     {
         var type = typeof(T);
-
         var source = new List<(T, EnumName)>();
         foreach (var key in Enum.GetValues(type))
         {

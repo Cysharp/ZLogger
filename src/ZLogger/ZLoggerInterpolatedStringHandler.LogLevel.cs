@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using ZLogger.LogStates;
 
@@ -18,18 +19,18 @@ public ref struct ZLoggerTraceInterpolatedStringHandler
         InnerHandler.AppendLiteral(s);
     }
 
-    public void AppendFormatted<T>(T value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+    public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(T value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
     {
         InnerHandler.AppendFormatted(value, alignment, format, argumentName);
     }
 
-    public void AppendFormatted<T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+    public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
         where T : struct
     {
         InnerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
     }
 
-    public void AppendFormatted<T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
+    public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
     {
         InnerHandler.AppendFormatted(namedValue, alignment, format);
     }
@@ -49,18 +50,18 @@ public ref struct ZLoggerDebugInterpolatedStringHandler
         InnerHandler.AppendLiteral(s);
     }
 
-    public void AppendFormatted<T>(T value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+    public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(T value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
     {
         InnerHandler.AppendFormatted(value, alignment, format, argumentName);
     }
 
-    public void AppendFormatted<T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+    public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
         where T : struct
     {
         InnerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
     }
 
-    public void AppendFormatted<T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
+    public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
     {
         InnerHandler.AppendFormatted(namedValue, alignment, format);
     }
@@ -80,18 +81,18 @@ public ref struct ZLoggerInformationInterpolatedStringHandler
         InnerHandler.AppendLiteral(s);
     }
 
-    public void AppendFormatted<T>(T value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+    public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(T value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
     {
         InnerHandler.AppendFormatted(value, alignment, format, argumentName);
     }
 
-    public void AppendFormatted<T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+    public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
         where T : struct
     {
         InnerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
     }
 
-    public void AppendFormatted<T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
+    public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
     {
         InnerHandler.AppendFormatted(namedValue, alignment, format);
     }
@@ -111,18 +112,18 @@ public ref struct ZLoggerWarningInterpolatedStringHandler
         InnerHandler.AppendLiteral(s);
     }
 
-    public void AppendFormatted<T>(T value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+    public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(T value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
     {
         InnerHandler.AppendFormatted(value, alignment, format, argumentName);
     }
 
-    public void AppendFormatted<T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+    public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
         where T : struct
     {
         InnerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
     }
 
-    public void AppendFormatted<T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
+    public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
     {
         InnerHandler.AppendFormatted(namedValue, alignment, format);
     }
@@ -142,18 +143,18 @@ public ref struct ZLoggerErrorInterpolatedStringHandler
         InnerHandler.AppendLiteral(s);
     }
 
-    public void AppendFormatted<T>(T value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+    public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(T value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
     {
         InnerHandler.AppendFormatted(value, alignment, format, argumentName);
     }
 
-    public void AppendFormatted<T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+    public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
         where T : struct
     {
         InnerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
     }
 
-    public void AppendFormatted<T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
+    public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
     {
         InnerHandler.AppendFormatted(namedValue, alignment, format);
     }
@@ -173,18 +174,18 @@ public ref struct ZLoggerCriticalInterpolatedStringHandler
         InnerHandler.AppendLiteral(s);
     }
 
-    public void AppendFormatted<T>(T value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+    public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(T value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
     {
         InnerHandler.AppendFormatted(value, alignment, format, argumentName);
     }
 
-    public void AppendFormatted<T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
+    public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(Nullable<T> value, int alignment = 0, string? format = null, [CallerArgumentExpression("value")] string? argumentName = null)
         where T : struct
     {
         InnerHandler.AppendFormatted<T>(value, alignment, format, argumentName);
     }
 
-    public void AppendFormatted<T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
+    public void AppendFormatted<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>((string, T) namedValue, int alignment = 0, string? format = null, string? _ = null)
     {
         InnerHandler.AppendFormatted(namedValue, alignment, format);
     }

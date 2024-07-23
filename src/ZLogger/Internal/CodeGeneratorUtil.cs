@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Utf8StringInterpolation;
 
@@ -25,7 +26,9 @@ namespace ZLogger.Internal
             return writer;
         }
 
-        public static void AppendAsJson<T>(ref Utf8StringWriter<IBufferWriter<byte>> stringWriter, T value)
+        [UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode")]
+        [UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode")]
+        public static void AppendAsJson<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(ref Utf8StringWriter<IBufferWriter<byte>> stringWriter, T value)
         {
             stringWriter.ClearState();
 
@@ -35,6 +38,8 @@ namespace ZLogger.Internal
             utf8JsonWriter.Reset();
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL3050:RequiresDynamicCode")]
+        [UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode")]
         public static void AppendAsJson(ref Utf8StringWriter<IBufferWriter<byte>> stringWriter, object? value, Type inputType)
         {
             stringWriter.ClearState();
@@ -45,7 +50,7 @@ namespace ZLogger.Internal
             utf8JsonWriter.Reset();
         }
 
-        public static unsafe void WriteJsonEnum<T>(Utf8JsonWriter writer, JsonEncodedText key, T value)
+        public static unsafe void WriteJsonEnum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(Utf8JsonWriter writer, JsonEncodedText key, T value)
         {
             var enumValue = EnumDictionary<T>.GetJsonEncodedName(value);
             if (enumValue == null)
