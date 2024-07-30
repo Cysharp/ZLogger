@@ -371,7 +371,7 @@ internal unsafe partial struct MagicalBox
             return false;
         }
 
-        static bool EnumStringWrite<T>(MagicalBox box, int offset, ref DefaultInterpolatedStringHandler handler, int alignment, string? format)
+        static bool EnumStringWrite<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(MagicalBox box, int offset, ref DefaultInterpolatedStringHandler handler, int alignment, string? format)
         {
             if (box.TryRead<T>(offset, out var v))
             {
@@ -393,7 +393,7 @@ internal unsafe partial struct MagicalBox
             return false;
         }
 
-        static bool EnumUtf8Write<T>(MagicalBox box, int offset, ref Utf8StringWriter<IBufferWriter<byte>> writer, int alignment, string? format)
+        static bool EnumUtf8Write<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(MagicalBox box, int offset, ref Utf8StringWriter<IBufferWriter<byte>> writer, int alignment, string? format)
         {
             if (box.TryRead<T>(offset, out var v))
             {
