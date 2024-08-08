@@ -204,7 +204,7 @@ public class WritePlainTextToConsole
             zeroLogLogger.Info($"Hello, {MessageSample.Arg1} lives in {MessageSample.Arg2} {MessageSample.Arg3} years old");
         }
 
-        ZeroLog.LogManager.Shutdown();
+        ZeroLog.LogManager.Flush();
     }
 
     [Benchmark]

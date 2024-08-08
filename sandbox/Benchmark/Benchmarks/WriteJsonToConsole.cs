@@ -230,7 +230,7 @@ public class WriteJsonToConsole
                 .Log();
         }
 
-        ZeroLog.LogManager.Shutdown();
+        ZeroLog.LogManager.Flush();
     }
 
     [Benchmark]
