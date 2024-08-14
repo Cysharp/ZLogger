@@ -19,7 +19,7 @@
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
 		<PackageReference Include="Serilog.Sinks.TextWriter" Version="2.1.0" />
 		<PackageReference Include="System.IO.Hashing" Version="8.0.0" />
-		<PackageReference Include="ZeroLog" Version="2.1.1" />
+		<PackageReference Include="ZeroLog" Version="2.2.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\ZLogger\ZLogger.csproj" />

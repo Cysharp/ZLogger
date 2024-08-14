@@ -243,7 +243,7 @@ public class WriteJsonToFile
                 .Log();
         }
 
-        ZeroLog.LogManager.Shutdown();
+        ZeroLog.LogManager.Flush();
     }
 
     [Benchmark]
