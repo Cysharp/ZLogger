@@ -31,7 +31,7 @@ internal partial class RollingFileStream : Stream
     {
         this.fileNameSelector = fileNameSelector;
         this.rollInterval = rollInterval;
-        this.rollSizeInBytes = rollSizeKB * 1024;
+        this.rollSizeInBytes = (long)rollSizeKB * 1024;
         this.timeProvider = timeProvider;
         this.fileShared = fileShared;
 
