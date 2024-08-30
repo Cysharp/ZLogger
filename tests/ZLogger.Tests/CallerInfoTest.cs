@@ -22,5 +22,8 @@ public class LogCallerInfoTest
         x.LogInfo.MemberName.Should().Be("CallerInfo");
         Path.GetFileName(x.LogInfo.FilePath).Should().Be("CallerInfoTest.cs");
         x.LogInfo.LineNumber.Should().Be(19);
+        x.LogInfo.ThreadId.Should().Be(System.Environment.CurrentManagedThreadId);
+        x.LogInfo.IsThreadPoolThread.Should().Be(true);
     }
 }
+

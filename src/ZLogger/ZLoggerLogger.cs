@@ -31,12 +31,16 @@ namespace ZLogger
             var callerFilePath = default(string?);
             var callerLineNumber = default(int);
             var context = default(object?);
-            if (state is IZLoggerAdditionalInfo)
+            if (state is IZLoggerAdditionalInfo additionalInfo)
             {
-                (context, callerMemberName, callerFilePath, callerLineNumber) = ((IZLoggerAdditionalInfo)state).GetAdditionalInfo();
+                (context, callerMemberName, callerFilePath, callerLineNumber) = additionalInfo.GetAdditionalInfo();
             }
 
-            var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, context, callerMemberName, callerFilePath, callerLineNumber);
+            var currentThread = Thread.CurrentThread;
+            var threadId = currentThread.ManagedThreadId;
+            var isThreadPoolThread = currentThread.IsThreadPoolThread;
+
+            var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, threadId, isThreadPoolThread, context, callerMemberName, callerFilePath, callerLineNumber);
 
             IZLoggerEntry entry;
             if (state is VersionedLogState)
@@ -45,12 +49,12 @@ namespace ZLogger
                 entry = s.CreateEntry(info);
                 s.Retain();
             }
-            else if (state is IZLoggerEntryCreatable)
+            else if (state is IZLoggerEntryCreatable creatable)
             {
-                entry = ((IZLoggerEntryCreatable)state).CreateEntry(info);
-                if (state is IReferenceCountable)
+                entry = creatable.CreateEntry(info);
+                if (creatable is IReferenceCountable countable)
                 {
-                    ((IReferenceCountable)state).Retain();
+                    countable.Retain();
                 }
             }
             else
