@@ -11,6 +11,7 @@ namespace ZLogger
         readonly TimeProvider? timeProvider;
         readonly IExternalScopeProvider? scopeProvider;
         readonly bool formatImmediately;
+        readonly bool captureThreadInfo;
 
         public ZLoggerLogger(string categoryName, IAsyncLogProcessor logProcessor, ZLoggerOptions options, IExternalScopeProvider? scopeProvider)
         {
@@ -19,6 +20,7 @@ namespace ZLogger
             this.timeProvider = options.TimeProvider;
             this.scopeProvider = scopeProvider;
             this.formatImmediately = options.IsFormatLogImmediatelyInStandardLog;
+            this.captureThreadInfo = options.CaptureThreadInfo;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
@@ -36,11 +38,14 @@ namespace ZLogger
                 (context, callerMemberName, callerFilePath, callerLineNumber) = additionalInfo.GetAdditionalInfo();
             }
 
-            var currentThread = Thread.CurrentThread;
-            var threadId = currentThread.ManagedThreadId;
-            var isThreadPoolThread = currentThread.IsThreadPoolThread;
+            var threadInfo = default(ThreadInfo?);
+            if (captureThreadInfo)
+            {
+                var currentThread = Thread.CurrentThread;
+                threadInfo = new ThreadInfo(currentThread.ManagedThreadId, currentThread.Name, currentThread.IsThreadPoolThread);
+            }
 
-            var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, threadId, isThreadPoolThread, context, callerMemberName, callerFilePath, callerLineNumber);
+            var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, threadInfo, context, callerMemberName, callerFilePath, callerLineNumber);
 
             IZLoggerEntry entry;
             if (state is VersionedLogState)
@@ -49,12 +54,12 @@ namespace ZLogger
                 entry = s.CreateEntry(info);
                 s.Retain();
             }
-            else if (state is IZLoggerEntryCreatable creatable)
+            else if (state is IZLoggerEntryCreatable)
             {
-                entry = creatable.CreateEntry(info);
-                if (creatable is IReferenceCountable countable)
+                entry = ((IZLoggerEntryCreatable)state).CreateEntry(info);
+                if (state is IReferenceCountable)
                 {
-                    countable.Retain();
+                    ((IReferenceCountable)state).Retain();
                 }
             }
             else

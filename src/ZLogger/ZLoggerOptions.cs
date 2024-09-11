@@ -13,7 +13,7 @@ public enum BackgroundBufferFullMode
     /// Wait until there's more room in the queue.
     /// </summary>
     Block,
-    
+
     /// <summary>
     /// Drop the overflowing log entry.
     /// </summary>
@@ -56,6 +56,11 @@ public class ZLoggerOptions
     /// Fallback of standard logger.Log, message stringify immediately or not. Default is true.
     /// </summary>
     public bool IsFormatLogImmediatelyInStandardLog { get; set; } = true;
+
+    /// <summary>
+    /// Capture information about the thread that generated a log entry. Default is false.
+    /// </summary>
+    public bool CaptureThreadInfo { get; set; } = false;
 
     Func<IZLoggerFormatter> formatterFactory = DefaultFormatterFactory;
 
