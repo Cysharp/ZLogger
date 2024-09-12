@@ -11,6 +11,7 @@ namespace ZLogger
         readonly TimeProvider? timeProvider;
         readonly IExternalScopeProvider? scopeProvider;
         readonly bool formatImmediately;
+        readonly bool captureThreadInfo;
 
         public ZLoggerLogger(string categoryName, IAsyncLogProcessor logProcessor, ZLoggerOptions options, IExternalScopeProvider? scopeProvider)
         {
@@ -19,6 +20,7 @@ namespace ZLogger
             this.timeProvider = options.TimeProvider;
             this.scopeProvider = scopeProvider;
             this.formatImmediately = options.IsFormatLogImmediatelyInStandardLog;
+            this.captureThreadInfo = options.CaptureThreadInfo;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
@@ -31,12 +33,19 @@ namespace ZLogger
             var callerFilePath = default(string?);
             var callerLineNumber = default(int);
             var context = default(object?);
-            if (state is IZLoggerAdditionalInfo)
+            if (state is IZLoggerAdditionalInfo additionalInfo)
             {
-                (context, callerMemberName, callerFilePath, callerLineNumber) = ((IZLoggerAdditionalInfo)state).GetAdditionalInfo();
+                (context, callerMemberName, callerFilePath, callerLineNumber) = additionalInfo.GetAdditionalInfo();
             }
 
-            var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, context, callerMemberName, callerFilePath, callerLineNumber);
+            var threadInfo = default(ThreadInfo?);
+            if (captureThreadInfo)
+            {
+                var currentThread = Thread.CurrentThread;
+                threadInfo = new ThreadInfo(currentThread.ManagedThreadId, currentThread.Name, currentThread.IsThreadPoolThread);
+            }
+
+            var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, threadInfo, context, callerMemberName, callerFilePath, callerLineNumber);
 
             IZLoggerEntry entry;
             if (state is VersionedLogState)

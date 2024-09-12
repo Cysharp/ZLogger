@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace ZLogger;
 
-public readonly struct LogInfo(LogCategory category, Timestamp timestamp, LogLevel logLevel, EventId eventId, Exception? exception, LogScopeState? scopeState, object? context = null, string? memberName = null, string? filePath = null, int lineNumber = 0)
+public readonly struct LogInfo(LogCategory category, Timestamp timestamp, LogLevel logLevel, EventId eventId, Exception? exception, LogScopeState? scopeState, ThreadInfo? threadInfo, object? context = null, string? memberName = null, string? filePath = null, int lineNumber = 0)
 {
     public readonly LogCategory Category = category;
     public readonly Timestamp Timestamp = timestamp;
@@ -12,6 +12,7 @@ public readonly struct LogInfo(LogCategory category, Timestamp timestamp, LogLev
     public readonly EventId EventId = eventId;
     public readonly Exception? Exception = exception;
     public readonly LogScopeState? ScopeState = scopeState;
+    public readonly ThreadInfo? ThreadInfo = threadInfo;
     public readonly object? Context = context;
     public readonly string? MemberName = memberName;
     public readonly string? FilePath = filePath;
@@ -37,4 +38,11 @@ public readonly struct LogCategory
     {
         return Name;
     }
+}
+
+public readonly struct ThreadInfo(int threadId, string? threadName, bool isThreadPoolThread)
+{
+    public readonly int ThreadId = threadId;
+    public readonly string? ThreadName = threadName;
+    public readonly bool IsThreadPoolThread = isThreadPoolThread;
 }
