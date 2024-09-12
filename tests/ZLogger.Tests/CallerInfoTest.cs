@@ -27,10 +27,12 @@ public class LogCallerInfoTest
         Path.GetFileName(x.LogInfo.FilePath).Should().Be("CallerInfoTest.cs");
         x.LogInfo.LineNumber.Should().Be(23);
 
-        x.LogInfo.ThreadInfo.Should().NotBeNull();
-        x.LogInfo.ThreadInfo!.Value.ThreadId.Should().Be(System.Environment.CurrentManagedThreadId);
-        x.LogInfo.ThreadInfo!.Value.IsThreadPoolThread.Should().Be(true);
-        x.LogInfo.ThreadInfo!.Value.ThreadName.Should().Be(".NET TP Worker");
+        var currentThread = System.Threading.Thread.CurrentThread;
+
+        x.LogInfo.ThreadInfo.ThreadId.Should().NotBe(-1);
+        x.LogInfo.ThreadInfo.ThreadId.Should().Be(currentThread.ManagedThreadId);
+        x.LogInfo.ThreadInfo.IsThreadPoolThread.Should().Be(currentThread.IsThreadPoolThread);
+        x.LogInfo.ThreadInfo.ThreadName.Should().Be(currentThread.Name);
     }
 }
 

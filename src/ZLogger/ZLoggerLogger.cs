@@ -33,19 +33,14 @@ namespace ZLogger
             var callerFilePath = default(string?);
             var callerLineNumber = default(int);
             var context = default(object?);
-            if (state is IZLoggerAdditionalInfo additionalInfo)
+
+            // if( is ) -> ((T)).Method() is common pattern to avoid struct boxing for JIT, see: https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/Runtime/CompilerServices/DefaultInterpolatedStringHandler.cs,337
+            if (state is IZLoggerAdditionalInfo)
             {
-                (context, callerMemberName, callerFilePath, callerLineNumber) = additionalInfo.GetAdditionalInfo();
+                (context, callerMemberName, callerFilePath, callerLineNumber) = ((IZLoggerAdditionalInfo)state).GetAdditionalInfo();
             }
 
-            var threadInfo = default(ThreadInfo?);
-            if (captureThreadInfo)
-            {
-                var currentThread = Thread.CurrentThread;
-                threadInfo = new ThreadInfo(currentThread.ManagedThreadId, currentThread.Name, currentThread.IsThreadPoolThread);
-            }
-
-            var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, threadInfo, context, callerMemberName, callerFilePath, callerLineNumber);
+            var info = new LogInfo(category, new Timestamp(timeProvider), logLevel, eventId, exception, scopeState, captureThreadInfo ? ThreadInfo.FromCurrentThread() : ThreadInfo.Null, context, callerMemberName, callerFilePath, callerLineNumber);
 
             IZLoggerEntry entry;
             if (state is VersionedLogState)
