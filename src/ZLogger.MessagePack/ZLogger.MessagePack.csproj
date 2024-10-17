@@ -18,7 +18,7 @@
         <ProjectReference Include="..\ZLogger\ZLogger.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="MessagePack" Version="2.5.129" />
+        <PackageReference Include="MessagePack" Version="2.5.187" />
         <PackageReference Include="PolySharp" Version="1.13.2">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

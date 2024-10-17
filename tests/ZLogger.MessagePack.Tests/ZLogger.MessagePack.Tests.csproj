@@ -8,7 +8,7 @@
 
     <ItemGroup>
         <PackageReference Include="FluentAssertions" Version="5.10.3" />
-        <PackageReference Include="MessagePack" Version="2.5.129" />
+        <PackageReference Include="MessagePack" Version="2.5.187" />
         <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="8.0.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.0" />
         <PackageReference Include="xunit" Version="2.4.1" />
