@@ -136,6 +136,7 @@ namespace ZLogger.Formatters
             {
                 Indented = JsonSerializerOptions.WriteIndented,
                 Encoder = JsonSerializerOptions.Encoder,
+                SkipValidation = true,
 #if NET7_0_OR_GREATER
                 MaxDepth = JsonSerializerOptions.MaxDepth
 #endif
