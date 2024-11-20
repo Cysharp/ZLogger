@@ -132,7 +132,15 @@ namespace ZLogger.Formatters
         public void FormatLogEntry(IBufferWriter<byte> writer, IZLoggerEntry entry)
         {
             jsonWriter?.Reset(writer);
-            jsonWriter ??= new Utf8JsonWriter(writer);
+            jsonWriter ??= new Utf8JsonWriter(writer, new JsonWriterOptions()
+            {
+                Indented = JsonSerializerOptions.WriteIndented,
+                Encoder = JsonSerializerOptions.Encoder,
+                SkipValidation = true,
+#if NET7_0_OR_GREATER
+                MaxDepth = JsonSerializerOptions.MaxDepth
+#endif
+            });
 
             jsonWriter.WriteStartObject();
 

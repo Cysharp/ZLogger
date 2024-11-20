@@ -52,6 +52,8 @@ namespace ZLogger.Tests
 
             doc.GetProperty("Hash").GetString().Should().Be(sourceCodeHash);
             doc.GetProperty("LogLevel").GetString().Should().Be("Debug");
+
+            json.Should().NotContainAny("\\u");
         }
 
         [Fact]
