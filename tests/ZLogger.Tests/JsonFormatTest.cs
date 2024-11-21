@@ -52,8 +52,6 @@ namespace ZLogger.Tests
 
             doc.GetProperty("Hash").GetString().Should().Be(sourceCodeHash);
             doc.GetProperty("LogLevel").GetString().Should().Be("Debug");
-
-            json.Should().NotContainAny("\\u");
         }
 
         [Fact]
@@ -325,6 +323,33 @@ namespace ZLogger.Tests
 
             doc.GetProperty("Call").GetInt32().Should().Be(110);
             doc.GetProperty("Call2").GetInt32().Should().Be(3);
+        }
+
+        [Fact]
+        public void FormatLogEntry_DontEscapeCharacters()
+        {
+            using var ms = new MemoryStream();
+
+            var loggerFactory = LoggerFactory.Create(x => x
+                .SetMinimumLevel(LogLevel.Debug)
+                .AddZLoggerStream(ms, options =>
+                {
+                    options.UseJsonFormatter();
+                }));
+
+            var logger = loggerFactory.CreateLogger("test");
+
+            using var scope = logger.BeginScope("{tako}", "たこ");
+
+            var yaki = "やき";
+            logger.ZLogDebug($"{yaki} <>+");
+
+            loggerFactory.Dispose();
+
+            using var sr = new StreamReader(new MemoryStream(ms.ToArray()), Encoding.UTF8);
+            var json = sr.ReadLine();
+
+            json.Should().NotContainAny("\\u");
         }
 
         class MyClass

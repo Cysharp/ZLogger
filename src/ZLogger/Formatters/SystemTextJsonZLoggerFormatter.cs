@@ -117,7 +117,7 @@ namespace ZLogger.Formatters
         {
             WriteIndented = false,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
         public JsonLogInfoFormatter? AdditionalFormatter { get; set; }
