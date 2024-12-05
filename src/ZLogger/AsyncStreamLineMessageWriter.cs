@@ -17,16 +17,8 @@ namespace ZLogger
         readonly Channel<IZLoggerEntry> channel;
         readonly Task writeLoop;
         readonly ZLoggerOptions options;
-        readonly Func<LogLevel, bool>? levelFilter;
-        
-        public AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options)
-            : this(stream, options, null)
-        {
-        }
 
-        // handling `Func<LogLevel, bool>? levelFilter` correctly is very context dependent.
-        // so only allows internal provider.
-        internal AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options, Func<LogLevel, bool>? levelFilter = null)
+        public AsyncStreamLineMessageWriter(Stream stream, ZLoggerOptions options)
         {
             this.newLine = Encoding.UTF8.GetBytes(Environment.NewLine);
             if (newLine.Length == 1)
@@ -46,7 +38,6 @@ namespace ZLogger
 
             this.options = options;
             this.stream = stream;
-            this.levelFilter = levelFilter;
 
             channel = this.options.FullMode switch
             {
@@ -121,7 +112,6 @@ namespace ZLogger
             var writer = new StreamBufferWriter(stream);
             var formatter = options.CreateFormatter();
             var withLineBreak = formatter.WithLineBreak;
-            var requireFilterCheck = levelFilter != null;
             var reader = channel.Reader;
 
             while (await reader.WaitToReadAsync().ConfigureAwait(false))
@@ -130,10 +120,6 @@ namespace ZLogger
                 {
                     while (reader.TryRead(out var value))
                     {
-                        if (requireFilterCheck && levelFilter!.Invoke(value.LogInfo.LogLevel) == false)
-                        {
-                            continue;
-                        }
                         try
                         {
                             value.FormatUtf8(writer, formatter);

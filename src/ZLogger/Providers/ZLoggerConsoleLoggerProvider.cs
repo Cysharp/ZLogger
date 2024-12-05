@@ -27,8 +27,9 @@ public sealed class ZLoggerConsoleLoggerProvider : ILoggerProvider, ISupportExte
         {
             var logToStandardErrorThreshold = options.LogToStandardErrorThreshold;
             processor = new DualAsyncLogProcessor(
-                 new AsyncStreamLineMessageWriter(Console.OpenStandardOutput(), this.options, level => level < logToStandardErrorThreshold),
-                 new AsyncStreamLineMessageWriter(Console.OpenStandardError(), this.options, level => level >= logToStandardErrorThreshold));
+                 new AsyncStreamLineMessageWriter(Console.OpenStandardOutput(), this.options),
+                 new AsyncStreamLineMessageWriter(Console.OpenStandardError(), this.options),
+                 level => level < logToStandardErrorThreshold);
         }
     }
 
@@ -52,14 +53,18 @@ public sealed class ZLoggerConsoleLoggerProvider : ILoggerProvider, ISupportExte
         this.scopeProvider = scopeProvider;
     }
 
-    sealed class DualAsyncLogProcessor(AsyncStreamLineMessageWriter processor1, AsyncStreamLineMessageWriter processor2) : IAsyncLogProcessor
+    sealed class DualAsyncLogProcessor(AsyncStreamLineMessageWriter processor1, AsyncStreamLineMessageWriter processor2, Func<LogLevel, bool> levelFilter) : IAsyncLogProcessor
     {
         public void Post(IZLoggerEntry log)
         {
-            // Post two entry is dangerous for log-state reference count cache.
-            // However filtered reader-loop does not call Return so ok to post multiple.
-            processor1.Post(log);
-            processor2.Post(log);
+            if (levelFilter(log.LogInfo.LogLevel))
+            {
+                processor1.Post(log);
+            }
+            else
+            {
+                processor2.Post(log);
+            }
         }
 
         public async ValueTask DisposeAsync()
