@@ -76,7 +76,7 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor TemplateHasNoCorrespondingArgument = new(
         id: "ZLOG009",
         title: "Template parameter must match argument",
-        messageFormat: "The ZLoggerMessage method '{0}' template paramter '{1}' has no corresponding argument in method parameters",
+        messageFormat: "The ZLoggerMessage method '{0}' template parameter '{1}' has no corresponding argument in method parameters",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
