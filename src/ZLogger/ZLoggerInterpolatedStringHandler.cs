@@ -255,8 +255,7 @@ namespace ZLogger
                         }
                         else if (p.BoxedValue is IEnumerable enumerable)
                         {
-#if NET8_0
-                            if (p.BoxedValue is ISpanFormattable spanFormattable)
+                            if (p.BoxedValue is IFormattable)
                             {
                                 stringWriter.AppendFormatted(p.BoxedValue, p.Alignment, p.Format);
                             }
@@ -264,9 +263,6 @@ namespace ZLogger
                             {
                                 CodeGeneratorUtil.AppendAsJson(ref stringWriter, p.BoxedValue, p.Type);
                             }
-#else
-                            CodeGeneratorUtil.AppendAsJson(ref stringWriter, p.BoxedValue, p.Type);
-#endif
                         }
                         else
                         {
