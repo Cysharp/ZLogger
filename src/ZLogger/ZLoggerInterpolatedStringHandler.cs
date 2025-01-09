@@ -303,7 +303,6 @@ namespace ZLogger
                         }
                         else if (p.BoxedValue is IEnumerable enumerable)
                         {
-#if NET8_0
                             if (p.BoxedValue is IFormattable)
                             {
                                 stringHandler.AppendFormatted(p.BoxedValue, p.Alignment, p.Format);
@@ -313,10 +312,6 @@ namespace ZLogger
                                 var jsonString = JsonSerializer.Serialize(p.BoxedValue, p.Type);
                                 stringHandler.AppendLiteral(jsonString);
                             }
-#else
-                            var jsonString = JsonSerializer.Serialize(p.BoxedValue, p.Type);
-                            stringHandler.AppendLiteral(jsonString);
-#endif
                         }
                         else
                         {
