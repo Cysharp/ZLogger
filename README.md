@@ -302,6 +302,15 @@ If you are using `ZLoggerConsoleLoggerProvider`, the following additional option
 | `bool ConfigureEnableAnsiEscapeCode`    | If set true, then configure console option on execution and enable virtual terminal processing(enable ANSI escape code). (default: false) |
 | `LogLevel LogToStandardErrorThreshold`  | If set, logs at a higher level than the value will be output to standard error. (default: LogLevel.None)                                  |
 
+For cases where stdout is used for data input/output, such as MCP (model-context-protocol) servers, logs need to be directed to stderr. In such cases, `LogToStandardErrorThreshold` can be configured as follows:
+
+```csharp
+var logger = Microsoft.Extensions.Logging.LoggerFactory.Create(x => { 
+    // Configure all logs to go to stderr 
+    x.AddZLoggerConsole(x => x.LogToStandardErrorThreshold = Microsoft.Extensions.Logging.LogLevel.Trace); 
+});
+```
+
 ### File
 
 File outputs text logs to a file. This is a Provider that writes to a single file in append mode at high speed.
