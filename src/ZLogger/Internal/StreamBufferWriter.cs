@@ -88,15 +88,21 @@ namespace ZLogger.Internal
         {
             if (written != 0)
             {
-                // sync writer, ConsolePal does not support async write, use Write(byte[]) API is most primitive.
-                stream.Write(buffer, 0, written);
-                stream.Flush();
-                written = 0;
-
-                if (buffer != defaultBuffer)
+                try
                 {
-                    ArrayPool<byte>.Shared.Return(buffer);
-                    buffer = defaultBuffer;
+                    // sync writer, ConsolePal does not support async write, use Write(byte[]) API is most primitive.
+                    stream.Write(buffer, 0, written);
+                    stream.Flush();
+                }
+                finally
+                {
+                    written = 0;
+
+                    if (buffer != defaultBuffer)
+                    {
+                        ArrayPool<byte>.Shared.Return(buffer);
+                        buffer = defaultBuffer;
+                    }
                 }
             }
         }
