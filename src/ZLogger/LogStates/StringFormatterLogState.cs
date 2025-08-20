@@ -25,7 +25,7 @@ namespace ZLogger.LogStates
 
             if (originalState is IReadOnlyList<KeyValuePair<string, object?>> x)
             {
-                originalStateParameters = x;
+                originalStateParameters = new List<KeyValuePair<string, object>>(x);
                 if (x.Count != 0 && x[^1].Key == "{OriginalFormat}")
                 {
                     ParameterCount = x.Count - 1;
