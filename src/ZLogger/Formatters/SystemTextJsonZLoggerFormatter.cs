@@ -40,9 +40,12 @@ namespace ZLogger
         MemberName = 1 << 9, // added in 2.2.0
         FilePath = 1 << 10, // added in 2.2.0
         LineNumber = 1 << 11, // added in 2.2.0
+        ThreadId = 1 << 12, // added in x.x.x
+        ThreadName = 1 << 13, // added in x.x.x
+        IsThreadPoolThread = 1 << 14,// added in x.x.x
 
         Default = Timestamp | LogLevel | CategoryName | Message | Exception | ScopeKeyValues | ParameterKeyValues,
-        All = Timestamp | LogLevel | CategoryName | EventIdValue | EventIdName | Message | Exception | ScopeKeyValues | ParameterKeyValues | MemberName | FilePath | LineNumber
+        All = Timestamp | LogLevel | CategoryName | EventIdValue | EventIdName | Message | Exception | ScopeKeyValues | ParameterKeyValues | MemberName | FilePath | LineNumber | ThreadId | ThreadName | IsThreadPoolThread
     }
 }
 
@@ -72,7 +75,11 @@ namespace ZLogger.Formatters
 
         JsonEncodedText MemberName,
         JsonEncodedText FilePath,
-        JsonEncodedText LineNumber
+        JsonEncodedText LineNumber,
+
+        JsonEncodedText ThreadId,
+        JsonEncodedText ThreadName,
+        JsonEncodedText IsThreadPoolThread
     )
     {
         public static readonly JsonPropertyNames Default = new(
@@ -99,7 +106,11 @@ namespace ZLogger.Formatters
 
             MemberName: JsonEncodedText.Encode(nameof(LogInfo.MemberName)),
             FilePath: JsonEncodedText.Encode(nameof(LogInfo.FilePath)),
-            LineNumber: JsonEncodedText.Encode(nameof(LogInfo.LineNumber))
+            LineNumber: JsonEncodedText.Encode(nameof(LogInfo.LineNumber)),
+
+            ThreadId: JsonEncodedText.Encode(nameof(LogInfo.ThreadInfo.ThreadId)),
+            ThreadName: JsonEncodedText.Encode(nameof(LogInfo.ThreadInfo.ThreadName)),
+            IsThreadPoolThread: JsonEncodedText.Encode(nameof(LogInfo.ThreadInfo.IsThreadPoolThread))
         );
     }
 
@@ -268,6 +279,18 @@ namespace ZLogger.Formatters
             if ((flag & IncludeProperties.LineNumber) != 0)
             {
                 jsonWriter.WriteNumber(JsonPropertyNames.LineNumber, info.LineNumber);
+            }
+            if ((flag & IncludeProperties.ThreadId) != 0)
+            {
+                jsonWriter.WriteNumber(JsonPropertyNames.ThreadId, info.ThreadInfo.ThreadId);
+            }
+            if ((flag & IncludeProperties.ThreadName) != 0)
+            {
+                jsonWriter.WriteString(JsonPropertyNames.ThreadName, info.ThreadInfo.ThreadName);
+            }
+            if ((flag & IncludeProperties.IsThreadPoolThread) != 0)
+            {
+                jsonWriter.WriteBoolean(JsonPropertyNames.IsThreadPoolThread, info.ThreadInfo.IsThreadPoolThread);
             }
         }
 

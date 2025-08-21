@@ -28,17 +28,25 @@ public record MessagePackPropertyNames(
     MessagePackEncodedText LogLevelError,
     MessagePackEncodedText LogLevelCritical,
     MessagePackEncodedText LogLevelNone,
-    
+
+    MessagePackEncodedText MemberName,
+    MessagePackEncodedText FilePath,
+    MessagePackEncodedText LineNumber,
+
+    MessagePackEncodedText ThreadId,
+    MessagePackEncodedText ThreadName,
+    MessagePackEncodedText IsThreadPoolThread,
+
     MessagePackEncodedText? ParameterKeyValues = null,
     MessagePackEncodedText? ScopeKeyValues = null)
 {
     public static readonly MessagePackPropertyNames Default = new(
-        Category: MessagePackEncodedText.Encode("Category"),
-        Timestamp: MessagePackEncodedText.Encode("Timestamp"),
-        LogLevel: MessagePackEncodedText.Encode("LogLevel"),
-        EventId: MessagePackEncodedText.Encode("EventId"),
+        Category: MessagePackEncodedText.Encode(nameof(LogInfo.Category)),
+        Timestamp: MessagePackEncodedText.Encode(nameof(LogInfo.Timestamp)),
+        LogLevel: MessagePackEncodedText.Encode(nameof(LogInfo.LogLevel)),
+        EventId: MessagePackEncodedText.Encode(nameof(LogInfo.EventId)),
         EventIdName: MessagePackEncodedText.Encode("EventIdName"),
-        Exception: MessagePackEncodedText.Encode("Exception"),
+        Exception: MessagePackEncodedText.Encode(nameof(LogInfo.Exception)),
         Message: MessagePackEncodedText.Encode("Message"),
 
         ExceptionName: MessagePackEncodedText.Encode("Name"),
@@ -52,7 +60,15 @@ public record MessagePackPropertyNames(
         LogLevelWarning: MessagePackEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Warning)),
         LogLevelError: MessagePackEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Error)),
         LogLevelCritical: MessagePackEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Critical)),
-        LogLevelNone: MessagePackEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.None)));
+        LogLevelNone: MessagePackEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.None)),
+
+        MemberName: MessagePackEncodedText.Encode(nameof(LogInfo.MemberName)),
+        FilePath: MessagePackEncodedText.Encode(nameof(LogInfo.FilePath)),
+        LineNumber: MessagePackEncodedText.Encode(nameof(LogInfo.LineNumber)),
+
+        ThreadId: MessagePackEncodedText.Encode(nameof(LogInfo.ThreadInfo.ThreadId)),
+        ThreadName: MessagePackEncodedText.Encode(nameof(LogInfo.ThreadInfo.ThreadName)),
+        IsThreadPoolThread: MessagePackEncodedText.Encode(nameof(LogInfo.ThreadInfo.IsThreadPoolThread)));
 
     public MessagePackEncodedText GetEncodedLogLevel(LogLevel logLevel) => logLevel switch
     {
@@ -156,6 +172,37 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
                 messagePackWriter.WriteRaw(PropertyNames.Exception.Utf8EncodedValue);
                 WriteException(ref messagePackWriter, ex);
             }
+        }
+        if ((flag & IncludeProperties.MemberName) != 0)
+        {
+            messagePackWriter.WriteRaw(PropertyNames.MemberName.Utf8EncodedValue);
+            messagePackWriter.Write(entry.LogInfo.MemberName);
+        }
+        if ((flag & IncludeProperties.FilePath) != 0)
+        {
+            messagePackWriter.WriteRaw(PropertyNames.FilePath.Utf8EncodedValue);
+            messagePackWriter.Write(entry.LogInfo.FilePath);
+        }
+        if ((flag & IncludeProperties.LineNumber) != 0)
+        {
+            messagePackWriter.WriteRaw(PropertyNames.LineNumber.Utf8EncodedValue);
+            messagePackWriter.WriteInt32(entry.LogInfo.LineNumber);
+        }
+
+        if ((flag & IncludeProperties.ThreadId) != 0)
+        {
+            messagePackWriter.WriteRaw(PropertyNames.ThreadId.Utf8EncodedValue);
+            messagePackWriter.WriteInt32(entry.LogInfo.ThreadInfo.ThreadId);
+        }
+        if ((flag & IncludeProperties.ThreadName) != 0)
+        {
+            messagePackWriter.WriteRaw(PropertyNames.ThreadName.Utf8EncodedValue);
+            messagePackWriter.Write(entry.LogInfo.ThreadInfo.ThreadName);
+        }
+        if ((flag & IncludeProperties.IsThreadPoolThread) != 0)
+        {
+            messagePackWriter.WriteRaw(PropertyNames.IsThreadPoolThread.Utf8EncodedValue);
+            messagePackWriter.Write(entry.LogInfo.ThreadInfo.IsThreadPoolThread);
         }
 
         // Message
@@ -342,8 +389,6 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
             case TypeCode.Double:
                 messagePackWriter.Write(entry.GetParameterValue<double>(index));
                 return;
-            case TypeCode.DateTime:
-                return;
             case TypeCode.String:
                 messagePackWriter.Write(entry.GetParameterValue<string>(index));
                 return;
@@ -355,35 +400,47 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
             {
                 var value = entry.GetParameterValue<DateTime>(index);
                 MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
+                return;
             }
-            else if (type == typeof(DateTimeOffset))
+
+            if (type == typeof(DateTimeOffset))
             {
                 var value = entry.GetParameterValue<DateTimeOffset>(index);
                 MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
+                return;
             }
-            else if (type == typeof(TimeSpan))
+
+            if (type == typeof(TimeSpan))
             {
                 var value = entry.GetParameterValue<TimeSpan>(index);
                 MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
+                return;
             }
-#if NET6_OR_GRATER                
-                else if (type == typeof(TimeOnly))
-                {
-                    var value = entry.GetParameterValue<TimeOnly>(index);
-                    MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
-                }
-                else if (type == typeof(DateOnly))
-                {
-                    var value = entry.GetParameterValue<DateOnly>(index);
-                    MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
-                }
+#if NET6_OR_GRATER
+
+            if (type == typeof(TimeOnly))
+            {
+                var value = entry.GetParameterValue<TimeOnly>(index);
+                MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
+                return;
+            }
+
+            if (type == typeof(DateOnly))
+            {
+                var value = entry.GetParameterValue<DateOnly>(index);
+                MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
+                return;
+            }
 #endif
-            else if (type == typeof(Guid))
+
+            if (type == typeof(Guid))
             {
                 var value = entry.GetParameterValue<Guid>(index);
                 MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
+                return;
             }
-            else if (Nullable.GetUnderlyingType(type) is { } underlyingType)
+
+            if (Nullable.GetUnderlyingType(type) is { } underlyingType)
             {
                 code = Type.GetTypeCode(underlyingType);
                 switch (code)
