@@ -111,7 +111,7 @@ var age = 33;
 logger.ZLogInformation($"Hello my name is {name}, {age} years old.");
 ```
 
-Normally, you don't create LoggerFactory yourself. Instead, you set up a Generic Host and receive ILogger through dependency injection (DI). You can setup logger by [.NET Generic Host](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/host/generic-host?view=aspnetcore-8.0)(for ASP.NET Core) and if you want to use this in ConsoleApplication, we provides [ConsoleAppFramework](https://github.com/Cysharp/ConsoleAppFramework) to use hosting abstraction.
+Normally, you wouldn't create LoggerFactory yourself. Instead, you set up a Generic Host and receive ILogger through dependency injection (DI). You can set up the logger by using [.NET Generic Host](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/host/generic-host?view=aspnetcore-8.0)(for ASP.NET Core) or if you want to use this in a Console App, we provide [ConsoleAppFramework](https://github.com/Cysharp/ConsoleAppFramework) to use as a hosting abstraction.
 
 Here is the showcase of providers.
 
