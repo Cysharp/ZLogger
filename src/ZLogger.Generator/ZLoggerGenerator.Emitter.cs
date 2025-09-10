@@ -253,50 +253,60 @@ public partial class ZLoggerGenerator
             sb.AppendLine($$"""
         public ReadOnlySpan<byte> GetParameterKey(int index)
         {
+{{If(methodParameters.Length > 0, $$"""
             switch (index)
             {
 {{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return \"{x.LinkedMessageSegment.GetPropertyName()}\"u8;")}}
             }
+""")}}
             global::ZLogger.Internal.CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
             return default!;
         }
 
         public string GetParameterKeyAsString(int index)
         {
+{{If(methodParameters.Length > 0, $$"""
             switch (index)
             {
 {{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return \"{x.LinkedMessageSegment.GetPropertyName()}\";")}}
             }
+""")}}
             global::ZLogger.Internal.CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
             return default!;
         }
 
         public object GetParameterValue(int index)
         {
+{{If(methodParameters.Length > 0, $$"""
             switch (index)
             {
 {{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return this.{x.LinkedMessageSegment.NameParameter}!;")}}
             }
+""")}}
             global::ZLogger.Internal.CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
             return default!;
         }
 
         public T GetParameterValue<T>(int index)
         {
+{{If(methodParameters.Length > 0, $$"""
             switch (index)
             {
 {{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return Unsafe.As<{x.Symbol.Type.ToFullyQualifiedFormatString()}, T>(ref Unsafe.AsRef(in this.{x.LinkedMessageSegment.NameParameter}));")}}
             }
+""")}}
             global::ZLogger.Internal.CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
             return default!;
         }
 
         public Type GetParameterType(int index)
         {
+{{If(methodParameters.Length > 0, $$"""
             switch (index)
             {
 {{ForEachLine("                ", methodParameters, (x, i) => $"case {i}: return typeof({x.Symbol.Type.ToFullyQualifiedFormatString()});")}}
             }
+""")}}
             global::ZLogger.Internal.CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
             return default!;
         }
@@ -317,10 +327,12 @@ public partial class ZLoggerGenerator
         {
             get
             {
+{{If(methodParameters.Length > 0, $$"""
                 switch (index)
                 {
 {{ForEachLine("                        ", methodParameters, (x, i) => $"case {i}: return new(\"{x.LinkedMessageSegment.GetPropertyName()}\", {x.LinkedMessageSegment.NameParameter});")}}
                 }
+""")}}
                 global::ZLogger.Internal.CodeGeneratorUtil.ThrowArgumentOutOfRangeException();
                 return default!;
             }
