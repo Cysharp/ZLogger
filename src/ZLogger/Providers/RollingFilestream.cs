@@ -4,14 +4,14 @@ namespace ZLogger.Providers;
 
 internal partial class RollingFileStream : Stream
 {
-#if NET7_0_OR_GREATER
+#if NET7_0_OR_GREATER    
      [GeneratedRegex("(\\d)+$", RegexOptions.Compiled)]
      private static partial Regex NumberRegexCompiled();
      static readonly Regex NumberRegex = NumberRegexCompiled();
-#else
+#else    
     static readonly Regex NumberRegex = new("(\\d)+$", RegexOptions.Compiled);
 #endif
-
+    
 
     readonly Func<DateTimeOffset, int, string> fileNameSelector;
     readonly RollingInterval rollInterval;
@@ -154,7 +154,7 @@ internal partial class RollingFileStream : Stream
             }
         }
     }
-
+    
     DateTimeOffset? GetCurrentCheckpoint(DateTimeOffset instant) => rollInterval switch
     {
         RollingInterval.Infinite => null,
