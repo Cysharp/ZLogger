@@ -7,6 +7,7 @@ internal static partial class Shims
 {
     public static int GetBytes(this Encoding encoding, ReadOnlySpan<char> chars, ReadOnlySpan<byte> bytes)
     {
+        if (chars.Length == 0 || bytes.Length == 0) return 0;
         unsafe
         {
             fixed (char* charsPtr = &chars[0])
@@ -19,6 +20,7 @@ internal static partial class Shims
 
     public static string GetString(this Encoding encoding, ReadOnlySpan<byte> bytes)
     {
+        if (bytes.Length == 0) return string.Empty;
         unsafe
         {
             fixed (byte* bytesPtr = &bytes[0])
