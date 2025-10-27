@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,7 +11,7 @@ namespace ZLogger.Tests;
 
 public class RollingFileProviderTest
 {
-    readonly string directory = Path.Join(Path.GetTempPath(), "zlogger-test"); 
+    readonly string directory = Path.Combine(Path.GetTempPath(), "zlogger-test"); 
     
     public RollingFileProviderTest()
     {
@@ -30,7 +30,7 @@ public class RollingFileProviderTest
     {
         var timeProvider = new FakeTimeProvider(new DateTimeOffset(2000, 1, 2, 3, 4, 5, TimeSpan.Zero));
                 
-        var path1= Path.Join(directory, $"ZLoggerRollingTest_{timeProvider.GetUtcNow():yyyy-MM-dd}-0.log");
+        var path1= Path.Combine(directory, $"ZLoggerRollingTest_{timeProvider.GetUtcNow():yyyy-MM-dd}-0.log");
         if (File.Exists(path1)) File.Delete(path1);
 
         using var loggerFactory = LoggerFactory.Create(x =>
@@ -38,7 +38,7 @@ public class RollingFileProviderTest
             x.SetMinimumLevel(LogLevel.Debug);
             x.AddZLoggerRollingFile(options =>
             {
-                options.FilePathSelector = (dt, seq) => Path.Join(directory, $"ZLoggerRollingTest_{dt:yyyy-MM-dd}-{seq}.log");
+                options.FilePathSelector = (dt, seq) => Path.Combine(directory, $"ZLoggerRollingTest_{dt:yyyy-MM-dd}-{seq}.log");
                 options.RollingInterval = RollingInterval.Day;
                 options.RollingSizeKB = 5;
                 options.TimeProvider = timeProvider;
@@ -57,7 +57,7 @@ public class RollingFileProviderTest
         
         // Next day
         timeProvider.Advance(TimeSpan.FromDays(1));
-        var path2 = Path.Join(directory, $"ZLoggerRollingTest_{timeProvider.GetUtcNow():yyyy-MM-dd}-0.log");
+        var path2 = Path.Combine(directory, $"ZLoggerRollingTest_{timeProvider.GetUtcNow():yyyy-MM-dd}-0.log");
         logger.LogDebug("a");
         logger.LogDebug("v");
         logger.LogDebug("c");
@@ -89,15 +89,15 @@ public class RollingFileProviderTest
     {
         var timeProvider = new FakeTimeProvider(new DateTimeOffset(2000, 1, 2, 3, 4, 5, TimeSpan.Zero));
                 
-        var path1 = Path.Join(directory, $"ZLoggerRollingTest_{timeProvider.GetUtcNow():yyyy-MM-dd}-0.log");
-        var path2 = Path.Join(directory, $"ZLoggerRollingTest_{timeProvider.GetUtcNow():yyyy-MM-dd}-1.log");
+        var path1 = Path.Combine(directory, $"ZLoggerRollingTest_{timeProvider.GetUtcNow():yyyy-MM-dd}-0.log");
+        var path2 = Path.Combine(directory, $"ZLoggerRollingTest_{timeProvider.GetUtcNow():yyyy-MM-dd}-1.log");
 
         using var loggerFactory = LoggerFactory.Create(x =>
         {
             x.SetMinimumLevel(LogLevel.Debug);
             x.AddZLoggerRollingFile(options =>
             {
-                options.FilePathSelector = (dt, seq) => Path.Join(directory, $"ZLoggerRollingTest_{dt:yyyy-MM-dd}-{seq}.log");
+                options.FilePathSelector = (dt, seq) => Path.Combine(directory, $"ZLoggerRollingTest_{dt:yyyy-MM-dd}-{seq}.log");
                 options.RollingInterval = RollingInterval.Day;
                 options.RollingSizeKB = 5;
                 options.TimeProvider = timeProvider;

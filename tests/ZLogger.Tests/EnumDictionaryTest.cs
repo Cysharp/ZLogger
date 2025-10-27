@@ -42,8 +42,10 @@ namespace ZLogger.Tests
         {
             EnumDictionary<HttpStatusCode>.GetStringName(HttpStatusCode.InternalServerError).Should().Be("InternalServerError");
             EnumDictionary<HttpStatusCode>.GetStringName(HttpStatusCode.RequestEntityTooLarge).Should().Be("RequestEntityTooLarge");
+#if NET
             EnumDictionary<HttpStatusCode>.GetUtf8Name(HttpStatusCode.NetworkAuthenticationRequired).ToArray().Should().Equal(Encoding.UTF8.GetBytes("NetworkAuthenticationRequired"));
             EnumDictionary<HttpStatusCode>.GetJsonEncodedName(HttpStatusCode.UnprocessableEntity).Should().Be(JsonEncodedText.Encode("UnprocessableEntity"));
+#endif
         }
     }
 
