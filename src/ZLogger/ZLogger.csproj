@@ -14,7 +14,7 @@
     <!-- NuGet Packaging -->
     <IsPackable>true</IsPackable>
     <PackageTags>logging;</PackageTags>
-    <Description>Zero Allocation Text/Strcutured Logger for .NET Core, built on top of a Microsoft.Extensions.Logging.</Description>
+    <Description>Zero Allocation Text/Structured Logger for .NET Core, built on top of a Microsoft.Extensions.Logging.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
