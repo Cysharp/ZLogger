@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 using System.Text.Json;
@@ -52,6 +52,93 @@ namespace ZLogger.Tests
 
             doc.GetProperty("Hash").GetString().Should().Be(sourceCodeHash);
             doc.GetProperty("LogLevel").GetString().Should().Be("Debug");
+        }
+
+        [Fact]
+        public void FormatException_Custom()
+        {
+            const string exceptionProperty = "ex";
+
+            using var ms = new MemoryStream();
+
+            var loggerFactory = LoggerFactory.Create(x => x
+                .SetMinimumLevel(LogLevel.Debug)
+                .AddZLoggerStream(ms, options =>
+                {
+                    var hashProp = JsonEncodedText.Encode("Hash");
+
+                    options.UseJsonFormatter(formatter =>
+                    {
+                        formatter.ExceptionFormatter = (Utf8JsonWriter writer, Exception exception) =>
+                        {
+                            writer.WriteString(exceptionProperty, exception.ToString());
+                        };
+                    });
+                }));
+            var logger = loggerFactory.CreateLogger("test");
+
+            var exception = new Exception("ZLogger test exception");
+            logger.LogDebug(exception, exception.Message);
+
+            loggerFactory.Dispose();
+
+            using var sr = new StreamReader(new MemoryStream(ms.ToArray()), Encoding.UTF8);
+            var json = sr.ReadLine();
+
+            var doc = JsonDocument.Parse(json).RootElement;
+
+            doc.GetProperty(exceptionProperty).GetString().Should().Be(exception.ToString());
+        }
+
+        [Fact]
+        public void FormatPropertyKeyValues_Custom()
+        {
+            using var ms = new MemoryStream();
+
+            var loggerFactory = LoggerFactory.Create(x => x
+                .SetMinimumLevel(LogLevel.Debug)
+                .AddZLoggerStream(ms, options =>
+                {
+                    var hashProp = JsonEncodedText.Encode("Hash");
+
+                    options.UseJsonFormatter(formatter =>
+                    {
+                        formatter.PropertyKeyValuesFormatter = (Utf8JsonWriter writer, IZLoggerEntry entry) =>
+                        {
+                            for (var i = 0; i < entry.ParameterCount; i++)
+                            {
+                                if (entry.IsSupportUtf8ParameterKey)
+                                {
+                                    var key = entry.GetParameterKey(i);
+                                    writer.WritePropertyName(key);
+                                }
+                                else
+                                {
+                                    var key = entry.GetParameterKeyAsString(i);
+                                    writer.WritePropertyName(key);
+                                }
+
+                                var value = entry.GetParameterValue(i);
+                                writer.WriteStringValue(value?.ToString());
+                            }
+                        };
+                    });
+                }));
+            var logger = loggerFactory.CreateLogger("test");
+
+            var fooValue = new StringWrapper("foo");
+            var barValue = new StringWrapper("bar");
+            logger.LogDebug("{foo}{bar}", fooValue, barValue);
+
+            loggerFactory.Dispose();
+
+            using var sr = new StreamReader(new MemoryStream(ms.ToArray()), Encoding.UTF8);
+            var json = sr.ReadLine();
+
+            var doc = JsonDocument.Parse(json).RootElement;
+
+            doc.GetProperty("foo").GetString().Should().Be(fooValue.Value);
+            doc.GetProperty("bar").GetString().Should().Be(barValue.Value);
         }
 
         [Fact]
@@ -358,5 +445,11 @@ namespace ZLogger.Tests
             public int Call2(int x, int y) => x + y;
         }
 
+        class StringWrapper(string value)
+        {
+            public string Value => value;
+
+            public override string ToString() => value;
+        }
     }
 }
