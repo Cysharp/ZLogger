@@ -32,6 +32,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: Cysharp/Actions/.github/actions/checkout@main
+        with:
+          ref: ${{ needs.update-packagejson.outputs.sha }}
       - uses: Cysharp/Actions/.github/actions/setup-dotnet@main
         with:
           dotnet-version: |
