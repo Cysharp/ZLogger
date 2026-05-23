@@ -1,5 +1,6 @@
-using System.Buffers;
+﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -105,6 +106,10 @@ namespace ZLogger.Formatters
 
     public delegate void JsonLogInfoFormatter(Utf8JsonWriter jsonWriter, in LogInfo info);
 
+    public delegate void JsonLogEntryFormatter(Utf8JsonWriter jsonWriter, IZLoggerEntry entry);
+
+    public delegate void JsonExceptionFormatter(Utf8JsonWriter jsonWriter, Exception exception);
+
     public class SystemTextJsonZLoggerFormatter : IZLoggerFormatter
     {
         public JsonPropertyNames JsonPropertyNames { get; set; } = JsonPropertyNames.Default;
@@ -121,6 +126,8 @@ namespace ZLogger.Formatters
         };
 
         public JsonLogInfoFormatter? AdditionalFormatter { get; set; }
+        public JsonExceptionFormatter? ExceptionFormatter { get; set; }
+        public JsonLogEntryFormatter? PropertyKeyValuesFormatter { get; set; }
         public JsonEncodedText? PropertyKeyValuesObjectName { get; set; } // if null(default), non nested.
         public IKeyNameMutator? KeyNameMutator { get; set; }
         public bool UseUtcTimestamp { get; set; } // default is false, use Local.
@@ -187,20 +194,40 @@ namespace ZLogger.Formatters
             // Params
             if ((IncludeProperties & IncludeProperties.ParameterKeyValues) != 0)
             {
-                if (PropertyKeyValuesObjectName == null)
-                {
-                    entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, KeyNameMutator);
-                }
-                else
-                {
-                    jsonWriter.WriteStartObject(PropertyKeyValuesObjectName.Value);
-                    entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, KeyNameMutator);
-                    jsonWriter.WriteEndObject();
-                }
+                WritePropertyKeyValues(jsonWriter, entry);
             }
 
             jsonWriter.WriteEndObject();
             jsonWriter.Flush();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void WritePropertyKeyValues(Utf8JsonWriter jsonWriter, IZLoggerEntry entry)
+        {
+            if (PropertyKeyValuesObjectName == null)
+            {
+                if (PropertyKeyValuesFormatter is { } formatter)
+                {
+                    formatter(jsonWriter, entry);
+                }
+                else
+                {
+                    entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, KeyNameMutator);
+                }
+            }
+            else
+            {
+                jsonWriter.WriteStartObject(PropertyKeyValuesObjectName.Value);
+                if (PropertyKeyValuesFormatter is { } formatter)
+                {
+                    formatter(jsonWriter, entry);
+                }
+                else
+                {
+                    entry.WriteJsonParameterKeyValues(jsonWriter, JsonSerializerOptions, KeyNameMutator);
+                }
+                jsonWriter.WriteEndObject();
+            }
         }
 
         JsonEncodedText LogLevelToEncodedText(LogLevel logLevel)
@@ -253,8 +280,15 @@ namespace ZLogger.Formatters
             {
                 if (info.Exception is { } ex)
                 {
-                    jsonWriter.WritePropertyName(JsonPropertyNames.Exception);
-                    WriteException(jsonWriter, ex);
+                    if (ExceptionFormatter is { } formatter)
+                    {
+                        formatter(jsonWriter, ex);
+                    }
+                    else
+                    {
+                        jsonWriter.WritePropertyName(JsonPropertyNames.Exception);
+                        WriteException(jsonWriter, ex);
+                    }
                 }
             }
             if ((flag & IncludeProperties.MemberName) != 0)
