@@ -72,9 +72,10 @@ internal unsafe partial struct MagicalBox
         return ReaderCache.ReadBoxed(type, this, offset);
     }
 
-    public bool TryReadTo(Type type, int offset, int alignment, string? format, ref Utf8StringWriter<IBufferWriter<byte>> handler)
+    public bool TryReadTo(Type? type, int offset, int alignment, string? format, ref Utf8StringWriter<IBufferWriter<byte>> handler)
     {
         if (offset < 0) return false;
+        if (type == null) return false;
         if (type.IsEnum) goto USE_READER;
 
         var code = Type.GetTypeCode(type);
