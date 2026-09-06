@@ -69,7 +69,9 @@ internal partial class RollingFileStream : Stream
     void TryChangeNewRollingFile()
     {
         var now = timeProvider?.GetUtcNow() ?? DateTimeOffset.UtcNow;
-        var currentCheckpoint = GetCurrentCheckpoint(now);
+        // FilePathSelector receives UTC by contract, while rolling intervals are based on local time.
+        var localNow = timeProvider?.GetLocalNow() ?? DateTimeOffset.Now;
+        var currentCheckpoint = GetCurrentCheckpoint(localNow);
 
         // needs to create next file
         if (innerStream == null || currentCheckpoint >= nextCheckpoint || writtenLength >= rollSizeInBytes)
@@ -91,6 +93,14 @@ internal partial class RollingFileStream : Stream
                         throw new InvalidOperationException("fileNameSelector indicate same filname");
                     }
                     fn = newFn;
+
+                    // The local interval may change before the UTC date used by the selector does.
+                    // Do not reopen the current file in that case; advance the sequence instead.
+                    if (innerStream != null && currentCheckpoint >= nextCheckpoint && newFn == fileName)
+                    {
+                        sequenceNo++;
+                        continue;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -126,7 +136,7 @@ internal partial class RollingFileStream : Stream
             try
             {
                 fileName = fn!;
-                nextCheckpoint = GetNextCheckpoint(now);
+                nextCheckpoint = GetNextCheckpoint(localNow);
                 if (File.Exists(fileName))
                 {
                     writtenLength = (int)new FileInfo(fileName).Length;

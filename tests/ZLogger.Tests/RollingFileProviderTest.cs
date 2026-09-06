@@ -114,9 +114,63 @@ public class RollingFileProviderTest
 
         File.Exists(path2).Should().BeTrue();
     }
+
+    [Fact]
+    public void RollingIntervalUsesLocalTimeForCheckpoint()
+    {
+        var localDirectory = Path.Join(Path.GetTempPath(), $"zlogger-local-time-test-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(localDirectory);
+
+        var timeProvider = new FixedTimeProvider(
+            new DateTimeOffset(2000, 1, 1, 14, 59, 0, TimeSpan.Zero),
+            TimeZoneInfo.CreateCustomTimeZone("UTC+09", TimeSpan.FromHours(9), "UTC+09", "UTC+09"));
+        var path1 = Path.Join(localDirectory, "local-time-2000-01-01-0.log");
+        var path2 = Path.Join(localDirectory, "local-time-2000-01-01-1.log");
+
+        try
+        {
+            using (var loggerFactory = LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Debug);
+                x.AddZLoggerRollingFile(options =>
+                {
+                    options.FilePathSelector = (timestamp, sequence) =>
+                        Path.Join(localDirectory, $"local-time-{timestamp:yyyy-MM-dd}-{sequence}.log");
+                    options.RollingInterval = RollingInterval.Day;
+                    options.RollingSizeKB = 5;
+                    options.TimeProvider = timeProvider;
+                });
+            }))
+            {
+                var logger = loggerFactory.CreateLogger("local-time");
+                logger.LogDebug("before local midnight");
+
+                timeProvider.Advance(TimeSpan.FromMinutes(2));
+                logger.LogDebug("after local midnight");
+            }
+
+            File.Exists(path1).Should().BeTrue();
+            File.Exists(path2).Should().BeTrue();
+        }
+        finally
+        {
+            Directory.Delete(localDirectory, true);
+        }
+    }
     
     static StreamReader OpenFile(string path)
     {
         return new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read), Encoding.UTF8);
+    }
+
+    sealed class FixedTimeProvider(DateTimeOffset initialUtcNow, TimeZoneInfo localTimeZone) : TimeProvider
+    {
+        DateTimeOffset utcNow = initialUtcNow;
+
+        public override DateTimeOffset GetUtcNow() => utcNow;
+
+        public override TimeZoneInfo LocalTimeZone { get; } = localTimeZone;
+
+        public void Advance(TimeSpan amount) => utcNow += amount;
     }
 }
