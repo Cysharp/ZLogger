@@ -698,6 +698,32 @@ public static partial class MyLogger
 
 This can achieve the highest performance. It's also possible to use special format specifiers like `:json`.
 
+For Native AOT or trimming, supply a System.Text.Json source-generated context with `JsonSerializerContext`:
+
+```csharp
+using Microsoft.Extensions.Logging;
+using System.Text.Json.Serialization;
+using ZLogger;
+
+public static partial class MyLogger
+{
+    [ZLoggerMessage(LogLevel.Information, "{obj}", JsonSerializerContext = typeof(LogJsonContext))]
+    public static partial void Write(ILogger logger, object? obj);
+}
+
+[JsonSerializable(typeof(object))]
+[JsonSerializable(typeof(LogPayload))]
+internal partial class LogJsonContext : JsonSerializerContext
+{
+}
+
+public record LogPayload(string Name, int Count);
+```
+
+The generated logger uses the context's `Default` instance for parameters that require JSON serialization, including `:json` message formats and collections. Register the declared parameter types and, for `object` parameters, every possible runtime type. Register collection types as well when logging collections. Missing metadata causes serialization to fail without falling back to reflection.
+
+Serialization uses the context's settings, such as `JsonSourceGenerationOptions`, rather than the formatter's `JsonSerializerOptions`. Primitive parameters written directly with `Utf8JsonWriter` retain their existing formatting. Omitting `JsonSerializerContext` preserves the existing behavior.
+
 Microsoft.CodeAnalysis.BannedApiAnalyzers
 ---
 [Microsoft.CodeAnalysis.BannedApiAnalyzers](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md) is an interesting analyzer, you can prohibit the normal Log method and induce the user to call ZLogger's ZLog method.
