@@ -171,6 +171,7 @@ public partial class ZLoggerGenerator
         {
             var stateTypeName = $"{method.TargetMethod.Name}State";
             var methodParameters = method.MethodParameters.Where(x => x.IsParameter).ToArray();
+            var jsonSerializerContext = method.JsonSerializerContext?.ToFullyQualifiedFormatString();
 
             // UTF8 Encoded literal length
             var literalLength = method.MessageSegments.Where(x => x.Kind == MessageSegmentKind.Text).Sum(x => Encoding.UTF8.GetByteCount(x.TextSegment));
@@ -199,7 +200,8 @@ public partial class ZLoggerGenerator
                             var method = methodParameters.First(y => x == y.LinkedMessageSegment);
                             if (method.IsEnumerable() || x.FormatString == "json")
                             {
-                                return $"            global::ZLogger.Internal.CodeGeneratorUtil.AppendAsJson(ref stringWriter, {x.NameParameter});";
+                                var contextArgument = jsonSerializerContext == null ? "" : $", {jsonSerializerContext}.Default";
+                                return $"            global::ZLogger.Internal.CodeGeneratorUtil.AppendAsJson(ref stringWriter, {x.NameParameter}{contextArgument});";
                             }
                             else
                             {
@@ -242,7 +244,7 @@ public partial class ZLoggerGenerator
             sb.AppendLine($$"""
         public void WriteJsonParameterKeyValues(global::System.Text.Json.Utf8JsonWriter writer, global::System.Text.Json.JsonSerializerOptions jsonSerializerOptions, global::ZLogger.IKeyNameMutator? keyNameMutator = null)
         {
-{{ForEachLine("            ", methodParameters, x => x.ConvertJsonWriteMethod())}}
+{{ForEachLine("            ", methodParameters, x => x.ConvertJsonWriteMethod(jsonSerializerContext))}}
         }
 
 """);
@@ -457,12 +459,12 @@ using Utf8StringInterpolation;
 
     public partial class MethodParameter
     {
-        public string ConvertJsonWriteMethod()
+        public string ConvertJsonWriteMethod(string? jsonSerializerContext = null)
         {
-            return ConvertJsonWriteMethodCore(Symbol.Type, false);
+            return ConvertJsonWriteMethodCore(Symbol.Type, false, jsonSerializerContext);
         }
 
-        string ConvertJsonWriteMethodCore(ITypeSymbol type, bool emitDotValue)
+        string ConvertJsonWriteMethodCore(ITypeSymbol type, bool emitDotValue, string? jsonSerializerContext)
         {
             var emitDotValueString = emitDotValue ? ".Value" : string.Empty;
             switch (type.SpecialType)
@@ -501,7 +503,7 @@ using Utf8StringInterpolation;
                         var typeArgument = namedTypeSymbol.TypeArguments.First();
 
                         var nullIf = $"if (this.{LinkedMessageSegment.NameParameter} == null) {{ writer.WriteNull(_jsonParameter_{LinkedMessageSegment.NameParameter}); }} else {{ ";
-                        var nullElse = ConvertJsonWriteMethodCore(typeArgument, true);
+                        var nullElse = ConvertJsonWriteMethodCore(typeArgument, true, jsonSerializerContext);
                         var nullEnd = " }";
 
                         return nullIf + nullElse + nullEnd;
@@ -511,6 +513,11 @@ using Utf8StringInterpolation;
             }
 
             // final fallback, use Serialize
+            if (jsonSerializerContext != null)
+            {
+                return $"writer.WritePropertyName(_jsonParameter_{LinkedMessageSegment.NameParameter}); global::System.Text.Json.JsonSerializer.Serialize(writer, this.{LinkedMessageSegment.NameParameter}{emitDotValueString}, typeof({type.ToFullyQualifiedFormatString()}), {jsonSerializerContext}.Default);";
+            }
+
             return $"writer.WritePropertyName(_jsonParameter_{LinkedMessageSegment.NameParameter}); global::System.Text.Json.JsonSerializer.Serialize(writer, this.{LinkedMessageSegment.NameParameter}{emitDotValueString});";
         }
     }
