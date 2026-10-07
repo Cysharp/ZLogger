@@ -57,8 +57,13 @@ internal class SharedFileStream : Stream
 
     protected override void Dispose(bool disposing)
     {
+        if (disposing)
+        {
+            innerStream.Dispose();
+            mutex.Dispose();
+        }
+
         base.Dispose(disposing);
-        mutex.Dispose();
     }
 
     MutexAcquired AcquireMutex() => new(mutex);
