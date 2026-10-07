@@ -356,7 +356,7 @@ public partial class ZLoggerGenerator
 
             var eventName = method.Attribute.EventName is { } name ? $"\"{name}\"" : $"nameof({method.TargetMethod.Name})";
 
-            var loggerName = method.MethodParameters.First(x => x.IsFirstLogger).Symbol.Name;
+            var loggerName = method.LoggerExpression;
 
             var logLevelParameter = method.MethodParameters.FirstOrDefault(x => x.IsFirstLogLevel);
             var logLevel = (logLevelParameter != null) ? logLevelParameter.Symbol.ToFullyQualifiedFormatString() : "global::Microsoft.Extensions.Logging.LogLevel." + method.Attribute.Level;

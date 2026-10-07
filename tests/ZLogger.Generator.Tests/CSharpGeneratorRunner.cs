@@ -44,7 +44,7 @@ public static class CSharpGeneratorRunner
         {
             preprocessorSymbols = new[] { "NET8_0_OR_GREATER" };
         }
-        var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp11, preprocessorSymbols: preprocessorSymbols);
+        var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp12, preprocessorSymbols: preprocessorSymbols);
 
         var driver = CSharpGeneratorDriver.Create(new ZLoggerGenerator()).WithUpdatedParseOptions(parseOptions);
         if (options != null)
