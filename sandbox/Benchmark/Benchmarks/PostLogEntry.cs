@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -78,19 +78,21 @@ file class NullProcessor : IAsyncLogProcessor
 [Config(typeof(BenchmarkConfig))]
 public class PostLogEntry
 {
+    const int N = 10_000;
+
     static readonly string NullDevicePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "NUL" : "/dev/null";
 
     ILogger zLogger = default!;
     ILogger msExtConsoleLogger = default!;
+    ILogger serilogAsyncMsExtLogger = default!;
     ILogger serilogMsExtLogger = default!;
-    ILogger serilogMsExtLoggerDefault = default!;
+    ILogger nLogAsyncMsExtLogger = default!;
     ILogger nLogMsExtLogger = default!;
-    ILogger nLogMsExtLoggerDefault = default!;
 
+    Serilog.Core.Logger serilogAsyncLogger = default!;
     Serilog.Core.Logger serilogLogger = default!;
-    Serilog.Core.Logger serilogLoggerDefault = default!;
+    NLog.Logger nLogAsyncLogger = default!;
     NLog.Logger nLogLogger = default!;
-    NLog.Logger nLogLoggerDefault = default!;
 
     List<IDisposable> disposables = new();
 
@@ -117,11 +119,13 @@ public class PostLogEntry
         var msExtConsoleLoggerFactory = LoggerFactory.Create(logging =>
         {
             logging
-                .AddConsole(options =>
+                .AddSimpleConsole(options =>
                 {
-                    options.FormatterName = "BenchmarkPlainText";
-                })
-                .AddConsoleFormatter<BenchmarkPlainTextConsoleFormatter, BenchmarkPlainTextConsoleFormatter.Options>();
+                    options.ColorBehavior = Microsoft.Extensions.Logging.Console.LoggerColorBehavior.Disabled;
+                    options.IncludeScopes = false;
+                    options.SingleLine = true;
+                    options.TimestampFormat = "u";
+                });
         });
         disposables.Add(msExtConsoleLoggerFactory);
 
@@ -129,36 +133,56 @@ public class PostLogEntry
 
         // Serilog
 
+        serilogAsyncLogger = new LoggerConfiguration()
+            .WriteTo.Async(a => a.TextWriter(TextWriter.Null), bufferSize: N)
+            .CreateLogger();
+        disposables.Add(serilogAsyncLogger);
+        var serilogAsyncMsExtLoggerFactory = LoggerFactory.Create(x => x.AddSerilog(serilogAsyncLogger));
+        serilogAsyncMsExtLogger = serilogAsyncMsExtLoggerFactory.CreateLogger<PostLogEntry>();
+        disposables.Add(serilogAsyncMsExtLoggerFactory);
+
         serilogLogger = new LoggerConfiguration()
-            .WriteTo.Async(a => a.TextWriter(TextWriter.Null))
+            .WriteTo.TextWriter(TextWriter.Null)
             .CreateLogger();
         disposables.Add(serilogLogger);
         var serilogMsExtLoggerFactory = LoggerFactory.Create(x => x.AddSerilog(serilogLogger));
         serilogMsExtLogger = serilogMsExtLoggerFactory.CreateLogger<PostLogEntry>();
         disposables.Add(serilogMsExtLoggerFactory);
 
-        serilogLoggerDefault = new LoggerConfiguration()
-            .WriteTo.TextWriter(TextWriter.Null)
-            .CreateLogger();
-        var serilogMsExtLoggerFactoryDefault = LoggerFactory.Create(x => x.AddSerilog(serilogLoggerDefault));
-        serilogMsExtLoggerDefault = serilogMsExtLoggerFactoryDefault.CreateLogger<PostLogEntry>();
-        disposables.Add(serilogMsExtLoggerFactoryDefault);
-
         // NLog
         var nLogLayout = new NLog.Layouts.SimpleLayout("${longdate} [${level}] ${message}");
         {
-            var nLogConfig = new NLog.Config.LoggingConfiguration(new LogFactory());
-            var target = new NLog.Targets.FileTarget("Null")
+            var nLogAsyncConfig = new NLog.Config.LoggingConfiguration(new LogFactory());
+            var target = new NLog.Targets.NullTarget("Null Async")
             {
-                FileName = NullDevicePath,
-                Layout = nLogLayout
+                Layout = nLogLayout,
+                FormatMessage = true,
             };
-            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target, 10000, AsyncTargetWrapperOverflowAction.Grow)
+            var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target, N, AsyncTargetWrapperOverflowAction.Grow)
             {
                 TimeToSleepBetweenBatches = 0
             };
-            nLogConfig.AddTarget(asyncTarget);
-            nLogConfig.AddRuleForAllLevels(asyncTarget);
+            nLogAsyncConfig.AddTarget(asyncTarget);
+            nLogAsyncConfig.AddRuleForAllLevels(asyncTarget);
+            nLogAsyncConfig.LogFactory.Configuration = nLogAsyncConfig;
+
+            nLogAsyncLogger = nLogAsyncConfig.LogFactory.GetLogger("NLog");
+
+            var nLogAsyncMsExtLoggerFactory = LoggerFactory.Create(logging => logging.AddNLog(nLogAsyncConfig));
+            nLogAsyncMsExtLogger = nLogAsyncMsExtLoggerFactory.CreateLogger<PostLogEntry>();
+
+            disposables.Add(nLogAsyncMsExtLoggerFactory);
+            disposables.Add(nLogAsyncConfig.LogFactory);
+        }
+        {
+            var nLogConfig = new NLog.Config.LoggingConfiguration(new LogFactory());
+            var target = new NLog.Targets.NullTarget("Null")
+            {
+                Layout = nLogLayout,
+                FormatMessage = true,
+            };
+            nLogConfig.AddTarget(target);
+            nLogConfig.AddRuleForAllLevels(target);
             nLogConfig.LogFactory.Configuration = nLogConfig;
 
             nLogLogger = nLogConfig.LogFactory.GetLogger("NLog");
@@ -167,24 +191,7 @@ public class PostLogEntry
             nLogMsExtLogger = nLogMsExtLoggerFactory.CreateLogger<PostLogEntry>();
 
             disposables.Add(nLogMsExtLoggerFactory);
-        }
-        {
-            var nLogConfigDefault = new NLog.Config.LoggingConfiguration(new LogFactory());
-            var target = new NLog.Targets.FileTarget("Null:Default")
-            {
-                FileName = NullDevicePath,
-                Layout = nLogLayout
-            };
-            nLogConfigDefault.AddTarget(target);
-            nLogConfigDefault.AddRuleForAllLevels(target);
-            nLogConfigDefault.LogFactory.Configuration = nLogConfigDefault;
-
-            nLogLogger = nLogConfigDefault.LogFactory.GetLogger("NLog");
-
-            var nLogMsExtLoggerFactoryDefault = LoggerFactory.Create(logging => logging.AddNLog(nLogConfigDefault));
-            nLogMsExtLoggerDefault = nLogMsExtLoggerFactoryDefault.CreateLogger<PostLogEntry>();
-
-            disposables.Add(nLogMsExtLoggerFactoryDefault);
+            disposables.Add(nLogConfig.LogFactory);
         }
     }
 
@@ -222,15 +229,27 @@ public class PostLogEntry
     }
 
     [Benchmark]
-    public void Serilog_MsExt_Log()
+    public void Serilog_Async_MsExt_Log()
     {
-        serilogMsExtLogger.LogInformation(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
+        serilogAsyncMsExtLogger.LogInformation(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
     }
 
     [Benchmark]
-    public void Serilog_MsExt_SourceGenerator_Log()
+    public void Serilog_Async_MsExt_SourceGenerator_Log()
     {
-        serilogMsExtLogger.GeneratedLog(MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
+        serilogAsyncMsExtLogger.GeneratedLog(MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
+    }
+
+    [Benchmark]
+    public void Serilog_Async_Log()
+    {
+        serilogAsyncLogger.Information(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
+    }
+
+    [Benchmark]
+    public void Serilog_MsExt_Log()
+    {
+        serilogMsExtLogger.LogInformation(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
     }
 
     [Benchmark]
@@ -238,17 +257,23 @@ public class PostLogEntry
     {
         serilogLogger.Information(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
     }
-
+    
     [Benchmark]
-    public void Serilog_Default_MsExt_Log()
+    public void NLog_Async_MsExt_Log()
     {
-        serilogMsExtLoggerDefault.LogInformation(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
+        nLogAsyncMsExtLogger.LogInformation(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
+    }
+    
+    [Benchmark]
+    public void NLog_Async_MsExt_SourceGenerator_Log()
+    {
+        nLogAsyncMsExtLogger.GeneratedLog(MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
     }
 
     [Benchmark]
-    public void Serilog_Default_Log()
+    public void NLog_Async_Log()
     {
-        serilogLoggerDefault.Information(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
+        nLogAsyncLogger.Info(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
     }
     
     [Benchmark]
@@ -256,28 +281,10 @@ public class PostLogEntry
     {
         nLogMsExtLogger.LogInformation(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
     }
-    
-    [Benchmark]
-    public void NLog_MsExt_SourceGenerator_Log()
-    {
-        nLogMsExtLogger.GeneratedLog(MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
-    }
 
     [Benchmark]
     public void NLog_Log()
     {
         nLogLogger.Info(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
-    }
-    
-    [Benchmark]
-    public void NLog_Default_MsExt_Log()
-    {
-        nLogMsExtLoggerDefault.LogInformation(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
-    }
-
-    [Benchmark]
-    public void NLog_Default_Log()
-    {
-        nLogLoggerDefault.Info(MessageSample.Message, MessageSample.Arg1, MessageSample.Arg2, MessageSample.Arg3);
     }
 }
