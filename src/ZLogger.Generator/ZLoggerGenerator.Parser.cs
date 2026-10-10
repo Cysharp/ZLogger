@@ -14,6 +14,7 @@ public partial class ZLoggerGenerator
 
     internal record LogMethodDeclaration(
         ZLoggerMessageAttribute Attribute,
+        ITypeSymbol? JsonSerializerContext,
         IMethodSymbol TargetMethod,
         MethodDeclarationSyntax TargetSyntax,
         MessageSegment[] MessageSegments,
@@ -135,7 +136,7 @@ public partial class ZLoggerGenerator
                         continue;
                     }
 
-                    var (attr, setLogLevel) = GetAttribute(source);
+                    var (attr, setLogLevel, jsonSerializerContext) = GetAttribute(source);
                     var msg = attr.Message;
 
                     // parse and verify
@@ -157,6 +158,7 @@ public partial class ZLoggerGenerator
 
                     var methodDecl = new LogMethodDeclaration(
                         Attribute: attr,
+                        JsonSerializerContext: jsonSerializerContext,
                         TargetMethod: (IMethodSymbol)source.TargetSymbol,
                         TargetSyntax: (MethodDeclarationSyntax)source.TargetNode,
                         MessageSegments: segments,
@@ -186,7 +188,7 @@ public partial class ZLoggerGenerator
             return list.ToArray();
         }
 
-        static (ZLoggerMessageAttribute attr, bool setLogLevel) GetAttribute(GeneratorAttributeSyntaxContext source)
+        static (ZLoggerMessageAttribute attr, bool setLogLevel, ITypeSymbol? jsonSerializerContext) GetAttribute(GeneratorAttributeSyntaxContext source)
         {
             var attributeData = source.Attributes[0];
 
@@ -195,6 +197,7 @@ public partial class ZLoggerGenerator
             LogLevel level = LogLevel.None;
             string message = "";
             bool skipEnabledCheck = false;
+            ITypeSymbol? jsonSerializerContext = null;
 
             // check logLevel is set for verify.
             var setLogLevel = false;
@@ -267,6 +270,9 @@ public partial class ZLoggerGenerator
                             case "Message":
                                 message = value.IsNull ? "" : (string)value.Value!;
                                 break;
+                            case "JsonSerializerContext":
+                                jsonSerializerContext = value.Value as ITypeSymbol;
+                                break;
                         }
                     }
                 }
@@ -279,7 +285,7 @@ public partial class ZLoggerGenerator
                 Level = level,
                 Message = message,
                 SkipEnabledCheck = skipEnabledCheck,
-            }, setLogLevel);
+            }, setLogLevel, jsonSerializerContext);
         }
 
         (MethodParameter[] parameters, bool foundLogLevel) GetMethodParameters(IMethodSymbol method, bool setLogLevel)
@@ -384,6 +390,25 @@ public partial class ZLoggerGenerator
 
             var methodLocation = methodDeclaration.TargetSyntax.Identifier.GetLocation();
             var methodName = methodDeclaration.TargetMethod.Name;
+
+            if (methodDeclaration.JsonSerializerContext is { } jsonSerializerContext)
+            {
+                var isContext = false;
+                for (var baseType = jsonSerializerContext.BaseType; baseType != null; baseType = baseType.BaseType)
+                {
+                    if (baseType.ToDisplayString() == "System.Text.Json.Serialization.JsonSerializerContext")
+                    {
+                        isContext = true;
+                        break;
+                    }
+                }
+
+                if (!isContext)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidJsonSerializerContext, methodLocation, methodName));
+                    verifyResult = false;
+                }
+            }
 
             // must retrun void
             if (methodDeclaration.TargetMethod.ReturnType.SpecialType != SpecialType.System_Void)
