@@ -49,6 +49,12 @@ namespace ZLogger
             {
                 literals = literalPool = new List<string?>();
             }
+            else
+            {
+                // A handler whose hole threw while being evaluated never reaches GetState, so its literals stay in the
+                // list; the next log call on this thread would format them with its own parameters.
+                literals.Clear();
+            }
 
             this.literalLength = literalLength;
             this.parametersLength = formattedCount;
