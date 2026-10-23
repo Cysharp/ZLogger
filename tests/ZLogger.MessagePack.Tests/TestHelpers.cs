@@ -13,6 +13,29 @@ namespace ZLogger.MessagePack.Tests
         public int X { get; set; }
     }
 
+    // Logs from its ToString, which the formatter calls while it builds the message of the entry that contains it.
+    [MessagePackObject]
+    public class ReentrantPayload
+    {
+        [ThreadStatic]
+        public static Microsoft.Extensions.Logging.ILogger? Logger;
+
+        [Key("x")]
+        public int X { get; set; }
+
+        public override string ToString()
+        {
+            Logger?.ZLogInformation($"inner");
+            return "outer-value";
+        }
+    }
+
+    // No MessagePack attributes and not contractless-resolvable by default, so serializing it throws.
+    public class UnserializableValue
+    {
+        public int X { get; set; }
+    }
+
     class TestException : Exception
     {
         public TestException(string message) : base(message)

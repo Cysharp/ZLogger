@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Numerics;
 
 using MessagePack;
@@ -8,6 +7,8 @@ using MessagePack;
 using Microsoft.Extensions.Logging;
 
 using SerializerFoundation;
+
+using ZLogger.MessagePack.Internal;
 
 namespace ZLogger.MessagePack;
 
@@ -81,26 +82,79 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
     [ThreadStatic]
     static ArrayBufferWriter<byte>? threadStaticBufferWriter;
 
+    [ThreadStatic]
+    static ArrayBufferWriter<byte>? threadStaticEntryBufferWriter;
+
+    // Doubling the buffer this many times allows a mutated key name up to 1024 times the initial buffer size.
+    // A cleaner solution would be for the mutator to report the maximum length of its output, so that the buffer could be
+    // sized once and no retry limit would be needed. Adding that member to IKeyNameMutator would break existing implementations
+    // (default interface methods are not available on netstandard2.0, which ZLogger targets); a separate optional interface
+    // would avoid the break but add API surface, so a fixed limit is used for now.
+    const int MaxKeyNameMutatorRetries = 10;
+
     bool IZLoggerFormatter.WithLineBreak => false;
 
     /// <summary>
-    /// Options used to serialize values such as the timestamp and parameters of non-primitive types.
+    /// Options used to serialize the timestamp, every non-null scope value, and parameter values whose parameter type is not
+    /// bool, char, sbyte, byte, short, ushort, int, uint, long, ulong, float, double, string or an enum (or the nullable form of
+    /// one of these), for example DateTime, DateTimeOffset, TimeSpan, Guid, decimal, nint, Int128 and other objects.
+    /// Parameters of the excluded types (enums as their underlying integer, so an enum setting in the options does not apply),
+    /// null values, and the other log properties (such as the category, the message and the exception) are always written
+    /// directly, regardless of the options.
     /// </summary>
     /// <remarks>
-    /// <see cref="MessagePackSerializerOptions.MessageProcessor"/> is ignored, as it was with MessagePack v2.
+    /// Options with a <see cref="MessagePackSerializerOptions.MessageProcessor"/> are rejected.
     /// A processor such as compression applies to a whole message, while this formatter serializes each value
     /// into a part of a log entry. Compress log output at the destination instead.
     /// </remarks>
+    /// <exception cref="ArgumentNullException">The value is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">The options have a <see cref="MessagePackSerializerOptions.MessageProcessor"/>.</exception>
     public MessagePackSerializerOptions MessagePackSerializerOptions
     {
         get;
-        set => field = value with { MessageProcessor = null };
+        set
+        {
+            if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+            if (value.MessageProcessor != null)
+            {
+                throw new ArgumentException("MessageProcessor is not supported, because it applies to a whole message while the formatter serializes each value into a part of a log entry. Compress log output at the destination instead.", nameof(value));
+            }
+            field = value;
+        }
     } = MessagePackSerializerOptions.Default;
+
     public IncludeProperties IncludeProperties { get; set; } = IncludeProperties.Default;
     public MessagePackPropertyNames PropertyNames { get; set; } = MessagePackPropertyNames.Default;
     public IKeyNameMutator? KeyNameMutator { get; set; }
 
     public void FormatLogEntry(IBufferWriter<byte> writer, IZLoggerEntry entry)
+    {
+        // Format the entry into a staging buffer and copy it to writer only when it is complete.
+        // Writing values commits the bytes written so far, so if serializing a value throws, writing straight into
+        // writer would leave a partial map there, and every entry after it would be read incorrectly.
+        var staging = TakeThreadStaticBufferWriter(ref threadStaticEntryBufferWriter);
+        try
+        {
+            FormatLogEntryCore(staging, entry);
+
+            // Request the whole entry at once instead of using writer.Write. Write fills whatever span GetSpan() returns,
+            // commits it with Advance, and throws if the next GetSpan() returns an empty span (as StreamBufferWriter does when
+            // its buffer is exactly full), leaving a partial entry in writer. GetSpan(sizeHint) returns at least sizeHint bytes,
+            // so one copy suffices, and a writer that fails does so before any byte of the entry is committed.
+            var staged = staging.WrittenSpan;
+            staged.CopyTo(writer.GetSpan(staged.Length));
+            writer.Advance(staged.Length);
+        }
+        finally
+        {
+            threadStaticEntryBufferWriter = staging;
+        }
+    }
+
+    void FormatLogEntryCore(IBufferWriter<byte> writer, IZLoggerEntry entry)
     {
 #if NET9_0_OR_GREATER
         var writeBuffer = new BufferWriterWriteBuffer(writer);
@@ -212,9 +266,16 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
         if ((flag & IncludeProperties.Message) != 0)
         {
             writeBuffer.WriteRaw(PropertyNames.Message.Utf8EncodedValue);
-            var buffer = GetThreadStaticBufferWriter();
-            entry.ToString(buffer);
-            writeBuffer.WriteString(buffer.WrittenSpan);
+            var buffer = TakeThreadStaticBufferWriter(ref threadStaticBufferWriter);
+            try
+            {
+                entry.ToString(buffer);
+                writeBuffer.WriteString(buffer.WrittenSpan);
+            }
+            finally
+            {
+                threadStaticBufferWriter = buffer;
+            }
         }
 
         // Scope
@@ -304,10 +365,17 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
             }
             else
             {
-                var bufferSize = keyName.Length * 2;
+                // Start from at least 16 characters: for an empty key name keyName.Length * 2 is 0, and doubling 0 never grows the buffer.
+                var bufferSize = Math.Max(checked(keyName.Length * 2), 16);
+                var retries = 0;
                 while (!TryMutate(ref writeBuffer, keyName, bufferSize))
                 {
-                    bufferSize *= 2;
+                    // After MaxKeyNameMutatorRetries doublings, a mutator that still returns false is treated as broken.
+                    if (++retries > MaxKeyNameMutatorRetries)
+                    {
+                        throw new InvalidOperationException($"{mutator.GetType().FullName}.TryMutate returned false {retries} times for the key name '{keyName.ToString()}', the last time with a buffer of {bufferSize} characters. TryMutate should return false only when the destination is too small.");
+                    }
+                    bufferSize = checked(bufferSize * 2);
                 }
             }
         }
@@ -316,20 +384,34 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
             writeBuffer.WriteString(keyName);
         }
 
+        // Small buffers on the stack and larger ones from the pool, as in SystemTextJsonZLoggerFormatter.
         bool TryMutate(ref TWriteBuffer writeBuffer, ReadOnlySpan<char> source, int bufferSize)
         {
-            var buffer = ArrayPool<char>.Shared.Rent(bufferSize);
-            try
+            if (bufferSize > 256)
             {
-                if (mutator.TryMutate(source, buffer, out var written))
+                // Rent may return a larger array; pass exactly bufferSize so that the size in the exception is what the mutator received.
+                var buffer = ArrayPool<char>.Shared.Rent(bufferSize);
+                try
                 {
-                    writeBuffer.WriteString(buffer.AsSpan(0, written));
-                    return true;
+                    if (mutator.TryMutate(source, buffer.AsSpan(0, bufferSize), out var written))
+                    {
+                        writeBuffer.WriteString(buffer.AsSpan(0, written));
+                        return true;
+                    }
+                }
+                finally
+                {
+                    ArrayPool<char>.Shared.Return(buffer);
                 }
             }
-            finally
+            else
             {
-                ArrayPool<char>.Shared.Return(buffer);
+                Span<char> buffer = stackalloc char[bufferSize];
+                if (mutator.TryMutate(source, buffer, out var written))
+                {
+                    writeBuffer.WriteString(buffer[..written]);
+                    return true;
+                }
             }
             return false;
         }
@@ -434,33 +516,38 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
                 SerializeValue(ref writeBuffer, underlyingWriter, value);
                 return;
             }
-            else if (type == typeof(TimeSpan))
+
+            if (type == typeof(TimeSpan))
             {
                 var value = entry.GetParameterValue<TimeSpan>(index);
                 SerializeValue(ref writeBuffer, underlyingWriter, value);
                 return;
             }
+
 #if NET6_0_OR_GREATER
-            else if (type == typeof(TimeOnly))
+            if (type == typeof(TimeOnly))
             {
                 var value = entry.GetParameterValue<TimeOnly>(index);
                 SerializeValue(ref writeBuffer, underlyingWriter, value);
                 return;
             }
-            else if (type == typeof(DateOnly))
+
+            if (type == typeof(DateOnly))
             {
                 var value = entry.GetParameterValue<DateOnly>(index);
                 SerializeValue(ref writeBuffer, underlyingWriter, value);
                 return;
             }
 #endif
-            else if (type == typeof(Guid))
+
+            if (type == typeof(Guid))
             {
                 var value = entry.GetParameterValue<Guid>(index);
                 SerializeValue(ref writeBuffer, underlyingWriter, value);
                 return;
             }
-            else if (Nullable.GetUnderlyingType(type) is { } underlyingType)
+
+            if (Nullable.GetUnderlyingType(type) is { } underlyingType)
             {
                 code = Type.GetTypeCode(underlyingType);
                 switch (code)
@@ -577,7 +664,7 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
                     {
                         var nullableValue = entry.GetParameterValue<DateTime?>(index);
                         if (nullableValue.HasValue)
-                            writeBuffer.WriteTimestamp(nullableValue.Value);
+                            SerializeValue(ref writeBuffer, underlyingWriter, nullableValue.Value);
                         else
                             writeBuffer.WriteNil();
                         return;
@@ -632,14 +719,19 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
 #endif
     }
 
-    static ArrayBufferWriter<byte> GetThreadStaticBufferWriter()
+    // Takes the buffer out of its thread-static slot, which all instances share. Formatting can re-enter a
+    // MessagePackZLoggerFormatter on the same thread when a value's ToString or MessagePack formatter logs to a provider that
+    // formats in Post (such as the in-memory provider); the re-entrant call then gets a buffer of its own instead of
+    // overwriting this one. The caller puts the buffer back when it is done.
+    static ArrayBufferWriter<byte> TakeThreadStaticBufferWriter(ref ArrayBufferWriter<byte>? slot)
     {
-        threadStaticBufferWriter ??= new ArrayBufferWriter<byte>();
+        var bufferWriter = slot ?? new ArrayBufferWriter<byte>();
+        slot = null;
 #if NET8_0_OR_GREATER
-        threadStaticBufferWriter.ResetWrittenCount();
+        bufferWriter.ResetWrittenCount();
 #else
-        threadStaticBufferWriter.Clear();
+        bufferWriter.Clear();
 #endif
-        return threadStaticBufferWriter;
+        return bufferWriter;
     }
 }
