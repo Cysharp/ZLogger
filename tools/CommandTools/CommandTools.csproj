@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ConsoleAppFramework" VersionOverride="4.2.4" />
+    <PackageReference Include="ConsoleAppFramework" />
     <PackageReference Include="Markdig" />
   </ItemGroup>
 

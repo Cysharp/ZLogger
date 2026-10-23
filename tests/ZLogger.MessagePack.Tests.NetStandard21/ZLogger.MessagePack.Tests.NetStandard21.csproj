@@ -5,7 +5,6 @@
        On net8.0 the references resolve as in a .NET 8 application (ZLogger.MessagePack for netstandard2.1 with ZLogger for net8.0). -->
   <PropertyGroup>
     <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
-    <!-- Microsoft.Testing.Platform -->
     <OutputType>Exe</OutputType>
     <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
     <Nullable>enable</Nullable>

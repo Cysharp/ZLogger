@@ -28,9 +28,5 @@
     <!-- require to support SyntaxValueProvider.ForAttributeWithMetadataName(Roslyn 4.3.1, VS2022 17.3 -->
     <!-- Unity 2022.2 or newer is 4.1.0. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="4.3.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 </Project>
