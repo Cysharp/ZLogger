@@ -37,12 +37,15 @@
     <PackageReference Include="System.Text.Json" Version="10.0.0" />
     <PackageReference Include="System.Threading.Channels" Version="10.0.0" />
     <PackageReference Include="Microsoft.Bcl.TimeProvider" Version="10.0.0" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.0" />
     <PackageReference Include="System.Collections.Immutable" Version="10.0.0" />
     <PackageReference Include="PolySharp" Version="1.16.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.0" />
   </ItemGroup>
 
   <!-- Bundle SourceGenerator -->
