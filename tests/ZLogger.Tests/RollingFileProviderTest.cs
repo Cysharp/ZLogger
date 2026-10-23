@@ -11,7 +11,8 @@ namespace ZLogger.Tests;
 
 public class RollingFileProviderTest
 {
-    readonly string directory = Path.Join(Path.GetTempPath(), "zlogger-test"); 
+    // Unique per test instance, so that test runs for different target frameworks, which run in parallel, do not share it.
+    readonly string directory = Path.Join(Path.GetTempPath(), "zlogger-test", Guid.NewGuid().ToString("N"));
     
     public RollingFileProviderTest()
     {

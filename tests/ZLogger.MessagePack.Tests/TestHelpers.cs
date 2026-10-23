@@ -1,9 +1,8 @@
-using System;
+﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MessagePack;
-using MessagePack.Resolvers;
 
 namespace ZLogger.MessagePack.Tests
 {
@@ -13,20 +12,22 @@ namespace ZLogger.MessagePack.Tests
         [Key("x")]
         public int X { get; set; }
     }
-    
+
     class TestException : Exception
     {
         public TestException(string message) : base(message)
         {
         }
-        
+
         public TestException(string message, Exception innerException) : base(message, innerException)
         {
         }
     }
-    
+
     class TestProcessor(IZLoggerFormatter formatter) : IAsyncLogProcessor
     {
+        static readonly MessagePackSerializerOptions ContractlessOptions = new(MessagePackFormatterFactory.Default.WithContractless());
+
         public readonly Queue<byte[]> EntryMessages = new();
         readonly ArrayBufferWriter<byte> bufferWriter = new();
 
@@ -35,7 +36,7 @@ namespace ZLogger.MessagePack.Tests
         public dynamic Dequeue()
         {
             var data = EntryMessages.Dequeue();
-            return MessagePackSerializer.Deserialize<dynamic>(data, ContractlessStandardResolver.Options);
+            return MessagePackSerializer.Deserialize<dynamic>(data, ContractlessOptions);
         }
 
         public ValueTask DisposeAsync()
@@ -49,5 +50,5 @@ namespace ZLogger.MessagePack.Tests
             EntryMessages.Enqueue(bufferWriter.WrittenMemory.ToArray());
             bufferWriter.Clear();
         }
-    }    
+    }
 }

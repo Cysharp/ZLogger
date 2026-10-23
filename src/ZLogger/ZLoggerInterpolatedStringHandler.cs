@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -303,7 +303,7 @@ namespace ZLogger
                         }
                         else if (p.BoxedValue is IEnumerable enumerable)
                         {
-#if NET8_0
+#if NET8_0_OR_GREATER
                             if (p.BoxedValue is IFormattable)
                             {
                                 stringHandler.AppendFormatted(p.BoxedValue, p.Alignment, p.Format);

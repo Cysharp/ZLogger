@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Runs the ZLogger.MessagePack.Tests sources against the netstandard2.1 build of ZLogger.MessagePack, so that the code paths
+       compiled only for netstandard (shims, #if !NET9_0_OR_GREATER branches) are exercised.
+       On net8.0 the references resolve as in a .NET 8 application (ZLogger.MessagePack for netstandard2.1 with ZLogger for net8.0). -->
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <RootNamespace>ZLogger.MessagePack.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ZLogger.MessagePack.Tests\**\*.cs" Exclude="..\ZLogger.MessagePack.Tests\bin\**;..\ZLogger.MessagePack.Tests\obj\**" LinkBase="Shared" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="5.10.3" />
+    <PackageReference Include="MessagePack" Version="4.0.0-preview.1" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="8.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.0" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ZLogger.MessagePack\ZLogger.MessagePack.csproj" SetTargetFramework="TargetFramework=netstandard2.1" />
+    <ProjectReference Include="..\..\src\ZLogger\ZLogger.csproj" />
+    <ProjectReference Include="..\..\src\ZLogger.Generator\ZLogger.Generator.csproj">
+      <OutputItemType>Analyzer</OutputItemType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

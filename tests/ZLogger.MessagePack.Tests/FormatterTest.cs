@@ -1,5 +1,6 @@
 ﻿using System;
 using FluentAssertions;
+using MessagePack;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 using Xunit;
@@ -307,6 +308,126 @@ public class FormatterTest
         ((int)msg["attributes"]["y"]).Should().Be(456);
     }
     
+    /// <summary>
+    /// Ensures that a MessageProcessor in the serializer options (such as compression) is ignored:
+    /// logging does not fail, and the timestamp, parameters and scope values are written as plain values,
+    /// not wrapped in per-value envelopes.
+    /// </summary>
+    [Fact]
+    public void MessageProcessorIsIgnored()
+    {
+        processor = new TestProcessor(new MessagePackZLoggerFormatter
+        {
+            MessagePackSerializerOptions = MessagePackSerializerOptions.Default.WithFraming()
+        });
+
+        var loggerFactory = LoggerFactory.Create(x =>
+        {
+            x.SetMinimumLevel(LogLevel.Debug);
+            x.AddZLoggerLogProcessor(options =>
+            {
+                options.TimeProvider = timeProvider;
+                options.IncludeScopes = true;
+                return processor;
+            });
+        });
+        logger = loggerFactory.CreateLogger("test");
+
+        var guid = new Guid("0f8fad5b-d9cb-469f-a165-70867728950e");
+        var amount = 123.456m;
+        using (logger.BeginScope("{Scope}", 789L))
+        {
+            logger.ZLogInformation($"AAA {guid} {amount}");
+        }
+
+        var msgpack = processor.Dequeue();
+        ((DateTimeOffset)msgpack["Timestamp"]).Should().BeOnOrAfter(now);
+        ((string)msgpack["guid"]).Should().Be("0f8fad5b-d9cb-469f-a165-70867728950e");
+        ((string)msgpack["amount"]).Should().Be("123.456");
+        ((long)msgpack["Scope"]).Should().Be(789L);
+    }
+
+    /// <summary>
+    /// Ensures that IncludeProperties.All writes the caller information (MemberName, FilePath and LineNumber),
+    /// and that the map header count matches the entries written, so the other properties are still read correctly.
+    /// </summary>
+    [Fact]
+    public void IncludeAllProperties()
+    {
+        processor = new TestProcessor(new MessagePackZLoggerFormatter
+        {
+            IncludeProperties = IncludeProperties.All
+        });
+
+        var loggerFactory = LoggerFactory.Create(x =>
+        {
+            x.SetMinimumLevel(LogLevel.Debug);
+            x.AddZLoggerLogProcessor(options =>
+            {
+                options.TimeProvider = timeProvider;
+                return processor;
+            });
+        });
+        logger = loggerFactory.CreateLogger("test");
+
+        var x = 100;
+        logger.ZLogInformation(new EventId(1, "HOGE"), $"AAA {x}");
+
+        var msgpack = processor.Dequeue();
+        ((string)msgpack["Category"]).Should().Be("test");
+        ((string)msgpack["LogLevel"]).Should().Be("Information");
+        ((int)msgpack["EventId"]).Should().Be(1);
+        ((string)msgpack["EventIdName"]).Should().Be("HOGE");
+        ((string)msgpack["Message"]).Should().Be("AAA 100");
+        ((int)msgpack["x"]).Should().Be(100);
+        ((string)msgpack["MemberName"]).Should().Be(nameof(IncludeAllProperties));
+        ((string)msgpack["FilePath"]).Should().EndWith("FormatterTest.cs");
+        ((int)msgpack["LineNumber"]).Should().BePositive();
+    }
+
+    /// <summary>
+    /// Ensures that parameters of the types with dedicated branches (DateTimeOffset, TimeSpan and Guid)
+    /// are each written exactly once, so that the map stays consistent and the parameter that follows them is read correctly.
+    /// </summary>
+    [Fact]
+    public void ValueTypeParametersAreWrittenOnce()
+    {
+        var dto = new DateTimeOffset(2026, 10, 23, 10, 2, 3, TimeSpan.FromHours(9));
+        var ts = TimeSpan.FromMilliseconds(123456.789);
+        var guid = new Guid("0f8fad5b-d9cb-469f-a165-70867728950e");
+        var tail = "TAIL";
+        logger.ZLogInformation($"{dto} {ts} {guid} {tail}");
+
+        var msgpack = processor.Dequeue();
+        ((int)((System.Collections.IDictionary)msgpack).Count).Should().Be(4 + 4); // Timestamp, LogLevel, Category, Message and the parameters
+        ((short)msgpack["dto"][1]).Should().Be(9 * 60);
+        ((long)msgpack["ts"]).Should().Be(ts.Ticks);
+        ((string)msgpack["guid"]).Should().Be("0f8fad5b-d9cb-469f-a165-70867728950e");
+        ((string)msgpack["tail"]).Should().Be("TAIL");
+    }
+
+    // MessagePack v4 serves DateOnly and TimeOnly only in its net9.0+ build; on net8.0 its netstandard build throws for them.
+#if NET9_0_OR_GREATER
+    /// <summary>
+    /// Ensures that DateOnly and TimeOnly parameters are each written exactly once, in the same formats as MessagePack v2,
+    /// so that the map stays consistent and the parameter that follows them is read correctly.
+    /// </summary>
+    [Fact]
+    public void DateOnlyAndTimeOnlyParametersAreWrittenOnce()
+    {
+        var date = new DateOnly(2026, 10, 23);
+        var time = new TimeOnly(10, 2, 3, 456);
+        var tail = "TAIL";
+        logger.ZLogInformation($"{date} {time} {tail}");
+
+        var msgpack = processor.Dequeue();
+        ((int)((System.Collections.IDictionary)msgpack).Count).Should().Be(4 + 3); // Timestamp, LogLevel, Category, Message and the parameters
+        ((int)msgpack["date"]).Should().Be(date.DayNumber);
+        ((long)msgpack["time"]).Should().Be(time.Ticks);
+        ((string)msgpack["tail"]).Should().Be("TAIL");
+    }
+#endif
+
     [Fact]
     public void WithSourceGenerator()
     {

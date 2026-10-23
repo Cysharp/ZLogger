@@ -116,38 +116,6 @@ public static partial class LogZ
     public static partial void CouldNotOpenSocket(this ILogger<FooBarBaz> logger, string hostName, int ipAddress);
 }
 
-
-public enum Fruit
-{
-    Orange, Ringo, Banana
-}
-
 public class FooBarBaz
 {
-
-}
-
-
-public struct MessagePackStructuredKeyValueWriter
-{
-    public MessagePackStructuredKeyValueWriter()
-    {
-        //ILogger logger;
-        //logger.Log(
-
-        // writer = new MessagePackWriter();
-    }
-
-    public void WriteKey(ReadOnlySpan<byte> key, MessagePackWriter writer)
-    {
-
-
-
-        throw new NotImplementedException();
-    }
-
-    public void WriteValue<T>(T value)
-    {
-        throw new NotImplementedException();
-    }
 }
