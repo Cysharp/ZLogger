@@ -6,12 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentAssertions" Version="5.10.3" />
-    <PackageReference Include="MessagePack" Version="4.0.0-preview.1" />
-    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="8.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.0" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
+    <PackageReference Include="FluentAssertions" VersionOverride="5.10.3" />
+    <PackageReference Include="MessagePack" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" VersionOverride="16.6.0" />
+    <PackageReference Include="xunit" VersionOverride="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" VersionOverride="2.4.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

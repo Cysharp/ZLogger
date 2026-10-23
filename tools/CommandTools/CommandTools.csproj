@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ConsoleAppFramework" Version="4.2.4" />
-    <PackageReference Include="Markdig" Version="0.18.3" />
+    <PackageReference Include="ConsoleAppFramework" VersionOverride="4.2.4" />
+    <PackageReference Include="Markdig" />
   </ItemGroup>
 
 </Project>
