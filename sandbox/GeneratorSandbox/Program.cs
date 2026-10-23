@@ -4,7 +4,6 @@
 
 // See https://aka.ms/new-console-template for more information
 using GeneratorSandbox;
-using MessagePack;
 using Microsoft.Extensions.Logging;
 using System.Buffers;
 using System.Reflection.Emit;
