@@ -53,7 +53,7 @@ public class RollingFileProviderTest
         logger.LogDebug("bar");
         logger.LogDebug("baz");
    
-        await Task.Delay(100); // wait for flush
+        await Task.Delay(100, TestContext.Current.CancellationToken); // wait for flush
         File.Exists(path1).Should().BeTrue();
         
         // Next day
@@ -63,7 +63,7 @@ public class RollingFileProviderTest
         logger.LogDebug("v");
         logger.LogDebug("c");
 
-        await Task.Delay(100); // wait for flush
+        await Task.Delay(100, TestContext.Current.CancellationToken); // wait for flush
         File.Exists(path2).Should().BeTrue();
         
 
@@ -109,9 +109,9 @@ public class RollingFileProviderTest
         
         var logger = loggerFactory.CreateLogger("mytest");
         logger.LogDebug(new string('a', 10000));
-        await Task.Delay(TimeSpan.FromSeconds(1)); // wait for flush
+        await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken); // wait for flush
         logger.LogDebug("tako");
-        await Task.Delay(TimeSpan.FromSeconds(1)); // wait for flush
+        await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken); // wait for flush
 
         File.Exists(path2).Should().BeTrue();
     }

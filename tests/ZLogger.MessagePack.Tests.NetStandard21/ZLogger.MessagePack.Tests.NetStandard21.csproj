@@ -5,6 +5,9 @@
        On net8.0 the references resolve as in a .NET 8 application (ZLogger.MessagePack for netstandard2.1 with ZLogger for net8.0). -->
   <PropertyGroup>
     <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <!-- Microsoft.Testing.Platform -->
+    <OutputType>Exe</OutputType>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
     <Nullable>enable</Nullable>
     <RootNamespace>ZLogger.MessagePack.Tests</RootNamespace>
   </PropertyGroup>
@@ -17,12 +20,7 @@
     <PackageReference Include="FluentAssertions" VersionOverride="5.10.3" />
     <PackageReference Include="MessagePack" />
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" VersionOverride="16.6.0" />
-    <PackageReference Include="xunit" VersionOverride="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" VersionOverride="2.4.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="xunit.v3" />
   </ItemGroup>
 
   <ItemGroup>
