@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Time.Testing;
 using ZLogger.Formatters;
 
 namespace ZLogger.Tests
@@ -68,14 +69,21 @@ namespace ZLogger.Tests
 
             var processor = new TestProcessor(options);
 
+            var now = new DateTimeOffset(2026, 10, 23, 1, 2, 3, 456, TimeSpan.Zero);
+            var timeProvider = new FakeTimeProvider(now);
+
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processor);
+                // TimeProvider takes effect on the provider's options, not on the ones the processor formats with.
+                x.AddZLoggerLogProcessor(providerOptions =>
+                {
+                    providerOptions.TimeProvider = timeProvider;
+                    return processor;
+                });
             });
             var logger = loggerFactory.CreateLogger("test");
 
-            var now = DateTime.UtcNow;
             logger.ZLogInformation(new EventId(1, "TEST"), $"HELLO!");
 
             var json = processor.DequeueAsString();
@@ -83,10 +91,10 @@ namespace ZLogger.Tests
 
             doc.TryGetProperty("Message", out _).Should().BeFalse();
             doc.GetProperty("LogLevel").GetString().Should().Be("Information");
-            doc.GetProperty("Timestamp").GetDateTime().Should().BeOnOrAfter(now);
+            doc.GetProperty("Timestamp").GetDateTimeOffset().Should().Be(now);
             doc.GetProperty("EventId").GetInt32().Should().Be(1);
             doc.TryGetProperty("EventIdName", out _).Should().BeFalse();
-            doc.TryGetProperty("CategoryName", out _).Should().BeFalse();
+            doc.TryGetProperty("Category", out _).Should().BeFalse();
         }
 
         [Fact]
@@ -117,7 +125,7 @@ namespace ZLogger.Tests
             doc.TryGetProperty("EventId", out _).Should().BeFalse();
             doc.TryGetProperty("EventIdName", out _).Should().BeFalse();
             doc.TryGetProperty("EventIdName", out _).Should().BeFalse();
-            doc.TryGetProperty("CategoryName", out _).Should().BeFalse();
+            doc.TryGetProperty("Category", out _).Should().BeFalse();
         }
 
         /// <summary>
