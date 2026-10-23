@@ -1,0 +1,26 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/sandbox/">
+    <Project Path="sandbox/Benchmark/Benchmark.csproj" />
+    <Project Path="sandbox/ConsoleApp/ConsoleApp.csproj" />
+    <Project Path="sandbox/GeneratorSandbox/GeneratorSandbox.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/ZLogger.Generator/ZLogger.Generator.csproj" />
+    <Project Path="src/ZLogger.MessagePack/ZLogger.MessagePack.csproj" />
+    <Project Path="src/ZLogger/ZLogger.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ZLogger.Generator.Tests/ZLogger.Generator.Tests.csproj" />
+    <Project Path="tests/ZLogger.MessagePack.Tests.NetStandard21/ZLogger.MessagePack.Tests.NetStandard21.csproj" />
+    <Project Path="tests/ZLogger.MessagePack.Tests/ZLogger.MessagePack.Tests.csproj" />
+    <Project Path="tests/ZLogger.Tests/ZLogger.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/CommandTools/CommandTools.csproj" />
+  </Folder>
+</Solution>
