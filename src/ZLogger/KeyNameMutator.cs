@@ -1,6 +1,4 @@
-using System.Data.Common;
-
-namespace ZLogger;
+﻿namespace ZLogger;
 
 public interface IKeyNameMutator
 {
