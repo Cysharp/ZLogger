@@ -19,6 +19,12 @@ public readonly struct MessagePackEncodedText : IEquatable<MessagePackEncodedTex
 
     public static MessagePackEncodedText Encode(string stringValue)
     {
+        // MessagePackSerializer writes nil for null, which is not a valid key name.
+        if (stringValue is null)
+        {
+            throw new ArgumentNullException(nameof(stringValue));
+        }
+
         return new MessagePackEncodedText(stringValue, MessagePackSerializer.Serialize(stringValue, MessagePackSerializerOptions.DefaultAot));
     }
 

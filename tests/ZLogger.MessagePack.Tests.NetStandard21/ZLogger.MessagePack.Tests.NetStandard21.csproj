@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!-- Runs the ZLogger.MessagePack.Tests sources against the netstandard2.1 build of ZLogger.MessagePack, so that the code paths
-       compiled only for netstandard (shims, #if !NET9_0_OR_GREATER branches) are exercised.
+       compiled only for netstandard (the BitOperations shim and the #if !NET9_0_OR_GREATER branches) are exercised.
        On net8.0 the references resolve as in a .NET 8 application (ZLogger.MessagePack for netstandard2.1 with ZLogger for net8.0). -->
   <PropertyGroup>
     <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
