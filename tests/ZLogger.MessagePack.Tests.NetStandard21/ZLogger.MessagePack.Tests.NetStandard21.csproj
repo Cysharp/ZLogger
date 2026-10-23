@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Kept at 5.10.3 as before Central Package Management; FluentAssertions is to be replaced, so it is not aligned with the 6.7.0 of the other tests. -->
     <PackageReference Include="FluentAssertions" VersionOverride="5.10.3" />
     <PackageReference Include="MessagePack" />
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
