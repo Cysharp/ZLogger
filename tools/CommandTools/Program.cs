@@ -1,29 +1,24 @@
 ﻿using ConsoleAppFramework;
 using Markdig.Syntax.Inlines;
-using Microsoft.Extensions.Hosting;
 using System;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace CommandTools
 {
-    public class Program : ConsoleAppBase
+    public class Program
     {
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
-            await Host.CreateDefaultBuilder()
-                .ConfigureLogging(x =>
-                {
-                    x.ReplaceToSimpleConsole();
-                })
-                .RunConsoleAppFrameworkAsync<Program>(args);
+            var app = ConsoleApp.Create();
+            app.Add<Program>();
+            app.Run(args);
         }
 
         // build-table-of-contents ../../../../../ReadMe.md
         [Command("build-table-of-contents")]
-        public void BuildTableOfContents([Option(0)] string readMePath)
+        public void BuildTableOfContents([Argument] string readMePath)
         {
             var md = Markdig.Markdown.Parse(File.ReadAllText(readMePath));
 

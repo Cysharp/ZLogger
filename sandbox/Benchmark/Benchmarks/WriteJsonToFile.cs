@@ -131,7 +131,6 @@ public class WriteJsonToFile
                 FileName = GetLogFilePath("nlog.log"),
                 Layout = nLogLayout,
                 KeepFileOpen = true,
-                ConcurrentWrites = false,
                 AutoFlush = true
             };
             var asyncTarget = new NLog.Targets.Wrappers.AsyncTargetWrapper(target, 10000, AsyncTargetWrapperOverflowAction.Grow)
