@@ -15,7 +15,6 @@
     <PackageReference Include="Serilog.Sinks.Async" />
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Serilog.Sinks.File" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
     <PackageReference Include="Serilog.Sinks.TextWriter" />
     <PackageReference Include="System.IO.Hashing" />
     <PackageReference Include="ZeroLog" />
