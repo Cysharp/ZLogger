@@ -17,6 +17,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/ZLogger.Generator.Tests/ZLogger.Generator.Tests.csproj" />
     <Project Path="tests/ZLogger.MessagePack.Tests.NetStandard21/ZLogger.MessagePack.Tests.NetStandard21.csproj" />
+    <Project Path="tests/ZLogger.MessagePack.Tests.NetStandardTypes/ZLogger.MessagePack.Tests.NetStandardTypes.csproj" />
     <Project Path="tests/ZLogger.MessagePack.Tests/ZLogger.MessagePack.Tests.csproj" />
     <Project Path="tests/ZLogger.Tests/ZLogger.Tests.csproj" />
   </Folder>

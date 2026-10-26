@@ -684,6 +684,11 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
         }
     }
 
+    // Values are serialized through the IBufferWriter<byte> entry points, never through the ones that take a ref TWriteBuffer.
+    // A formatter from a library compiled against a netstandard build of MessagePack (a [MessagePackObject] type or a custom
+    // formatter in the options) can serve only the Compatible (non-ref-struct) buffers. The IBufferWriter<byte> entry points
+    // reroute such values to those buffers, while the ref TWriteBuffer entry points cannot change the caller's buffer type and
+    // throw instead. Other values still go through the ref struct buffers inside MessagePack.
     void SerializeValue<TWriteBuffer, T>(
         ref TWriteBuffer writeBuffer,
         IBufferWriter<byte> underlyingWriter,
@@ -693,12 +698,8 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
         , allows ref struct
 #endif
     {
-#if NET9_0_OR_GREATER
-        MessagePackSerializer.Serialize(ref writeBuffer, value, MessagePackSerializerOptions);
-#else
         writeBuffer.Flush();
         MessagePackSerializer.Serialize(underlyingWriter, value, MessagePackSerializerOptions);
-#endif
     }
 
     void SerializeValue<TWriteBuffer>(
@@ -711,12 +712,8 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
         , allows ref struct
 #endif
     {
-#if NET9_0_OR_GREATER
-        MessagePackSerializer.Serialize(type, ref writeBuffer, value, MessagePackSerializerOptions);
-#else
         writeBuffer.Flush();
         MessagePackSerializer.Serialize(type, underlyingWriter, value, MessagePackSerializerOptions);
-#endif
     }
 
     // Takes the buffer out of its thread-static slot, which all instances share. Formatting can re-enter a
