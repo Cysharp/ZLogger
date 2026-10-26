@@ -19,6 +19,7 @@
   <ItemGroup>
    <ProjectReference Include="..\..\src\ZLogger.MessagePack\ZLogger.MessagePack.csproj" />
    <ProjectReference Include="..\..\src\ZLogger\ZLogger.csproj" />
+   <ProjectReference Include="..\ZLogger.MessagePack.Tests.NetStandardTypes\ZLogger.MessagePack.Tests.NetStandardTypes.csproj" />
    <ProjectReference Include="..\..\src\ZLogger.Generator\ZLogger.Generator.csproj">
      <OutputItemType>Analyzer</OutputItemType>
      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
