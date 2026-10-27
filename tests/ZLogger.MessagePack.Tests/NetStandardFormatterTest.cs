@@ -93,6 +93,6 @@ public class NetStandardFormatterTest
 
         // The custom formatter writes the UTC ticks as an integer (uint64, the smallest form for this positive value),
         // not the array that the built-in formatter writes.
-        Assert.EndsWith("CF" + dto.UtcTicks.ToString("X16"), expected);
+        Assert.EndsWith("CF" + dto.UtcTicks.ToString("X16"), expected, StringComparison.Ordinal);
     }
 }

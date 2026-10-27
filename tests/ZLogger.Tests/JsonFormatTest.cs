@@ -199,7 +199,7 @@ namespace ZLogger.Tests
 
             var format = () => Task.Run(() => processor.DequeueAsString(), TestContext.Current.CancellationToken);
             var thrown = await Assert.ThrowsAsync<InvalidOperationException>(format);
-            Assert.Contains(nameof(FailingMutator), thrown.Message);
+            Assert.Contains(nameof(FailingMutator), thrown.Message, StringComparison.Ordinal);
         }
 
         sealed class FailingMutator : IKeyNameMutator
@@ -467,7 +467,7 @@ namespace ZLogger.Tests
             using var sr = new StreamReader(new MemoryStream(ms.ToArray()), Encoding.UTF8);
             var json = sr.ReadLine();
 
-            Assert.DoesNotContain("\\u", json);
+            Assert.DoesNotContain("\\u", json, StringComparison.Ordinal);
         }
 
         class MyClass

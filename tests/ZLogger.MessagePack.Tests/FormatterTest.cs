@@ -408,9 +408,9 @@ public class FormatterTest
         var failing = () => System.Threading.Tasks.Task.Run(() => logger.ZLogInformation($"{x}"), TestContext.Current.CancellationToken);
         var thrown = await Assert.ThrowsAsync<AggregateException>(failing);
         var inner = Assert.IsType<InvalidOperationException>(Assert.Single(thrown.InnerExceptions));
-        Assert.Contains(nameof(FailingMutator), inner.Message);
-        Assert.Contains("11 times", inner.Message);
-        Assert.Contains("16384 characters", inner.Message);
+        Assert.Contains(nameof(FailingMutator), inner.Message, StringComparison.Ordinal);
+        Assert.Contains("11 times", inner.Message, StringComparison.Ordinal);
+        Assert.Contains("16384 characters", inner.Message, StringComparison.Ordinal);
 
         Assert.Equal(11, mutator.Calls);
         Assert.Equal(System.Linq.Enumerable.Select(System.Linq.Enumerable.Range(0, 11), i => 16 << i), mutator.DestinationLengths);
@@ -460,7 +460,7 @@ public class FormatterTest
         }, TestContext.Current.CancellationToken);
         var thrown = await Assert.ThrowsAsync<AggregateException>(failing);
         var inner = Assert.IsType<InvalidOperationException>(Assert.Single(thrown.InnerExceptions));
-        Assert.Contains($"{300 * 1024} characters", inner.Message);
+        Assert.Contains($"{300 * 1024} characters", inner.Message, StringComparison.Ordinal);
 
         Assert.Equal(System.Linq.Enumerable.Select(System.Linq.Enumerable.Range(0, 11), i => 300 << i), mutator.DestinationLengths);
     }
@@ -542,7 +542,7 @@ public class FormatterTest
         Assert.Equal("AAA 100", (string)msgpack["Message"]);
         Assert.Equal(100, (int)msgpack["x"]);
         Assert.Equal(nameof(IncludeAllProperties), (string)msgpack["MemberName"]);
-        Assert.EndsWith("FormatterTest.cs", (string)msgpack["FilePath"]);
+        Assert.EndsWith("FormatterTest.cs", (string)msgpack["FilePath"], StringComparison.Ordinal);
         Assert.InRange((int)msgpack["LineNumber"], 1, int.MaxValue);
     }
 
