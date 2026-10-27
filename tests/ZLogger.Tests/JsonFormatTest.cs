@@ -467,6 +467,7 @@ namespace ZLogger.Tests
             using var sr = new StreamReader(new MemoryStream(ms.ToArray()), Encoding.UTF8);
             var json = sr.ReadLine();
 
+            Assert.NotNull(json);
             Assert.DoesNotContain("\\u", json, StringComparison.Ordinal);
         }
 
