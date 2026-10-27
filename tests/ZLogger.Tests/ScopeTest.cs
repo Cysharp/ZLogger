@@ -1,5 +1,4 @@
 using System;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -45,9 +44,9 @@ public class ScopeTest
         }
 
         var doc = JsonDocument.Parse(processor.DequeueAsString()).RootElement;
-        doc.GetProperty("Message").GetString().Should().Be("FooBar333 NanoNano444");
-        doc.GetProperty("X").GetInt32().Should().Be(111);
-        doc.GetProperty("Y").ValueKind.Should().Be(JsonValueKind.Null);
+        Assert.Equal("FooBar333 NanoNano444", doc.GetProperty("Message").GetString());
+        Assert.Equal(111, doc.GetProperty("X").GetInt32());
+        Assert.Equal(JsonValueKind.Null, doc.GetProperty("Y").ValueKind);
     }
         
     [Fact]
@@ -62,8 +61,8 @@ public class ScopeTest
 
         var doc = JsonDocument.Parse(processor.DequeueAsString()).RootElement;
 
-        doc.GetProperty("Message").GetString().Should().Be("FooBar100 NanoNano200");
-        doc.GetProperty("Hoge").GetString().Should().Be("AAA");
+        Assert.Equal("FooBar100 NanoNano200", doc.GetProperty("Message").GetString());
+        Assert.Equal("AAA", doc.GetProperty("Hoge").GetString());
     }
         
     [Fact]
@@ -78,10 +77,10 @@ public class ScopeTest
 
         var json = processor.DequeueAsString();
         var doc = JsonDocument.Parse(json).RootElement;
-        doc.GetProperty("Message").GetString().Should().Be("FooBar100 NanoNano200");
+        Assert.Equal("FooBar100 NanoNano200", doc.GetProperty("Message").GetString());
             
         var scope = doc.GetProperty("Scope");
-        scope.GetProperty("X").GetInt32().Should().Be(999);
+        Assert.Equal(999, scope.GetProperty("X").GetInt32());
     }
         
     [Fact]
@@ -100,13 +99,13 @@ public class ScopeTest
         var log1 = JsonDocument.Parse(processor.DequeueAsString()).RootElement;
         var log2 = JsonDocument.Parse(processor.DequeueAsString()).RootElement;
 
-        log1.GetProperty("Message").GetString().Should().Be("Message 1");
-        log1.GetProperty("X").GetInt32().Should().Be(111);
-        log1.TryGetProperty("Y", out _).Should().BeFalse();
+        Assert.Equal("Message 1", log1.GetProperty("Message").GetString());
+        Assert.Equal(111, log1.GetProperty("X").GetInt32());
+        Assert.False(log1.TryGetProperty("Y", out _));
 
-        log2.GetProperty("Message").GetString().Should().Be("Message 2");
-        log2.GetProperty("X").GetInt32().Should().Be(111);
-        log2.GetProperty("Y").GetInt32().Should().Be(222);
+        Assert.Equal("Message 2", log2.GetProperty("Message").GetString());
+        Assert.Equal(111, log2.GetProperty("X").GetInt32());
+        Assert.Equal(222, log2.GetProperty("Y").GetInt32());
     }
 
     [Fact]

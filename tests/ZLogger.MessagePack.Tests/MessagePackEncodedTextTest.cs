@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Text;
-using FluentAssertions;
 using Xunit;
 
 namespace ZLogger.MessagePack.Tests;
@@ -33,7 +32,7 @@ public class MessagePackEncodedTextTest
     {
         var expected = expectedHeader.Concat(Encoding.UTF8.GetBytes(value)).ToArray();
 
-        MessagePackEncodedText.Encode(value).Utf8EncodedValue.ToArray().Should().Equal(expected);
+        Assert.Equal(expected, MessagePackEncodedText.Encode(value).Utf8EncodedValue.ToArray());
     }
 
     /// <summary>
@@ -43,6 +42,6 @@ public class MessagePackEncodedTextTest
     public void EncodeRejectsNull()
     {
         var encode = () => MessagePackEncodedText.Encode(null!);
-        encode.Should().Throw<System.ArgumentNullException>();
+        Assert.Throws<System.ArgumentNullException>(() => encode());
     }
 }

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Configuration;
@@ -27,9 +26,9 @@ public class BuilderTest
 
         var logger = loggerFactory.CreateLogger<BuilderTest>();
 
-        logger.IsEnabled(LogLevel.Information).Should().BeFalse();
-        logger.IsEnabled(LogLevel.Warning).Should().BeFalse();
-        logger.IsEnabled(LogLevel.Error).Should().BeTrue();
+        Assert.False(logger.IsEnabled(LogLevel.Information));
+        Assert.False(logger.IsEnabled(LogLevel.Warning));
+        Assert.True(logger.IsEnabled(LogLevel.Error));
     }
 
     [Fact]
@@ -58,11 +57,11 @@ public class BuilderTest
 
         var logger = loggerFactory.CreateLogger<BuilderTest>();
 
-        logger.IsEnabled(LogLevel.Information).Should().BeFalse();
-        logger.IsEnabled(LogLevel.Warning).Should().BeTrue();
-        logger.IsEnabled(LogLevel.Error).Should().BeTrue();
+        Assert.False(logger.IsEnabled(LogLevel.Information));
+        Assert.True(logger.IsEnabled(LogLevel.Warning));
+        Assert.True(logger.IsEnabled(LogLevel.Error));
         
         logger.LogWarning($"hoge");
-        messages.Should().BeEmpty();
+        Assert.Empty(messages);
     }
 }

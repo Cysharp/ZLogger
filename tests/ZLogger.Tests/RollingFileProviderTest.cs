@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 using ZLogger.Providers;
@@ -46,7 +45,7 @@ public class RollingFileProviderTest
             });
         });
         
-        File.Exists(path1).Should().Be(true);
+        Assert.True(File.Exists(path1));
         
         var logger = loggerFactory.CreateLogger("mytest");
         logger.LogDebug("foo");
@@ -54,7 +53,7 @@ public class RollingFileProviderTest
         logger.LogDebug("baz");
    
         await Task.Delay(100, TestContext.Current.CancellationToken); // wait for flush
-        File.Exists(path1).Should().BeTrue();
+        Assert.True(File.Exists(path1));
         
         // Next day
         timeProvider.Advance(TimeSpan.FromDays(1));
@@ -64,24 +63,24 @@ public class RollingFileProviderTest
         logger.LogDebug("c");
 
         await Task.Delay(100, TestContext.Current.CancellationToken); // wait for flush
-        File.Exists(path2).Should().BeTrue();
+        Assert.True(File.Exists(path2));
         
 
         loggerFactory.Dispose();
 
         using (var fs = OpenFile(path1))
         {
-            fs.ReadLine().Should().Be("foo");
-            fs.ReadLine().Should().Be("bar");
-            fs.ReadLine().Should().Be("baz");
-            fs.ReadLine().Should().BeNull();
+            Assert.Equal("foo", fs.ReadLine());
+            Assert.Equal("bar", fs.ReadLine());
+            Assert.Equal("baz", fs.ReadLine());
+            Assert.Null(fs.ReadLine());
         }
 
         using (var fs = OpenFile(path2))
         {
-            fs.ReadLine().Should().Be("a");
-            fs.ReadLine().Should().Be("v");
-            fs.ReadLine().Should().Be("c");
+            Assert.Equal("a", fs.ReadLine());
+            Assert.Equal("v", fs.ReadLine());
+            Assert.Equal("c", fs.ReadLine());
         }        
     }
     
@@ -105,7 +104,7 @@ public class RollingFileProviderTest
             });
         });
         
-        File.Exists(path1).Should().Be(true);
+        Assert.True(File.Exists(path1));
         
         var logger = loggerFactory.CreateLogger("mytest");
         logger.LogDebug(new string('a', 10000));
@@ -113,7 +112,7 @@ public class RollingFileProviderTest
         logger.LogDebug("tako");
         await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken); // wait for flush
 
-        File.Exists(path2).Should().BeTrue();
+        Assert.True(File.Exists(path2));
     }
     
     static StreamReader OpenFile(string path)
