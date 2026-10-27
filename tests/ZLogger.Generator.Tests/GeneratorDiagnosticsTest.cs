@@ -23,8 +23,8 @@ public class GeneratorDiagnosticsTest(ITestOutputHelper output)
 
         if (!allowMultipleError)
         {
-            Assert.Single(diagnostics);
-            Assert.Equal("ZLOG" + id.ToString("000"), diagnostics[0].Id);
+            var diagnostic = Assert.Single(diagnostics);
+            Assert.Equal("ZLOG" + id.ToString("000"), diagnostic.Id);
         }
         else
         {

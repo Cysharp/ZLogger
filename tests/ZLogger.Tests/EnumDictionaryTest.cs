@@ -30,9 +30,9 @@ namespace ZLogger.Tests
             Assert.Null(EnumDictionary<FlagsEnum>.GetStringName(FlagsEnum.A | FlagsEnum.D));
 
             Assert.Equal("Foo", EnumDictionary<Duplicate>.GetStringName(Duplicate.Foo));
-            Assert.True((EnumDictionary<Duplicate>.GetStringName(Duplicate.Bar) is "MoreBar" or "Bar"));
+            Assert.Contains(EnumDictionary<Duplicate>.GetStringName(Duplicate.Bar), new[] { "MoreBar", "Bar" });
             Assert.Equal("Baz", EnumDictionary<Duplicate>.GetStringName(Duplicate.Baz));
-            Assert.True((EnumDictionary<Duplicate>.GetStringName(Duplicate.MoreBar) is "MoreBar" or "Bar"));
+            Assert.Contains(EnumDictionary<Duplicate>.GetStringName(Duplicate.MoreBar), new[] { "MoreBar", "Bar" });
             Assert.Equal("End", EnumDictionary<Duplicate>.GetStringName(Duplicate.End));
         }
 

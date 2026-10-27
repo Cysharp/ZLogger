@@ -41,7 +41,6 @@ public class MessagePackEncodedTextTest
     [Fact]
     public void EncodeRejectsNull()
     {
-        var encode = () => MessagePackEncodedText.Encode(null!);
-        Assert.Throws<System.ArgumentNullException>(() => encode());
+        Assert.Throws<System.ArgumentNullException>(() => MessagePackEncodedText.Encode(null!));
     }
 }

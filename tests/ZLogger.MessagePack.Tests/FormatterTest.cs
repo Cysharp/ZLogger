@@ -757,7 +757,7 @@ public class FormatterTest
         logger.Log1(IntValue, IntNullableValue, IntNull, FloatValue, FloatNullableValue, FloatNull, StringValue);
         var msg2 = processor.DequeueAsRaw();
 
-        Assert.True(msg1.AsSpan().SequenceEqual(msg2));
+        Assert.Equal(msg1, msg2);
     }
 }
 
