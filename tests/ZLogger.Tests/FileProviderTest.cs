@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System.IO;
 
 namespace ZLogger.Tests;
@@ -28,10 +27,10 @@ public class FileProviderTest
 
             using (var fs = File.OpenText(Path))
             {
-                fs.ReadLine().Should().Be("foo");
-                fs.ReadLine().Should().Be("bar");
-                fs.ReadLine().Should().Be("baz");
-                fs.ReadLine().Should().BeNull();
+                Assert.Equal("foo", fs.ReadLine());
+                Assert.Equal("bar", fs.ReadLine());
+                Assert.Equal("baz", fs.ReadLine());
+                Assert.Null(fs.ReadLine());
             }
         }
 
@@ -54,13 +53,13 @@ public class FileProviderTest
 
             using (var fs = File.OpenText(Path))
             {
-                fs.ReadLine().Should().Be("foo");
-                fs.ReadLine().Should().Be("bar");
-                fs.ReadLine().Should().Be("baz");
-                fs.ReadLine().Should().Be("abc");
-                fs.ReadLine().Should().Be("def");
-                fs.ReadLine().Should().Be("ghi");
-                fs.ReadLine().Should().BeNull();
+                Assert.Equal("foo", fs.ReadLine());
+                Assert.Equal("bar", fs.ReadLine());
+                Assert.Equal("baz", fs.ReadLine());
+                Assert.Equal("abc", fs.ReadLine());
+                Assert.Equal("def", fs.ReadLine());
+                Assert.Equal("ghi", fs.ReadLine());
+                Assert.Null(fs.ReadLine());
             }
         }
     }
