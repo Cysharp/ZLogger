@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Time.Testing;
 using ZLogger.Formatters;
 
 namespace ZLogger.Tests
@@ -66,14 +69,21 @@ namespace ZLogger.Tests
 
             var processor = new TestProcessor(options);
 
+            var now = new DateTimeOffset(2026, 10, 23, 1, 2, 3, 456, TimeSpan.Zero);
+            var timeProvider = new FakeTimeProvider(now);
+
             var loggerFactory = LoggerFactory.Create(x =>
             {
                 x.SetMinimumLevel(LogLevel.Debug);
-                x.AddZLoggerLogProcessor(processor);
+                // TimeProvider takes effect on the provider's options, not on the ones the processor formats with.
+                x.AddZLoggerLogProcessor(providerOptions =>
+                {
+                    providerOptions.TimeProvider = timeProvider;
+                    return processor;
+                });
             });
             var logger = loggerFactory.CreateLogger("test");
 
-            var now = DateTime.UtcNow;
             logger.ZLogInformation(new EventId(1, "TEST"), $"HELLO!");
 
             var json = processor.DequeueAsString();
@@ -81,10 +91,10 @@ namespace ZLogger.Tests
 
             doc.TryGetProperty("Message", out _).Should().BeFalse();
             doc.GetProperty("LogLevel").GetString().Should().Be("Information");
-            doc.GetProperty("Timestamp").GetDateTime().Should().BeOnOrAfter(now);
+            doc.GetProperty("Timestamp").GetDateTimeOffset().Should().Be(now);
             doc.GetProperty("EventId").GetInt32().Should().Be(1);
             doc.TryGetProperty("EventIdName", out _).Should().BeFalse();
-            doc.TryGetProperty("CategoryName", out _).Should().BeFalse();
+            doc.TryGetProperty("Category", out _).Should().BeFalse();
         }
 
         [Fact]
@@ -115,7 +125,114 @@ namespace ZLogger.Tests
             doc.TryGetProperty("EventId", out _).Should().BeFalse();
             doc.TryGetProperty("EventIdName", out _).Should().BeFalse();
             doc.TryGetProperty("EventIdName", out _).Should().BeFalse();
-            doc.TryGetProperty("CategoryName", out _).Should().BeFalse();
+            doc.TryGetProperty("Category", out _).Should().BeFalse();
+        }
+
+        /// <summary>
+        /// Ensures that a key name mutator that needs more room than the key name gets it: an empty key name does not
+        /// loop forever (the buffer has a minimum size), and a long key name grows the buffer past the stack threshold
+        /// into a pooled array.
+        /// </summary>
+        [Fact(Timeout = 10000)]
+        public async Task KeyNameMutatorThatNeedsMoreRoom()
+        {
+            var options = new ZLoggerOptions
+            {
+                IncludeScopes = true
+            };
+            options.UseJsonFormatter(formatter =>
+            {
+                formatter.KeyNameMutator = new PrefixMutator();
+            });
+
+            var processor = new TestProcessor(options);
+
+            using var loggerFactory = LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Debug);
+                // IncludeScopes takes effect on the provider's options, not on the ones the processor formats with.
+                x.AddZLoggerLogProcessor(providerOptions =>
+                {
+                    providerOptions.IncludeScopes = true;
+                    return processor;
+                });
+            });
+            var logger = loggerFactory.CreateLogger("test");
+
+            var longKey = new string('k', 200);
+            using (logger.BeginScope(new[] { new KeyValuePair<string, object>("", 1), new KeyValuePair<string, object>(longKey, 2) }))
+            {
+                logger.ZLogDebug($"AAA");
+            }
+
+            var json = await Task.Run(() => processor.DequeueAsString(), TestContext.Current.CancellationToken);
+            var doc = JsonDocument.Parse(json).RootElement;
+
+            doc.GetProperty("p_").GetInt32().Should().Be(1);
+            doc.GetProperty("p_" + longKey).GetInt32().Should().Be(2);
+        }
+
+        /// <summary>
+        /// Ensures that a key name mutator that never succeeds makes formatting fail with an InvalidOperationException naming the
+        /// mutator, after a bounded number of retries, instead of growing the buffer until it runs out of memory.
+        /// </summary>
+        [Fact(Timeout = 10000)]
+        public async Task KeyNameMutatorThatNeverSucceedsThrows()
+        {
+            var options = new ZLoggerOptions();
+            options.UseJsonFormatter(formatter =>
+            {
+                formatter.KeyNameMutator = new FailingMutator();
+            });
+
+            var processor = new TestProcessor(options);
+
+            using var loggerFactory = LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Debug);
+                x.AddZLoggerLogProcessor(processor);
+            });
+            var logger = loggerFactory.CreateLogger("test");
+
+            var x = 1;
+            logger.ZLogDebug($"{x}");
+
+            var format = () => Task.Run(() => processor.DequeueAsString(), TestContext.Current.CancellationToken);
+            (await format.Should().ThrowAsync<InvalidOperationException>()).Which.Message.Should().Contain(nameof(FailingMutator));
+        }
+
+        sealed class FailingMutator : IKeyNameMutator
+        {
+            public bool IsSupportSlice => false;
+
+            public ReadOnlySpan<char> Slice(ReadOnlySpan<char> source) => throw new NotSupportedException();
+
+            public bool TryMutate(ReadOnlySpan<char> source, Span<char> destination, out int written)
+            {
+                written = 0;
+                return false;
+            }
+        }
+
+        // Prepends "p_", so the destination must hold at least two characters more than the source.
+        sealed class PrefixMutator : IKeyNameMutator
+        {
+            public bool IsSupportSlice => false;
+
+            public ReadOnlySpan<char> Slice(ReadOnlySpan<char> source) => throw new NotSupportedException();
+
+            public bool TryMutate(ReadOnlySpan<char> source, Span<char> destination, out int written)
+            {
+                if (destination.Length < source.Length + 2)
+                {
+                    written = 0;
+                    return false;
+                }
+                "p_".AsSpan().CopyTo(destination);
+                source.CopyTo(destination[2..]);
+                written = source.Length + 2;
+                return true;
+            }
         }
 
         [Fact]

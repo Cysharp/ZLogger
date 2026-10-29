@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Numerics;
+
 using MessagePack;
+
 using Microsoft.Extensions.Logging;
+
+using SerializerFoundation;
+
+using ZLogger.MessagePack.Internal;
 
 namespace ZLogger.MessagePack;
 
@@ -15,12 +20,12 @@ public record MessagePackPropertyNames(
     MessagePackEncodedText EventIdName,
     MessagePackEncodedText Exception,
     MessagePackEncodedText Message,
-    
+
     MessagePackEncodedText ExceptionName,
     MessagePackEncodedText ExceptionMessage,
     MessagePackEncodedText ExceptionStackTrace,
     MessagePackEncodedText ExceptionInnerException,
-    
+
     MessagePackEncodedText LogLevelTrace,
     MessagePackEncodedText LogLevelDebug,
     MessagePackEncodedText LogLevelInformation,
@@ -28,7 +33,7 @@ public record MessagePackPropertyNames(
     MessagePackEncodedText LogLevelError,
     MessagePackEncodedText LogLevelCritical,
     MessagePackEncodedText LogLevelNone,
-    
+
     MessagePackEncodedText? ParameterKeyValues = null,
     MessagePackEncodedText? ScopeKeyValues = null)
 {
@@ -54,6 +59,11 @@ public record MessagePackPropertyNames(
         LogLevelCritical: MessagePackEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.Critical)),
         LogLevelNone: MessagePackEncodedText.Encode(nameof(Microsoft.Extensions.Logging.LogLevel.None)));
 
+    // Declared as init properties rather than positional parameters, so that the existing constructor stays compatible.
+    public MessagePackEncodedText MemberName { get; init; } = MessagePackEncodedText.Encode(nameof(LogInfo.MemberName));
+    public MessagePackEncodedText FilePath { get; init; } = MessagePackEncodedText.Encode(nameof(LogInfo.FilePath));
+    public MessagePackEncodedText LineNumber { get; init; } = MessagePackEncodedText.Encode(nameof(LogInfo.LineNumber));
+
     public MessagePackEncodedText GetEncodedLogLevel(LogLevel logLevel) => logLevel switch
     {
         Microsoft.Extensions.Logging.LogLevel.Trace => LogLevelTrace,
@@ -72,16 +82,86 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
     [ThreadStatic]
     static ArrayBufferWriter<byte>? threadStaticBufferWriter;
 
+    [ThreadStatic]
+    static ArrayBufferWriter<byte>? threadStaticEntryBufferWriter;
+
+    // Doubling the buffer this many times allows a mutated key name up to 1024 times the initial buffer size.
+    // A cleaner solution would be for the mutator to report the maximum length of its output, so that the buffer could be
+    // sized once and no retry limit would be needed. Adding that member to IKeyNameMutator would break existing implementations
+    // (default interface methods are not available on netstandard2.0, which ZLogger targets); a separate optional interface
+    // would avoid the break but add API surface, so a fixed limit is used for now.
+    const int MaxKeyNameMutatorRetries = 10;
+
     bool IZLoggerFormatter.WithLineBreak => false;
 
-    public MessagePackSerializerOptions MessagePackSerializerOptions { get; set; } = MessagePackSerializer.DefaultOptions;
+    /// <summary>
+    /// Options used to serialize the timestamp, every non-null scope value, and parameter values whose parameter type is not
+    /// bool, char, sbyte, byte, short, ushort, int, uint, long, ulong, float, double, string or an enum (or the nullable form of
+    /// one of these), for example DateTime, DateTimeOffset, TimeSpan, Guid, decimal, nint, Int128 and other objects.
+    /// Parameters of the excluded types (enums as their underlying integer, so an enum setting in the options does not apply),
+    /// null values, and the other log properties (such as the category, the message and the exception) are always written
+    /// directly, regardless of the options.
+    /// </summary>
+    /// <remarks>
+    /// Options with a <see cref="MessagePackSerializerOptions.MessageProcessor"/> are rejected.
+    /// A processor such as compression applies to a whole message, while this formatter serializes each value
+    /// into a part of a log entry. Compress log output at the destination instead.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">The value is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">The options have a <see cref="MessagePackSerializerOptions.MessageProcessor"/>.</exception>
+    public MessagePackSerializerOptions MessagePackSerializerOptions
+    {
+        get;
+        set
+        {
+            if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+            if (value.MessageProcessor != null)
+            {
+                throw new ArgumentException("MessageProcessor is not supported, because it applies to a whole message while the formatter serializes each value into a part of a log entry. Compress log output at the destination instead.", nameof(value));
+            }
+            field = value;
+        }
+    } = MessagePackSerializerOptions.Default;
+
     public IncludeProperties IncludeProperties { get; set; } = IncludeProperties.Default;
     public MessagePackPropertyNames PropertyNames { get; set; } = MessagePackPropertyNames.Default;
     public IKeyNameMutator? KeyNameMutator { get; set; }
 
     public void FormatLogEntry(IBufferWriter<byte> writer, IZLoggerEntry entry)
     {
-        var messagePackWriter = new MessagePackWriter(writer);
+        // Format the entry into a staging buffer and copy it to writer only when it is complete.
+        // Writing values commits the bytes written so far, so if serializing a value throws, writing straight into
+        // writer would leave a partial map there, and every entry after it would be read incorrectly.
+        var staging = TakeThreadStaticBufferWriter(ref threadStaticEntryBufferWriter);
+        try
+        {
+            FormatLogEntryCore(staging, entry);
+
+            // Request the whole entry at once instead of using writer.Write. Write fills whatever span GetSpan() returns,
+            // commits it with Advance, and throws if the next GetSpan() returns an empty span (as StreamBufferWriter does when
+            // its buffer is exactly full), leaving a partial entry in writer. GetSpan(sizeHint) returns at least sizeHint bytes,
+            // so one copy suffices, and a writer that fails does so before any byte of the entry is committed.
+            var staged = staging.WrittenSpan;
+            staged.CopyTo(writer.GetSpan(staged.Length));
+            writer.Advance(staged.Length);
+        }
+        finally
+        {
+            threadStaticEntryBufferWriter = staging;
+        }
+    }
+
+    void FormatLogEntryCore(IBufferWriter<byte> writer, IZLoggerEntry entry)
+    {
+#if NET9_0_OR_GREATER
+        var writeBuffer = new BufferWriterWriteBuffer(writer);
+#else
+        var writeBuffer = new CompatibleBufferWriterWriteBuffer(writer);
+#endif
+
         var propCount = BitOperations.PopCount((uint)IncludeProperties);
         var scopePropCount = 0;
 
@@ -92,10 +172,12 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
             propCount--;
             propCount += entry.ParameterCount;
         }
+
         if (entry.LogInfo.Exception == null && ((IncludeProperties & IncludeProperties.Exception) != 0))
         {
             propCount--;
         }
+
         if ((IncludeProperties & IncludeProperties.ScopeKeyValues) != 0)
         {
             if (entry.LogInfo.ScopeState == null)
@@ -119,52 +201,81 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
             }
         }
 
-        messagePackWriter.WriteMapHeader(propCount);
+        writeBuffer.WriteMapHeader(propCount);
 
         // LogInfo
         var flag = IncludeProperties;
         if ((flag & IncludeProperties.CategoryName) != 0)
         {
-            messagePackWriter.WriteRaw(PropertyNames.Category.Utf8EncodedValue);
-            messagePackWriter.WriteString(entry.LogInfo.Category.Utf8Span);
+            writeBuffer.WriteRaw(PropertyNames.Category.Utf8EncodedValue);
+            writeBuffer.WriteString(entry.LogInfo.Category.Utf8Span);
         }
+
         if ((flag & IncludeProperties.LogLevel) != 0)
         {
-            messagePackWriter.WriteRaw(PropertyNames.LogLevel.Utf8EncodedValue);
-            messagePackWriter.WriteRaw(PropertyNames.GetEncodedLogLevel(entry.LogInfo.LogLevel).Utf8EncodedValue);
+            writeBuffer.WriteRaw(PropertyNames.LogLevel.Utf8EncodedValue);
+            writeBuffer.WriteRaw(PropertyNames.GetEncodedLogLevel(entry.LogInfo.LogLevel).Utf8EncodedValue);
         }
+
         if ((flag & IncludeProperties.EventIdValue) != 0)
         {
-            messagePackWriter.WriteRaw(PropertyNames.EventId.Utf8EncodedValue);
-            messagePackWriter.WriteInt32(entry.LogInfo.EventId.Id);
+            writeBuffer.WriteRaw(PropertyNames.EventId.Utf8EncodedValue);
+            writeBuffer.WriteInt32(entry.LogInfo.EventId.Id);
         }
+
         if ((flag & IncludeProperties.EventIdName) != 0)
         {
-            messagePackWriter.WriteRaw(PropertyNames.EventIdName.Utf8EncodedValue);
-            messagePackWriter.Write(entry.LogInfo.EventId.Name);
+            writeBuffer.WriteRaw(PropertyNames.EventIdName.Utf8EncodedValue);
+            writeBuffer.WriteString(entry.LogInfo.EventId.Name);
         }
+
         if ((flag & IncludeProperties.Timestamp) != 0)
         {
-            messagePackWriter.WriteRaw(PropertyNames.Timestamp.Utf8EncodedValue);
-            MessagePackSerializerOptions.Resolver.GetFormatterWithVerify<DateTime>()
-                .Serialize(ref messagePackWriter, entry.LogInfo.Timestamp.Utc.DateTime, MessagePackSerializerOptions);
+            writeBuffer.WriteRaw(PropertyNames.Timestamp.Utf8EncodedValue);
+            SerializeValue(ref writeBuffer, writer, entry.LogInfo.Timestamp.Utc.DateTime);
         }
+
         if ((flag & IncludeProperties.Exception) != 0)
         {
             if (entry.LogInfo.Exception is { } ex)
             {
-                messagePackWriter.WriteRaw(PropertyNames.Exception.Utf8EncodedValue);
-                WriteException(ref messagePackWriter, ex);
+                writeBuffer.WriteRaw(PropertyNames.Exception.Utf8EncodedValue);
+                WriteException(ref writeBuffer, ex);
             }
+        }
+
+        if ((flag & IncludeProperties.MemberName) != 0)
+        {
+            writeBuffer.WriteRaw(PropertyNames.MemberName.Utf8EncodedValue);
+            writeBuffer.WriteString(entry.LogInfo.MemberName);
+        }
+
+        if ((flag & IncludeProperties.FilePath) != 0)
+        {
+            writeBuffer.WriteRaw(PropertyNames.FilePath.Utf8EncodedValue);
+            writeBuffer.WriteString(entry.LogInfo.FilePath);
+        }
+
+        if ((flag & IncludeProperties.LineNumber) != 0)
+        {
+            writeBuffer.WriteRaw(PropertyNames.LineNumber.Utf8EncodedValue);
+            writeBuffer.WriteInt32(entry.LogInfo.LineNumber);
         }
 
         // Message
         if ((flag & IncludeProperties.Message) != 0)
         {
-            messagePackWriter.WriteRaw(PropertyNames.Message.Utf8EncodedValue);
-            var buffer = GetThreadStaticBufferWriter();
-            entry.ToString(buffer);
-            messagePackWriter.WriteString(buffer.WrittenSpan);
+            writeBuffer.WriteRaw(PropertyNames.Message.Utf8EncodedValue);
+            var buffer = TakeThreadStaticBufferWriter(ref threadStaticBufferWriter);
+            try
+            {
+                entry.ToString(buffer);
+                writeBuffer.WriteString(buffer.WrittenSpan);
+            }
+            finally
+            {
+                threadStaticBufferWriter = buffer;
+            }
         }
 
         // Scope
@@ -175,24 +286,25 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
                 // nested
                 if (PropertyNames.ScopeKeyValues != null)
                 {
-                    messagePackWriter.WriteRaw(PropertyNames.ScopeKeyValues.Value.Utf8EncodedValue);
-                    messagePackWriter.WriteMapHeader(scopePropCount);
+                    writeBuffer.WriteRaw(PropertyNames.ScopeKeyValues.Value.Utf8EncodedValue);
+                    writeBuffer.WriteMapHeader(scopePropCount);
                 }
-                
+
                 foreach (var t in scopeProperties)
                 {
                     var (key, value) = t;
+
                     // If `BeginScope(format, arg1, arg2)` style is used, the first argument `format` string is passed with this name
                     if (key == "{OriginalFormat}") continue;
 
-                    WriteKeyName(ref messagePackWriter, key);
+                    WriteKeyName(ref writeBuffer, key);
                     if (value == null)
                     {
-                        messagePackWriter.WriteNil();
+                        writeBuffer.WriteNil();
                     }
                     else
                     {
-                        MessagePackSerializer.Serialize(value.GetType(), ref messagePackWriter, value, MessagePackSerializerOptions);
+                        SerializeValue(ref writeBuffer, writer, value.GetType(), value);
                     }
                 }
             }
@@ -204,22 +316,27 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
             // nested
             if (PropertyNames.ParameterKeyValues != null)
             {
-                messagePackWriter.WriteRaw(PropertyNames.ParameterKeyValues.Value.Utf8EncodedValue);
-                messagePackWriter.WriteMapHeader(entry.ParameterCount);
+                writeBuffer.WriteRaw(PropertyNames.ParameterKeyValues.Value.Utf8EncodedValue);
+                writeBuffer.WriteMapHeader(entry.ParameterCount);
             }
+
             for (var i = 0; i < entry.ParameterCount; i++)
             {
-                WriteKeyName(ref messagePackWriter, entry, i);
-                WriteParameterValue(ref messagePackWriter, entry, entry.GetParameterType(i), i);
+                WriteKeyName(ref writeBuffer, entry, i);
+                WriteParameterValue(ref writeBuffer, writer, entry, entry.GetParameterType(i), i);
             }
         }
 
-
-        messagePackWriter.Flush();
+        writeBuffer.Flush();
     }
 
-    void WriteKeyName<TEntry>(ref MessagePackWriter messagePackWriter, TEntry entry, int parameterIndex)
+    void WriteKeyName<TEntry, TWriteBuffer>(ref TWriteBuffer messagePackWriter, TEntry entry, int parameterIndex)
         where TEntry : IZLoggerEntry
+        where TWriteBuffer : struct, IWriteBuffer
+
+#if NET9_0_OR_GREATER
+        , allows ref struct
+#endif
     {
         if (entry.IsSupportUtf8ParameterKey)
         {
@@ -233,157 +350,204 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
         }
     }
 
-    void WriteKeyName(ref MessagePackWriter messagePackWriter, ReadOnlySpan<char> keyName)
+    void WriteKeyName<TWriteBuffer>(ref TWriteBuffer writeBuffer, ReadOnlySpan<char> keyName)
+        where TWriteBuffer : struct, IWriteBuffer
+
+#if NET9_0_OR_GREATER
+        , allows ref struct
+#endif
     {
         if (KeyNameMutator is { } mutator)
         {
             if (mutator.IsSupportSlice)
             {
-                messagePackWriter.Write(mutator.Slice(keyName));
+                writeBuffer.WriteString(mutator.Slice(keyName));
             }
             else
             {
-                var bufferSize = keyName.Length * 2;
-                while (!TryMutate(ref messagePackWriter, keyName, bufferSize))
+                // Start from at least 16 characters: for an empty key name keyName.Length * 2 is 0, and doubling 0 never grows the buffer.
+                var bufferSize = Math.Max(checked(keyName.Length * 2), 16);
+                var retries = 0;
+                while (!TryMutate(ref writeBuffer, keyName, bufferSize))
                 {
-                    bufferSize *= 2;
+                    // After MaxKeyNameMutatorRetries doublings, a mutator that still returns false is treated as broken.
+                    if (++retries > MaxKeyNameMutatorRetries)
+                    {
+                        throw new InvalidOperationException($"{mutator.GetType().FullName}.TryMutate returned false {retries} times for the key name '{keyName.ToString()}', the last time with a buffer of {bufferSize} characters. TryMutate should return false only when the destination is too small.");
+                    }
+                    bufferSize = checked(bufferSize * 2);
                 }
             }
         }
         else
         {
-            messagePackWriter.Write(keyName);
+            writeBuffer.WriteString(keyName);
         }
 
-        bool TryMutate(ref MessagePackWriter messagePackWriter, ReadOnlySpan<char> source, int bufferSize)
+        // Small buffers on the stack and larger ones from the pool, as in SystemTextJsonZLoggerFormatter.
+        bool TryMutate(ref TWriteBuffer writeBuffer, ReadOnlySpan<char> source, int bufferSize)
         {
-            var buffer = ArrayPool<char>.Shared.Rent(bufferSize);
-            try
+            if (bufferSize > 256)
             {
-                if (mutator.TryMutate(source, buffer, out var written))
+                // Rent may return a larger array; pass exactly bufferSize so that the size in the exception is what the mutator received.
+                var buffer = ArrayPool<char>.Shared.Rent(bufferSize);
+                try
                 {
-                    messagePackWriter.Write(buffer.AsSpan(0, written));
-                    return true;
+                    if (mutator.TryMutate(source, buffer.AsSpan(0, bufferSize), out var written))
+                    {
+                        writeBuffer.WriteString(buffer.AsSpan(0, written));
+                        return true;
+                    }
+                }
+                finally
+                {
+                    ArrayPool<char>.Shared.Return(buffer);
                 }
             }
-            finally
+            else
             {
-                ArrayPool<char>.Shared.Return(buffer);
+                Span<char> buffer = stackalloc char[bufferSize];
+                if (mutator.TryMutate(source, buffer, out var written))
+                {
+                    writeBuffer.WriteString(buffer[..written]);
+                    return true;
+                }
             }
             return false;
         }
     }
 
-    void WriteException(ref MessagePackWriter messagePackWriter, Exception? ex)
+    void WriteException<TWriteBuffer>(ref TWriteBuffer writeBuffer, Exception? ex)
+        where TWriteBuffer : struct, IWriteBuffer
+
+#if NET9_0_OR_GREATER
+        , allows ref struct
+#endif
     {
         while (true)
         {
             if (ex == null)
             {
-                messagePackWriter.WriteNil();
+                writeBuffer.WriteNil();
                 return;
             }
 
-            messagePackWriter.WriteMapHeader(4);
+            writeBuffer.WriteMapHeader(4);
 
-            messagePackWriter.WriteRaw(PropertyNames.ExceptionName.Utf8EncodedValue);
-            messagePackWriter.Write(ex.GetType().FullName);
+            writeBuffer.WriteRaw(PropertyNames.ExceptionName.Utf8EncodedValue);
+            writeBuffer.WriteString(ex.GetType().FullName);
 
-            messagePackWriter.WriteRaw(PropertyNames.ExceptionMessage.Utf8EncodedValue);
-            messagePackWriter.Write(ex.Message);
+            writeBuffer.WriteRaw(PropertyNames.ExceptionMessage.Utf8EncodedValue);
+            writeBuffer.WriteString(ex.Message);
 
-            messagePackWriter.WriteRaw(PropertyNames.ExceptionStackTrace.Utf8EncodedValue);
-            messagePackWriter.Write(ex.StackTrace);
+            writeBuffer.WriteRaw(PropertyNames.ExceptionStackTrace.Utf8EncodedValue);
+            writeBuffer.WriteString(ex.StackTrace);
 
-            messagePackWriter.WriteRaw(PropertyNames.ExceptionInnerException.Utf8EncodedValue);
+            writeBuffer.WriteRaw(PropertyNames.ExceptionInnerException.Utf8EncodedValue);
             ex = ex.InnerException;
         }
     }
 
-    void WriteParameterValue<TEntry>(ref MessagePackWriter messagePackWriter, TEntry entry, Type type, int index)
+    void WriteParameterValue<TEntry, TWriteBuffer>(
+        ref TWriteBuffer writeBuffer,
+        IBufferWriter<byte> underlyingWriter,
+        TEntry entry,
+        Type type,
+        int index)
         where TEntry : IZLoggerEntry
+        where TWriteBuffer : struct, IWriteBuffer
+
+#if NET9_0_OR_GREATER
+        , allows ref struct
+#endif
     {
         var code = Type.GetTypeCode(type);
         switch (code)
         {
             case TypeCode.Boolean:
-                messagePackWriter.Write(entry.GetParameterValue<bool>(index));
+                writeBuffer.WriteBoolean(entry.GetParameterValue<bool>(index));
                 return;
             case TypeCode.Char:
-                messagePackWriter.Write(entry.GetParameterValue<char>(index));
+                writeBuffer.WriteChar(entry.GetParameterValue<char>(index));
                 return;
             case TypeCode.SByte:
-                messagePackWriter.Write(entry.GetParameterValue<sbyte>(index));
+                writeBuffer.WriteSByte(entry.GetParameterValue<sbyte>(index));
                 return;
             case TypeCode.Byte:
-                messagePackWriter.Write(entry.GetParameterValue<byte>(index));
+                writeBuffer.WriteByte(entry.GetParameterValue<byte>(index));
                 return;
             case TypeCode.Int16:
-                messagePackWriter.Write(entry.GetParameterValue<Int16>(index));
+                writeBuffer.WriteInt16(entry.GetParameterValue<Int16>(index));
                 return;
             case TypeCode.UInt16:
-                messagePackWriter.Write(entry.GetParameterValue<UInt16>(index));
+                writeBuffer.WriteUInt16(entry.GetParameterValue<UInt16>(index));
                 return;
             case TypeCode.Int32:
-                messagePackWriter.Write(entry.GetParameterValue<Int32>(index));
+                writeBuffer.WriteInt32(entry.GetParameterValue<Int32>(index));
                 return;
             case TypeCode.UInt32:
-                messagePackWriter.Write(entry.GetParameterValue<UInt32>(index));
+                writeBuffer.WriteUInt32(entry.GetParameterValue<UInt32>(index));
                 return;
             case TypeCode.Int64:
-                messagePackWriter.Write(entry.GetParameterValue<Int64>(index));
+                writeBuffer.WriteInt64(entry.GetParameterValue<Int64>(index));
                 return;
             case TypeCode.UInt64:
-                messagePackWriter.Write(entry.GetParameterValue<UInt64>(index));
+                writeBuffer.WriteUInt64(entry.GetParameterValue<UInt64>(index));
                 return;
             case TypeCode.Single:
-                messagePackWriter.Write(entry.GetParameterValue<Single>(index));
+                writeBuffer.WriteSingle(entry.GetParameterValue<Single>(index));
                 return;
             case TypeCode.Double:
-                messagePackWriter.Write(entry.GetParameterValue<double>(index));
+                writeBuffer.WriteDouble(entry.GetParameterValue<double>(index));
                 return;
             case TypeCode.DateTime:
+                SerializeValue(ref writeBuffer, underlyingWriter, entry.GetParameterValue<DateTime>(index));
                 return;
             case TypeCode.String:
-                messagePackWriter.Write(entry.GetParameterValue<string>(index));
+                writeBuffer.WriteString(entry.GetParameterValue<string>(index));
                 return;
         }
 
         if (type.IsValueType)
         {
-            if (type == typeof(DateTime))
-            {
-                var value = entry.GetParameterValue<DateTime>(index);
-                MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
-            }
-            else if (type == typeof(DateTimeOffset))
+            if (type == typeof(DateTimeOffset))
             {
                 var value = entry.GetParameterValue<DateTimeOffset>(index);
-                MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
+                SerializeValue(ref writeBuffer, underlyingWriter, value);
+                return;
             }
-            else if (type == typeof(TimeSpan))
+
+            if (type == typeof(TimeSpan))
             {
                 var value = entry.GetParameterValue<TimeSpan>(index);
-                MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
+                SerializeValue(ref writeBuffer, underlyingWriter, value);
+                return;
             }
-#if NET6_OR_GRATER                
-                else if (type == typeof(TimeOnly))
-                {
-                    var value = entry.GetParameterValue<TimeOnly>(index);
-                    MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
-                }
-                else if (type == typeof(DateOnly))
-                {
-                    var value = entry.GetParameterValue<DateOnly>(index);
-                    MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
-                }
+
+#if NET6_0_OR_GREATER
+            if (type == typeof(TimeOnly))
+            {
+                var value = entry.GetParameterValue<TimeOnly>(index);
+                SerializeValue(ref writeBuffer, underlyingWriter, value);
+                return;
+            }
+
+            if (type == typeof(DateOnly))
+            {
+                var value = entry.GetParameterValue<DateOnly>(index);
+                SerializeValue(ref writeBuffer, underlyingWriter, value);
+                return;
+            }
 #endif
-            else if (type == typeof(Guid))
+
+            if (type == typeof(Guid))
             {
                 var value = entry.GetParameterValue<Guid>(index);
-                MessagePackSerializer.Serialize(type, ref messagePackWriter, value, MessagePackSerializerOptions);
+                SerializeValue(ref writeBuffer, underlyingWriter, value);
+                return;
             }
-            else if (Nullable.GetUnderlyingType(type) is { } underlyingType)
+
+            if (Nullable.GetUnderlyingType(type) is { } underlyingType)
             {
                 code = Type.GetTypeCode(underlyingType);
                 switch (code)
@@ -392,117 +556,117 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
                     {
                         var nullableValue = entry.GetParameterValue<bool?>(index);
                         if (nullableValue.HasValue)
-                            messagePackWriter.Write(nullableValue.Value);
+                            writeBuffer.WriteBoolean(nullableValue.Value);
                         else
-                            messagePackWriter.WriteNil();
+                            writeBuffer.WriteNil();
                         return;
                     }
                     case TypeCode.Char:
                     {
                         var nullableValue = entry.GetParameterValue<char?>(index);
                         if (nullableValue.HasValue)
-                            messagePackWriter.Write(nullableValue.Value);
+                            writeBuffer.WriteChar(nullableValue.Value);
                         else
-                            messagePackWriter.WriteNil();
+                            writeBuffer.WriteNil();
                         return;
                     }
                     case TypeCode.SByte:
                     {
                         var nullableValue = entry.GetParameterValue<sbyte?>(index);
                         if (nullableValue.HasValue)
-                            messagePackWriter.Write(nullableValue.Value);
+                            writeBuffer.WriteSByte(nullableValue.Value);
                         else
-                            messagePackWriter.WriteNil();
+                            writeBuffer.WriteNil();
                         return;
                     }
                     case TypeCode.Byte:
                     {
                         var nullableValue = entry.GetParameterValue<byte?>(index);
                         if (nullableValue.HasValue)
-                            messagePackWriter.Write(nullableValue.Value);
+                            writeBuffer.WriteByte(nullableValue.Value);
                         else
-                            messagePackWriter.WriteNil();
+                            writeBuffer.WriteNil();
                         return;
                     }
                     case TypeCode.Int16:
                     {
-                        var nullableValue = entry.GetParameterValue<Int16?>(index);
+                        var nullableValue = entry.GetParameterValue<short?>(index);
                         if (nullableValue.HasValue)
-                            messagePackWriter.Write(nullableValue.Value);
+                            writeBuffer.WriteInt16(nullableValue.Value);
                         else
-                            messagePackWriter.WriteNil();
+                            writeBuffer.WriteNil();
                         return;
                     }
                     case TypeCode.UInt16:
                     {
-                        var nullableValue = entry.GetParameterValue<UInt16?>(index);
+                        var nullableValue = entry.GetParameterValue<ushort?>(index);
                         if (nullableValue.HasValue)
-                            messagePackWriter.Write(nullableValue.Value);
+                            writeBuffer.WriteUInt16(nullableValue.Value);
                         else
-                            messagePackWriter.WriteNil();
+                            writeBuffer.WriteNil();
                         return;
                     }
                     case TypeCode.Int32:
                     {
-                        var nullableValue = entry.GetParameterValue<Int32?>(index);
+                        var nullableValue = entry.GetParameterValue<int?>(index);
                         if (nullableValue.HasValue)
-                            messagePackWriter.Write(nullableValue.Value);
+                            writeBuffer.WriteInt32(nullableValue.Value);
                         else
-                            messagePackWriter.WriteNil();
+                            writeBuffer.WriteNil();
                         return;
                     }
                     case TypeCode.UInt32:
                     {
-                        var nullableValue = entry.GetParameterValue<UInt32?>(index);
+                        var nullableValue = entry.GetParameterValue<uint?>(index);
                         if (nullableValue.HasValue)
-                            messagePackWriter.Write(nullableValue.Value);
+                            writeBuffer.WriteUInt32(nullableValue.Value);
                         else
-                            messagePackWriter.WriteNil();
+                            writeBuffer.WriteNil();
                         return;
                     }
                     case TypeCode.Int64:
                     {
-                        var nullableValue = entry.GetParameterValue<Int64?>(index);
+                        var nullableValue = entry.GetParameterValue<long?>(index);
                         if (nullableValue.HasValue)
-                            messagePackWriter.Write(nullableValue.Value);
+                            writeBuffer.WriteInt64(nullableValue.Value);
                         else
-                            messagePackWriter.WriteNil();
+                            writeBuffer.WriteNil();
                         return;
                     }
                     case TypeCode.UInt64:
                     {
-                        var nullableValue = entry.GetParameterValue<UInt64?>(index);
+                        var nullableValue = entry.GetParameterValue<ulong?>(index);
                         if (nullableValue.HasValue)
-                            messagePackWriter.Write(nullableValue.Value);
+                            writeBuffer.WriteUInt64(nullableValue.Value);
                         else
-                            messagePackWriter.WriteNil();
+                            writeBuffer.WriteNil();
                         return;
                     }
                     case TypeCode.Single:
                     {
                         var nullableValue = entry.GetParameterValue<Single?>(index);
                         if (nullableValue.HasValue)
-                            messagePackWriter.Write(nullableValue.Value);
+                            writeBuffer.WriteSingle(nullableValue.Value);
                         else
-                            messagePackWriter.WriteNil();
+                            writeBuffer.WriteNil();
                         return;
                     }
                     case TypeCode.Double:
                     {
                         var nullableValue = entry.GetParameterValue<double?>(index);
                         if (nullableValue.HasValue)
-                            messagePackWriter.Write(nullableValue.Value);
+                            writeBuffer.WriteDouble(nullableValue.Value);
                         else
-                            messagePackWriter.WriteNil();
+                            writeBuffer.WriteNil();
                         return;
                     }
                     case TypeCode.DateTime:
                     {
                         var nullableValue = entry.GetParameterValue<DateTime?>(index);
                         if (nullableValue.HasValue)
-                            messagePackWriter.Write(nullableValue.Value);
+                            SerializeValue(ref writeBuffer, underlyingWriter, nullableValue.Value);
                         else
-                            messagePackWriter.WriteNil();
+                            writeBuffer.WriteNil();
                         return;
                     }
                 }
@@ -512,22 +676,59 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
         var boxedValue = entry.GetParameterValue(index);
         if (boxedValue == null)
         {
-            messagePackWriter.WriteNil();
+            writeBuffer.WriteNil();
         }
         else
         {
-            MessagePackSerializer.Serialize(type, ref messagePackWriter, boxedValue, MessagePackSerializerOptions);
+            SerializeValue(ref writeBuffer, underlyingWriter, type, boxedValue);
         }
     }
 
-    static ArrayBufferWriter<byte> GetThreadStaticBufferWriter()
-    {
-        threadStaticBufferWriter ??= new ArrayBufferWriter<byte>();
-#if NET8_0_OR_GREATER
-            threadStaticBufferWriter.ResetWrittenCount();
-#else
-        threadStaticBufferWriter.Clear();
+    // Values are serialized through the IBufferWriter<byte> entry points, never through the ones that take a ref TWriteBuffer.
+    // A formatter from a library compiled against a netstandard build of MessagePack (a [MessagePackObject] type or a custom
+    // formatter in the options) can serve only the Compatible (non-ref-struct) buffers. The IBufferWriter<byte> entry points
+    // reroute such values to those buffers, while the ref TWriteBuffer entry points cannot change the caller's buffer type and
+    // throw instead. Other values still go through the ref struct buffers inside MessagePack.
+    void SerializeValue<TWriteBuffer, T>(
+        ref TWriteBuffer writeBuffer,
+        IBufferWriter<byte> underlyingWriter,
+        T value)
+        where TWriteBuffer : struct, IWriteBuffer
+#if NET9_0_OR_GREATER
+        , allows ref struct
 #endif
-        return threadStaticBufferWriter;
+    {
+        writeBuffer.Flush();
+        MessagePackSerializer.Serialize(underlyingWriter, value, MessagePackSerializerOptions);
+    }
+
+    void SerializeValue<TWriteBuffer>(
+        ref TWriteBuffer writeBuffer,
+        IBufferWriter<byte> underlyingWriter,
+        Type type,
+        object value)
+        where TWriteBuffer : struct, IWriteBuffer
+#if NET9_0_OR_GREATER
+        , allows ref struct
+#endif
+    {
+        writeBuffer.Flush();
+        MessagePackSerializer.Serialize(type, underlyingWriter, value, MessagePackSerializerOptions);
+    }
+
+    // Takes the buffer out of its thread-static slot, which all instances share. Formatting can re-enter a
+    // MessagePackZLoggerFormatter on the same thread when a value's ToString or MessagePack formatter logs to a provider that
+    // formats in Post (such as the in-memory provider); the re-entrant call then gets a buffer of its own instead of
+    // overwriting this one. The caller puts the buffer back when it is done.
+    static ArrayBufferWriter<byte> TakeThreadStaticBufferWriter(ref ArrayBufferWriter<byte>? slot)
+    {
+        var bufferWriter = slot ?? new ArrayBufferWriter<byte>();
+        slot = null;
+#if NET8_0_OR_GREATER
+        bufferWriter.ResetWrittenCount();
+#else
+        bufferWriter.Clear();
+#endif
+        return bufferWriter;
     }
 }

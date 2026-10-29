@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Types and formatters compiled against a netstandard build of MessagePack, as in a library shared with Unity.
+       Their formatters serve only the Compatible (non-ref-struct) buffers, which the tests use to check that the formatter
+       still writes them on net9.0 and later. Do not add a net9.0 or later target, or that case is no longer exercised. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>14</LangVersion>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MessagePack" Version="4.0.0-preview.1" />
+  </ItemGroup>
+</Project>
