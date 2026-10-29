@@ -103,7 +103,7 @@ namespace ZLogger
             {
                 var span = writer.GetSpan(newLine.Length);
                 newLine.CopyTo(span);
-                writer.Advance(2);
+                writer.Advance(newLine.Length);
             }
         }
 
