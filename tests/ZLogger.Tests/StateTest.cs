@@ -26,6 +26,26 @@ namespace ZLogger.Tests
         }
 
         [Fact]
+        public void HandlerAbandonedByAThrowingHoleLeavesNothingForTheNextLog()
+        {
+            var options = new ZLoggerOptions();
+            var processor = new TestProcessor(options);
+            var loggerFactory = LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Debug);
+                x.AddZLoggerLogProcessor(processor);
+            });
+            var logger = loggerFactory.CreateLogger("test");
+
+            string? missing = null;
+            Assert.Throws<NullReferenceException>(() => logger.ZLogInformation($"first {1} then {missing!.Length}"));
+
+            var value = 42;
+            logger.ZLogInformation($"next {value}");
+            Assert.Equal("next 42", processor.DequeueAsString());
+        }
+
+        [Fact]
         public void EnumerateState()
         {
             Queue<IFormatter> logs = new();
