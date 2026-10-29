@@ -24,7 +24,7 @@ public class RollingFileProviderTest
         
         Directory.CreateDirectory(directory);
     }
-    
+
     [Fact]
     public async Task RollByInterval()
     {
@@ -114,7 +114,55 @@ public class RollingFileProviderTest
 
         File.Exists(path2).Should().BeTrue();
     }
-    
+
+    [Fact]
+    public void SharedFileStreamDisposesFileStream()
+    {
+        var path = Path.Join(directory, "shared-dispose-0.log");
+        var stream = new SharedFileStream(path);
+
+        stream.Write(Encoding.UTF8.GetBytes("foo"), 0, 3);
+        stream.Dispose();
+
+        File.Delete(path);
+        File.Exists(path).Should().BeFalse();
+    }
+
+    [Fact]
+    public void SharedRollingFileCanBeWrittenByMultipleLoggerFactories()
+    {
+        var path = Path.Join(directory, "shared-factory-0.log");
+
+        using (var firstFactory = CreateSharedFactory())
+        {
+            firstFactory.CreateLogger("first").LogInformation("first logger message");
+        }
+
+        using (var secondFactory = CreateSharedFactory())
+        {
+            secondFactory.CreateLogger("second").LogInformation("second logger message");
+        }
+
+        var logText = File.ReadAllText(path);
+        logText.Should().Contain("first logger message");
+        logText.Should().Contain("second logger message");
+
+        ILoggerFactory CreateSharedFactory()
+        {
+            return LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Information);
+                x.AddZLoggerRollingFile(options =>
+                {
+                    options.FilePathSelector = (_, sequence) => Path.Join(directory, $"shared-factory-{sequence}.log");
+                    options.RollingInterval = RollingInterval.Day;
+                    options.RollingSizeKB = 5;
+                    options.FileShared = true;
+                });
+            });
+        }
+    }
+
     static StreamReader OpenFile(string path)
     {
         return new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read), Encoding.UTF8);
