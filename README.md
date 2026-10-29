@@ -330,8 +330,10 @@ If you are using `ZLoggerFileLoggerProvider`, the following additional options a
 RollingFile is a Provider that dynamically changes the output file based on certain conditions.
 
 ```csharp
+using ZLogger.Providers;
+
 // output to  yyyy-MM-dd_*.log, roll by 1MB or changed date
-logging.AddZLoggerRollingFile((dt, index) => $"{dt:yyyy-MM-dd}_{index}.log", 1024 * 1024);
+logging.AddZLoggerRollingFile((dt, index) => $"{dt:yyyy-MM-dd}_{index}.log", RollingInterval.Day, 1024);
 ```
 
 If you are using `ZLoggerRollingFileLoggerProvider`, the following additional options are available:
@@ -487,7 +489,7 @@ logging.AddZLoggerConsole(options =>
     options.UsePlainTextFormatter(formatter =>
     {
         // 2023-12-19 02:46:14.289 [DBG]......
-        formatter.SetPrefixFormatter($"{0:utc-longdate} [{1:short}]", (template, info) => template.Format(info.Timestamp, info.LogLevel));
+        formatter.SetPrefixFormatter($"{0:utc-longdate} [{1:short}]", (in MessageTemplate template, in LogInfo info) => template.Format(info.Timestamp, info.LogLevel));
     });
 });
 ```
@@ -544,7 +546,7 @@ public static class CloudLoggingExtensions
             var eventId = Encode("eventId");
             var userId = Encode("userId");
 
-            formatter.AdditionalFormatter = (Utf8JsonWriter writer, in LogInfo) =>
+            formatter.AdditionalFormatter = (Utf8JsonWriter writer, in LogInfo logInfo) =>
             {
                 writer.WriteStartObject(labels);
                 writer.WriteString(category, logInfo.Category.JsonEncoded);
@@ -627,14 +629,13 @@ The list of properties is as follows.
 
 ### Custom Formatter 
 
-If you want to create a formatter other than the default PlainText, Json, and MessagePack, you can implement `IZloggerFormatter` to create any custom output.
+If you want to create a formatter other than the default PlainText, Json, and MessagePack, you can implement `IZLoggerFormatter` to create any custom output.
 
 ```csharp
 public interface IZLoggerFormatter
 {
     bool WithLineBreak { get; }
-    void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry)
-        where TEntry : IZLoggerEntry;
+    void FormatLogEntry(IBufferWriter<byte> writer, IZLoggerEntry entry);
 }
 ```
 
