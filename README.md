@@ -333,7 +333,7 @@ RollingFile is a Provider that dynamically changes the output file based on cert
 using ZLogger.Providers;
 
 // output to  yyyy-MM-dd_*.log, roll by 1MB or changed date
-logging.AddZLoggerRollingFile((dt, index) => $"{dt:yyyy-MM-dd}_{index}.log", RollingInterval.Day, 1024);
+logging.AddZLoggerRollingFile((dt, index) => $"{dt.ToLocalTime():yyyy-MM-dd}_{index}.log", RollingInterval.Day, 1024);
 ```
 
 If you are using `ZLoggerRollingFileLoggerProvider`, the following additional options are available:
