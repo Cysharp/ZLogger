@@ -1,26 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
+    <!-- Microsoft.Testing.Platform -->
+    <OutputType>Exe</OutputType>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="5.10.3" />
-    <PackageReference Include="MessagePack" Version="2.5.187" />
-    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="8.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.0" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="MessagePack" Version="4.0.0-preview.1" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.11.0" />
+    <PackageReference Include="xunit.v3" Version="4.0.2" />
   </ItemGroup>
 
   <ItemGroup>
    <ProjectReference Include="..\..\src\ZLogger.MessagePack\ZLogger.MessagePack.csproj" />
    <ProjectReference Include="..\..\src\ZLogger\ZLogger.csproj" />
-   <ProjectReference Include="..\..\src\ZLogger.Generator\ZLogger.Generator.csproj" />
+   <ProjectReference Include="..\ZLogger.MessagePack.Tests.NetStandardTypes\ZLogger.MessagePack.Tests.NetStandardTypes.csproj" />
    <ProjectReference Include="..\..\src\ZLogger.Generator\ZLogger.Generator.csproj">
      <OutputItemType>Analyzer</OutputItemType>
      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

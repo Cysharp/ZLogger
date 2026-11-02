@@ -120,7 +120,6 @@ public class WritePlainTextToFile
                 FileName = GetLogFilePath("nlog.log"),
                 Layout = nLogLayout,
                 KeepFileOpen = true,
-                ConcurrentWrites = false,
                 AutoFlush = true
             };
             var asyncTarget =
