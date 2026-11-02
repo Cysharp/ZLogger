@@ -113,8 +113,16 @@ internal static class DiagnosticDescriptors
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor MultipleLoggers = new(
+    public static readonly DiagnosticDescriptor InvalidJsonSerializerContext = new(
         id: "ZLOG014",
+        title: "Invalid JSON serialization context",
+        messageFormat: "The ZLoggerMessage method '{0}' JsonSerializerContext must derive from System.Text.Json.Serialization.JsonSerializerContext",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor MultipleLoggers = new(
+        id: "ZLOG015",
         title: "Multiple ILogger sources are not supported",
         messageFormat: "The ZLoggerMessage method '{0}' has multiple ILogger {1}; pass an ILogger parameter to select the logger explicitly",
         category: Category,
@@ -122,7 +130,7 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor ShadowedLogger = new(
-        id: "ZLOG015",
+        id: "ZLOG016",
         title: "Primary constructor ILogger parameter is shadowed",
         messageFormat: "The ZLoggerMessage method '{0}' cannot access the primary constructor ILogger parameter '{1}' because it is shadowed; rename the conflicting parameter or member, or use an ILogger field",
         category: Category,

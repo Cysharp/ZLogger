@@ -11,9 +11,9 @@ public class InstanceLoggingDiagnosticsTest
     [InlineData("", "public Example(ILogger logger) { }", "", "ZLOG008")]
     [InlineData("", "ILogger logger;", "static ", "ZLOG008")]
     [InlineData("(ILogger logger)", "", "static ", "ZLOG008")]
-    [InlineData("", "ILogger first; ILogger<Example> second;", "", "ZLOG014")]
-    [InlineData("(ILogger first, ILogger<Example> second)", "", "", "ZLOG014")]
-    [InlineData("(ILogger logger)", "ILogger first; ILogger second;", "", "ZLOG014")]
+    [InlineData("", "ILogger first; ILogger<Example> second;", "", "ZLOG015")]
+    [InlineData("(ILogger first, ILogger<Example> second)", "", "", "ZLOG015")]
+    [InlineData("(ILogger logger)", "ILogger first; ILogger second;", "", "ZLOG015")]
     public void InvalidLoggerSources_ReportDiagnostic(string constructor, string members, string modifiers, string diagnosticId)
     {
         var diagnostics = CSharpGeneratorRunner.RunGenerator($$"""
@@ -47,7 +47,7 @@ public partial class Example(ILogger logger)
 }
 """);
 
-        diagnostics.Where(x => x.Id != "CS8795").Select(x => x.Id).Should().Equal("ZLOG015");
+        diagnostics.Where(x => x.Id != "CS8795").Select(x => x.Id).Should().Equal("ZLOG016");
     }
 
     [Theory]
@@ -70,9 +70,9 @@ public partial class Example{{constructor}}
     }
 
     [Theory]
-    [InlineData("protected ILogger logger;", "ZLOG015")]
-    [InlineData("protected object logger;", "ZLOG015")]
-    [InlineData("protected object logger { get; }", "ZLOG015")]
+    [InlineData("protected ILogger logger;", "ZLOG016")]
+    [InlineData("protected object logger;", "ZLOG016")]
+    [InlineData("protected object logger { get; }", "ZLOG016")]
     [InlineData("private object logger;", null)]
     public void InheritedMembers_OnlyShadowPrimaryConstructorWhenAccessible(string member, string diagnosticId)
     {
