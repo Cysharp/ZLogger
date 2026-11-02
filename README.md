@@ -699,6 +699,32 @@ public static partial class MyLogger
 
 This can achieve the highest performance. It's also possible to use special format specifiers like `:json`.
 
+Instance methods can use an `ILogger` or `ILogger<T>` field declared in the same type:
+
+```csharp
+public partial class Worker
+{
+    private readonly ILogger<Worker> logger;
+
+    public Worker(ILogger<Worker> logger) => this.logger = logger;
+
+    [ZLoggerMessage(LogLevel.Information, "Processing {item}")]
+    public partial void Processing(string item);
+}
+```
+
+With C# 12, a primary constructor parameter can supply the logger directly:
+
+```csharp
+public partial class Worker(ILogger<Worker> logger)
+{
+    [ZLoggerMessage(LogLevel.Information, "Processing {item}")]
+    public partial void Processing(string item);
+}
+```
+
+The generator first uses an `ILogger` method parameter, then a unique instance logger field, then a unique primary constructor logger parameter. Fields can be declared in another partial declaration of the same type; inherited fields are not considered. Multiple matching fields or primary constructor parameters at the selected step produce a diagnostic; pass the logger explicitly to select one. Static methods still require a logger parameter. The containing type must be partial, non-nested, and non-generic.
+
 For Native AOT or trimming, supply a System.Text.Json source-generated context with `JsonSerializerContext`:
 
 ```csharp
