@@ -118,6 +118,12 @@ namespace ZLogger
         /// Gets the flag to skip IsEnabled check for the logging method.
         /// </summary>
         public bool SkipEnabledCheck { get; set; }
+
+        /// <summary>
+        /// Gets or sets the source-generated System.Text.Json serialization context type.
+        /// Its Default instance is used for JSON parameters, :json formats and collections.
+        /// </summary>
+        public Type? JsonSerializerContext { get; set; }
     }
 
 #if !ZLOGGER_GENERATOR

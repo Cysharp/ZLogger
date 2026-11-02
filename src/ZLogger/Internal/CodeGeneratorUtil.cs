@@ -1,6 +1,7 @@
 ﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Utf8StringInterpolation;
 
 namespace ZLogger.Internal
@@ -69,6 +70,16 @@ namespace ZLogger.Internal
         public static void ThrowArgumentOutOfRangeException()
         {
             throw new ArgumentOutOfRangeException();
+        }
+
+        public static void AppendAsJson<T>(ref Utf8StringWriter<IBufferWriter<byte>> stringWriter, T value, JsonSerializerContext context)
+        {
+            stringWriter.ClearState();
+
+            var utf8JsonWriter = GetThreadStaticUtf8JsonWriter(stringWriter.GetBufferWriter());
+            JsonSerializer.Serialize(utf8JsonWriter, value, typeof(T), context);
+            utf8JsonWriter.Flush();
+            utf8JsonWriter.Reset();
         }
     }
 }

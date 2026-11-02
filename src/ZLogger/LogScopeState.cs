@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using System.Runtime.InteropServices;
+using ZLogger.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace ZLogger
@@ -16,11 +16,11 @@ namespace ZLogger
             get
             {
                 ValidateVersion();
-                return CollectionsMarshal.AsSpan(properties);
+                return properties.AsSpan();
             }
         }
 
-        readonly List<KeyValuePair<string, object?>> properties = new();
+        readonly SpanList<KeyValuePair<string, object?>> properties = new();
         
         // pool safety token
         short version;
