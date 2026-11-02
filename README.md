@@ -338,8 +338,8 @@ If you are using `ZLoggerRollingFileLoggerProvider`, the following additional op
 
 | Name                                                                              | Description                                                                                                        |
 |:----------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------|
-| `Func<DateTimeOffset, int, string> fileNameSelector`                              | The Func to consturct the file path. `DateTimeOffset` is date of file open time(UTC), `int` is number sequence.        |
-| `RollingInterval rollInterval`                                                    | Interval to automatically rotate files.                                                                            |
+| `Func<DateTimeOffset, int, string> fileNameSelector`                              | The Func to construct the file path. `DateTimeOffset` is date of file open time(UTC), `int` is number sequence. Use `ToLocalTime()` to name files by local date. |
+| `RollingInterval rollInterval`                                                    | Interval to automatically rotate files. Interval boundaries are evaluated in local time (`TimeProvider.LocalTimeZone`). |
 | `int rollSizeKB`                                                                  | Limit size of single file.  If the file size is exceeded, a new file is created with the sequence number moved up. |
 | `bool fileShared`                                                                  | If set true, enables exclusive control of writing to the same file from multiple processes.(default: false) |
 
