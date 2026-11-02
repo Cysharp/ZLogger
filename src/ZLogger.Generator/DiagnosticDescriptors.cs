@@ -112,4 +112,12 @@ internal static class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor InvalidJsonSerializerContext = new(
+        id: "ZLOG014",
+        title: "Invalid JSON serialization context",
+        messageFormat: "The ZLoggerMessage method '{0}' JsonSerializerContext must derive from System.Text.Json.Serialization.JsonSerializerContext",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }
