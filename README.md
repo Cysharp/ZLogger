@@ -500,6 +500,37 @@ logging.AddZLoggerConsole(options =>
 });
 ```
 
+To write content whose length changes per log, such as scopes, use `GetUtf8StringWriter()` to write directly to the buffer. If you don't use the message template, pass an empty template (`$""`). The writer must be flushed, so declare it with `using` (or call `Flush()`); otherwise nothing is written.
+
+```csharp
+logging.AddZLoggerConsole(options =>
+{
+    options.IncludeScopes = true;
+    options.UsePlainTextFormatter(formatter =>
+    {
+        // => Type=Foo => Id=17
+        // log message...
+        formatter.SetPrefixFormatter($"", (in MessageTemplate template, in LogInfo info) =>
+        {
+            if (info.ScopeState is not { IsEmpty: false } scope) return;
+
+            using var writer = template.GetUtf8StringWriter();
+            foreach (var (key, value) in scope.Properties)
+            {
+                if (key == "{OriginalFormat}") continue;
+                writer.AppendLiteral(" => ");
+                writer.AppendFormatted(key);
+                writer.AppendLiteral("=");
+                writer.AppendFormatted(value);
+            }
+            writer.AppendLine();
+        });
+    });
+});
+```
+
+When you use both, call `template.Format(...)` first and then write with `GetUtf8StringWriter()`; the content is appended after the template.
+
 SetExceptionFormatter allows you to customize the display when outputting exceptions. This can be easily converted to a string using `Utf8String.Format`.
 
 ### JSON
