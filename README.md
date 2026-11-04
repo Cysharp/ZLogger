@@ -245,7 +245,7 @@ By adding Providers, you can configure where the logs are output. ZLogger has th
 | ZLoggerFileLoggerProvider              | ZLoggerFile         | AddZLoggerFile         |
 | ZLoggerRollingFileLoggerProvider       | ZLoggerRollingFile  | AddZLoggerRollingFile  |
 | ZLoggerStreamLoggerProvider            | ZLoggerStream       | AddZLoggerStream       |
-| ZLoggerInMemoryProcessorLoggerProvider | ZLoggerInMemory     | AddZLoggerInMemory     |
+| ZLoggerInMemoryLoggerProvider          | ZLoggerInMemory     | AddZLoggerInMemory     |
 | ZLoggerLogProcessorLoggerProvider      | ZLoggerLogProcessor | AddZLoggerLogProcessor |
 
 All Providers can take an Action that sets `ZLoggerOptions` as the last argument. As follows.
@@ -267,7 +267,7 @@ builder.Logging
     });
 ```
 
-If you are using `Microsoft.Extensions.Configuration`, you can set the log level through configuration. In this case, alias of Provider can be used.  for example:
+If you are using `Microsoft.Extensions.Configuration`, you can set the log level through configuration. In this case, use the alias of the Provider (or its full type name, e.g. `ZLogger.Providers.ZLoggerConsoleLoggerProvider`). For example:
 
 ```json
 {
@@ -275,13 +275,19 @@ If you are using `Microsoft.Extensions.Configuration`, you can set the log level
     "LogLevel": {
       "Default": "Information"
     },
-    "ZLoggerConsoleLoggerProvider": {
+    "ZLoggerConsole": {
       "LogLevel": {
         "Default": "Debug"
       }
     }
   }
 }
+```
+
+The Generic Host (`Host.CreateApplicationBuilder`, `WebApplication.CreateBuilder`, etc.) loads the `Logging` section automatically. Otherwise, load it with `AddConfiguration` from `Microsoft.Extensions.Logging.Configuration`.
+
+```csharp
+builder.Logging.AddConfiguration(configuration.GetSection("Logging"));
 ```
 
 Each Provider's behavior can be modified using the common `ZLoggerOptions`. For details, please refer to the [ZLoggerOptions](#zloggeroptions) section. Additionally, you can customize structured logging (JSON Logging) using the `UseFormatter` method within these options. For more information on this, check the [Formatter Configurations](#formatter-configurations) section.
