@@ -19,14 +19,14 @@ namespace ZLogger
     public ref struct ZLoggerInterpolatedStringHandler
     {
         [ThreadStatic]
-        static List<string?>? literalPool;
+        static SpanList<string?>? literalPool;
 
         public bool IsLoggerEnabled { get; }
 
         // fields
         readonly int literalLength;
         readonly int parametersLength;
-        readonly List<string?> literals;
+        readonly SpanList<string?> literals;
         readonly InterpolatedStringLogState state;
         int parameterWritten;
 
@@ -47,7 +47,13 @@ namespace ZLogger
             var literals = literalPool;
             if (literals == null)
             {
-                literals = literalPool = new List<string?>();
+                literals = literalPool = new SpanList<string?>();
+            }
+            else
+            {
+                // A handler whose hole threw while being evaluated never reaches GetState, so its literals stay in the
+                // list; the next log call on this thread would format them with its own parameters.
+                literals.Clear();
             }
 
             this.literalLength = literalLength;
@@ -180,7 +186,7 @@ namespace ZLogger
         static readonly ConcurrentDictionary<LiteralList, MessageSequence> cache = new();
 
         // literals null represents parameter hole
-        public static MessageSequence GetOrCreate(int literalLength, int parameterLength, List<string?> literals)
+        public static MessageSequence GetOrCreate(int literalLength, int parameterLength, SpanList<string?> literals)
         {
             var key = new LiteralList(literals);
             if (cache.TryGetValue(key, out var sequence))
@@ -196,9 +202,8 @@ namespace ZLogger
                 }
 
                 // create copy
-                var clonedList = literals.ToList();
-                clonedList.TrimExcess();
-                var span = CollectionsMarshal.AsSpan(clonedList);
+                var clonedList = new SpanList<string?>(literals.AsSpan());
+                var span = clonedList.AsSpan();
                 sequence = new MessageSequence(literalLength, parameterLength, span);
                 cache.TryAdd(new LiteralList(clonedList), sequence);
                 return sequence;
@@ -418,9 +423,9 @@ namespace ZLogger
 
         readonly struct LiteralList : IEquatable<LiteralList>
         {
-            readonly List<string?> literals;
+            readonly SpanList<string?> literals;
 
-            public LiteralList(List<string?> literals)
+            public LiteralList(SpanList<string?> literals)
             {
                 this.literals = literals;
             }
@@ -438,13 +443,13 @@ namespace ZLogger
 
             public override int GetHashCode()
             {
-                return unchecked((int)XxHash3.HashToUInt64(AsBytes(CollectionsMarshal.AsSpan(literals))));
+                return unchecked((int)XxHash3.HashToUInt64(AsBytes(literals.AsSpan())));
             }
 
             public bool Equals(LiteralList other)
             {
-                var xs = CollectionsMarshal.AsSpan(literals);
-                var ys = CollectionsMarshal.AsSpan(other.literals);
+                var xs = literals.AsSpan();
+                var ys = other.literals.AsSpan();
 
                 return AsBytes(xs).SequenceEqual(AsBytes(ys));
             }
@@ -466,7 +471,7 @@ namespace ZLogger
                     h.Reset();
                 }
 
-                var span = CollectionsMarshal.AsSpan(literals);
+                var span = literals.AsSpan();
                 foreach (var item in span)
                 {
                     h.Append(MemoryMarshal.AsBytes(item.AsSpan()));
@@ -479,8 +484,8 @@ namespace ZLogger
 
             public bool Equals(LiteralList other)
             {
-                var xs = CollectionsMarshal.AsSpan(literals);
-                var ys = CollectionsMarshal.AsSpan(other.literals);
+                var xs = literals.AsSpan();
+                var ys = other.literals.AsSpan();
 
                 if (xs.Length == ys.Length)
                 {

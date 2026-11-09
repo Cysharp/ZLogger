@@ -25,7 +25,7 @@ public class RollingFileProviderTest
         
         Directory.CreateDirectory(directory);
     }
-    
+
     [Fact]
     public async Task RollByInterval()
     {
@@ -115,9 +115,197 @@ public class RollingFileProviderTest
 
         File.Exists(path2).Should().BeTrue();
     }
-    
+
+    [Fact]
+    public async Task RollingIntervalUsesLocalTimeForCheckpoint()
+    {
+        var timeZone = TimeZoneInfo.CreateCustomTimeZone("UTC+09", TimeSpan.FromHours(9), "UTC+09", "UTC+09");
+        var timeProvider = new FakeTimeProvider(new DateTimeOffset(2000, 1, 1, 14, 59, 0, TimeSpan.Zero)); // 23:59 local
+        timeProvider.SetLocalTimeZone(timeZone);
+
+        using var loggerFactory = CreateLocalDateFactory("local-time", timeProvider, timeZone);
+        var logger = loggerFactory.CreateLogger("local-time");
+        logger.LogDebug("before local midnight");
+        await Task.Delay(100); // wait for flush
+
+        // 00:01 local, still 2000-01-01 in UTC
+        timeProvider.Advance(TimeSpan.FromMinutes(2));
+        logger.LogDebug("after local midnight");
+        await Task.Delay(100); // wait for flush
+
+        loggerFactory.Dispose();
+
+        ReadLines("local-time-2000-01-01-0.log").Should().Equal("before local midnight");
+        ReadLines("local-time-2000-01-02-0.log").Should().Equal("after local midnight");
+    }
+
+    [Fact]
+    public async Task RollingIntervalAdvancesSequenceWhenSelectorReturnsCurrentFileName()
+    {
+        var timeProvider = new FakeTimeProvider(new DateTimeOffset(2000, 1, 1, 14, 59, 0, TimeSpan.Zero)); // 23:59 local
+        timeProvider.SetLocalTimeZone(TimeZoneInfo.CreateCustomTimeZone("UTC+09", TimeSpan.FromHours(9), "UTC+09", "UTC+09"));
+
+        using var loggerFactory = LoggerFactory.Create(x =>
+        {
+            x.SetMinimumLevel(LogLevel.Debug);
+            x.AddZLoggerRollingFile(options =>
+            {
+                // UTC date, which does not change at local midnight
+                options.FilePathSelector = (timestamp, sequence) => Path.Join(directory, $"utc-name-{timestamp:yyyy-MM-dd}-{sequence}.log");
+                options.RollingInterval = RollingInterval.Day;
+                options.RollingSizeKB = 5;
+                options.TimeProvider = timeProvider;
+            });
+        });
+        var logger = loggerFactory.CreateLogger("utc-name");
+        logger.LogDebug("before local midnight");
+        await Task.Delay(100); // wait for flush
+
+        timeProvider.Advance(TimeSpan.FromMinutes(2));
+        logger.LogDebug("after local midnight");
+        await Task.Delay(100); // wait for flush
+
+        loggerFactory.Dispose();
+
+        ReadLines("utc-name-2000-01-01-0.log").Should().Equal("before local midnight");
+        ReadLines("utc-name-2000-01-01-1.log").Should().Equal("after local midnight");
+    }
+
+    [Fact]
+    public async Task RollingIntervalRollsAtLocalMidnightWhenDaylightSavingTimeStarts()
+    {
+        var timeZone = CreateCentralEuropeanTimeZone();
+        var timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 3, 28, 23, 30, 0, TimeSpan.Zero)); // 2026-03-29 00:30 CET
+        timeProvider.SetLocalTimeZone(timeZone);
+
+        using var loggerFactory = CreateLocalDateFactory("dst-start", timeProvider, timeZone);
+        var logger = loggerFactory.CreateLogger("dst-start");
+        logger.LogDebug("a");
+        await Task.Delay(100); // wait for flush
+
+        // 2026-03-30 00:30 CEST, DST started at 02:00 on 2026-03-29
+        timeProvider.SetUtcNow(new DateTimeOffset(2026, 3, 29, 22, 30, 0, TimeSpan.Zero));
+        logger.LogDebug("b");
+        await Task.Delay(100); // wait for flush
+
+        loggerFactory.Dispose();
+
+        ReadLines("dst-start-2026-03-29-0.log").Should().Equal("a");
+        ReadLines("dst-start-2026-03-30-0.log").Should().Equal("b");
+    }
+
+    [Fact]
+    public async Task RollingIntervalRollsAtLocalMidnightWhenDaylightSavingTimeEnds()
+    {
+        var timeZone = CreateCentralEuropeanTimeZone();
+        var timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 10, 24, 22, 30, 0, TimeSpan.Zero)); // 2026-10-25 00:30 CEST
+        timeProvider.SetLocalTimeZone(timeZone);
+
+        using var loggerFactory = CreateLocalDateFactory("dst-end", timeProvider, timeZone);
+        var logger = loggerFactory.CreateLogger("dst-end");
+        logger.LogDebug("a");
+        await Task.Delay(100); // wait for flush
+
+        // 2026-10-25 23:30 CET, DST ended at 03:00 on 2026-10-25
+        timeProvider.SetUtcNow(new DateTimeOffset(2026, 10, 25, 22, 30, 0, TimeSpan.Zero));
+        logger.LogDebug("b");
+        await Task.Delay(100); // wait for flush
+
+        // 2026-10-26 00:30 CET
+        timeProvider.Advance(TimeSpan.FromHours(1));
+        logger.LogDebug("c");
+        await Task.Delay(100); // wait for flush
+
+        loggerFactory.Dispose();
+
+        ReadLines("dst-end-2026-10-25-0.log").Should().Equal("a", "b");
+        File.Exists(Path.Join(directory, "dst-end-2026-10-25-1.log")).Should().BeFalse();
+        ReadLines("dst-end-2026-10-26-0.log").Should().Equal("c");
+    }
+
+    [Fact]
+    public void SharedFileStreamDisposesFileStream()
+    {
+        var path = Path.Join(directory, "shared-dispose-0.log");
+        var stream = new SharedFileStream(path);
+
+        stream.Write(Encoding.UTF8.GetBytes("foo"), 0, 3);
+        stream.Dispose();
+
+        File.Delete(path);
+        File.Exists(path).Should().BeFalse();
+    }
+
+    [Fact]
+    public void SharedRollingFileCanBeWrittenByMultipleLoggerFactories()
+    {
+        var path = Path.Join(directory, "shared-factory-0.log");
+
+        using (var firstFactory = CreateSharedFactory())
+        {
+            firstFactory.CreateLogger("first").LogInformation("first logger message");
+        }
+
+        using (var secondFactory = CreateSharedFactory())
+        {
+            secondFactory.CreateLogger("second").LogInformation("second logger message");
+        }
+
+        var logText = File.ReadAllText(path);
+        logText.Should().Contain("first logger message");
+        logText.Should().Contain("second logger message");
+
+        ILoggerFactory CreateSharedFactory()
+        {
+            return LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Information);
+                x.AddZLoggerRollingFile(options =>
+                {
+                    options.FilePathSelector = (_, sequence) => Path.Join(directory, $"shared-factory-{sequence}.log");
+                    options.RollingInterval = RollingInterval.Day;
+                    options.RollingSizeKB = 5;
+                    options.FileShared = true;
+                });
+            });
+        }
+    }
+
     static StreamReader OpenFile(string path)
     {
         return new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read), Encoding.UTF8);
+    }
+
+    string[] ReadLines(string fileName)
+    {
+        return File.ReadAllLines(Path.Join(directory, fileName));
+    }
+
+    ILoggerFactory CreateLocalDateFactory(string prefix, TimeProvider timeProvider, TimeZoneInfo timeZone)
+    {
+        return LoggerFactory.Create(x =>
+        {
+            x.SetMinimumLevel(LogLevel.Debug);
+            x.AddZLoggerRollingFile(options =>
+            {
+                options.FilePathSelector = (timestamp, sequence) =>
+                    Path.Join(directory, $"{prefix}-{TimeZoneInfo.ConvertTime(timestamp, timeZone):yyyy-MM-dd}-{sequence}.log");
+                options.RollingInterval = RollingInterval.Day;
+                options.RollingSizeKB = 5;
+                options.TimeProvider = timeProvider;
+            });
+        });
+    }
+
+    // CET/CEST: DST from the last Sunday of March 02:00 to the last Sunday of October 03:00
+    static TimeZoneInfo CreateCentralEuropeanTimeZone()
+    {
+        var rule = TimeZoneInfo.AdjustmentRule.CreateAdjustmentRule(
+            DateTime.MinValue.Date,
+            DateTime.MaxValue.Date,
+            TimeSpan.FromHours(1),
+            TimeZoneInfo.TransitionTime.CreateFloatingDateRule(new DateTime(1, 1, 1, 2, 0, 0), 3, 5, DayOfWeek.Sunday),
+            TimeZoneInfo.TransitionTime.CreateFloatingDateRule(new DateTime(1, 1, 1, 3, 0, 0), 10, 5, DayOfWeek.Sunday));
+        return TimeZoneInfo.CreateCustomTimeZone("CET-Test", TimeSpan.FromHours(1), "CET-Test", "CET", "CEST", [rule]);
     }
 }

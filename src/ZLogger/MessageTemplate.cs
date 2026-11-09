@@ -57,6 +57,14 @@ public readonly partial struct MessageTemplate
         stringWriter.Flush();
     }
 
+    /// <summary>
+    /// Get the writer to write dynamic content (e.g. scopes) directly. Call Flush (or Dispose) after writing, otherwise nothing is written.
+    /// </summary>
+    public Utf8StringWriter<IBufferWriter<byte>> GetUtf8StringWriter()
+    {
+        return new Utf8StringWriter<IBufferWriter<byte>>(writer);
+    }
+
     static void AppendLogLevel(ref Utf8StringWriter<IBufferWriter<byte>> writer, ref LogLevel value, ref MessageTemplateChunk chunk)
     {
         if (!chunk.NoAlignmentAndFormat)

@@ -69,7 +69,9 @@ internal partial class RollingFileStream : Stream
     void TryChangeNewRollingFile()
     {
         var now = timeProvider?.GetUtcNow() ?? DateTimeOffset.UtcNow;
-        var currentCheckpoint = GetCurrentCheckpoint(now);
+        // FilePathSelector receives UTC by contract, while rolling intervals are based on local time.
+        var localNow = timeProvider?.GetLocalNow() ?? DateTimeOffset.Now;
+        var currentCheckpoint = GetCurrentCheckpoint(localNow);
 
         // needs to create next file
         if (innerStream == null || currentCheckpoint >= nextCheckpoint || writtenLength >= rollSizeInBytes)
@@ -91,6 +93,14 @@ internal partial class RollingFileStream : Stream
                         throw new InvalidOperationException("fileNameSelector indicate same filname");
                     }
                     fn = newFn;
+
+                    // The local interval may change before the UTC date used by the selector does.
+                    // Do not reopen the current file in that case; advance the sequence instead.
+                    if (innerStream != null && currentCheckpoint >= nextCheckpoint && newFn == fileName)
+                    {
+                        sequenceNo++;
+                        continue;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -126,7 +136,7 @@ internal partial class RollingFileStream : Stream
             try
             {
                 fileName = fn!;
-                nextCheckpoint = GetNextCheckpoint(now);
+                nextCheckpoint = GetNextCheckpoint(localNow);
                 if (File.Exists(fileName))
                 {
                     writtenLength = (int)new FileInfo(fileName).Length;
@@ -170,15 +180,27 @@ internal partial class RollingFileStream : Stream
         if (current == null)
             return null;
 
-        return rollInterval switch
+        switch (rollInterval)
         {
-            RollingInterval.Year => current.Value.AddYears(1),
-            RollingInterval.Month => current.Value.AddMonths(1),
-            RollingInterval.Day => current.Value.AddDays(1),
-            RollingInterval.Hour => current.Value.AddHours(1),
-            RollingInterval.Minute => current.Value.AddMinutes(1),
+            case RollingInterval.Hour:
+                return current.Value.AddHours(1);
+            case RollingInterval.Minute:
+                return current.Value.AddMinutes(1);
+        }
+
+        // The UTC offset at the next local midnight can differ from the current one (DST), so resolve it at that time.
+        var next = rollInterval switch
+        {
+            RollingInterval.Year => current.Value.DateTime.AddYears(1),
+            RollingInterval.Month => current.Value.DateTime.AddMonths(1),
+            RollingInterval.Day => current.Value.DateTime.AddDays(1),
             _ => throw new ArgumentOutOfRangeException()
         };
+        var timeZone = timeProvider?.LocalTimeZone ?? TimeZoneInfo.Local;
+        var offset = timeZone.IsAmbiguousTime(next)
+            ? timeZone.GetAmbiguousTimeOffsets(next).Max() // the earlier of the repeated times
+            : timeZone.GetUtcOffset(next);
+        return new DateTimeOffset(next, offset);
     }
 
     static int ExtractCurrentSequence(string fileName)
