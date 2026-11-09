@@ -14,10 +14,14 @@ public partial class ZLoggerGenerator
 
     internal record LogMethodDeclaration(
         ZLoggerMessageAttribute Attribute,
+        ITypeSymbol? JsonSerializerContext,
         IMethodSymbol TargetMethod,
         MethodDeclarationSyntax TargetSyntax,
         MessageSegment[] MessageSegments,
-        MethodParameter[] MethodParameters);
+        MethodParameter[] MethodParameters)
+    {
+        public string LoggerExpression { get; init; } = default!;
+    }
 
     public partial class MethodParameter
     {
@@ -93,13 +97,11 @@ public partial class ZLoggerGenerator
         {
             var list = new List<ParseResult>();
 
-            // grouping by type(TypeDeclarationSyntax)
-            foreach (var item in sources.GroupBy(x => x.TargetNode.Parent))
+            // Group all partial declarations of the same type into one generated file.
+            foreach (var item in sources.GroupBy(x => x.TargetSymbol.ContainingType, SymbolEqualityComparer.Default))
             {
-                if (item.Key == null) continue;
-                var targetType = (TypeDeclarationSyntax)item.Key;
-                var symbol = item.First().SemanticModel.GetDeclaredSymbol(targetType);
-                if (symbol == null) continue;
+                if (item.Key is not INamedTypeSymbol symbol) continue;
+                var targetType = (TypeDeclarationSyntax)item.First().TargetNode.Parent!;
 
                 // verify is partial
                 if (!IsPartial(targetType))
@@ -135,7 +137,7 @@ public partial class ZLoggerGenerator
                         continue;
                     }
 
-                    var (attr, setLogLevel) = GetAttribute(source);
+                    var (attr, setLogLevel, jsonSerializerContext) = GetAttribute(source);
                     var msg = attr.Message;
 
                     // parse and verify
@@ -147,6 +149,12 @@ public partial class ZLoggerGenerator
 
                     var (parameters, foundLogLevel) = GetMethodParameters(method, setLogLevel);
 
+                    var loggerExpression = GetLoggerExpression(method, parameters);
+                    if (loggerExpression == null)
+                    {
+                        continue;
+                    }
+
                     // Set LinkedParameters
                     foreach (var p in parameters.Where(x => x.IsParameter))
                     {
@@ -157,10 +165,14 @@ public partial class ZLoggerGenerator
 
                     var methodDecl = new LogMethodDeclaration(
                         Attribute: attr,
+                        JsonSerializerContext: jsonSerializerContext,
                         TargetMethod: (IMethodSymbol)source.TargetSymbol,
                         TargetSyntax: (MethodDeclarationSyntax)source.TargetNode,
                         MessageSegments: segments,
-                        MethodParameters: parameters);
+                        MethodParameters: parameters)
+                    {
+                        LoggerExpression = loggerExpression
+                    };
 
                     if (!Verify(methodDecl, foundLogLevel, targetType, symbol))
                     {
@@ -186,7 +198,7 @@ public partial class ZLoggerGenerator
             return list.ToArray();
         }
 
-        static (ZLoggerMessageAttribute attr, bool setLogLevel) GetAttribute(GeneratorAttributeSyntaxContext source)
+        static (ZLoggerMessageAttribute attr, bool setLogLevel, ITypeSymbol? jsonSerializerContext) GetAttribute(GeneratorAttributeSyntaxContext source)
         {
             var attributeData = source.Attributes[0];
 
@@ -195,6 +207,7 @@ public partial class ZLoggerGenerator
             LogLevel level = LogLevel.None;
             string message = "";
             bool skipEnabledCheck = false;
+            ITypeSymbol? jsonSerializerContext = null;
 
             // check logLevel is set for verify.
             var setLogLevel = false;
@@ -267,6 +280,9 @@ public partial class ZLoggerGenerator
                             case "Message":
                                 message = value.IsNull ? "" : (string)value.Value!;
                                 break;
+                            case "JsonSerializerContext":
+                                jsonSerializerContext = value.Value as ITypeSymbol;
+                                break;
                         }
                     }
                 }
@@ -279,7 +295,7 @@ public partial class ZLoggerGenerator
                 Level = level,
                 Message = message,
                 SkipEnabledCheck = skipEnabledCheck,
-            }, setLogLevel);
+            }, setLogLevel, jsonSerializerContext);
         }
 
         (MethodParameter[] parameters, bool foundLogLevel) GetMethodParameters(IMethodSymbol method, bool setLogLevel)
@@ -302,7 +318,7 @@ public partial class ZLoggerGenerator
 
                 if (!foundFirstLogger)
                 {
-                    var isLogger = p.Type.AllInterfaces.Concat(new[] { p.Type }).Any(x => SymbolEqualityComparer.Default.Equals(x, loggerSymbol));
+                    var isLogger = IsLogger(p.Type);
                     if (isLogger)
                     {
                         foundFirstLogger = true;
@@ -368,6 +384,78 @@ public partial class ZLoggerGenerator
             return (result, foundFirstLogLevel);
         }
 
+        bool IsLogger(ITypeSymbol type)
+        {
+            return SymbolEqualityComparer.Default.Equals(type, loggerSymbol)
+                || type.AllInterfaces.Any(x => SymbolEqualityComparer.Default.Equals(x, loggerSymbol));
+        }
+
+        string? GetLoggerExpression(IMethodSymbol method, MethodParameter[] parameters)
+        {
+            var loggerParameter = parameters.FirstOrDefault(x => x.IsFirstLogger);
+            if (loggerParameter != null)
+            {
+                return "@" + loggerParameter.Symbol.Name;
+            }
+
+            var location = ((MethodDeclarationSyntax)method.DeclaringSyntaxReferences[0].GetSyntax()).Identifier.GetLocation();
+            if (!method.IsStatic)
+            {
+                var fields = method.ContainingType.GetMembers().OfType<IFieldSymbol>()
+                    .Where(x => !x.IsStatic && x.CanBeReferencedByName && !x.IsImplicitlyDeclared && IsLogger(x.Type))
+                    .ToArray();
+                if (fields.Length > 1)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleLoggers, location, method.Name, "fields"));
+                    return null;
+                }
+                if (fields.Length == 1)
+                {
+                    return "this.@" + fields[0].Name;
+                }
+
+                // Primary constructor parameters have a type declaration as their grandparent.
+                // Inspect syntax through the existing API to retain compatibility with Roslyn 4.3.
+                var primaryParameters = method.ContainingType.InstanceConstructors
+                    .SelectMany(x => x.Parameters)
+                    .Where(x => IsLogger(x.Type) && x.DeclaringSyntaxReferences.Any(r =>
+                        r.GetSyntax().Parent?.Parent is TypeDeclarationSyntax))
+                    .ToArray();
+                if (primaryParameters.Length > 1)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleLoggers, location, method.Name, "primary constructor parameters"));
+                    return null;
+                }
+                if (primaryParameters.Length == 1)
+                {
+                    var primaryParameter = primaryParameters[0];
+                    if (parameters.Any(x => x.Symbol.Name == primaryParameter.Name)
+                        || HasShadowingMember(method.ContainingType, primaryParameter.Name))
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ShadowedLogger, location, method.Name, primaryParameter.Name));
+                        return null;
+                    }
+                    return "@" + primaryParameter.Name;
+                }
+            }
+
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MissingLogger, location, method.Name));
+            return null;
+        }
+
+        bool HasShadowingMember(INamedTypeSymbol containingType, string name)
+        {
+            var compilation = sources[0].SemanticModel.Compilation;
+            for (var type = containingType; type != null; type = type.BaseType)
+            {
+                if (type.GetMembers(name).Any(x => compilation.IsSymbolAccessibleWithin(x, containingType)))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         static bool IsPartial(TypeDeclarationSyntax typeDeclaration)
         {
             return typeDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword));
@@ -384,6 +472,25 @@ public partial class ZLoggerGenerator
 
             var methodLocation = methodDeclaration.TargetSyntax.Identifier.GetLocation();
             var methodName = methodDeclaration.TargetMethod.Name;
+
+            if (methodDeclaration.JsonSerializerContext is { } jsonSerializerContext)
+            {
+                var isContext = false;
+                for (var baseType = jsonSerializerContext.BaseType; baseType != null; baseType = baseType.BaseType)
+                {
+                    if (baseType.ToDisplayString() == "System.Text.Json.Serialization.JsonSerializerContext")
+                    {
+                        isContext = true;
+                        break;
+                    }
+                }
+
+                if (!isContext)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidJsonSerializerContext, methodLocation, methodName));
+                    verifyResult = false;
+                }
+            }
 
             // must retrun void
             if (methodDeclaration.TargetMethod.ReturnType.SpecialType != SpecialType.System_Void)
@@ -403,13 +510,6 @@ public partial class ZLoggerGenerator
             if (!foundLogLevel)
             {
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.LogLevelNotFound, methodLocation, methodName));
-                verifyResult = false;
-            }
-
-            // missing ILogger
-            if (!methodDeclaration.MethodParameters.Any(x => x.IsFirstLogger))
-            {
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MissingLogger, methodLocation, methodName));
                 verifyResult = false;
             }
 

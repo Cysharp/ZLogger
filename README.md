@@ -245,7 +245,7 @@ By adding Providers, you can configure where the logs are output. ZLogger has th
 | ZLoggerFileLoggerProvider              | ZLoggerFile         | AddZLoggerFile         |
 | ZLoggerRollingFileLoggerProvider       | ZLoggerRollingFile  | AddZLoggerRollingFile  |
 | ZLoggerStreamLoggerProvider            | ZLoggerStream       | AddZLoggerStream       |
-| ZLoggerInMemoryProcessorLoggerProvider | ZLoggerInMemory     | AddZLoggerInMemory     |
+| ZLoggerInMemoryLoggerProvider          | ZLoggerInMemory     | AddZLoggerInMemory     |
 | ZLoggerLogProcessorLoggerProvider      | ZLoggerLogProcessor | AddZLoggerLogProcessor |
 
 All Providers can take an Action that sets `ZLoggerOptions` as the last argument. As follows.
@@ -267,7 +267,7 @@ builder.Logging
     });
 ```
 
-If you are using `Microsoft.Extensions.Configuration`, you can set the log level through configuration. In this case, alias of Provider can be used.  for example:
+If you are using `Microsoft.Extensions.Configuration`, you can set the log level through configuration. In this case, use the alias of the Provider (or its full type name, e.g. `ZLogger.Providers.ZLoggerConsoleLoggerProvider`). For example:
 
 ```json
 {
@@ -275,13 +275,19 @@ If you are using `Microsoft.Extensions.Configuration`, you can set the log level
     "LogLevel": {
       "Default": "Information"
     },
-    "ZLoggerConsoleLoggerProvider": {
+    "ZLoggerConsole": {
       "LogLevel": {
         "Default": "Debug"
       }
     }
   }
 }
+```
+
+The Generic Host (`Host.CreateApplicationBuilder`, `WebApplication.CreateBuilder`, etc.) loads the `Logging` section automatically. Otherwise, load it with `AddConfiguration` from `Microsoft.Extensions.Logging.Configuration`.
+
+```csharp
+builder.Logging.AddConfiguration(configuration.GetSection("Logging"));
 ```
 
 Each Provider's behavior can be modified using the common `ZLoggerOptions`. For details, please refer to the [ZLoggerOptions](#zloggeroptions) section. Additionally, you can customize structured logging (JSON Logging) using the `UseFormatter` method within these options. For more information on this, check the [Formatter Configurations](#formatter-configurations) section.
@@ -330,16 +336,18 @@ If you are using `ZLoggerFileLoggerProvider`, the following additional options a
 RollingFile is a Provider that dynamically changes the output file based on certain conditions.
 
 ```csharp
+using ZLogger.Providers;
+
 // output to  yyyy-MM-dd_*.log, roll by 1MB or changed date
-logging.AddZLoggerRollingFile((dt, index) => $"{dt:yyyy-MM-dd}_{index}.log", 1024 * 1024);
+logging.AddZLoggerRollingFile((dt, index) => $"{dt.ToLocalTime():yyyy-MM-dd}_{index}.log", RollingInterval.Day, 1024);
 ```
 
 If you are using `ZLoggerRollingFileLoggerProvider`, the following additional options are available:
 
 | Name                                                                              | Description                                                                                                        |
 |:----------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------|
-| `Func<DateTimeOffset, int, string> fileNameSelector`                              | The Func to consturct the file path. `DateTimeOffset` is date of file open time(UTC), `int` is number sequence.        |
-| `RollingInterval rollInterval`                                                    | Interval to automatically rotate files.                                                                            |
+| `Func<DateTimeOffset, int, string> fileNameSelector`                              | The Func to construct the file path. `DateTimeOffset` is date of file open time(UTC), `int` is number sequence. Use `ToLocalTime()` to name files by local date. |
+| `RollingInterval rollInterval`                                                    | Interval to automatically rotate files. Interval boundaries are evaluated in local time (`TimeProvider.LocalTimeZone`). |
 | `int rollSizeKB`                                                                  | Limit size of single file.  If the file size is exceeded, a new file is created with the sequence number moved up. |
 | `bool fileShared`                                                                  | If set true, enables exclusive control of writing to the same file from multiple processes.(default: false) |
 
@@ -487,10 +495,41 @@ logging.AddZLoggerConsole(options =>
     options.UsePlainTextFormatter(formatter =>
     {
         // 2023-12-19 02:46:14.289 [DBG]......
-        formatter.SetPrefixFormatter($"{0:utc-longdate} [{1:short}]", (template, info) => template.Format(info.Timestamp, info.LogLevel));
+        formatter.SetPrefixFormatter($"{0:utc-longdate} [{1:short}]", (in MessageTemplate template, in LogInfo info) => template.Format(info.Timestamp, info.LogLevel));
     });
 });
 ```
+
+To write content whose length changes per log, such as scopes, use `GetUtf8StringWriter()` to write directly to the buffer. If you don't use the message template, pass an empty template (`$""`). The writer must be flushed, so declare it with `using` (or call `Flush()`); otherwise nothing is written.
+
+```csharp
+logging.AddZLoggerConsole(options =>
+{
+    options.IncludeScopes = true;
+    options.UsePlainTextFormatter(formatter =>
+    {
+        // => Type=Foo => Id=17
+        // log message...
+        formatter.SetPrefixFormatter($"", (in MessageTemplate template, in LogInfo info) =>
+        {
+            if (info.ScopeState is not { IsEmpty: false } scope) return;
+
+            using var writer = template.GetUtf8StringWriter();
+            foreach (var (key, value) in scope.Properties)
+            {
+                if (key == "{OriginalFormat}") continue;
+                writer.AppendLiteral(" => ");
+                writer.AppendFormatted(key);
+                writer.AppendLiteral("=");
+                writer.AppendFormatted(value);
+            }
+            writer.AppendLine();
+        });
+    });
+});
+```
+
+When you use both, call `template.Format(...)` first and then write with `GetUtf8StringWriter()`; the content is appended after the template.
 
 SetExceptionFormatter allows you to customize the display when outputting exceptions. This can be easily converted to a string using `Utf8String.Format`.
 
@@ -544,7 +583,7 @@ public static class CloudLoggingExtensions
             var eventId = Encode("eventId");
             var userId = Encode("userId");
 
-            formatter.AdditionalFormatter = (Utf8JsonWriter writer, in LogInfo) =>
+            formatter.AdditionalFormatter = (Utf8JsonWriter writer, in LogInfo logInfo) =>
             {
                 writer.WriteStartObject(labels);
                 writer.WriteString(category, logInfo.Category.JsonEncoded);
@@ -627,14 +666,13 @@ The list of properties is as follows.
 
 ### Custom Formatter 
 
-If you want to create a formatter other than the default PlainText, Json, and MessagePack, you can implement `IZloggerFormatter` to create any custom output.
+If you want to create a formatter other than the default PlainText, Json, and MessagePack, you can implement `IZLoggerFormatter` to create any custom output.
 
 ```csharp
 public interface IZLoggerFormatter
 {
     bool WithLineBreak { get; }
-    void FormatLogEntry<TEntry>(IBufferWriter<byte> writer, TEntry entry)
-        where TEntry : IZLoggerEntry;
+    void FormatLogEntry(IBufferWriter<byte> writer, IZLoggerEntry entry);
 }
 ```
 
@@ -697,6 +735,58 @@ public static partial class MyLogger
 ```
 
 This can achieve the highest performance. It's also possible to use special format specifiers like `:json`.
+
+Instance methods can use an `ILogger` or `ILogger<T>` field declared in the same type:
+
+```csharp
+public partial class Worker
+{
+    private readonly ILogger<Worker> logger;
+
+    public Worker(ILogger<Worker> logger) => this.logger = logger;
+
+    [ZLoggerMessage(LogLevel.Information, "Processing {item}")]
+    public partial void Processing(string item);
+}
+```
+
+With C# 12, a primary constructor parameter can supply the logger directly:
+
+```csharp
+public partial class Worker(ILogger<Worker> logger)
+{
+    [ZLoggerMessage(LogLevel.Information, "Processing {item}")]
+    public partial void Processing(string item);
+}
+```
+
+The generator first uses an `ILogger` method parameter, then a unique instance logger field, then a unique primary constructor logger parameter. Fields can be declared in another partial declaration of the same type; inherited fields are not considered. Multiple matching fields or primary constructor parameters at the selected step produce a diagnostic; pass the logger explicitly to select one. Static methods still require a logger parameter. The containing type must be partial, non-nested, and non-generic.
+
+For Native AOT or trimming, supply a System.Text.Json source-generated context with `JsonSerializerContext`:
+
+```csharp
+using Microsoft.Extensions.Logging;
+using System.Text.Json.Serialization;
+using ZLogger;
+
+public static partial class MyLogger
+{
+    [ZLoggerMessage(LogLevel.Information, "{obj}", JsonSerializerContext = typeof(LogJsonContext))]
+    public static partial void Write(ILogger logger, object? obj);
+}
+
+[JsonSerializable(typeof(object))]
+[JsonSerializable(typeof(LogPayload))]
+internal partial class LogJsonContext : JsonSerializerContext
+{
+}
+
+public record LogPayload(string Name, int Count);
+```
+
+The generated logger uses the context's `Default` instance for parameters that require JSON serialization, including `:json` message formats and collections. Register the declared parameter types and, for `object` parameters, every possible runtime type. Register collection types as well when logging collections. Missing metadata causes serialization to fail without falling back to reflection.
+
+Serialization uses the context's settings, such as `JsonSourceGenerationOptions`, rather than the formatter's `JsonSerializerOptions`. Primitive parameters written directly with `Utf8JsonWriter` retain their existing formatting. Omitting `JsonSerializerContext` preserves the existing behavior.
 
 Microsoft.CodeAnalysis.BannedApiAnalyzers
 ---

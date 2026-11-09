@@ -111,6 +111,59 @@ namespace ZLogger.Tests
         }
 
         [Fact]
+        public void GetUtf8StringWriter()
+        {
+            var options = new ZLoggerOptions();
+            options.UsePlainTextFormatter(formatter =>
+            {
+                formatter.SetPrefixFormatter($"", (in MessageTemplate template, in LogInfo info) =>
+                {
+                    if (info.ScopeState is not { IsEmpty: false } scope) return;
+
+                    using var writer = template.GetUtf8StringWriter();
+                    foreach (var (key, value) in scope.Properties)
+                    {
+                        if (key == "{OriginalFormat}") continue;
+                        writer.AppendLiteral("[");
+                        writer.AppendFormatted(key);
+                        writer.AppendLiteral("=");
+                        writer.AppendFormatted(value);
+                        writer.AppendLiteral("]");
+                    }
+                });
+                formatter.SetSuffixFormatter($" ({0}", (in MessageTemplate template, in LogInfo info) =>
+                {
+                    template.Format(info.LogLevel);
+                    var writer = template.GetUtf8StringWriter();
+                    writer.AppendLiteral(")");
+                    writer.Flush();
+                });
+            });
+            var processor = new TestProcessor(options);
+
+            var loggerFactory = LoggerFactory.Create(x =>
+            {
+                x.SetMinimumLevel(LogLevel.Debug);
+                x.AddZLoggerLogProcessor(options =>
+                {
+                    options.IncludeScopes = true;
+                    return processor;
+                });
+            });
+            var logger = loggerFactory.CreateLogger("test");
+
+            logger.ZLogDebug($"no scope");
+            Assert.Equal("no scope (Debug)", processor.DequeueAsString());
+
+            using (logger.BeginScope("Type {Type}", "Foo"))
+            using (logger.BeginScope("Property {Property} {Id}", "Bar", 17))
+            {
+                logger.ZLogInformation($"message");
+            }
+            Assert.Equal("[Type=Foo][Property=Bar][Id=17]message (Information)", processor.DequeueAsString());
+        }
+
+        [Fact]
         public void CollectionDestructuring()
         {
             var options = new ZLoggerOptions();
