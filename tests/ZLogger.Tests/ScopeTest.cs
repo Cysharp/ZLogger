@@ -130,10 +130,10 @@ public class ScopeTest
         }
 
         var doc = JsonDocument.Parse(processor.DequeueAsString()).RootElement;
-        doc.GetProperty("Message").GetString().Should().Be("Message");
+        Assert.Equal("Message", doc.GetProperty("Message").GetString());
         foreach (var (key, value) in scope)
         {
-            doc.GetProperty(key).GetInt32().Should().Be((int)value);
+            Assert.Equal((int)value, doc.GetProperty(key).GetInt32());
         }
     }
 
@@ -160,13 +160,13 @@ public class ScopeTest
 
         var log2 = JsonDocument.Parse(processor.DequeueAsString()).RootElement;
 
-        log1.GetProperty("E").GetInt32().Should().Be(5);
+        Assert.Equal(5, log1.GetProperty("E").GetInt32());
 
-        log2.GetProperty("Message").GetString().Should().Be("Message 2");
-        log2.GetProperty("X").GetInt32().Should().Be(111);
+        Assert.Equal("Message 2", log2.GetProperty("Message").GetString());
+        Assert.Equal(111, log2.GetProperty("X").GetInt32());
         foreach (var key in new[] { "A", "B", "C", "D", "E" })
         {
-            log2.TryGetProperty(key, out _).Should().BeFalse();
+            Assert.False(log2.TryGetProperty(key, out _));
         }
     }
 

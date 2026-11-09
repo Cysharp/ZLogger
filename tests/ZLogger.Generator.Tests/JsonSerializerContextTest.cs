@@ -24,9 +24,9 @@ public partial class JsonSerializerContextTest
 
         Structured(logger, payload, payload, new ContextValue { ValueCount = 42 }, new[] { 1, 2 });
 
-        messages.Should().Equal("""
+        Assert.Equal(new[] { """
             {"obj":{"valueName":"sample"},"payload":{"valueName":"sample"},"value":{"valueCount":42},"items":[1,2]}
-            """);
+            """ }, messages);
     }
 
     [Fact]
@@ -36,9 +36,9 @@ public partial class JsonSerializerContextTest
 
         Structured(logger, null, null, null, null);
 
-        messages.Should().Equal("""
+        Assert.Equal(new[] { """
             {"obj":null,"payload":null,"value":null,"items":null}
-            """);
+            """ }, messages);
     }
 
     [Theory]
@@ -51,7 +51,7 @@ public partial class JsonSerializerContextTest
 
         Message(logger, payload, useNull ? null : new[] { payload! });
 
-        messages.Should().Equal(expected);
+        Assert.Equal(new[] { expected }, messages);
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public partial class JsonSerializerContextTest
 
         Action serialize = () => state.WriteJsonParameterKeyValues(writer, new JsonSerializerOptions());
 
-        serialize.Should().Throw<NotSupportedException>();
+        Assert.Throws<NotSupportedException>(serialize);
     }
 
     [Theory]
@@ -83,7 +83,7 @@ public partial class JsonSerializerContextTest
             }
             """);
 
-        diagnostics.Where(x => x.Id != "CS8795").Select(x => x.Id).Should().Equal("ZLOG014");
+        Assert.Equal(new[] { "ZLOG014" }, diagnostics.Where(x => x.Id != "CS8795").Select(x => x.Id));
     }
 
     sealed class UnregisteredPayload
