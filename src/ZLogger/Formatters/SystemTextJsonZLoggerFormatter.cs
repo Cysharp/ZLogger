@@ -1,9 +1,8 @@
-using System.Buffers;
+﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.Unicode;
 using Microsoft.Extensions.Logging;
 using ZLogger.Formatters;
 using ZLogger.Internal;
@@ -293,6 +292,12 @@ namespace ZLogger.Formatters
             }
         }
 
+        // Doubling the buffer this many times allows a mutated key name up to 1024 times the initial buffer.
+        // The cleaner solution would be for IKeyNameMutator to report the maximum length of its output, so that the buffer could be
+        // sized once and no retry limit would be needed. That needs a new interface member, which breaks existing implementations
+        // (netstandard2.0 has no default interface methods), so a fixed limit is used instead.
+        const int MaxKeyNameMutatorRetries = 10;
+
         internal static void WriteMutatedJsonKeyName(ReadOnlySpan<char> keyName, Utf8JsonWriter jsonWriter, IKeyNameMutator? mutator = null)
         {
             if (mutator == null)
@@ -305,10 +310,17 @@ namespace ZLogger.Formatters
             }
             else
             {
-                var bufferSize = keyName.Length;
+                // Start from at least 16 characters: for an empty key name keyName.Length is 0, and doubling 0 never grows the buffer.
+                var bufferSize = Math.Max(keyName.Length, 16);
+                var retries = 0;
                 while (!TryMutate(keyName, bufferSize, jsonWriter, mutator))
                 {
-                    bufferSize *= 2;
+                    // A mutator that still fails with a buffer this much larger than the key name is treated as broken.
+                    if (++retries > MaxKeyNameMutatorRetries)
+                    {
+                        throw new InvalidOperationException($"{mutator.GetType().FullName}.TryMutate returned false for the key name '{keyName.ToString()}' even with a buffer of {bufferSize} characters. TryMutate should return false only when the destination is too small.");
+                    }
+                    bufferSize = checked(bufferSize * 2);
                 }
             }
 
@@ -316,11 +328,18 @@ namespace ZLogger.Formatters
             {
                 if (bufferSize > 256)
                 {
-                    var buffer = new char[bufferSize];
-                    if (mutator.TryMutate(source, buffer, out var written))
+                    var buffer = ArrayPool<char>.Shared.Rent(bufferSize);
+                    try
                     {
-                        jsonWriter.WritePropertyName(buffer.AsSpan(0, written));
-                        return true;
+                        if (mutator.TryMutate(source, buffer, out var written))
+                        {
+                            jsonWriter.WritePropertyName(buffer.AsSpan(0, written));
+                            return true;
+                        }
+                    }
+                    finally
+                    {
+                        ArrayPool<char>.Shared.Return(buffer);
                     }
                 }
                 else
