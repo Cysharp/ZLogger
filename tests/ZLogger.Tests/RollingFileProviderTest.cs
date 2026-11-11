@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 using ZLogger.Providers;
@@ -46,7 +45,7 @@ public class RollingFileProviderTest
             });
         });
         
-        File.Exists(path1).Should().Be(true);
+        Assert.True(File.Exists(path1));
         
         var logger = loggerFactory.CreateLogger("mytest");
         logger.LogDebug("foo");
@@ -54,7 +53,7 @@ public class RollingFileProviderTest
         logger.LogDebug("baz");
    
         await Task.Delay(100, TestContext.Current.CancellationToken); // wait for flush
-        File.Exists(path1).Should().BeTrue();
+        Assert.True(File.Exists(path1));
         
         // Next day
         timeProvider.Advance(TimeSpan.FromDays(1));
@@ -64,24 +63,24 @@ public class RollingFileProviderTest
         logger.LogDebug("c");
 
         await Task.Delay(100, TestContext.Current.CancellationToken); // wait for flush
-        File.Exists(path2).Should().BeTrue();
+        Assert.True(File.Exists(path2));
         
 
         loggerFactory.Dispose();
 
         using (var fs = OpenFile(path1))
         {
-            fs.ReadLine().Should().Be("foo");
-            fs.ReadLine().Should().Be("bar");
-            fs.ReadLine().Should().Be("baz");
-            fs.ReadLine().Should().BeNull();
+            Assert.Equal("foo", fs.ReadLine());
+            Assert.Equal("bar", fs.ReadLine());
+            Assert.Equal("baz", fs.ReadLine());
+            Assert.Null(fs.ReadLine());
         }
 
         using (var fs = OpenFile(path2))
         {
-            fs.ReadLine().Should().Be("a");
-            fs.ReadLine().Should().Be("v");
-            fs.ReadLine().Should().Be("c");
+            Assert.Equal("a", fs.ReadLine());
+            Assert.Equal("v", fs.ReadLine());
+            Assert.Equal("c", fs.ReadLine());
         }        
     }
     
@@ -105,7 +104,7 @@ public class RollingFileProviderTest
             });
         });
         
-        File.Exists(path1).Should().Be(true);
+        Assert.True(File.Exists(path1));
         
         var logger = loggerFactory.CreateLogger("mytest");
         logger.LogDebug(new string('a', 10000));
@@ -113,7 +112,7 @@ public class RollingFileProviderTest
         logger.LogDebug("tako");
         await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken); // wait for flush
 
-        File.Exists(path2).Should().BeTrue();
+        Assert.True(File.Exists(path2));
     }
 
     [Fact]
@@ -135,8 +134,8 @@ public class RollingFileProviderTest
 
         loggerFactory.Dispose();
 
-        ReadLines("local-time-2000-01-01-0.log").Should().Equal("before local midnight");
-        ReadLines("local-time-2000-01-02-0.log").Should().Equal("after local midnight");
+        Assert.Equal(new[] { "before local midnight" }, ReadLines("local-time-2000-01-01-0.log"));
+        Assert.Equal(new[] { "after local midnight" }, ReadLines("local-time-2000-01-02-0.log"));
     }
 
     [Fact]
@@ -167,8 +166,8 @@ public class RollingFileProviderTest
 
         loggerFactory.Dispose();
 
-        ReadLines("utc-name-2000-01-01-0.log").Should().Equal("before local midnight");
-        ReadLines("utc-name-2000-01-01-1.log").Should().Equal("after local midnight");
+        Assert.Equal(new[] { "before local midnight" }, ReadLines("utc-name-2000-01-01-0.log"));
+        Assert.Equal(new[] { "after local midnight" }, ReadLines("utc-name-2000-01-01-1.log"));
     }
 
     [Fact]
@@ -190,8 +189,8 @@ public class RollingFileProviderTest
 
         loggerFactory.Dispose();
 
-        ReadLines("dst-start-2026-03-29-0.log").Should().Equal("a");
-        ReadLines("dst-start-2026-03-30-0.log").Should().Equal("b");
+        Assert.Equal(new[] { "a" }, ReadLines("dst-start-2026-03-29-0.log"));
+        Assert.Equal(new[] { "b" }, ReadLines("dst-start-2026-03-30-0.log"));
     }
 
     [Fact]
@@ -218,9 +217,9 @@ public class RollingFileProviderTest
 
         loggerFactory.Dispose();
 
-        ReadLines("dst-end-2026-10-25-0.log").Should().Equal("a", "b");
-        File.Exists(Path.Join(directory, "dst-end-2026-10-25-1.log")).Should().BeFalse();
-        ReadLines("dst-end-2026-10-26-0.log").Should().Equal("c");
+        Assert.Equal(new[] { "a", "b" }, ReadLines("dst-end-2026-10-25-0.log"));
+        Assert.False(File.Exists(Path.Join(directory, "dst-end-2026-10-25-1.log")));
+        Assert.Equal(new[] { "c" }, ReadLines("dst-end-2026-10-26-0.log"));
     }
 
     [Fact]
@@ -253,7 +252,7 @@ public class RollingFileProviderTest
         stream.Dispose();
 
         File.Delete(path);
-        File.Exists(path).Should().BeFalse();
+        Assert.False(File.Exists(path));
     }
 
     [Fact]
@@ -272,8 +271,8 @@ public class RollingFileProviderTest
         }
 
         var logText = File.ReadAllText(path);
-        logText.Should().Contain("first logger message");
-        logText.Should().Contain("second logger message");
+        Assert.Contains("first logger message", logText, StringComparison.Ordinal);
+        Assert.Contains("second logger message", logText, StringComparison.Ordinal);
 
         ILoggerFactory CreateSharedFactory()
         {

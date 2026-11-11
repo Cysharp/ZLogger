@@ -47,22 +47,22 @@ namespace ZLogger.Generator.Tests
             }), out var logger, out var list);
 
             ZeroCtor(logger, LogLevel.Debug, 10, 20);
-            list[0].Should().Be("Debug:Hello 10 20");
+            Assert.Equal("Debug:Hello 10 20", list[0]);
 
             ZeroCtor(logger, LogLevel.Warning, 10, 20);
-            list[1].Should().Be("Warning:Hello 10 20");
+            Assert.Equal("Warning:Hello 10 20", list[1]);
 
             Msg(logger, LogLevel.Critical, 10, 20);
-            list[2].Should().Be("Critical:Hello 10 20");
+            Assert.Equal("Critical:Hello 10 20", list[2]);
 
             Level(logger, 30, 20);
-            list[3].Should().Be("Debug:Hello 30 20");
+            Assert.Equal("Debug:Hello 30 20", list[3]);
 
             Three(logger, 30, 20);
-            list[4].Should().Be("Warning:Hello 30 20");
+            Assert.Equal("Warning:Hello 30 20", list[4]);
 
             EventName(logger, 40, 50);
-            list[5].Should().Be("Warning:Hello 40 50");
+            Assert.Equal("Warning:Hello 40 50", list[5]);
         }
 
         [Fact]
@@ -75,7 +75,7 @@ namespace ZLogger.Generator.Tests
             }), out var logger, out var list);
 
             Err(logger, new Exception("MY EXCEPTION!"), 10, 20);
-            list[0].Should().Be("MY EXCEPTION!:Hello 10 20");
+            Assert.Equal("MY EXCEPTION!:Hello 10 20", list[0]);
         }
     }
 

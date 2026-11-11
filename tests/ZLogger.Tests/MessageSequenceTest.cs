@@ -22,14 +22,14 @@ namespace ZLogger.Tests
             pooled.Add(null);
             var sequenceB = MessageSequence.GetOrCreate(38, 1, pooled);
 
-            sequenceB.Should().NotBeSameAs(sequenceA);
+            Assert.NotSame(sequenceA, sequenceB);
 
             // Look up with a different list instance; this would miss if the registered key aliased the pooled list,
             // because that list now holds the literals of B.
             var other = new SpanList<string>();
             other.Add("MessageSequenceTest-key-independence-a");
             other.Add(null);
-            MessageSequence.GetOrCreate(38, 1, other).Should().BeSameAs(sequenceA);
+            Assert.Same(sequenceA, MessageSequence.GetOrCreate(38, 1, other));
         }
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Text.Json;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using ZLogger.Formatters;
 
@@ -27,10 +26,10 @@ namespace ZLogger.Tests
             var json = processor.DequeueAsString();
             var doc = JsonDocument.Parse(json).RootElement;
 
-            doc.GetProperty("Message").GetString().Should().Be("100 00200      2023-12-31");
-            doc.GetProperty("TAKO").GetInt32().Should().Be(100);
-            doc.GetProperty("YAKI").GetInt32().Should().Be(200);
-            doc.GetProperty("T").GetDateTime().Should().Be(new DateTime(2023, 12, 31));
+            Assert.Equal("100 00200      2023-12-31", doc.GetProperty("Message").GetString());
+            Assert.Equal(100, doc.GetProperty("TAKO").GetInt32());
+            Assert.Equal(200, doc.GetProperty("YAKI").GetInt32());
+            Assert.Equal(new DateTime(2023, 12, 31), doc.GetProperty("T").GetDateTime());
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using System;
+﻿using System;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -14,36 +13,36 @@ namespace ZLogger.Tests
         [Fact]
         public void Lookup()
         {
-            EnumDictionary<Foo>.GetStringName(Foo.AAA).Should().Be("AAA");
-            EnumDictionary<Foo>.GetStringName(Foo.BBB).Should().Be("BBB");
-            EnumDictionary<Foo>.GetStringName(Foo.CCC).Should().Be("CCC");
-            EnumDictionary<Foo>.GetStringName((Foo)33).Should().BeNull();
+            Assert.Equal("AAA", EnumDictionary<Foo>.GetStringName(Foo.AAA));
+            Assert.Equal("BBB", EnumDictionary<Foo>.GetStringName(Foo.BBB));
+            Assert.Equal("CCC", EnumDictionary<Foo>.GetStringName(Foo.CCC));
+            Assert.Null(EnumDictionary<Foo>.GetStringName((Foo)33));
 
-            EnumDictionary<More>.GetStringName(More.AAA).Should().Be("AAA");
-            EnumDictionary<More>.GetStringName(More.BBB).Should().Be("BBB");
-            EnumDictionary<More>.GetStringName(More.CCC).Should().Be("CCC");
-            EnumDictionary<More>.GetStringName((More)33).Should().BeNull();
+            Assert.Equal("AAA", EnumDictionary<More>.GetStringName(More.AAA));
+            Assert.Equal("BBB", EnumDictionary<More>.GetStringName(More.BBB));
+            Assert.Equal("CCC", EnumDictionary<More>.GetStringName(More.CCC));
+            Assert.Null(EnumDictionary<More>.GetStringName((More)33));
 
-            EnumDictionary<FlagsEnum>.GetStringName(FlagsEnum.A).Should().Be("A");
-            EnumDictionary<FlagsEnum>.GetStringName(FlagsEnum.D).Should().Be("D");
-            EnumDictionary<FlagsEnum>.GetStringName(FlagsEnum.All).Should().Be("All");
-            EnumDictionary<FlagsEnum>.GetStringName(FlagsEnum.None).Should().Be("None");
-            EnumDictionary<FlagsEnum>.GetStringName(FlagsEnum.A | FlagsEnum.D).Should().BeNull();
+            Assert.Equal("A", EnumDictionary<FlagsEnum>.GetStringName(FlagsEnum.A));
+            Assert.Equal("D", EnumDictionary<FlagsEnum>.GetStringName(FlagsEnum.D));
+            Assert.Equal("All", EnumDictionary<FlagsEnum>.GetStringName(FlagsEnum.All));
+            Assert.Equal("None", EnumDictionary<FlagsEnum>.GetStringName(FlagsEnum.None));
+            Assert.Null(EnumDictionary<FlagsEnum>.GetStringName(FlagsEnum.A | FlagsEnum.D));
 
-            EnumDictionary<Duplicate>.GetStringName(Duplicate.Foo).Should().Be("Foo");
-            (EnumDictionary<Duplicate>.GetStringName(Duplicate.Bar) is "MoreBar" or "Bar").Should().BeTrue();
-            EnumDictionary<Duplicate>.GetStringName(Duplicate.Baz).Should().Be("Baz");
-            (EnumDictionary<Duplicate>.GetStringName(Duplicate.MoreBar) is "MoreBar" or "Bar").Should().BeTrue();
-            EnumDictionary<Duplicate>.GetStringName(Duplicate.End).Should().Be("End");
+            Assert.Equal("Foo", EnumDictionary<Duplicate>.GetStringName(Duplicate.Foo));
+            Assert.Contains(EnumDictionary<Duplicate>.GetStringName(Duplicate.Bar), new[] { "MoreBar", "Bar" });
+            Assert.Equal("Baz", EnumDictionary<Duplicate>.GetStringName(Duplicate.Baz));
+            Assert.Contains(EnumDictionary<Duplicate>.GetStringName(Duplicate.MoreBar), new[] { "MoreBar", "Bar" });
+            Assert.Equal("End", EnumDictionary<Duplicate>.GetStringName(Duplicate.End));
         }
 
         [Fact]
         public void HttpStatusCodeTest()
         {
-            EnumDictionary<HttpStatusCode>.GetStringName(HttpStatusCode.InternalServerError).Should().Be("InternalServerError");
-            EnumDictionary<HttpStatusCode>.GetStringName(HttpStatusCode.RequestEntityTooLarge).Should().Be("RequestEntityTooLarge");
-            EnumDictionary<HttpStatusCode>.GetUtf8Name(HttpStatusCode.NetworkAuthenticationRequired).ToArray().Should().Equal(Encoding.UTF8.GetBytes("NetworkAuthenticationRequired"));
-            EnumDictionary<HttpStatusCode>.GetJsonEncodedName(HttpStatusCode.UnprocessableEntity).Should().Be(JsonEncodedText.Encode("UnprocessableEntity"));
+            Assert.Equal("InternalServerError", EnumDictionary<HttpStatusCode>.GetStringName(HttpStatusCode.InternalServerError));
+            Assert.Equal("RequestEntityTooLarge", EnumDictionary<HttpStatusCode>.GetStringName(HttpStatusCode.RequestEntityTooLarge));
+            Assert.Equal(Encoding.UTF8.GetBytes("NetworkAuthenticationRequired"), EnumDictionary<HttpStatusCode>.GetUtf8Name(HttpStatusCode.NetworkAuthenticationRequired).ToArray());
+            Assert.Equal(JsonEncodedText.Encode("UnprocessableEntity"), EnumDictionary<HttpStatusCode>.GetJsonEncodedName(HttpStatusCode.UnprocessableEntity));
         }
     }
 

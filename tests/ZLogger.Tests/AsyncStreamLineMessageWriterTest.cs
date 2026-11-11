@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Reflection;
-using FluentAssertions;
 using ZLogger.Internal;
 
 namespace ZLogger.Tests
@@ -56,22 +55,17 @@ namespace ZLogger.Tests
                 // A subsequent ordinary write must still land correctly. Under the bug,
                 // `written` silently exceeded the buffer's capacity above, so the very next
                 // Flush() throws ArgumentOutOfRangeException and the whole batch - the 65535
-                // filler bytes and the newline - is permanently lost.
-                Action act = () =>
-                {
-                    var span = writer.GetSpan(1);
-                    span[0] = (byte)'y';
-                    writer.Advance(1);
-                    writer.Flush();
-                };
-
-                act.Should().NotThrow<ArgumentOutOfRangeException>(
-                    "a newline landing exactly at the buffer boundary must not corrupt StreamBufferWriter's internal position");
+                // filler bytes and the newline - is permanently lost. A newline landing exactly at
+                // the buffer boundary must not corrupt StreamBufferWriter's internal position.
+                var span = writer.GetSpan(1);
+                span[0] = (byte)'y';
+                writer.Advance(1);
+                writer.Flush();
 
                 var bytes = ms.ToArray();
-                bytes.Length.Should().Be(BufferCapacity + 1, "65535 filler bytes + 1 newline byte + 1 trailing byte, none lost or duplicated");
-                bytes[BufferCapacity - 1].Should().Be((byte)'\n', "AppendLine must add exactly one newline byte");
-                bytes[BufferCapacity].Should().Be((byte)'y', "the write following the newline must not be shifted or corrupted");
+                Assert.Equal(BufferCapacity + 1, bytes.Length); // 65535 filler bytes + 1 newline byte + 1 trailing byte, none lost or duplicated
+                Assert.Equal((byte)'\n', bytes[BufferCapacity - 1]); // AppendLine must add exactly one newline byte
+                Assert.Equal((byte)'y', bytes[BufferCapacity]); // the write following the newline must not be shifted or corrupted
             }
             finally
             {

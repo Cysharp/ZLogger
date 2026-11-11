@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -50,10 +49,10 @@ public class TimestampTest
     [Fact]
     public void TimestampFormatTest()
     {
-        GetLogString($"{0}").Should().Be("1999-12-30 11:12:33.000");
-        GetLogString($"{0:datetime}").Should().Be("1999-12-30 11:12:33");
-        GetLogString($"{0:dateonly}").Should().Be("1999-12-30");
-        GetLogString($"{0:timeonly}").Should().Be("11:12:33");
+        Assert.Equal("1999-12-30 11:12:33.000", GetLogString($"{0}"));
+        Assert.Equal("1999-12-30 11:12:33", GetLogString($"{0:datetime}"));
+        Assert.Equal("1999-12-30", GetLogString($"{0:dateonly}"));
+        Assert.Equal("11:12:33", GetLogString($"{0:timeonly}"));
     }
 }
 
