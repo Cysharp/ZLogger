@@ -120,45 +120,54 @@ internal partial class RollingFileStream : Stream
             }
 
             if (disposed) return;
-            try
-            {
-                if (innerStream != null)
-                {
-                    innerStream.Flush();
-                    innerStream.Dispose();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Can't dispose fileStream", ex);
-            }
 
+            // Open the next file before letting go of the current one.
+            // If it can't be opened, the current stream and the rolling state stay as they are, so the roll is retried on the next write.
+            Stream newStream;
+            int newWrittenLength;
             try
             {
-                fileName = fn!;
-                nextCheckpoint = GetNextCheckpoint(localNow);
-                if (File.Exists(fileName))
+                if (File.Exists(fn))
                 {
-                    writtenLength = (int)new FileInfo(fileName).Length;
+                    newWrittenLength = (int)new FileInfo(fn!).Length;
                 }
                 else
                 {
-                    writtenLength = 0;
+                    newWrittenLength = 0;
                 }
 
-                var di = new FileInfo(fileName).Directory;
+                var di = new FileInfo(fn!).Directory;
                 if (!di!.Exists)
                 {
                     di.Create();
                 }
                 // useAsync:false, use sync(in thread) processor, don't use FileStream buffer(use buffer size = 1).
-                innerStream = fileShared
-                    ? new SharedFileStream(fileName)
-                    : new FileStream(fileName, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 1, false);
+                newStream = fileShared
+                    ? new SharedFileStream(fn!)
+                    : new FileStream(fn!, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 1, false);
             }
             catch (Exception ex)
             {
                 throw new InvalidOperationException("Can't create FileStream", ex);
+            }
+
+            var oldStream = innerStream;
+            fileName = fn!;
+            nextCheckpoint = GetNextCheckpoint(localNow);
+            writtenLength = newWrittenLength;
+            innerStream = newStream;
+
+            try
+            {
+                if (oldStream != null)
+                {
+                    oldStream.Flush();
+                    oldStream.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Can't dispose fileStream", ex);
             }
         }
     }
