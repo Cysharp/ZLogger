@@ -26,6 +26,27 @@ public class RollingFileProviderTest
     }
 
     [Fact]
+    public void RollIsRetriedAfterNextFileCouldNotBeOpened()
+    {
+        string PathOf(int seq) => Path.Join(directory, $"ZLoggerRollingTest_Retry-{seq}.log");
+
+        using var stream = new RollingFileStream((_, seq) => PathOf(seq), RollingInterval.Infinite, 1, null, false);
+        stream.Write(new byte[1024], 0, 1024); // the first file is full now
+
+        // A directory sits where the next file should be created, so it cannot be opened.
+        Directory.CreateDirectory(PathOf(1));
+        var line = Encoding.UTF8.GetBytes("foo");
+        Assert.Throws<InvalidOperationException>(() => stream.Write(line, 0, line.Length));
+
+        // Once the cause is gone, the next write rolls to the new file.
+        Directory.Delete(PathOf(1));
+        stream.Write(line, 0, line.Length);
+        stream.Dispose();
+
+        File.ReadAllText(PathOf(1)).Should().Be("foo");
+    }
+
+    [Fact]
     public async Task RollByInterval()
     {
         var timeProvider = new FakeTimeProvider(new DateTimeOffset(2000, 1, 2, 3, 4, 5, TimeSpan.Zero));
