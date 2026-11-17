@@ -377,10 +377,11 @@ internal unsafe partial struct MagicalBox
             {
                 unsafe
                 {
-                    var name = EnumDictionary<T>.GetStringName(v);
+                    // The cached name is what the value formats to only when no format is specified (e.g. `{x:D}` formats to the underlying value).
+                    var name = format == null ? EnumDictionary<T>.GetStringName(v) : null;
                     if (name != null)
                     {
-                        handler.AppendFormatted(name, alignment, format);
+                        handler.AppendFormatted(name, alignment);
                     }
                     else
                     {
@@ -399,14 +400,26 @@ internal unsafe partial struct MagicalBox
             {
                 unsafe
                 {
+                    if (format != null)
+                    {
+                        // Utf8StringWriter.AppendFormatted ignores the format of enum values on .NET 8 or later, so format the value to a string here.
+                        writer.AppendFormatted(((IFormattable)v!).ToString(format, null), alignment);
+                        return true;
+                    }
+
                     var name = EnumDictionary<T>.GetUtf8Name(v);
-                    if (name.Length != 0)
+                    if (name.Length == 0)
+                    {
+                        writer.AppendFormatted(v, alignment);
+                    }
+                    else if (alignment == 0)
                     {
                         writer.AppendUtf8(name);
                     }
                     else
                     {
-                        writer.AppendFormatted(v, alignment, format);
+                        // Use the string overload, which pads by the char count, as the alignment of interpolated strings does.
+                        writer.AppendFormatted(EnumDictionary<T>.GetStringName(v)!, alignment);
                     }
                 }
                 return true;
