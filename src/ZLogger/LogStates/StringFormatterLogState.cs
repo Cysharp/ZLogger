@@ -25,6 +25,19 @@ namespace ZLogger.LogStates
 
             if (originalState is IReadOnlyList<KeyValuePair<string, object?>> x)
             {
+                if (formatImmediately)
+                {
+                    // ILogger.Log does not promise that the state stays valid after it returns
+                    // (ASP.NET Core hosting logs read the live HttpRequest), so take the
+                    // parameters now instead of reading them later on the writer thread.
+                    var copy = new KeyValuePair<string, object?>[x.Count];
+                    for (var i = 0; i < copy.Length; i++)
+                    {
+                        copy[i] = x[i];
+                    }
+                    x = copy;
+                }
+
                 originalStateParameters = x;
                 if (x.Count != 0 && x[^1].Key == "{OriginalFormat}")
                 {
