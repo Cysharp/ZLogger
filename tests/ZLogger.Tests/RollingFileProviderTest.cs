@@ -237,9 +237,9 @@ public class RollingFileProviderTest
         stream.Write(Encoding.UTF8.GetBytes("c"), 0, 1);
         stream.Dispose();
 
-        File.ReadAllText(Path.Join(directory, "same-instant-2000-01-01-09-0.log")).Should().Be("ab");
-        File.ReadAllText(Path.Join(directory, "same-instant-2000-01-01-10-0.log")).Should().Be("c");
-        File.Exists(Path.Join(directory, "same-instant-2000-01-01-09-1.log")).Should().BeFalse();
+        Assert.Equal("ab", File.ReadAllText(Path.Join(directory, "same-instant-2000-01-01-09-0.log")));
+        Assert.Equal("c", File.ReadAllText(Path.Join(directory, "same-instant-2000-01-01-10-0.log")));
+        Assert.False(File.Exists(Path.Join(directory, "same-instant-2000-01-01-09-1.log")));
     }
 
     [Fact]
