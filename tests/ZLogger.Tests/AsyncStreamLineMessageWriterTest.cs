@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using FluentAssertions;
 using ZLogger.Internal;
 
@@ -25,7 +26,7 @@ namespace ZLogger.Tests
         // 1 byte short of full (the documented trigger condition for the fallback path) and
         // invokes the real (private) AppendLine method via reflection.
         [Fact]
-        public void AppendLine_AtBufferBoundary_DoesNotCorruptWriterState_OnLFPlatforms()
+        public async Task AppendLine_AtBufferBoundary_DoesNotCorruptWriterState_OnLFPlatforms()
         {
             if (Environment.NewLine.Length != 1)
             {
@@ -46,8 +47,8 @@ namespace ZLogger.Tests
                 var writer = new StreamBufferWriter(ms);
 
                 // Prime the writer to exactly 1 byte short of full.
-                var filler = writer.GetSpan(BufferCapacity - 1);
-                filler.Slice(0, BufferCapacity - 1).Fill((byte)'x');
+                // The span is not stored in a local, which async methods cannot declare before C# 13 (net8.0 uses C# 12).
+                writer.GetSpan(BufferCapacity - 1).Slice(0, BufferCapacity - 1).Fill((byte)'x');
                 writer.Advance(BufferCapacity - 1);
 
                 // Exercises the real (fixed or unfixed) AppendLine implementation.
@@ -75,7 +76,7 @@ namespace ZLogger.Tests
             }
             finally
             {
-                target.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                await target.DisposeAsync();
             }
         }
     }
