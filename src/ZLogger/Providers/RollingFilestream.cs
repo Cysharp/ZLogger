@@ -70,7 +70,7 @@ internal partial class RollingFileStream : Stream
     {
         var now = timeProvider?.GetUtcNow() ?? DateTimeOffset.UtcNow;
         // FilePathSelector receives UTC by contract, while rolling intervals are based on local time.
-        var localNow = timeProvider?.GetLocalNow() ?? DateTimeOffset.Now;
+        var localNow = TimeZoneInfo.ConvertTime(now, timeProvider?.LocalTimeZone ?? TimeZoneInfo.Local);
         var currentCheckpoint = GetCurrentCheckpoint(localNow);
 
         // needs to create next file
