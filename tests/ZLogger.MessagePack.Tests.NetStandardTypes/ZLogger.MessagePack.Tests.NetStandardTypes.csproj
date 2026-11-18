@@ -11,6 +11,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MessagePack" Version="4.0.0-preview.1" />
+    <PackageReference Include="MessagePack" Version="4.0.0-rc.1" />
   </ItemGroup>
 </Project>
