@@ -14,16 +14,16 @@ namespace ZLogger.Tests
         public void AddGrowsAndPreservesOrder()
         {
             var list = new SpanList<int>();
-            list.Count.Should().Be(0);
-            list.AsSpan().Length.Should().Be(0);
+            Assert.Equal(0, list.Count);
+            Assert.Equal(0, list.AsSpan().Length);
 
             for (int i = 0; i < 100; i++)
             {
                 list.Add(i);
             }
 
-            list.Count.Should().Be(100);
-            list.AsSpan().ToArray().Should().Equal(Enumerable.Range(0, 100));
+            Assert.Equal(100, list.Count);
+            Assert.Equal(Enumerable.Range(0, 100), list.AsSpan().ToArray());
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace ZLogger.Tests
             list.AddRange(new List<int>());
             list.AddRange(Enumerate(6, 10));
 
-            list.AsSpan().ToArray().Should().Equal(Enumerable.Range(-1, 17));
+            Assert.Equal(Enumerable.Range(-1, 17), list.AsSpan().ToArray());
 
             // An iterator method never implements ICollection<T>, so this source always exercises the enumeration path of AddRange.
             static IEnumerable<int> Enumerate(int start, int count)
@@ -63,12 +63,12 @@ namespace ZLogger.Tests
             var list = new SpanList<int>();
 
             list.AddRange(new List<int>(Enumerable.Range(0, 10)));
-            list.Count.Should().Be(10);
-            list.AsSpan().ToArray().Should().Equal(Enumerable.Range(0, 10));
+            Assert.Equal(10, list.Count);
+            Assert.Equal(Enumerable.Range(0, 10), list.AsSpan().ToArray());
 
             list.AddRange(new List<int>(Enumerable.Range(10, 3)));
-            list.Count.Should().Be(13);
-            list.AsSpan().ToArray().Should().Equal(Enumerable.Range(0, 13));
+            Assert.Equal(13, list.Count);
+            Assert.Equal(Enumerable.Range(0, 13), list.AsSpan().ToArray());
         }
 
         /// <summary>
@@ -85,8 +85,8 @@ namespace ZLogger.Tests
             var copy = new SpanList<string>(source.AsSpan());
             source.Clear();
 
-            copy.Count.Should().Be(3);
-            copy.AsSpan().ToArray().Should().Equal("x", null, "y");
+            Assert.Equal(3, copy.Count);
+            Assert.Equal(new[] { "x", null, "y" }, copy.AsSpan().ToArray());
         }
     }
 }

@@ -35,7 +35,7 @@ namespace ZLogger.Tests
 
             logger.ZLogDebug($"{e} {ne} {dt:yyyy-MM-dd} {dto:yyyy-MM-ddzzz} {dtn:yyyy-MM-dd} {gd} {gd2} {inn}");
 
-            processor.DequeueAsString().Should().Be($"Orange Fruit 1999-12-31 2001-01-03+04:00 2014-03-04 {gd} {gd2} 100");
+            Assert.Equal($"Orange Fruit 1999-12-31 2001-01-03+04:00 2014-03-04 {gd} {gd2} 100", processor.DequeueAsString());
         }
 
 

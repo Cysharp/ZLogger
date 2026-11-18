@@ -9,7 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentAssertions" Version="6.7.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.13" />
     <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="10.0.13" />
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.11.0" />
@@ -23,7 +22,6 @@
   <ItemGroup>
     <Using Include="Xunit" />
     <Using Include="ZLogger" />
-    <Using Include="FluentAssertions" />
     <Using Include="Microsoft.Extensions.Logging" />
   </ItemGroup>
 </Project>

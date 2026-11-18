@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using FluentAssertions;
 using MessagePack;
 using Microsoft.Extensions.Logging;
 using Xunit;
@@ -45,7 +44,7 @@ public class StreamOutputTest
             }
         }
 
-        errors.Should().BeEmpty();
+        Assert.Empty(errors);
 
         // MemoryStream.ToArray works after the provider has disposed the stream.
         var options = new MessagePackSerializerOptions(MessagePackFormatterFactory.Default.WithContractless());
@@ -56,6 +55,6 @@ public class StreamOutputTest
             indexes.Add(Convert.ToInt32(entry["i"]));
         }
 
-        indexes.Should().Equal(System.Linq.Enumerable.Range(-1, count + 1));
+        Assert.Equal(System.Linq.Enumerable.Range(-1, count + 1), indexes);
     }
 }

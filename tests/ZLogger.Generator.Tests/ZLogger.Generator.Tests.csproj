@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentAssertions" Version="6.7.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
     <PackageReference Include="Utf8StringInterpolation" Version="1.3.2" />
     <PackageReference Include="xunit.v3" Version="4.0.2" />
@@ -26,7 +25,6 @@
   <ItemGroup>
     <Using Include="Xunit" />
     <Using Include="ZLogger" />
-    <Using Include="FluentAssertions" />
     <Using Include="Microsoft.Extensions.Logging" />
   </ItemGroup>
 </Project>

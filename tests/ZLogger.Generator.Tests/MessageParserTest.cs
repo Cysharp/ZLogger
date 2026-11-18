@@ -8,31 +8,34 @@ namespace ZLogger.Generator.Tests
         public void BasicCase()
         {
             {
-                MessageParser.TryParseFormat(null, out var segments).Should().BeTrue();
-                MessageParser.TryParseFormat("", out segments).Should().BeTrue();
+                Assert.True(MessageParser.TryParseFormat(null, out var segments));
+                Assert.True(MessageParser.TryParseFormat("", out segments));
             }
 
             {
-                MessageParser.TryParseFormat("Could not open socket to {hostName} {ipAddress}.", out var segments).Should().BeTrue();
-                segments.Length.Should().Be(5);
-                segments[0].Kind.Should().Be(MessageSegmentKind.Text);
-                segments[0].TextSegment.Should().Be("Could not open socket to ").And.Be(segments[0].UnescapedTextSegment);
+                Assert.True(MessageParser.TryParseFormat("Could not open socket to {hostName} {ipAddress}.", out var segments));
+                Assert.Equal(5, segments.Length);
+                Assert.Equal(MessageSegmentKind.Text, segments[0].Kind);
+                Assert.Equal("Could not open socket to ", segments[0].TextSegment);
+                Assert.Equal(segments[0].UnescapedTextSegment, segments[0].TextSegment);
 
-                segments[1].Kind.Should().Be(MessageSegmentKind.NameParameter);
-                segments[1].NameParameter.Should().Be("hostName");
-                (segments[1].Alignment, segments[1].FormatString).Should().Be((null, null));
+                Assert.Equal(MessageSegmentKind.NameParameter, segments[1].Kind);
+                Assert.Equal("hostName", segments[1].NameParameter);
+                Assert.Equal((null, null), (segments[1].Alignment, segments[1].FormatString));
 
-                segments[2].Kind.Should().Be(MessageSegmentKind.Text);
-                segments[2].TextSegment.Should().Be(" ").And.Be(segments[2].UnescapedTextSegment);
+                Assert.Equal(MessageSegmentKind.Text, segments[2].Kind);
+                Assert.Equal(" ", segments[2].TextSegment);
+                Assert.Equal(segments[2].UnescapedTextSegment, segments[2].TextSegment);
 
-                segments[3].Kind.Should().Be(MessageSegmentKind.NameParameter);
-                segments[3].NameParameter.Should().Be("ipAddress");
-                (segments[3].Alignment, segments[3].FormatString).Should().Be((null, null));
+                Assert.Equal(MessageSegmentKind.NameParameter, segments[3].Kind);
+                Assert.Equal("ipAddress", segments[3].NameParameter);
+                Assert.Equal((null, null), (segments[3].Alignment, segments[3].FormatString));
 
-                segments[4].Kind.Should().Be(MessageSegmentKind.Text);
-                segments[4].TextSegment.Should().Be(".").And.Be(segments[4].UnescapedTextSegment);
+                Assert.Equal(MessageSegmentKind.Text, segments[4].Kind);
+                Assert.Equal(".", segments[4].TextSegment);
+                Assert.Equal(segments[4].UnescapedTextSegment, segments[4].TextSegment);
 
-                string.Concat(segments.Select(x => x.ToString())).Should().Be("Could not open socket to {hostName} {ipAddress}.");
+                Assert.Equal("Could not open socket to {hostName} {ipAddress}.", string.Concat(segments.Select(x => x.ToString())));
             }
         }
 
@@ -41,125 +44,125 @@ namespace ZLogger.Generator.Tests
         {
             // Begin
             {
-                MessageParser.TryParseFormat("{0}aaa", out var segments).Should().BeTrue();
-                segments.Length.Should().Be(2);
-                segments[0].Kind.Should().Be(MessageSegmentKind.IndexParameter);
-                segments[0].IndexParameter.Should().Be(0);
-                segments[1].Kind.Should().Be(MessageSegmentKind.Text);
-                segments[1].TextSegment.Should().Be("aaa");
-                string.Concat(segments.Select(x => x.ToString())).Should().Be("{0}aaa");
+                Assert.True(MessageParser.TryParseFormat("{0}aaa", out var segments));
+                Assert.Equal(2, segments.Length);
+                Assert.Equal(MessageSegmentKind.IndexParameter, segments[0].Kind);
+                Assert.Equal(0, segments[0].IndexParameter);
+                Assert.Equal(MessageSegmentKind.Text, segments[1].Kind);
+                Assert.Equal("aaa", segments[1].TextSegment);
+                Assert.Equal("{0}aaa", string.Concat(segments.Select(x => x.ToString())));
             }
             // End
             {
-                MessageParser.TryParseFormat("aaa{0}", out var segments).Should().BeTrue();
-                segments.Length.Should().Be(2);
-                segments[0].Kind.Should().Be(MessageSegmentKind.Text);
-                segments[0].TextSegment.Should().Be("aaa");
-                segments[1].Kind.Should().Be(MessageSegmentKind.IndexParameter);
-                segments[1].IndexParameter.Should().Be(0);
-                string.Concat(segments.Select(x => x.ToString())).Should().Be("aaa{0}");
+                Assert.True(MessageParser.TryParseFormat("aaa{0}", out var segments));
+                Assert.Equal(2, segments.Length);
+                Assert.Equal(MessageSegmentKind.Text, segments[0].Kind);
+                Assert.Equal("aaa", segments[0].TextSegment);
+                Assert.Equal(MessageSegmentKind.IndexParameter, segments[1].Kind);
+                Assert.Equal(0, segments[1].IndexParameter);
+                Assert.Equal("aaa{0}", string.Concat(segments.Select(x => x.ToString())));
             }
             // Escape Begin/End
             {
-                MessageParser.TryParseFormat("{{aaa{foo}bbb}}", out var segments).Should().BeTrue();
-                segments.Length.Should().Be(3);
-                segments[0].Kind.Should().Be(MessageSegmentKind.Text);
-                segments[0].TextSegment.Should().Be("{{aaa");
-                segments[0].UnescapedTextSegment.Should().Be("{aaa");
-                segments[1].Kind.Should().Be(MessageSegmentKind.NameParameter);
-                segments[1].NameParameter.Should().Be("foo");
-                segments[2].Kind.Should().Be(MessageSegmentKind.Text);
-                segments[2].TextSegment.Should().Be("bbb}}");
-                segments[2].UnescapedTextSegment.Should().Be("bbb}");
-                string.Concat(segments.Select(x => x.ToString())).Should().Be("{{aaa{foo}bbb}}");
+                Assert.True(MessageParser.TryParseFormat("{{aaa{foo}bbb}}", out var segments));
+                Assert.Equal(3, segments.Length);
+                Assert.Equal(MessageSegmentKind.Text, segments[0].Kind);
+                Assert.Equal("{{aaa", segments[0].TextSegment);
+                Assert.Equal("{aaa", segments[0].UnescapedTextSegment);
+                Assert.Equal(MessageSegmentKind.NameParameter, segments[1].Kind);
+                Assert.Equal("foo", segments[1].NameParameter);
+                Assert.Equal(MessageSegmentKind.Text, segments[2].Kind);
+                Assert.Equal("bbb}}", segments[2].TextSegment);
+                Assert.Equal("bbb}", segments[2].UnescapedTextSegment);
+                Assert.Equal("{{aaa{foo}bbb}}", string.Concat(segments.Select(x => x.ToString())));
             }
             // Escape
             {
-                MessageParser.TryParseFormat("aaa{{{bar}}}bbb", out var segments).Should().BeTrue();
-                segments.Length.Should().Be(3);
-                segments[0].Kind.Should().Be(MessageSegmentKind.Text);
-                segments[0].TextSegment.Should().Be("aaa{{");
-                segments[0].UnescapedTextSegment.Should().Be("aaa{");
-                segments[1].Kind.Should().Be(MessageSegmentKind.NameParameter);
-                segments[1].NameParameter.Should().Be("bar");
-                segments[2].Kind.Should().Be(MessageSegmentKind.Text);
-                segments[2].TextSegment.Should().Be("}}bbb");
-                segments[2].UnescapedTextSegment.Should().Be("}bbb");
-                string.Concat(segments.Select(x => x.ToString())).Should().Be("aaa{{{bar}}}bbb");
+                Assert.True(MessageParser.TryParseFormat("aaa{{{bar}}}bbb", out var segments));
+                Assert.Equal(3, segments.Length);
+                Assert.Equal(MessageSegmentKind.Text, segments[0].Kind);
+                Assert.Equal("aaa{{", segments[0].TextSegment);
+                Assert.Equal("aaa{", segments[0].UnescapedTextSegment);
+                Assert.Equal(MessageSegmentKind.NameParameter, segments[1].Kind);
+                Assert.Equal("bar", segments[1].NameParameter);
+                Assert.Equal(MessageSegmentKind.Text, segments[2].Kind);
+                Assert.Equal("}}bbb", segments[2].TextSegment);
+                Assert.Equal("}bbb", segments[2].UnescapedTextSegment);
+                Assert.Equal("aaa{{{bar}}}bbb", string.Concat(segments.Select(x => x.ToString())));
             }
             // TextOnly
             {
-                MessageParser.TryParseFormat("aaabbbccc", out var segments).Should().BeTrue();
-                segments.Length.Should().Be(1);
-                segments[0].Kind.Should().Be(MessageSegmentKind.Text);
-                segments[0].TextSegment.Should().Be("aaabbbccc");
-                string.Concat(segments.Select(x => x.ToString())).Should().Be("aaabbbccc");
+                Assert.True(MessageParser.TryParseFormat("aaabbbccc", out var segments));
+                Assert.Single(segments);
+                Assert.Equal(MessageSegmentKind.Text, segments[0].Kind);
+                Assert.Equal("aaabbbccc", segments[0].TextSegment);
+                Assert.Equal("aaabbbccc", string.Concat(segments.Select(x => x.ToString())));
             }
             // ParameterOnly
             {
-                MessageParser.TryParseFormat("{0}", out var segments).Should().BeTrue();
-                segments.Length.Should().Be(1);
-                segments[0].Kind.Should().Be(MessageSegmentKind.IndexParameter);
-                segments[0].IndexParameter.Should().Be(0);
-                string.Concat(segments.Select(x => x.ToString())).Should().Be("{0}");
+                Assert.True(MessageParser.TryParseFormat("{0}", out var segments));
+                Assert.Single(segments);
+                Assert.Equal(MessageSegmentKind.IndexParameter, segments[0].Kind);
+                Assert.Equal(0, segments[0].IndexParameter);
+                Assert.Equal("{0}", string.Concat(segments.Select(x => x.ToString())));
             }
             // ParameterOnly2
             {
-                MessageParser.TryParseFormat("{0}{foo}", out var segments).Should().BeTrue();
-                segments.Length.Should().Be(2);
-                segments[0].Kind.Should().Be(MessageSegmentKind.IndexParameter);
-                segments[0].IndexParameter.Should().Be(0);
-                segments[1].Kind.Should().Be(MessageSegmentKind.NameParameter);
-                segments[1].NameParameter.Should().Be("foo");
-                string.Concat(segments.Select(x => x.ToString())).Should().Be("{0}{foo}");
+                Assert.True(MessageParser.TryParseFormat("{0}{foo}", out var segments));
+                Assert.Equal(2, segments.Length);
+                Assert.Equal(MessageSegmentKind.IndexParameter, segments[0].Kind);
+                Assert.Equal(0, segments[0].IndexParameter);
+                Assert.Equal(MessageSegmentKind.NameParameter, segments[1].Kind);
+                Assert.Equal("foo", segments[1].NameParameter);
+                Assert.Equal("{0}{foo}", string.Concat(segments.Select(x => x.ToString())));
             }
             // AlignmentOnly
             {
-                MessageParser.TryParseFormat("aaa{bbb,100}", out var segments).Should().BeTrue();
-                segments.Length.Should().Be(2);
-                segments[0].Kind.Should().Be(MessageSegmentKind.Text);
-                segments[0].TextSegment.Should().Be("aaa");
-                segments[1].Kind.Should().Be(MessageSegmentKind.NameParameter);
-                segments[1].NameParameter.Should().Be("bbb");
-                segments[1].Alignment.Should().Be("100");
-                string.Concat(segments.Select(x => x.ToString())).Should().Be("aaa{bbb,100}");
+                Assert.True(MessageParser.TryParseFormat("aaa{bbb,100}", out var segments));
+                Assert.Equal(2, segments.Length);
+                Assert.Equal(MessageSegmentKind.Text, segments[0].Kind);
+                Assert.Equal("aaa", segments[0].TextSegment);
+                Assert.Equal(MessageSegmentKind.NameParameter, segments[1].Kind);
+                Assert.Equal("bbb", segments[1].NameParameter);
+                Assert.Equal("100", segments[1].Alignment);
+                Assert.Equal("aaa{bbb,100}", string.Concat(segments.Select(x => x.ToString())));
             }
             // FormatOnly
             {
-                MessageParser.TryParseFormat("{0:X}ccc", out var segments).Should().BeTrue();
-                segments.Length.Should().Be(2);
-                segments[0].Kind.Should().Be(MessageSegmentKind.IndexParameter);
-                segments[0].IndexParameter.Should().Be(0);
-                segments[0].FormatString.Should().Be("X");
-                segments[1].Kind.Should().Be(MessageSegmentKind.Text);
-                segments[1].TextSegment.Should().Be("ccc");
-                string.Concat(segments.Select(x => x.ToString())).Should().Be("{0:X}ccc");
+                Assert.True(MessageParser.TryParseFormat("{0:X}ccc", out var segments));
+                Assert.Equal(2, segments.Length);
+                Assert.Equal(MessageSegmentKind.IndexParameter, segments[0].Kind);
+                Assert.Equal(0, segments[0].IndexParameter);
+                Assert.Equal("X", segments[0].FormatString);
+                Assert.Equal(MessageSegmentKind.Text, segments[1].Kind);
+                Assert.Equal("ccc", segments[1].TextSegment);
+                Assert.Equal("{0:X}ccc", string.Concat(segments.Select(x => x.ToString())));
             }
             // FullParameter
             {
-                MessageParser.TryParseFormat("{a,10:X}{0,-1:Z}", out var segments).Should().BeTrue();
-                segments.Length.Should().Be(2);
-                segments[0].Kind.Should().Be(MessageSegmentKind.NameParameter);
-                segments[0].NameParameter.Should().Be("a");
-                segments[0].Alignment.Should().Be("10");
-                segments[0].FormatString.Should().Be("X");
-                segments[1].Kind.Should().Be(MessageSegmentKind.IndexParameter);
-                segments[1].IndexParameter.Should().Be(0);
-                segments[1].Alignment.Should().Be("-1");
-                segments[1].FormatString.Should().Be("Z");
-                string.Concat(segments.Select(x => x.ToString())).Should().Be("{a,10:X}{0,-1:Z}");
+                Assert.True(MessageParser.TryParseFormat("{a,10:X}{0,-1:Z}", out var segments));
+                Assert.Equal(2, segments.Length);
+                Assert.Equal(MessageSegmentKind.NameParameter, segments[0].Kind);
+                Assert.Equal("a", segments[0].NameParameter);
+                Assert.Equal("10", segments[0].Alignment);
+                Assert.Equal("X", segments[0].FormatString);
+                Assert.Equal(MessageSegmentKind.IndexParameter, segments[1].Kind);
+                Assert.Equal(0, segments[1].IndexParameter);
+                Assert.Equal("-1", segments[1].Alignment);
+                Assert.Equal("Z", segments[1].FormatString);
+                Assert.Equal("{a,10:X}{0,-1:Z}", string.Concat(segments.Select(x => x.ToString())));
             }
         }
 
         [Fact]
         public void ParseFailPatterns()
         {
-            MessageParser.TryParseFormat("{", out var segments).Should().BeFalse();
-            MessageParser.TryParseFormat("{aaa", out segments).Should().BeFalse();
-            MessageParser.TryParseFormat("}", out segments).Should().BeFalse();
-            MessageParser.TryParseFormat("aaa}", out segments).Should().BeFalse();
-            MessageParser.TryParseFormat("a      f{           ", out segments).Should().BeFalse();
-            MessageParser.TryParseFormat("a  {}   b", out segments).Should().BeFalse();
+            Assert.False(MessageParser.TryParseFormat("{", out var segments));
+            Assert.False(MessageParser.TryParseFormat("{aaa", out segments));
+            Assert.False(MessageParser.TryParseFormat("}", out segments));
+            Assert.False(MessageParser.TryParseFormat("aaa}", out segments));
+            Assert.False(MessageParser.TryParseFormat("a      f{           ", out segments));
+            Assert.False(MessageParser.TryParseFormat("a  {}   b", out segments));
         }
     }
 }

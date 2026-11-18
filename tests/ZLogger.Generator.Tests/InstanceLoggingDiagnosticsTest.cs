@@ -27,7 +27,7 @@ public partial class Example{{constructor}}
 }
 """);
 
-        diagnostics.Where(x => x.Id != "CS8795").Select(x => x.Id).Should().Equal(diagnosticId);
+        Assert.Equal(new[] { diagnosticId }, diagnostics.Where(x => x.Id != "CS8795").Select(x => x.Id));
     }
 
     [Theory]
@@ -47,7 +47,7 @@ public partial class Example(ILogger logger)
 }
 """);
 
-        diagnostics.Where(x => x.Id != "CS8795").Select(x => x.Id).Should().Equal("ZLOG016");
+        Assert.Equal(new[] { "ZLOG016" }, diagnostics.Where(x => x.Id != "CS8795").Select(x => x.Id));
     }
 
     [Theory]
@@ -66,7 +66,7 @@ public partial class Example{{constructor}}
 }
 """);
 
-        diagnostics.Should().BeEmpty();
+        Assert.Empty(diagnostics);
     }
 
     [Theory]
@@ -93,11 +93,11 @@ public partial class Example(ILogger logger) : Base
         var diagnosticIds = diagnostics.Where(x => x.Id != "CS8795").Select(x => x.Id);
         if (diagnosticId == null)
         {
-            diagnosticIds.Should().BeEmpty();
+            Assert.Empty(diagnosticIds);
         }
         else
         {
-            diagnosticIds.Should().Equal(diagnosticId);
+            Assert.Equal(new[] { diagnosticId }, diagnosticIds);
         }
     }
 }

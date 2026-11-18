@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
-using FluentAssertions;
 using Xunit;
 
 namespace ZLogger.MessagePack.Tests;
@@ -37,9 +36,9 @@ public class ScopeTest
         }
 
         var msgpack = processor.Dequeue();
-        ((string)msgpack["Message"]).Should().Be("FooBar333 NanoNano444");
-        ((int)msgpack["X"]).Should().Be(111);
-        ((string?)msgpack["Y"]).Should().Be(null);
+        Assert.Equal("FooBar333 NanoNano444", (string)msgpack["Message"]);
+        Assert.Equal(111, (int)msgpack["X"]);
+        Assert.Null((string?)msgpack["Y"]);
 
     }
 
@@ -54,8 +53,8 @@ public class ScopeTest
         }
 
         var msgpack = processor.Dequeue();
-        ((string)msgpack["Message"]).Should().Be("FooBar100 NanoNano200");
-        ((string)msgpack["Hoge"]).Should().Be("AAA");
+        Assert.Equal("FooBar100 NanoNano200", (string)msgpack["Message"]);
+        Assert.Equal("AAA", (string)msgpack["Hoge"]);
     }
 
     [Fact]
@@ -69,8 +68,8 @@ public class ScopeTest
         }
 
         var msgpack = processor.Dequeue();
-        ((string)msgpack["Message"]).Should().Be("FooBar100 NanoNano200");
-        ((int)msgpack["Scope"]["x"]).Should().Be(999);
+        Assert.Equal("FooBar100 NanoNano200", (string)msgpack["Message"]);
+        Assert.Equal(999, (int)msgpack["Scope"]["x"]);
     }
 
     [Fact]
@@ -88,12 +87,12 @@ public class ScopeTest
 
         var msgpack1 = processor.Dequeue();
         var msgpack2 = processor.Dequeue();
-        ((string)msgpack1["Message"]).Should().Be("Message 1");
-        ((int)msgpack1["A"]).Should().Be(100);
-        ((bool)msgpack1.ContainsKey("B")).Should().BeFalse();
+        Assert.Equal("Message 1", (string)msgpack1["Message"]);
+        Assert.Equal(100, (int)msgpack1["A"]);
+        Assert.False((bool)msgpack1.ContainsKey("B"));
 
-        ((string)msgpack2["Message"]).Should().Be("Message 2");
-        ((int)msgpack2["A"]).Should().Be(100);
-        ((int)msgpack2["B"]).Should().Be(200);
+        Assert.Equal("Message 2", (string)msgpack2["Message"]);
+        Assert.Equal(100, (int)msgpack2["A"]);
+        Assert.Equal(200, (int)msgpack2["B"]);
     }
 }

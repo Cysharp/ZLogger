@@ -10,11 +10,11 @@ public class InstanceLoggingTest
     {
         using var factory = TestHelper.CreateMessageLogger<InstanceLoggingTest>(out var logger, out var messages);
         new FieldLoggingExample(logger).Bar(10, 20);
-        messages.Should().Equal("Bar: 10 20");
+        Assert.Equal(new[] { "Bar: 10 20" }, messages);
 
         using var jsonFactory = TestHelper.CreateJsonLogger<InstanceLoggingTest>(out var jsonLogger, out var json);
         new FieldLoggingExample(jsonLogger).Bar(10, 20);
-        json.Should().Equal("{\"x\":10,\"y\":20}");
+        Assert.Equal(new[] { "{\"x\":10,\"y\":20}" }, json);
     }
 
     [Fact]
@@ -22,11 +22,11 @@ public class InstanceLoggingTest
     {
         using var factory = TestHelper.CreateMessageLogger<InstanceLoggingTest>(out var logger, out var messages);
         new PrimaryLoggingExample(logger).Bar(30, 40);
-        messages.Should().Equal("Bar: 30 40");
+        Assert.Equal(new[] { "Bar: 30 40" }, messages);
 
         using var jsonFactory = TestHelper.CreateJsonLogger<InstanceLoggingTest>(out var jsonLogger, out var json);
         new PrimaryLoggingExample(jsonLogger).Bar(30, 40);
-        json.Should().Equal("{\"x\":30,\"y\":40}");
+        Assert.Equal(new[] { "{\"x\":30,\"y\":40}" }, json);
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class InstanceLoggingTest
         using var factory = TestHelper.CreateMessageLogger<InstanceLoggingTest>(out var logger, out var messages);
         new GenericFieldLoggingExample(logger).Bar(10, 20);
         new GenericPrimaryLoggingExample(logger).Bar(30, 40);
-        messages.Should().Equal("Bar: 10 20", "Bar: 30 40");
+        Assert.Equal(new[] { "Bar: 10 20", "Bar: 30 40" }, messages);
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class InstanceLoggingTest
     {
         using var factory = TestHelper.CreateMessageLogger<InstanceLoggingTest>(out var logger, out var messages);
         new FieldLoggingExample(logger).ShadowedField("value");
-        messages.Should().Equal("Field: value");
+        Assert.Equal(new[] { "Field: value" }, messages);
     }
 
     [Fact]
@@ -52,8 +52,8 @@ public class InstanceLoggingTest
         using var firstFactory = TestHelper.CreateMessageLogger<InstanceLoggingTest>(out var first, out var firstMessages);
         using var secondFactory = TestHelper.CreateMessageLogger<InstanceLoggingTest>(out var second, out var secondMessages);
         new FieldPrecedenceLoggingExample(first, second).Bar(10, 20);
-        firstMessages.Should().BeEmpty();
-        secondMessages.Should().Equal("Bar: 10 20");
+        Assert.Empty(firstMessages);
+        Assert.Equal(new[] { "Bar: 10 20" }, secondMessages);
     }
 
     [Fact]
@@ -63,8 +63,8 @@ public class InstanceLoggingTest
         using var secondFactory = TestHelper.CreateMessageLogger<InstanceLoggingTest>(out var second, out var secondMessages);
         new FieldLoggingExample(first).Explicit(second, 10);
         new PrimaryLoggingExample(first).Explicit(second, 20);
-        firstMessages.Should().BeEmpty();
-        secondMessages.Should().Equal("Explicit: 10", "Explicit: 20");
+        Assert.Empty(firstMessages);
+        Assert.Equal(new[] { "Explicit: 10", "Explicit: 20" }, secondMessages);
     }
 
     [Theory]
@@ -77,19 +77,19 @@ public class InstanceLoggingTest
         {
             var instance = new PrimaryLoggingExample(logger);
             instance.Bar(10, 20);
-            logger.Messages.Should().BeEmpty();
+            Assert.Empty(logger.Messages);
             instance.Unchecked(30);
         }
         else
         {
             var instance = new FieldLoggingExample(logger);
             instance.Bar(10, 20);
-            logger.Messages.Should().BeEmpty();
+            Assert.Empty(logger.Messages);
             instance.Unchecked(30);
         }
 
-        logger.EnabledChecks.Should().Be(1);
-        logger.Messages.Should().Equal("Unchecked: 30");
+        Assert.Equal(1, logger.EnabledChecks);
+        Assert.Equal(new[] { "Unchecked: 30" }, logger.Messages);
     }
 
     [Theory]
@@ -108,13 +108,13 @@ public class InstanceLoggingTest
             new FieldLoggingExample(logger).Dynamic(LogLevel.Warning, exception, 42);
         }
 
-        logger.EnabledChecks.Should().Be(1);
-        logger.CheckedLevel.Should().Be(LogLevel.Warning);
-        logger.Level.Should().Be(LogLevel.Warning);
-        logger.Event.Id.Should().Be(primaryConstructor ? 43 : 42);
-        logger.Event.Name.Should().Be("Dynamic");
-        logger.Exception.Should().BeSameAs(exception);
-        logger.Messages.Should().Equal("Value: 42");
+        Assert.Equal(1, logger.EnabledChecks);
+        Assert.Equal(LogLevel.Warning, logger.CheckedLevel);
+        Assert.Equal(LogLevel.Warning, logger.Level);
+        Assert.Equal(primaryConstructor ? 43 : 42, logger.Event.Id);
+        Assert.Equal("Dynamic", logger.Event.Name);
+        Assert.Same(exception, logger.Exception);
+        Assert.Equal(new[] { "Value: 42" }, logger.Messages);
     }
 
     sealed class RecordingLogger : ILogger
