@@ -622,6 +622,69 @@ public class FormatterTest
     }
 
     /// <summary>
+    /// Ensures that with the default options, a parameter and a scope value whose member is declared non-nullable but holds null
+    /// are written with that member as nil, as with MessagePack v2, instead of the serialization throwing and the entry being lost.
+    /// MessagePack v4 validates nullable annotations by default, and the default options of the formatter turn that off.
+    /// </summary>
+    [Fact]
+    public void NullInNonNullableMemberIsWrittenAsNil()
+    {
+        var loggerFactory = LoggerFactory.Create(x =>
+        {
+            x.SetMinimumLevel(LogLevel.Debug);
+            x.AddZLoggerLogProcessor(options =>
+            {
+                options.TimeProvider = timeProvider;
+                options.IncludeScopes = true;
+                return processor;
+            });
+        });
+        logger = loggerFactory.CreateLogger("test");
+
+        var payload = new NonNullableMemberPayload { Name = null! };
+        using (logger.BeginScope("{ScopePayload}", payload))
+        {
+            logger.ZLogInformation($"{payload}");
+        }
+
+        var msgpack = processor.Dequeue();
+        Assert.Null((object?)msgpack["payload"]["name"]);
+        Assert.Null((object?)msgpack["ScopePayload"]["name"]);
+    }
+
+    /// <summary>
+    /// Ensures that options set to the formatter are used as they are, including their nullable annotation validation:
+    /// with a resolver that validates the annotations, a parameter whose non-nullable member holds null makes the logging call
+    /// throw, and nothing of the entry is written. The formatter must not replace the settings the application chose.
+    /// </summary>
+    [Fact]
+    public void OptionsKeepTheirNullableAnnotationValidation()
+    {
+        processor = new TestProcessor(new MessagePackZLoggerFormatter
+        {
+            MessagePackSerializerOptions = new MessagePackSerializerOptions(
+                new MessagePackFormatterResolver(MessagePackFormatterFactory.Default) { ValidateNullableAnnotations = true })
+        });
+
+        var loggerFactory = LoggerFactory.Create(x =>
+        {
+            x.SetMinimumLevel(LogLevel.Debug);
+            x.AddZLoggerLogProcessor(options =>
+            {
+                options.TimeProvider = timeProvider;
+                return processor;
+            });
+        });
+        logger = loggerFactory.CreateLogger("test");
+
+        var payload = new NonNullableMemberPayload { Name = null! };
+        // Microsoft.Extensions.Logging wraps an exception thrown by a logger in AggregateException.
+        var thrown = Assert.Throws<AggregateException>(() => logger.ZLogInformation($"{payload}"));
+        Assert.IsType<MessagePackSerializationException>(Assert.Single(thrown.InnerExceptions));
+        Assert.Empty(processor.EntryMessages);
+    }
+
+    /// <summary>
     /// Ensures that formatting which re-enters the formatter on the same thread does not corrupt the outer entry:
     /// a parameter's ToString logs through the same logger while the outer entry is being formatted, and TestProcessor
     /// formats synchronously in Post, like the in-memory provider. Both entries must be read back intact.

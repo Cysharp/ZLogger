@@ -30,6 +30,15 @@ namespace ZLogger.MessagePack.Tests
         }
     }
 
+    // Declared in a nullable-enabled context, so MessagePack v4 checks that Name is not null when the nullable annotation
+    // validation of the resolver is on. The tests set Name to null to put the object in a state that breaks its annotations.
+    [MessagePackObject]
+    public class NonNullableMemberPayload
+    {
+        [Key("name")]
+        public string Name { get; set; } = "";
+    }
+
     // No MessagePack attributes and not contractless-resolvable by default, so serializing it throws.
     public class UnserializableValue
     {
