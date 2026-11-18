@@ -125,12 +125,12 @@ public class RollingFileProviderTest
         using var loggerFactory = CreateLocalDateFactory("local-time", timeProvider, timeZone);
         var logger = loggerFactory.CreateLogger("local-time");
         logger.LogDebug("before local midnight");
-        await Task.Delay(100); // wait for flush
+        await Task.Delay(100, TestContext.Current.CancellationToken); // wait for flush
 
         // 00:01 local, still 2000-01-01 in UTC
         timeProvider.Advance(TimeSpan.FromMinutes(2));
         logger.LogDebug("after local midnight");
-        await Task.Delay(100); // wait for flush
+        await Task.Delay(100, TestContext.Current.CancellationToken); // wait for flush
 
         loggerFactory.Dispose();
 
@@ -158,11 +158,11 @@ public class RollingFileProviderTest
         });
         var logger = loggerFactory.CreateLogger("utc-name");
         logger.LogDebug("before local midnight");
-        await Task.Delay(100); // wait for flush
+        await Task.Delay(100, TestContext.Current.CancellationToken); // wait for flush
 
         timeProvider.Advance(TimeSpan.FromMinutes(2));
         logger.LogDebug("after local midnight");
-        await Task.Delay(100); // wait for flush
+        await Task.Delay(100, TestContext.Current.CancellationToken); // wait for flush
 
         loggerFactory.Dispose();
 
@@ -180,12 +180,12 @@ public class RollingFileProviderTest
         using var loggerFactory = CreateLocalDateFactory("dst-start", timeProvider, timeZone);
         var logger = loggerFactory.CreateLogger("dst-start");
         logger.LogDebug("a");
-        await Task.Delay(100); // wait for flush
+        await Task.Delay(100, TestContext.Current.CancellationToken); // wait for flush
 
         // 2026-03-30 00:30 CEST, DST started at 02:00 on 2026-03-29
         timeProvider.SetUtcNow(new DateTimeOffset(2026, 3, 29, 22, 30, 0, TimeSpan.Zero));
         logger.LogDebug("b");
-        await Task.Delay(100); // wait for flush
+        await Task.Delay(100, TestContext.Current.CancellationToken); // wait for flush
 
         loggerFactory.Dispose();
 
@@ -203,17 +203,17 @@ public class RollingFileProviderTest
         using var loggerFactory = CreateLocalDateFactory("dst-end", timeProvider, timeZone);
         var logger = loggerFactory.CreateLogger("dst-end");
         logger.LogDebug("a");
-        await Task.Delay(100); // wait for flush
+        await Task.Delay(100, TestContext.Current.CancellationToken); // wait for flush
 
         // 2026-10-25 23:30 CET, DST ended at 03:00 on 2026-10-25
         timeProvider.SetUtcNow(new DateTimeOffset(2026, 10, 25, 22, 30, 0, TimeSpan.Zero));
         logger.LogDebug("b");
-        await Task.Delay(100); // wait for flush
+        await Task.Delay(100, TestContext.Current.CancellationToken); // wait for flush
 
         // 2026-10-26 00:30 CET
         timeProvider.Advance(TimeSpan.FromHours(1));
         logger.LogDebug("c");
-        await Task.Delay(100); // wait for flush
+        await Task.Delay(100, TestContext.Current.CancellationToken); // wait for flush
 
         loggerFactory.Dispose();
 
