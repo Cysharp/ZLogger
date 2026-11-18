@@ -223,6 +223,26 @@ public class RollingFileProviderTest
     }
 
     [Fact]
+    public void RollingIntervalUsesSameInstantForCheckpointAndFileName()
+    {
+        var timeProvider = new SteppingTimeProvider(new DateTimeOffset(2000, 1, 1, 9, 30, 0, TimeSpan.Zero));
+        var stream = new RollingFileStream(
+            (timestamp, sequence) => Path.Join(directory, $"same-instant-{timestamp:yyyy-MM-dd-HH}-{sequence}.log"),
+            RollingInterval.Hour, 5, timeProvider, false);
+        stream.Write(Encoding.UTF8.GetBytes("a"), 0, 1);
+
+        // A second clock read during this write would see the next hour
+        timeProvider.SetUtcNow(new DateTimeOffset(2000, 1, 1, 9, 59, 59, TimeSpan.Zero), new DateTimeOffset(2000, 1, 1, 10, 0, 0, TimeSpan.Zero));
+        stream.Write(Encoding.UTF8.GetBytes("b"), 0, 1);
+        stream.Write(Encoding.UTF8.GetBytes("c"), 0, 1);
+        stream.Dispose();
+
+        File.ReadAllText(Path.Join(directory, "same-instant-2000-01-01-09-0.log")).Should().Be("ab");
+        File.ReadAllText(Path.Join(directory, "same-instant-2000-01-01-10-0.log")).Should().Be("c");
+        File.Exists(Path.Join(directory, "same-instant-2000-01-01-09-1.log")).Should().BeFalse();
+    }
+
+    [Fact]
     public void SharedFileStreamDisposesFileStream()
     {
         var path = Path.Join(directory, "shared-dispose-0.log");
@@ -306,5 +326,31 @@ public class RollingFileProviderTest
             TimeZoneInfo.TransitionTime.CreateFloatingDateRule(new DateTime(1, 1, 1, 2, 0, 0), 3, 5, DayOfWeek.Sunday),
             TimeZoneInfo.TransitionTime.CreateFloatingDateRule(new DateTime(1, 1, 1, 3, 0, 0), 10, 5, DayOfWeek.Sunday));
         return TimeZoneInfo.CreateCustomTimeZone("CET-Test", TimeSpan.FromHours(1), "CET-Test", "CET", "CEST", [rule]);
+    }
+
+    // Returns the given time once, then the next time for every later read
+    private class SteppingTimeProvider(DateTimeOffset utcNow) : TimeProvider
+    {
+        private DateTimeOffset utcNow = utcNow;
+        private DateTimeOffset? nextUtcNow;
+
+        public override TimeZoneInfo LocalTimeZone => TimeZoneInfo.Utc;
+
+        public void SetUtcNow(DateTimeOffset utcNow, DateTimeOffset nextUtcNow)
+        {
+            this.utcNow = utcNow;
+            this.nextUtcNow = nextUtcNow;
+        }
+
+        public override DateTimeOffset GetUtcNow()
+        {
+            var result = utcNow;
+            if (nextUtcNow is { } next)
+            {
+                utcNow = next;
+                nextUtcNow = null;
+            }
+            return result;
+        }
     }
 }
