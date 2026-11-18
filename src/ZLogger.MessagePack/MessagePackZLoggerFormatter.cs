@@ -92,6 +92,14 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
     // would avoid the break but add API surface, so a fixed limit is used for now.
     const int MaxKeyNameMutatorRetries = 10;
 
+    // MessagePack v4 validates nullable annotations by default, so a member declared non-nullable that holds null makes the
+    // serialization throw, and the whole entry is lost. A log entry is written to be read by people rather than by the same types,
+    // and an object in such a state is often what the entry is about, so the default options write the member as nil instead,
+    // as MessagePack v2 did. MessagePack.SignalR turns the validation off in its default options for a similar reason.
+    // The resolver caches its formatters, so it is created once and shared.
+    static readonly MessagePackSerializerOptions DefaultSerializerOptions = new(
+        new MessagePackFormatterResolver(MessagePackFormatterFactory.Default) { ValidateNullableAnnotations = false });
+
     bool IZLoggerFormatter.WithLineBreak => false;
 
     /// <summary>
@@ -103,9 +111,17 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
     /// directly, regardless of the options.
     /// </summary>
     /// <remarks>
+    /// The default options are those of <see cref="MessagePackSerializerOptions.Default"/>, except that nullable annotations
+    /// are not validated (<see cref="MessagePackFormatterResolver.ValidateNullableAnnotations"/> is <see langword="false"/>):
+    /// a member declared non-nullable that holds <see langword="null"/> is written as nil, instead of making the formatting of
+    /// the entry throw. Options set to this property are used as they are, including their validation settings.
+    /// To use other formatters without the validation, create the options over a <see cref="MessagePackFormatterResolver"/>
+    /// whose <see cref="MessagePackFormatterResolver.ValidateNullableAnnotations"/> is <see langword="false"/>.
+    /// <para>
     /// Options with a <see cref="MessagePackSerializerOptions.MessageProcessor"/> are rejected.
     /// A processor such as compression applies to a whole message, while this formatter serializes each value
     /// into a part of a log entry. Compress log output at the destination instead.
+    /// </para>
     /// </remarks>
     /// <exception cref="ArgumentNullException">The value is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException">The options have a <see cref="MessagePackSerializerOptions.MessageProcessor"/>.</exception>
@@ -124,7 +140,7 @@ public class MessagePackZLoggerFormatter : IZLoggerFormatter
             }
             field = value;
         }
-    } = MessagePackSerializerOptions.Default;
+    } = DefaultSerializerOptions;
 
     public IncludeProperties IncludeProperties { get; set; } = IncludeProperties.Default;
     public MessagePackPropertyNames PropertyNames { get; set; } = MessagePackPropertyNames.Default;

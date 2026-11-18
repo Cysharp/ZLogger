@@ -660,7 +660,7 @@ The list of properties is as follows.
 
 | Name                                                               | Description                                                        |
 |:-------------------------------------------------------------------|:-------------------------------------------------------------------|
-| `MessagePackSerializerOptions MessagePackSerializerOptions`        | The options of `MessagePack-CSharp`.                               |
+| `MessagePackSerializerOptions MessagePackSerializerOptions`        | The options of `MessagePack-CSharp`. (default: `MessagePackSerializerOptions.Default` without nullable annotation validation, so a non-nullable member that holds `null` is written as nil) |
 | `IncludeProperties IncludeProperties`                              | Flags that can specify properties to be output. (default: `Timestamp| LogLevel | CategoryName | Message | Exception | ScopeKeyValues | ParameterKeyValues`) |
 | `IKeyNameMutator? KeyNameMutator`                                   | You can set the naming convention if you want to automatically convert key names. |
 
